@@ -32,6 +32,7 @@
       box-sizing: border-box;
     }
     input[readonly] { background: #eee; }
+    a { color: #0066cc; text-decoration: underline; word-break: break-all; }
   </style>
 </head>
 <body>
@@ -63,40 +64,42 @@
     const chatDiv   = document.getElementById("chat");
     const nameInput = document.getElementById("name");
 
-    /* 🔒 load name if saved */
+    // Load saved name
     const savedName = localStorage.getItem("oriontecChatName");
     if (savedName) {
       nameInput.value = savedName;
       nameInput.readOnly = true;
     }
 
-    /* 🛑 banned usernames list */
+    // Ban list
     const bannedNames = ["bakwaas", "spoilerboy", "madarchod", "badguy123"].map(n => n.toLowerCase());
 
-    /* live feed */
+    // Live chat render
     onChildAdded(messagesRef, snap => {
       const { name, text, ts } = snap.val();
       const time = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Convert links in text
+      const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, url => `<a href="${url}" target="_blank">${url}</a>`);
+
       const div  = document.createElement("div");
       div.className = "msg";
-      div.innerHTML = `<span>${name}</span> <small>(${time})</small>: ${text}`;
+      div.innerHTML = `<span>${name}</span> <small>(${time})</small>: ${linkedText}`;
       chatDiv.appendChild(div);
       chatDiv.scrollTop = chatDiv.scrollHeight;
     });
 
-    /* send with ban check and name-lock */
+    // Send message
     window.sendMessage = () => {
       const name = nameInput.value.trim();
       const text = document.getElementById("message").value.trim();
       if (!name || !text) return;
 
-      /* 🛑 ban enforcement */
       if (bannedNames.includes(name.toLowerCase())) {
         alert("🚫 You are banned from chatting.");
         return;
       }
 
-      /* 🔒 lock name first time */
       if (!nameInput.readOnly) {
         localStorage.setItem("oriontecChatName", name);
         nameInput.readOnly = true;
