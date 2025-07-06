@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Oriontec Chat Room</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f0f0;
+      padding: 10px;
+    }
+    h2 { text-align: center; }
+    #chat {
+      height: 70vh;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+    .msg { margin-bottom: 10px; }
+    .msg span { font-weight: bold; color: #007bff; }
+    .msg small { color: #666; }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input[readonly] { background: #eee; }
+    a { color: #0066cc; text-decoration: underline; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h2>💬 Oriontec Chat Room</h2>
+  <div id="chat"></div>
+
+  <input id="name" placeholder="Your name">
+  <input id="message" placeholder="Type your message" onkeyup="if(event.key==='Enter')sendMessage()">
+  <button onclick="sendMessage()">Send</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAl8eI-_8Ew9va0KPV8p4D2hc9WUTGiwuI",
+      authDomain: "chat-d647c.firebaseapp.com",
+      databaseURL: "https://chat-d647c-default-rtdb.firebaseio.com",
+      projectId: "chat-d647c",
+      storageBucket: "chat-d647c.appspot.com",
+      messagingSenderId: "1001806177737",
+      appId: "1:1001806177737:web:7248a0983dcf0d45a87418"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const messagesRef = ref(db, "messages");
+
+    const chatDiv   = document.getElementById("chat");
+    const nameInput = document.getElementById("name");
+
+    // Load saved name
+    const savedName = localStorage.getItem("oriontecChatName");
+    if (savedName) {
+      nameInput.value = savedName;
+      nameInput.readOnly = true;
+    }
+
+    // Ban list
+    const bannedNames = ["bakwaas", "spoilerboy", "madarchod", "badguy123"].map(n => n.toLowerCase());
+
+    // Live chat render
+    onChildAdded(messagesRef, snap => {
+      const { name, text, ts } = snap.val();
+      const time = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Convert links in text
+      const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, url => `<a href="${url}" target="_blank">${url}</a>`);
+
+      const div  = document.createElement("div");
+      div.className = "msg";
+      div.innerHTML = `<span>${name}</span> <small>(${time})</small>: ${linkedText}`;
+      chatDiv.appendChild(div);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    });
+
+    // Send message
+    window.sendMessage = () => {
+      const name = nameInput.value.trim();
+      const text = document.getElementById("message").value.trim();
+      if (!name || !text) return;
+
+      if (bannedNames.includes(name.toLowerCase())) {
+        alert("🚫 You are banned from chatting.");
+        return;
+      }
+
+      if (!nameInput.readOnly) {
+        localStorage.setItem("oriontecChatName", name);
+        nameInput.readOnly = true;
+      }
+
+      push(messagesRef, { name, text, ts: Date.now() });
+      document.getElementById("message").value = "";
+    };
+  </script>
+</body>
+</html>
