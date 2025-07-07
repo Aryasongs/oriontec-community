@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Oriontec Community Chat</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- ————— Minimal WhatsApp-ish styling ————— -->
+  <style>
+    :root{
+      --brand:#075e54;
+      --mine:#dcf8c6;
+      --other:#fff;
+    }
+    *{box-sizing:border-box;margin:0}
+    body{font-family:sans-serif;background:#f1f1f1;min-height:100vh}
+    #toolbar{
+      position:fixed;top:0;left:0;right:0;
+      background:var(--brand);color:#fff;
+      padding:10px 12px;font-weight:600;
+      display:flex;justify-content:space-between;align-items:center;
+      z-index:9
+    }
+    #loginBtn{
+      background:#fff;color:var(--brand);
+      border:none;padding:6px 14px;border-radius:6px;cursor:pointer
+    }
+    #msgList{padding:70px 10px 80px;max-width:720px;margin:auto}
+    .bubble{
+      margin:8px 0;max-width:75%;padding:8px 12px;border-radius:10px;
+      word-wrap:break-word;line-height:1.35;font-size:.95rem
+    }
+    .mine{background:var(--mine);margin-left:auto}
+    .other{background:var(--other);border:1px solid #ddd}
+    #composer{
+      position:fixed;bottom:0;left:0;right:0;background:#fff;
+      padding:10px;display:flex;gap:8px
+    }
+    #composer input{
+      flex:1;padding:8px;border:1px solid #ccc;border-radius:6px
+    }
+    #composer button{
+      padding:8px 18px;background:var(--brand);color:#fff;border:none;
+      border-radius:6px;cursor:pointer
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toolbar">
+    👥 Community Chat
+    <button id="loginBtn">Sign in</button>
+  </div>
+
+  <div id="msgList"></div>
+
+  <div id="composer" style="display:none">
+    <input id="msgInput" placeholder="Type something…" />
+    <button id="sendBtn">Send</button>
+  </div>
+
+<!-- ————— Firebase v11.10.0 (latest stable, July 2025) ————— -->
+<script type="module">
+  /* 1. Core + feature SDK imports */
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider,
+    signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+  import {
+    getDatabase, ref, push, onChildAdded, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+  /* 2. Your project config —— KEEP THIS SAFE!  */
+  const firebaseConfig = {
+    apiKey: "AIzaSyAl8eI-_8Ew9va0KPV8p4D2hc9WUTGiwuI",
+    authDomain: "chat-d647c.firebaseapp.com",
+    databaseURL: "https://chat-d647c-default-rtdb.firebaseio.com",
+    projectId: "chat-d647c",
+    storageBucket: "chat-d647c.appspot.com",
+    messagingSenderId: "1001806177737",
+    appId: "1:1001806177737:web:7248a0983dcf0d45a87418"
+  };
+
+  /* 3. Init services */
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getDatabase(app);
+
+  /* 4. Cache DOM refs */
+  const loginBtn = document.getElementById("loginBtn");
+  const composer = document.getElementById("composer");
+  const sendBtn  = document.getElementById("sendBtn");
+  const msgInput = document.getElementById("msgInput");
+  const msgList  = document.getElementById("msgList");
+
+  /* 5. Auth flow */
+  const provider = new GoogleAuthProvider();
+  loginBtn.onclick = () =>
+    auth.currentUser ? signOut(auth) : signInWithPopup(auth, provider);
+
+  onAuthStateChanged(auth, user => {
+    loginBtn.textContent = user ? "Sign out" : "Sign in";
+    composer.style.display = user ? "flex" : "none";
+  });
+
+  /* 6. Chat send */
+  const chatsRef = ref(db, "community/messages");
+  sendBtn.onclick = () => {
+    const text = msgInput.value.trim();
+    if (!text) return;
+    push(chatsRef, {
+      uid:  auth.currentUser.uid,
+      name: auth.currentUser.displayName || "Anon",
+      text,
+      ts:   serverTimestamp()
+    });
+    msgInput.value = "";
+  };
+
+  /* 7. Live listener */
+  onChildAdded(chatsRef, snap => {
+    const { uid, name, text } = snap.val();
+    const div = document.createElement("div");
+    div.className = "bubble " +
+      (uid === (auth.currentUser && auth.currentUser.uid) ? "mine" : "other");
+    div.innerHTML = `<strong>${name.split(" ")[0]}:</strong> ${text}`;
+    msgList.appendChild(div);
+    msgList.scrollTop = msgList.scrollHeight;
+  });
+</script>
+
+</body>
+</html>
