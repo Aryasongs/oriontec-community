@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Oriontec Verification Application</title>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 700px;
+      background: #fff;
+      padding: 30px;
+      margin: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #1a73e8;
+    }
+    .hidden { display: none; }
+    button {
+      padding: 12px 20px;
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .success-message {
+      color: green;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>✅ Oriontec Verification Requirements</h2>
+    <p><strong>Authenticity:</strong> Must represent a real person, business, or entity.</p>
+    <p><strong>Notability:</strong> Must be a public figure, celebrity, or brand.</p>
+    <p><strong>Activity:</strong> Minimum 10,000 views required.</p>
+    <p><strong>Completeness:</strong> Profile must include photo, bio, and info.</p>
+    <p><strong>Compliance:</strong> Must follow Oriontec’s community guidelines.</p>
+
+    <button onclick="showForm()">Start Application</button>
+
+    <div id="formSection" class="hidden">
+      <h2 style="margin-top: 40px;">📄 Oriontec Verification Form</h2>
+
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="date" id="dob" required>
+
+      <select id="country">
+        <option value="">Select Country</option>
+        <option>India</option>
+        <option>United States</option>
+        <option>United Kingdom</option>
+        <option>Canada</option>
+        <option>Australia</option>
+        <option>Other</option>
+      </select>
+
+      <select id="idType">
+        <option value="">Select ID Type</option>
+        <option>Passport</option>
+        <option>Driver's License</option>
+        <option>Other</option>
+      </select>
+
+      <input type="url" id="articleUrl" placeholder="Article URL proving notability" required>
+      <textarea id="reason" placeholder="Why do you want to get verified?" rows="4"></textarea>
+
+      <div class="g-recaptcha" data-sitekey="6LdllXorAAAAAJlrCEcTN8XQzSa1MToT1VLI7OIb"></div>
+
+      <button onclick="submitForm()">Submit Verification Form</button>
+
+      <div id="responseMsg" class="success-message">Thanks! Your verification form has been submitted.</div>
+    </div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyDGRtMXhbYRHV3jxyVX7qm4xzoEGbgpTLq03Hvbb-i5IvS1PjYWJ77IXyT7zCB0Wpp/exec';
+
+    function showForm() {
+      document.getElementById("formSection").classList.remove("hidden");
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    function submitForm() {
+      const name = document.getElementById('name').value.trim();
+      const dob = document.getElementById('dob').value;
+      const country = document.getElementById('country').value;
+      const idType = document.getElementById('idType').value;
+      const articleUrl = document.getElementById('articleUrl').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+      const recaptchaResponse = grecaptcha.getResponse();
+
+      if (!name || !dob || !country || !idType || !articleUrl || !reason) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      if (recaptchaResponse.length === 0) {
+        alert("Please complete the CAPTCHA.");
+        return;
+      }
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({
+          name, dob, country, idType, articleUrl, reason
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          document.getElementById('responseMsg').style.display = 'block';
+          grecaptcha.reset();
+        } else {
+          alert("Something went wrong. Please try again later.");
+        }
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    }
+  </script>
+
+</body>
+</html>
