@@ -302,6 +302,7 @@
   const storage = firebase.storage();
 
   async function submitForm() {
+  try {
     const name = document.getElementById('name').value.trim();
     const dob = document.getElementById('dob').value;
     const country = document.getElementById('country').value;
@@ -332,6 +333,14 @@
       submittedAt: new Date().toISOString()
     });
 
+    document.getElementById('formMsg').style.display = 'block';
+    document.getElementById('formMsg').innerText =
+      "Thanks! Your verification request has been submitted.";
+  } catch (err) {
+    console.error("Form submission error:", err);
+    alert("Error submitting form: " + err.message);
+  }
+}
     document.getElementById('formMsg').style.display = 'block';
     document.getElementById('formMsg').innerText =
       "Thanks! Your verification request has been submitted. You'll receive a result within 48 hours.";
