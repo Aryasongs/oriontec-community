@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Oriontec Docs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Official documentation for Oriontec Chat, Firebase backend & APIs">
+<style>
+:root{
+  --bg:#f5f6fa; --bg-dark:#121212; --txt:#222; --txt-dark:#ddd;
+  --brand:#0077cc; --brand-dark:#2196f3; --sidebar:#fff; --sidebar-dark:#1e1e1e;
+  --link:#0066cc; --link-dark:#64b5f6;
+}
+html,body{margin:0;height:100%;font-family:system-ui,Arial,sans-serif;color:var(--txt);background:var(--bg);}
+body.dark{background:var(--bg-dark);color:var(--txt-dark);}
+body{display:flex;overflow:hidden}
+aside{width:260px;background:var(--sidebar);border-right:1px solid #ddd;overflow-y:auto;display:flex;flex-direction:column;transition:.3s}
+body.dark aside{background:var(--sidebar-dark);border-color:#333}
+#nav a{display:block;padding:8px 18px;color:inherit;text-decoration:none;font-size:15px}
+#nav a:hover{background:rgba(0,0,0,.05)}
+#nav a.active{font-weight:600;color:var(--brand)}
+body.dark #nav a.active{color:var(--brand-dark)}
+.search{margin:14px 14px 8px;font-size:14px;padding:6px 10px;width:calc(100%-28px);border:1px solid #ccc;border-radius:4px}
+main{flex:1;overflow-y:auto;padding:32px 40px 80px;scroll-behavior:smooth}
+h1,h2,h3{scroll-margin-top:80px}
+code,pre{background:#eee;padding:2px 4px;border-radius:4px}
+body.dark code,body.dark pre{background:#333}
+pre{padding:12px;overflow:auto;margin:16px 0;position:relative}
+.copy{position:absolute;top:6px;right:6px;font-size:10px;padding:4px 6px;border:0;background:var(--brand);color:#fff;border-radius:3px;cursor:pointer}
+body.dark .copy{background:var(--brand-dark)}
+/* Toggle */
+#toggle{position:absolute;right:12px;top:12px;cursor:pointer;font-size:18px;background:none;border:none;color:var(--brand)}
+@media(max-width:960px){
+  aside{position:fixed;z-index:10;left:-260px;height:100vh}
+  aside.open{left:0}
+  #hamb{position:fixed;top:12px;left:12px;font-size:22px;background:none;border:none;z-index:11;color:var(--brand)}
+  main{padding:80px 24px}
+}
+</style>
+</head>
+<body>
+
+<button id="hamb">☰</button>
+<button id="toggle">🌙</button>
+
+<aside id="side">
+  <input class="search" placeholder="Search...">
+  <nav id="nav">
+    <a href="#overview">Overview</a>
+    <a href="#quick">Quick Start</a>
+    <strong style="padding:8px 18px 4px;display:block">Firebase</strong>
+    <a href="#config">Config</a>
+    <a href="#auth">Google Auth</a>
+    <a href="#db">Realtime DB</a>
+    <a href="#storage">Storage</a>
+    <a href="#rules">Security Rules</a>
+    <a href="#api">Developer API</a>
+    <a href="#faqs">FAQs</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</aside>
+
+<main>
+<h1 id="overview">Oriontec Docs 🚀</h1>
+<p>Welcome to the official docs portal for <b>Oriontec Chat</b> — a Firebase-powered real-time community platform.</p>
+
+<h2 id="quick">⚡ Quick Start</h2>
+<pre><button class="copy">copy</button><code>git clone https://github.com/Aryasongs/oriontec-community.git
+cd oriontec-community
+python -m http.server 8080    # local preview
+# open http://localhost:8080/index.html</code></pre>
+
+<h2 id="config">🔑 Firebase Config</h2>
+<p>Paste this in <code>index.html</code>:</p>
+<pre><button class="copy">copy</button><code>const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "community.oriontec.xyz",
+  databaseURL: "https://chat-d647c-default-rtdb.firebaseio.com",
+  projectId: "chat-d647c",
+  storageBucket: "chat-d647c.appspot.com",
+  messagingSenderId: "1001806177737",
+  appId: "1:1001806177737:web:7248a0983dcf0d45a87418"
+};</code></pre>
+
+<h2 id="auth">🔐 Google Auth Setup</h2>
+<ol>
+<li>Firebase Console → <b>Auth ▸ Sign-in method</b> → enable <b>Google</b></li>
+<li>OAuth consent screen: set <i>App name</i> “Oriontec Chat” → <b>Publish</b></li>
+<li>Authorized domains → add <code>community.oriontec.xyz</code></li>
+</ol>
+<pre><button class="copy">copy</button><code>import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+const auth = getAuth(app);
+signInWithPopup(auth, new GoogleAuthProvider());</code></pre>
+
+<h2 id="db">🗄️ Realtime Database</h2>
+<p><b>Schema</b></p>
+<pre><code>/
+├─ messages/{id}
+│   └─ { name, text, img, ts, expiresAt }
+└─ bannedUIDs/{uid}: true</code></pre>
+<p>Enable <b>TTL</b>: Data retention ▸ Path <code>/messages</code> ▸ Field <code>expiresAt</code> ▸ Delete.</p>
+
+<h2 id="storage">🖼️ Storage Rules</h2>
+<pre><code>rules_version = '2';
+service firebase.storage {
+ match /b/{bucket}/o {
+  match /chatPics/{file=**} {
+   allow read:  if true;
+   allow write: if request.resource.size &lt; 2*1024*1024
+                && request.resource.contentType.matches('image/.*');
+  }
+ }
+}</code></pre>
+
+<h2 id="rules">🔒 DB Security Rules</h2>
+<pre><code>{
+ "rules": {
+   "messages": {
+     ".read": true,
+     ".write": "auth != null && !root.child('bannedUIDs').child(auth.uid).exists()"
+   }
+ }
+}</code></pre>
+
+<h2 id="api">👩‍💻 Developer API</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Method</th><th>Desc</th></tr></thead>
+<tr><td>/messages</td><td>GET</td><td>List latest 50 msgs</td></tr>
+<tr><td>/messages</td><td>POST</td><td>Create new msg</td></tr>
+<tr><td>/files</td><td>POST</td><td>Upload image (&lt;2 MB)</td></tr>
+</table>
+
+<h3>Example POST</h3>
+<pre><button class="copy">copy</button><code class="language-bash">curl -X POST https://api.oriontec.xyz/v1/messages \
+ -H "Authorization: Bearer $TOKEN" \
+ -H "Content-Type: application/json" \
+ -d '{"text":"Hello world"}'</code></pre>
+
+<h2 id="faqs">❔ FAQs</h2>
+<b>Q:</b> Images ka size limit? <br><b>A:</b> 2 MB per upload.<br><br>
+<b>Q:</b> Messages kitne time baad delete hote? <br><b>A:</b> 24 hr (TTL).
+
+<h2 id="contact">📮 Contact & Support</h2>
+<ul>
+<li>Email: <a href="mailto:support@oriontec.xyz">support@oriontec.xyz</a></li>
+<li>GitHub issues: <a href="https://github.com/Aryasongs/oriontec-community">repo</a></li>
+</ul>
+
+</main>
+
+<script>
+/* Dark/light toggle */
+const body=document.body,toggle=document.getElementById('toggle');
+toggle.onclick=()=>body.classList.toggle('dark');
+
+/* Copy buttons */
+document.querySelectorAll('.copy').forEach(btn=>{
+  btn.onclick=()=>{
+    navigator.clipboard.writeText(btn.nextSibling.textContent);
+    btn.textContent="✓";
+    setTimeout(()=>btn.textContent="copy",1200);
+  };
+});
+
+/* Nav highlight */
+const cur=location.hash||"#overview";
+document.querySelectorAll("#nav a").forEach(a=>{
+  if(a.getAttribute("href")===cur) a.classList.add("active");
+});
+
+/* Search filter */
+document.querySelector(".search").addEventListener("input",e=>{
+  const q=e.target.value.toLowerCase();
+  document.querySelectorAll("#nav a").forEach(a=>{
+    a.style.display=a.textContent.toLowerCase().includes(q)?"block":"none";
+  });
+});
+
+/* Mobile sidebar toggle */
+const hamb=document.getElementById('hamb'),side=document.getElementById('side');
+hamb.onclick=()=>side.classList.toggle('open');
+</script>
+</body>
+</html>
