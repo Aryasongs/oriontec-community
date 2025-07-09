@@ -101,9 +101,18 @@
       const time = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const linked = text.replace(/(https?:\/\/[^\s]+)/g, u => `<a href="${u}" target="_blank">${u}</a>`);
       const div = document.createElement("div");
-      div.className = "msg";
-      div.innerHTML = `<span>${name}</span> <small>(${time})</small>: ${linked}`;
-      chatDiv.appendChild(div);
+div.className = "msg";
+div.innerHTML = `
+  <div style="display: flex; align-items: center;">
+    <img src="${snap.val().photo || 'https://i.imgur.com/placeholder.png'}"
+         alt="DP" style="width:30px;height:30px;border-radius:50%;margin-right:8px;">
+    <div>
+      <span>${name}</span> <small>(${time})</small><br>${linked}
+    </div>
+  </div>
+`;
+chatDiv.appendChild(div);
+chatDiv.scrollTop = chatDiv.scrollHeight;
       chatDiv.scrollTop = chatDiv.scrollHeight;
     });
 
@@ -121,7 +130,12 @@
         return;
       }
 
-      push(messagesRef, { name, text, ts: Date.now() });
+      push(messagesRef, {
+  name,
+  text,
+  ts: Date.now(),
+  photo: user.photoURL || ""
+});
       msgInput.value = "";
     };
   </script>
