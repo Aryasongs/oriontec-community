@@ -1,0 +1,128 @@
+<head>
+  <meta charset="utf-8">
+  <title>Oriontec Chat Room</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f0f0;
+      padding: 10px;
+    }
+    h2 { text-align: center; }
+    #chat {
+      height: 70vh;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+    .msg { margin-bottom: 10px; }
+    .msg span { font-weight: bold; color: #007bff; }
+    .msg small { color: #666; }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input[readonly] { background: #eee; }
+    a { color: #0066cc; text-decoration: underline; word-break: break-word; }
+    #signedUser { display: none; margin-bottom: 6px; font-size: 15px; font-weight: 600; }
+  </style>
+</head>
+
+<body>
+  <h2>💬 Oriontec Chat Room</h2>
+
+  <div id="chat"></div>
+  <input id="name" placeholder="Your name">
+  <input id="message" placeholder="Type your message" onkeyup="if(event.key==='Enter') sendMessage()" disabled>
+  <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+
+  <button id="gLogin">Sign in with Google</button>
+  <div id="signedUser"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAl8eI-_8Ew9va0KPV8p4D2hc9WUTGiwuI",
+      authDomain: "chat-d647c.firebaseapp.com",
+      projectId: "chat-d647c",
+      storageBucket: "chat-d647c.appspot.com",
+      messagingSenderId: "1001806177737",
+      appId: "1:1001806177737:web:7248a0983dcf0d45a87418"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    const messagesRef = ref(db, "messages");
+
+    // DOM References
+    const chatDiv = document.getElementById("chat");
+    const nameInput = document.getElementById("name");
+    const msgInput = document.getElementById("message");
+    const sendBtn = document.getElementById("sendBtn");
+    const loginBtn = document.getElementById("gLogin");
+    const signedDiv = document.getElementById("signedUser");
+
+    // Ban List
+    const banned = ["bakwaas", "spoilerboy", "madarchod", "badguy123"];
+
+    // Login Button
+    loginBtn.onclick = () => signInWithPopup(auth, provider).catch(alert);
+
+    // Auth State Listener
+    onAuthStateChanged(auth, user => {
+      const loggedIn = !!user;
+      msgInput.disabled = sendBtn.disabled = !loggedIn;
+      loginBtn.style.display = loggedIn ? "none" : "block";
+      signedDiv.style.display = loggedIn ? "block" : "none";
+      if (loggedIn) {
+        signedDiv.textContent = "👤 " + user.displayName;
+        nameInput.value = user.displayName;
+        nameInput.readOnly = true;
+      }
+    });
+
+    // Live Chat Message Listener
+    onChildAdded(messagesRef, snap => {
+      const { name, text, ts } = snap.val();
+      const time = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const linked = text.replace(/(https?:\/\/[^\s]+)/g, u => `<a href="${u}" target="_blank">${u}</a>`);
+      const div = document.createElement("div");
+      div.className = "msg";
+      div.innerHTML = `<span>${name}</span> <small>(${time})</small>: ${linked}`;
+      chatDiv.appendChild(div);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    });
+
+    // Send Message
+    window.sendMessage = () => {
+      const user = auth.currentUser;
+      if (!user) return alert("Please sign in first.");
+
+      const name = user.displayName;
+      const text = msgInput.value.trim();
+      if (!text) return;
+
+      if (banned.includes(name.toLowerCase())) {
+        alert("🚫 You are banned from chatting.");
+        return;
+      }
+
+      push(messagesRef, { name, text, ts: Date.now() });
+      msgInput.value = "";
+    };
+  </script>
+</body>
