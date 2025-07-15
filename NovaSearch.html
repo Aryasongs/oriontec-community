@@ -1,70 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta charset="UTF-8">
   <title>Nova Search</title>
   <link rel="icon" href="https://www.google.com/favicon.ico" />
   <style>
     body {
+      margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: #fff;
-      margin: 0;
-      padding: 0;
+      color: #202124;
     }
     header {
+      padding: 20px;
+      background: #f8f9fa;
       text-align: center;
-      padding: 30px 20px 10px;
+      border-bottom: 1px solid #ccc;
     }
     header h1 {
-      font-size: 42px;
+      font-size: 36px;
       color: #4285f4;
+      margin-bottom: 10px;
     }
     .search-bar {
-      text-align: center;
-      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
     }
     input[type="text"] {
       width: 60%;
-      max-width: 600px;
-      padding: 12px;
+      padding: 12px 20px;
       font-size: 18px;
-      border-radius: 30px;
       border: 1px solid #ccc;
-      text-indent: 15px;
+      border-radius: 25px 0 0 25px;
       outline: none;
     }
     button {
-      padding: 12px 24px;
-      font-size: 16px;
-      margin-left: 10px;
-      border-radius: 30px;
+      padding: 12px 20px;
+      font-size: 18px;
       border: none;
       background-color: #4285f4;
-      color: white;
+      color: #fff;
+      border-radius: 0 25px 25px 0;
       cursor: pointer;
     }
     .tabs {
-      text-align: center;
+      display: flex;
+      justify-content: center;
       margin-top: 20px;
+      gap: 20px;
     }
     .tabs button {
-      background: none;
+      padding: 8px 16px;
       border: none;
-      padding: 10px 20px;
+      background: #eee;
+      border-radius: 20px;
       cursor: pointer;
-      font-size: 16px;
-      color: #4285f4;
-      border-bottom: 2px solid transparent;
     }
     .tabs button.active {
-      border-color: #4285f4;
-      font-weight: bold;
+      background: #4285f4;
+      color: white;
     }
     .container {
       display: flex;
-      max-width: 1200px;
-      margin: 30px auto;
+      max-width: 1400px;
+      margin: 40px auto;
       padding: 0 20px;
     }
     .left {
@@ -86,48 +86,28 @@
     .result-item a:hover {
       text-decoration: underline;
     }
-    .link {
-      font-size: 13px;
+    .result-item .link {
       color: #006621;
-      margin-bottom: 5px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .snippet {
-      font-size: 15px;
       color: #4d5156;
-    }
-    .image-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .image-grid img {
-      width: 200px;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 6px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      font-size: 15px;
     }
     .kg-box {
-      background: #f8f9fa;
-      border: 1px solid #dcdcdc;
+      background: #f1f3f4;
+      border: 1px solid #ccc;
       border-radius: 10px;
       padding: 20px;
       text-align: center;
     }
     .kg-box img {
-      width: 100px;
+      max-width: 120px;
       border-radius: 8px;
       margin-bottom: 15px;
-    }
-    .kg-title {
-      font-size: 18px;
-      font-weight: bold;
-      color: #202124;
-    }
-    .kg-summary {
-      font-size: 14px;
-      color: #555;
-      margin-top: 10px;
     }
     .loader {
       text-align: center;
@@ -141,17 +121,15 @@
 
   <header>
     <h1>Nova Search</h1>
+    <div class="search-bar">
+      <input type="text" id="searchBox" placeholder="Search here...">
+      <button onclick="performSearch()">Search</button>
+    </div>
+    <div class="tabs">
+      <button class="active" onclick="switchTab('web')">All</button>
+      <button onclick="switchTab('image')">Images</button>
+    </div>
   </header>
-
-  <div class="search-bar">
-    <input type="text" id="searchBox" placeholder="Search..." />
-    <button onclick="performSearch()">Search</button>
-  </div>
-
-  <div class="tabs">
-    <button class="active" onclick="setTab('all')">All</button>
-    <button onclick="setTab('images')">Images</button>
-  </div>
 
   <div class="container">
     <div class="left" id="results"></div>
@@ -159,12 +137,14 @@
   </div>
 
   <script>
-    let activeTab = 'all';
+    let currentTab = 'web';
 
-    function setTab(tab) {
-      activeTab = tab;
+    function switchTab(tab) {
+      currentTab = tab;
       document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
-      document.querySelector(`.tabs button:nth-child(${tab === 'all' ? 1 : 2})`).classList.add('active');
+      document.querySelectorAll('.tabs button').forEach(btn => {
+        if (btn.innerText.toLowerCase() === tab) btn.classList.add('active');
+      });
       performSearch();
     }
 
@@ -174,86 +154,85 @@
 
       const resultsDiv = document.getElementById("results");
       const kgDiv = document.getElementById("knowledgeGraph");
-      resultsDiv.innerHTML = '<div class="loader">Loading...</div>';
+      resultsDiv.innerHTML = `<div class="loader">Searching ${currentTab} results...</div>`;
       kgDiv.innerHTML = "";
 
-      const isImage = activeTab === 'images';
-      const searchType = isImage ? '&searchType=image' : '';
-      const url = `https://www.googleapis.com/customsearch/v1?key=AIzaSyCti9lzEPu9MedY5Eprbzr4niLVYoSpDjA&cx=377b0369704c54b74&q=${encodeURIComponent(query)}&num=30${searchType}`;
+      // === Wikipedia KG ===
+      try {
+        const wiki = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+        const wikiData = await wiki.json();
+        if (wikiData.extract && wikiData.thumbnail) {
+          kgDiv.innerHTML = `
+            <div class="kg-box">
+              <img src="${wikiData.thumbnail.source}" alt="${wikiData.title}" />
+              <h3>${wikiData.title}</h3>
+              <p>${wikiData.extract}</p>
+            </div>
+          `;
+        }
+      } catch {}
+
+      // === Oriontec.xyz check ===
+      try {
+        const orion = await fetch(`https://www.oriontec.xyz/api/profile?q=${encodeURIComponent(query)}`);
+        const data = await orion.json();
+        if (data && data.name && data.bio) {
+          kgDiv.innerHTML += `
+            <div class="kg-box">
+              <img src="${data.image}" alt="${data.name}" />
+              <h3>${data.name}</h3>
+              <p>${data.bio}</p>
+            </div>
+          `;
+        }
+      } catch {}
+
+      // === Google Search API ===
+      const type = currentTab === 'image' ? '&searchType=image' : '';
+      const apiURL = `https://www.googleapis.com/customsearch/v1?key=AIzaSyCti9lzEPu9MedY5Eprbzr4niLVYoSpDjA&cx=377b0369704c54b74&q=${encodeURIComponent(query)}&num=30${type}`;
 
       try {
-        const res = await fetch(url);
+        const res = await fetch(apiURL);
         const data = await res.json();
         if (!data.items || data.items.length === 0) {
-          resultsDiv.innerHTML = "<p>No results found</p>";
+          resultsDiv.innerHTML = "<p>No results found.</p>";
           return;
         }
 
-        // Show Oriontec.xyz result first
-        const sortedItems = data.items.sort(a => a.link.includes("oriontec.xyz") ? -1 : 1);
+        // Prioritize Oriontec.xyz results
+        const orionResults = data.items.filter(i => i.link.includes("oriontec.xyz"));
+        const otherResults = data.items.filter(i => !i.link.includes("oriontec.xyz"));
+        const allResults = [...orionResults, ...otherResults];
 
         let html = "";
-        if (isImage) {
-          html += '<div class="image-grid">';
-          sortedItems.forEach(item => {
-            html += `<img src="${item.link}" alt="Image" loading="lazy" />`;
-          });
-          html += '</div>';
-        } else {
-          sortedItems.forEach(item => {
-            const domain = new URL(item.link).hostname;
-            html += `
-              <div class="result-item">
-                <div class="link">${domain}</div>
-                <a href="${item.link}" target="_blank">${item.title}</a>
-                <div class="snippet">${item.snippet || ''}</div>
+        allResults.forEach(item => {
+          const domain = new URL(item.link).hostname;
+          const snippet = item.snippet || '';
+          const title = item.title || '';
+          const imgTag = currentTab === 'image' && item.link
+            ? `<img src="${item.link}" style="max-width:100%;border-radius:6px;" /><br>`
+            : '';
+
+          html += `
+            <div class="result-item">
+              ${imgTag}
+              <div class="link">
+                <img src="https://www.google.com/s2/favicons?domain=${domain}" width="16">
+                ${domain}
               </div>
-            `;
-          });
-        }
+              <a href="${item.link}" target="_blank">${title}</a>
+              <div class="snippet">${snippet}</div>
+            </div>
+          `;
+        });
 
         resultsDiv.innerHTML = html;
-      } catch (err) {
-        resultsDiv.innerHTML = "<p>Error fetching results.</p>";
-      }
 
-      // Wikipedia KG
-      try {
-        const wikiResp = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-        const wiki = await wikiResp.json();
-        if (wiki.extract) {
-          kgDiv.innerHTML = `
-            <div class="kg-box">
-              ${wiki.thumbnail?.source ? `<img src="${wiki.thumbnail.source}" alt="${wiki.title}" />` : ""}
-              <div class="kg-title">${wiki.title}</div>
-              <div class="kg-summary">${wiki.extract}</div>
-            </div>
-          `;
-        }
       } catch (e) {
-        // continue silently
-      }
-
-      // Oriontec Profile Check
-      try {
-        const orionResp = await fetch(`https://oriontec.xyz/profiles/${encodeURIComponent(query.toLowerCase())}`);
-        if (orionResp.ok) {
-          const orionData = await orionResp.json();
-          kgDiv.innerHTML += `
-            <div class="kg-box">
-              ${orionData.image ? `<img src="${orionData.image}" />` : ""}
-              <div class="kg-title">${orionData.name || query}</div>
-              <div class="kg-summary">${orionData.bio || "Profile found on Oriontec.xyz"}</div>
-            </div>
-          `;
-        }
-      } catch (e) {
-        // no profile, silently continue
+        resultsDiv.innerHTML = "<p>Error loading results.</p>";
+        console.error(e);
       }
     }
-
-    // Disable zoom-on-focus in mobile
-    document.querySelector("input").addEventListener("focus", e => e.target.scrollIntoView({ behavior: "smooth", block: "center" }));
 
     document.getElementById("searchBox").addEventListener("keydown", function (e) {
       if (e.key === "Enter") performSearch();
