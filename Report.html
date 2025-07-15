@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grievance Officer Complaint – Oriontec & Cereuspay</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+      color: #222;
+    }
+    h1 {
+      color: #0d47a1;
+    }
+    label {
+      margin-top: 12px;
+      display: block;
+      font-weight: 600;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 15px;
+    }
+    .section {
+      background: #fff;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .hidden {
+      display: none;
+    }
+    button {
+      background: #0d47a1;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #09306e;
+    }
+    .output-box {
+      white-space: pre-wrap;
+      background: #eef;
+      padding: 20px;
+      border: 1px solid #99c;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Grievance Officer Complaint</h1>
+<p>Use this form to submit a complaint to the <strong><span id="autoCountry">your country</span></strong> Grievance Officer for Oriontec and Cereuspay.</p>
+
+<form id="grievanceForm">
+  <div class="section">
+    <label for="country">Select Your Country (Auto-filled if available):</label>
+    <select id="country">
+      <option value="">Select</option>
+      <option value="India">India</option>
+      <option value="United States">United States</option>
+      <option value="Canada">Canada</option>
+      <option value="United Kingdom">United Kingdom</option>
+      <option value="Australia">Australia</option>
+    </select>
+
+    <label for="issue">What issue do you wish to report?</label>
+    <select id="issue" onchange="loadIssueSection(this.value)">
+      <option value="">-- Select Issue --</option>
+      <option value="1">My account has been hacked</option>
+      <option value="2">I've lost access to a page or a group</option>
+      <option value="3">I've found a fake profile or a profile that's pretending to be me</option>
+      <option value="4">I am being bullied or harassed</option>
+      <option value="5">I found inappropriate or abusive content</option>
+      <option value="6">I want to report content showing me in nudity/partial nudity or in a sexual act</option>
+      <option value="7">I (or someone I am legally responsible for) appear in content that I do not want displayed</option>
+      <option value="8">I am a Law Enforcement official seeking to access user data</option>
+      <option value="9">I am a government official or a court officer seeking to submit an order, notice or direction</option>
+      <option value="10">I want to download my personal data or report an issue with how data is processed</option>
+      <option value="11">I want to report an Intellectual Property infringement</option>
+      <option value="12">I want to report another issue</option>
+    </select>
+  </div>
+
+  <div id="dynamicSection" class="section hidden"></div>
+
+  <button type="button" onclick="generateEmail()">Submit</button>
+</form>
+
+<div id="finalOutput" class="output-box hidden"></div>
+
+<script>
+  const autoCountry = document.getElementById("autoCountry");
+  fetch("https://ipapi.co/json")
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("country").value = data.country_name;
+      autoCountry.textContent = data.country_name;
+    });
+
+  function loadIssueSection(issue) {
+    const section = document.getElementById("dynamicSection");
+    section.innerHTML = "";
+    section.classList.remove("hidden");
+
+    if (issue === "1") {
+      section.innerHTML = `
+        <h3>My Account Has Been Hacked</h3>
+        <label>Name of true user of Profile</label><input id="trueUserName" />
+        <label>Profile URL (Optional)</label><input id="profileURL" />
+        <label>Date you noticed the issue</label><input type="date" id="lossDate" />
+        <label>Estimated year account was created</label><input id="yearCreated" />
+        <label>Email(s) before hack</label><input id="oldEmails" />
+        <label>Phone(s) before hack</label><input id="oldPhones" />
+        <label>New secure email</label><input id="newEmail" />
+        <label>Summary of what happened</label><textarea id="summary" rows="4"></textarea>
+        <label>Who are you reporting on behalf of?</label>
+        <select id="reportType" onchange="toggleReporter()">
+          <option value="">-- Select --</option>
+          <option value="self">Myself / My organization</option>
+          <option value="rep">Attorney or representative</option>
+        </select>
+        <div id="reporterInfo" class="hidden"></div>
+      `;
+    } else if (issue === "2") {
+      section.innerHTML = `
+        <h3>Lost Access to Page or Group</h3>
+        <label>Page/Group URL</label><input id="pageURL" />
+        <label>Type</label><select id="assetType"><option value="page">Page</option><option value="group">Group</option></select>
+        <label>Date of access loss</label><input type="date" id="lossDate2" />
+        <label>Were you the original creator?</label><select id="isCreator"><option value="yes">Yes</option><option value="no">No</option></select>
+        <label>Secure email</label><input id="newEmail2" />
+        <label>Describe what happened</label><textarea id="summary2" rows="4"></textarea>
+      `;
+    } else if (issue === "3") {
+      section.innerHTML = `
+        <h3>Fake or Impersonating Profile</h3>
+        <label>Impersonated individual has account?</label>
+        <select id="hasOriginal">
+          <option value="">-- Select --</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+        <label>Impersonated profile URL</label><input id="originalURL" />
+        <label>Fake profile URL</label><input id="fakeURL" />
+      `;
+    } else if (issue === "4") {
+      section.innerHTML = `
+        <h3>Bullying or Harassment</h3>
+        <label>Type of content</label>
+        <select id="contentType">
+          <option value="chat">Chat</option>
+          <option value="comment">Comment</option>
+          <option value="image">Image</option>
+          <option value="article">Article</option>
+        </select>
+        <label>Content link</label><input id="contentLink" />
+        <label>Description</label><textarea id="bullySummary" rows="4"></textarea>
+      `;
+    } else if (issue === "5") {
+      section.innerHTML = `
+        <h3>Inappropriate or Abusive Content</h3>
+        <label>Content link</label><input id="abuseLink" />
+        <label>Description</label><textarea id="abuseDesc" rows="4"></textarea>
+      `;
+    } else if (issue === "6" || issue === "7") {
+      section.innerHTML = `
+        <h3>Privacy or Sexual Content Violation</h3>
+        <label>Full name</label><input id="nudeName" />
+        <label>Country</label><input id="nudeCountry" />
+        <label>Email</label><input id="nudeEmail" />
+        <label>Who are you reporting for?</label>
+        <select id="reportFor">
+          <option value="self">Self</option>
+          <option value="child">Child</option>
+          <option value="adult">Another adult</option>
+        </select>
+      `;
+    } else if (issue === "8" || issue === "9") {
+      section.innerHTML = `
+        <h3>Official or Legal Submission</h3>
+        <label>Your name</label><input id="govName" />
+        <label>Organization</label><input id="govOrg" />
+        <label>Email</label><input id="govEmail" />
+        <label>Upload order or notice</label><input type="file" />
+      `;
+    } else if (issue === "10") {
+      section.innerHTML = `
+        <h3>Privacy Rights Request</h3>
+        <label>Location</label><input id="dataLoc" />
+        <label>Support needed</label>
+        <select id="dataSupport">
+          <option value="all">All Info</option>
+          <option value="articles">Articles</option>
+          <option value="payments">Payments</option>
+        </select>
+      `;
+    } else if (issue === "11") {
+      section.innerHTML = `
+        <h3>Intellectual Property Infringement</h3>
+        <label>Who are you reporting for?</label>
+        <select id="ipType" onchange="toggleIPReporter()">
+          <option value="self">Myself / My organization</option>
+          <option value="rep">Attorney or representative</option>
+        </select>
+        <div id="ipReporterInfo" class="hidden"></div>
+      `;
+    } else if (issue === "12") {
+      section.innerHTML = `
+        <h3>Other Issue</h3>
+        <label>Describe your issue</label><textarea id="otherIssue" rows="4"></textarea>
+      `;
+    }
+  }
+
+  function toggleReporter() {
+    const val = document.getElementById("reportType").value;
+    const div = document.getElementById("reporterInfo");
+    div.classList.remove("hidden");
+    div.innerHTML = val === "self" ? `
+      <label>Your First Name</label><input />
+      <label>Your Last Name</label><input />
+      <label>Organization</label><input />
+      <label>Email</label><input />
+      <label>Confirm Email</label><input />
+    ` : `
+      <label>Your First Name</label><input />
+      <label>Your Last Name</label><input />
+      <label>Organization</label><input />
+      <label>Client First Name</label><input />
+      <label>Client Last Name</label><input />
+      <label>Email</label><input />
+      <label>Confirm Email</label><input />
+    `;
+  }
+
+  function toggleIPReporter() {
+    const div = document.getElementById("ipReporterInfo");
+    div.classList.remove("hidden");
+    div.innerHTML = `
+      <label>Your First Name</label><input />
+      <label>Your Last Name</label><input />
+      <label>Organization</label><input />
+      <label>Email</label><input />
+      <label>Confirm Email</label><input />
+    `;
+  }
+
+  function generateEmail() {
+    const issueText = document.getElementById("issue").selectedOptions[0].text;
+    const country = document.getElementById("country").value;
+    const output = document.getElementById("finalOutput");
+    const now = new Date().toLocaleString();
+
+    const emailBody = `
+To: teamof@oriontec.xyz
+Subject: ${issueText} Complaint – ${country}
+
+This is to report: "${issueText}"
+Reported from: ${country}
+Submitted at: ${now}
+
+Please review the attached form details as submitted through the Oriontec & Cereuspay Grievance Portal.
+    `;
+
+    output.classList.remove("hidden");
+    output.textContent = emailBody;
+  }
+</script>
+
+</body>
+</html>
