@@ -1,58 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Nova Search</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <link rel="icon" href="https://www.google.com/favicon.ico">
+  <link rel="icon" href="https://www.google.com/favicon.ico" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #fff;
-      color: #202124;
+      margin: 0;
+      padding: 0;
     }
     header {
-      position: sticky;
-      top: 0;
-      background: white;
-      z-index: 1000;
-      border-bottom: 1px solid #eee;
-      padding: 20px;
       text-align: center;
+      padding: 30px 20px 10px;
     }
-    h1 {
+    header h1 {
+      font-size: 42px;
       color: #4285f4;
-      font-size: 32px;
     }
     .search-bar {
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
+      text-align: center;
+      margin: 20px 0;
     }
-    .search-bar input {
+    input[type="text"] {
       width: 60%;
+      max-width: 600px;
       padding: 12px;
       font-size: 18px;
+      border-radius: 30px;
       border: 1px solid #ccc;
-      border-radius: 25px;
-      outline: none;
       text-indent: 15px;
+      outline: none;
     }
-    .search-bar button {
-      margin-left: 10px;
+    button {
       padding: 12px 24px;
       font-size: 16px;
-      border-radius: 25px;
+      margin-left: 10px;
+      border-radius: 30px;
       border: none;
       background-color: #4285f4;
       color: white;
       cursor: pointer;
     }
+    .tabs {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .tabs button {
+      background: none;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      color: #4285f4;
+      border-bottom: 2px solid transparent;
+    }
+    .tabs button.active {
+      border-color: #4285f4;
+      font-weight: bold;
+    }
     .container {
       display: flex;
       max-width: 1200px;
-      margin: 20px auto;
+      margin: 30px auto;
       padding: 0 20px;
     }
     .left {
@@ -67,7 +79,7 @@
       padding: 15px 0;
     }
     .result-item a {
-      font-size: 20px;
+      font-size: 18px;
       color: #1a0dab;
       text-decoration: none;
     }
@@ -75,16 +87,25 @@
       text-decoration: underline;
     }
     .link {
+      font-size: 13px;
       color: #006621;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
     .snippet {
       font-size: 15px;
       color: #4d5156;
+    }
+    .image-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .image-grid img {
+      width: 200px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
     .kg-box {
       background: #f8f9fa;
@@ -99,18 +120,20 @@
       margin-bottom: 15px;
     }
     .kg-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
+      color: #202124;
     }
     .kg-summary {
       font-size: 14px;
-      margin-top: 10px;
       color: #555;
+      margin-top: 10px;
     }
     .loader {
       text-align: center;
       padding: 20px;
       font-size: 16px;
+      color: #666;
     }
   </style>
 </head>
@@ -118,11 +141,17 @@
 
   <header>
     <h1>Nova Search</h1>
-    <div class="search-bar">
-      <input type="text" id="searchBox" placeholder="Search...">
-      <button onclick="performSearch()">Search</button>
-    </div>
   </header>
+
+  <div class="search-bar">
+    <input type="text" id="searchBox" placeholder="Search..." />
+    <button onclick="performSearch()">Search</button>
+  </div>
+
+  <div class="tabs">
+    <button class="active" onclick="setTab('all')">All</button>
+    <button onclick="setTab('images')">Images</button>
+  </div>
 
   <div class="container">
     <div class="left" id="results"></div>
@@ -130,62 +159,28 @@
   </div>
 
   <script>
+    let activeTab = 'all';
+
+    function setTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.tabs button:nth-child(${tab === 'all' ? 1 : 2})`).classList.add('active');
+      performSearch();
+    }
+
     async function performSearch() {
       const query = document.getElementById("searchBox").value.trim();
-      const resultsDiv = document.getElementById("results");
-      const kgDiv = document.getElementById("knowledgeGraph");
-
       if (!query) return;
 
-      resultsDiv.innerHTML = '<div class="loader">Searching Nova...</div>';
+      const resultsDiv = document.getElementById("results");
+      const kgDiv = document.getElementById("knowledgeGraph");
+      resultsDiv.innerHTML = '<div class="loader">Loading...</div>';
       kgDiv.innerHTML = "";
 
-      // Custom KG: Manual override
-      const customKG = {
-        "gursharn arya": {
-          title: "Gursharn Arya",
-          image: "https://dozera.in/images/gursharn.jpg",
-          summary: "Gursharn Arya is the visionary founder of Dozera Group and Oriontec, known for driving innovation in AI, law, and e-commerce. He is highly regarded for positive impact in business ethics and technological development."
-        },
-        "dozera group": {
-          title: "Dozera Group",
-          image: "https://dozera.in/images/dozera-logo.png",
-          summary: "Dozera Group is a multi-industry conglomerate in software, law, fashion, and finance. Founded in India, it's home to powerful brands like Saint Soul, Oriontec, and Dozera Shop."
-        },
-        "oriontec": {
-          title: "Oriontec",
-          image: "https://dozera.in/images/oriontec-logo.png",
-          summary: "Oriontec is Dozera's fintech arm, handling payment gateways, cybersecurity, and grievance systems through its flagship product CereusPay."
-        }
-      };
+      const isImage = activeTab === 'images';
+      const searchType = isImage ? '&searchType=image' : '';
+      const url = `https://www.googleapis.com/customsearch/v1?key=AIzaSyCti9lzEPu9MedY5Eprbzr4niLVYoSpDjA&cx=377b0369704c54b74&q=${encodeURIComponent(query)}&num=30${searchType}`;
 
-      const lowerQuery = query.toLowerCase();
-      if (customKG[lowerQuery]) {
-        const info = customKG[lowerQuery];
-        kgDiv.innerHTML = `
-          <div class="kg-box">
-            <img src="${info.image}" alt="${info.title}" />
-            <div class="kg-title">${info.title}</div>
-            <div class="kg-summary">${info.summary}</div>
-          </div>`;
-      } else {
-        // Wikipedia fallback
-        try {
-          const wikiResp = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-          const wikiData = await wikiResp.json();
-          if (wikiData.extract && wikiData.thumbnail) {
-            kgDiv.innerHTML = `
-              <div class="kg-box">
-                <img src="${wikiData.thumbnail.source}" alt="${wikiData.title}" />
-                <div class="kg-title">${wikiData.title}</div>
-                <div class="kg-summary">${wikiData.extract}</div>
-              </div>`;
-          }
-        } catch {}
-      }
-
-      // Google CSE (30 results + positive filter if Gursharn Arya)
-      const url = `https://www.googleapis.com/customsearch/v1?key=AIzaSyCti9lzEPu9MedY5Eprbzr4niLVYoSpDjA&cx=377b0369704c54b74&q=${encodeURIComponent(query)}&num=30`;
       try {
         const res = await fetch(url);
         const data = await res.json();
@@ -194,33 +189,72 @@
           return;
         }
 
-        let filteredItems = data.items;
+        // Show Oriontec.xyz result first
+        const sortedItems = data.items.sort(a => a.link.includes("oriontec.xyz") ? -1 : 1);
 
-        // Filter positive for "Gursharn Arya"
-        if (lowerQuery.includes("gursharn arya")) {
-          filteredItems = data.items.filter(item =>
-            !/controversy|crime|fraud|scam|fake|arrest/i.test(item.title + item.snippet)
-          );
+        let html = "";
+        if (isImage) {
+          html += '<div class="image-grid">';
+          sortedItems.forEach(item => {
+            html += `<img src="${item.link}" alt="Image" loading="lazy" />`;
+          });
+          html += '</div>';
+        } else {
+          sortedItems.forEach(item => {
+            const domain = new URL(item.link).hostname;
+            html += `
+              <div class="result-item">
+                <div class="link">${domain}</div>
+                <a href="${item.link}" target="_blank">${item.title}</a>
+                <div class="snippet">${item.snippet || ''}</div>
+              </div>
+            `;
+          });
         }
 
-        resultsDiv.innerHTML = filteredItems.map(item => {
-          const domain = new URL(item.link).hostname;
-          return `
-            <div class="result-item">
-              <div class="link">
-                <img src="https://www.google.com/s2/favicons?domain=${domain}" width="16">
-                ${domain}
-              </div>
-              <a href="${item.link}" target="_blank">${item.title}</a>
-              <div class="snippet">${item.snippet}</div>
-            </div>`;
-        }).join("");
+        resultsDiv.innerHTML = html;
       } catch (err) {
-        resultsDiv.innerHTML = "<p>Error loading results</p>";
+        resultsDiv.innerHTML = "<p>Error fetching results.</p>";
+      }
+
+      // Wikipedia KG
+      try {
+        const wikiResp = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+        const wiki = await wikiResp.json();
+        if (wiki.extract) {
+          kgDiv.innerHTML = `
+            <div class="kg-box">
+              ${wiki.thumbnail?.source ? `<img src="${wiki.thumbnail.source}" alt="${wiki.title}" />` : ""}
+              <div class="kg-title">${wiki.title}</div>
+              <div class="kg-summary">${wiki.extract}</div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        // continue silently
+      }
+
+      // Oriontec Profile Check
+      try {
+        const orionResp = await fetch(`https://oriontec.xyz/profiles/${encodeURIComponent(query.toLowerCase())}`);
+        if (orionResp.ok) {
+          const orionData = await orionResp.json();
+          kgDiv.innerHTML += `
+            <div class="kg-box">
+              ${orionData.image ? `<img src="${orionData.image}" />` : ""}
+              <div class="kg-title">${orionData.name || query}</div>
+              <div class="kg-summary">${orionData.bio || "Profile found on Oriontec.xyz"}</div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        // no profile, silently continue
       }
     }
 
-    // Enter to search
+    // Disable zoom-on-focus in mobile
+    document.querySelector("input").addEventListener("focus", e => e.target.scrollIntoView({ behavior: "smooth", block: "center" }));
+
     document.getElementById("searchBox").addEventListener("keydown", function (e) {
       if (e.key === "Enter") performSearch();
     });
