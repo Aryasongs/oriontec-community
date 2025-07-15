@@ -1,41 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Nova Search</title>
-  <link rel="icon" href="https://www.google.com/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <link rel="icon" href="https://www.google.com/favicon.ico">
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #fff;
-      margin: 0;
-      padding: 0;
+      color: #202124;
     }
     header {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 1000;
+      border-bottom: 1px solid #eee;
+      padding: 20px;
       text-align: center;
-      padding: 40px 20px 10px;
     }
-    header h1 {
-      font-size: 48px;
+    h1 {
       color: #4285f4;
+      font-size: 32px;
     }
     .search-bar {
-      text-align: center;
-      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
     }
-    input[type="text"] {
+    .search-bar input {
       width: 60%;
       padding: 12px;
       font-size: 18px;
-      border-radius: 30px;
       border: 1px solid #ccc;
+      border-radius: 25px;
+      outline: none;
       text-indent: 15px;
     }
-    button {
+    .search-bar button {
+      margin-left: 10px;
       padding: 12px 24px;
       font-size: 16px;
-      margin-left: 10px;
-      border-radius: 30px;
+      border-radius: 25px;
       border: none;
       background-color: #4285f4;
       color: white;
@@ -44,7 +52,7 @@
     .container {
       display: flex;
       max-width: 1200px;
-      margin: 40px auto;
+      margin: 20px auto;
       padding: 0 20px;
     }
     .left {
@@ -66,7 +74,7 @@
     .result-item a:hover {
       text-decoration: underline;
     }
-    .result-item .link {
+    .link {
       color: #006621;
       font-size: 14px;
       display: flex;
@@ -74,7 +82,7 @@
       gap: 8px;
       margin-bottom: 4px;
     }
-    .result-item .snippet {
+    .snippet {
       font-size: 15px;
       color: #4d5156;
     }
@@ -93,18 +101,16 @@
     .kg-title {
       font-size: 20px;
       font-weight: bold;
-      color: #202124;
     }
     .kg-summary {
       font-size: 14px;
-      color: #555;
       margin-top: 10px;
+      color: #555;
     }
     .loader {
       text-align: center;
       padding: 20px;
       font-size: 16px;
-      color: #666;
     }
   </style>
 </head>
@@ -112,12 +118,11 @@
 
   <header>
     <h1>Nova Search</h1>
+    <div class="search-bar">
+      <input type="text" id="searchBox" placeholder="Search...">
+      <button onclick="performSearch()">Search</button>
+    </div>
   </header>
-
-  <div class="search-bar">
-    <input type="text" id="searchBox" placeholder="Search..." />
-    <button onclick="performSearch()">Search</button>
-  </div>
 
   <div class="container">
     <div class="left" id="results"></div>
@@ -135,39 +140,72 @@
       resultsDiv.innerHTML = '<div class="loader">Searching Nova...</div>';
       kgDiv.innerHTML = "";
 
-      // === Wikipedia Knowledge Graph ===
-      try {
-        const wikiResp = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-        const wikiData = await wikiResp.json();
-
-        if (wikiData && wikiData.extract && wikiData.thumbnail) {
-          kgDiv.innerHTML = `
-            <div class="kg-box">
-              <img src="${wikiData.thumbnail.source}" alt="${wikiData.title}" />
-              <div class="kg-title">${wikiData.title}</div>
-              <div class="kg-summary">${wikiData.extract}</div>
-            </div>
-          `;
+      // Custom KG: Manual override
+      const customKG = {
+        "gursharn arya": {
+          title: "Gursharn Arya",
+          image: "https://dozera.in/images/gursharn.jpg",
+          summary: "Gursharn Arya is the visionary founder of Dozera Group and Oriontec, known for driving innovation in AI, law, and e-commerce. He is highly regarded for positive impact in business ethics and technological development."
+        },
+        "dozera group": {
+          title: "Dozera Group",
+          image: "https://dozera.in/images/dozera-logo.png",
+          summary: "Dozera Group is a multi-industry conglomerate in software, law, fashion, and finance. Founded in India, it's home to powerful brands like Saint Soul, Oriontec, and Dozera Shop."
+        },
+        "oriontec": {
+          title: "Oriontec",
+          image: "https://dozera.in/images/oriontec-logo.png",
+          summary: "Oriontec is Dozera's fintech arm, handling payment gateways, cybersecurity, and grievance systems through its flagship product CereusPay."
         }
-      } catch (e) {
-        kgDiv.innerHTML = "";
+      };
+
+      const lowerQuery = query.toLowerCase();
+      if (customKG[lowerQuery]) {
+        const info = customKG[lowerQuery];
+        kgDiv.innerHTML = `
+          <div class="kg-box">
+            <img src="${info.image}" alt="${info.title}" />
+            <div class="kg-title">${info.title}</div>
+            <div class="kg-summary">${info.summary}</div>
+          </div>`;
+      } else {
+        // Wikipedia fallback
+        try {
+          const wikiResp = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+          const wikiData = await wikiResp.json();
+          if (wikiData.extract && wikiData.thumbnail) {
+            kgDiv.innerHTML = `
+              <div class="kg-box">
+                <img src="${wikiData.thumbnail.source}" alt="${wikiData.title}" />
+                <div class="kg-title">${wikiData.title}</div>
+                <div class="kg-summary">${wikiData.extract}</div>
+              </div>`;
+          }
+        } catch {}
       }
 
-      // === Google Custom Search ===
-      const url = `https://www.googleapis.com/customsearch/v1?key=AIzaSyCti9lzEPu9MedY5Eprbzr4niLVYoSpDjA&cx=377b0369704c54b74&q=${encodeURIComponent(query)}`;
+      // Google CSE (30 results + positive filter if Gursharn Arya)
+      const url = `https://www.googleapis.com/customsearch/v1?key=AIzaSyCti9lzEPu9MedY5Eprbzr4niLVYoSpDjA&cx=377b0369704c54b74&q=${encodeURIComponent(query)}&num=30`;
       try {
         const res = await fetch(url);
         const data = await res.json();
-
         if (!data.items || data.items.length === 0) {
           resultsDiv.innerHTML = "<p>No results found</p>";
           return;
         }
 
-        let html = "";
-        data.items.forEach(item => {
+        let filteredItems = data.items;
+
+        // Filter positive for "Gursharn Arya"
+        if (lowerQuery.includes("gursharn arya")) {
+          filteredItems = data.items.filter(item =>
+            !/controversy|crime|fraud|scam|fake|arrest/i.test(item.title + item.snippet)
+          );
+        }
+
+        resultsDiv.innerHTML = filteredItems.map(item => {
           const domain = new URL(item.link).hostname;
-          html += `
+          return `
             <div class="result-item">
               <div class="link">
                 <img src="https://www.google.com/s2/favicons?domain=${domain}" width="16">
@@ -175,18 +213,14 @@
               </div>
               <a href="${item.link}" target="_blank">${item.title}</a>
               <div class="snippet">${item.snippet}</div>
-            </div>
-          `;
-        });
-
-        resultsDiv.innerHTML = html;
-
+            </div>`;
+        }).join("");
       } catch (err) {
         resultsDiv.innerHTML = "<p>Error loading results</p>";
       }
     }
 
-    // Allow Enter key to search
+    // Enter to search
     document.getElementById("searchBox").addEventListener("keydown", function (e) {
       if (e.key === "Enter") performSearch();
     });
