@@ -97,11 +97,11 @@
 
 <div id="finalOutput" class="output-box hidden"></div>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"></script>
+<!-- Firebase SDK (MODULAR v10) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
-<script>
   const autoCountry = document.getElementById("autoCountry");
   fetch("https://ipapi.co/json")
     .then(res => res.json())
@@ -114,20 +114,20 @@
     apiKey: "AIzaSyBYdOviUib8EfVGa9wRl0cKvYUx5OKSGl0",
     authDomain: "report-662a0.firebaseapp.com",
     projectId: "report-662a0",
-    storageBucket: "report-662a0.firebasestorage.app",
+    storageBucket: "report-662a0.appspot.com",
     messagingSenderId: "320223417600",
     appId: "1:320223417600:web:7835db6138803a17050fe5"
   };
 
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
   function isValidEmail(email) {
     const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return pattern.test(email);
   }
 
-  function loadIssueSection(issue) {
+  window.loadIssueSection = function(issue) {
     const section = document.getElementById("dynamicSection");
     section.innerHTML = "";
     section.classList.remove("hidden");
@@ -186,12 +186,12 @@
         <select id="reportFor"><option value="self">Self</option><option value="child">Child</option><option value="adult">Another adult</option></select>
       `;
     } else if (issue === "8" || issue === "9") {
-  section.innerHTML = `
-    <h3>Official or Legal Submission</h3>
-    <label>Your name</label><input id="govName" />
-    <label>Organization</label><input id="govOrg" />
-    <label>Email</label><input id="govEmail" type="email" />
-  `;
+      section.innerHTML = `
+        <h3>Official or Legal Submission</h3>
+        <label>Your name</label><input id="govName" />
+        <label>Organization</label><input id="govOrg" />
+        <label>Email</label><input id="govEmail" type="email" />
+      `;
     } else if (issue === "10") {
       section.innerHTML = `
         <h3>Privacy Rights Request</h3>
@@ -214,9 +214,9 @@
         <label>Email</label><input id="otherEmail" type="email" />
       `;
     }
-  }
+  };
 
-  async function generateEmail() {
+  window.generateEmail = async function () {
     const issue = document.getElementById("issue").value;
     const issueText = document.getElementById("issue").selectedOptions[0]?.text || "Unknown";
     const country = document.getElementById("country").value;
@@ -249,7 +249,7 @@
     });
 
     try {
-      await db.collection("grievance_reports").add(data);
+      await addDoc(collection(db, "grievance_reports"), data);
       document.getElementById("finalOutput").classList.remove("hidden");
       document.getElementById("finalOutput").textContent = `
 To: teamof@oriontec.xyz
@@ -263,10 +263,15 @@ Your grievance has been recorded successfully.
       `;
       alert("Complaint submitted and saved successfully.");
     } catch (err) {
-      alert("Failed to submit. Please try again.");
+      document.getElementById("finalOutput").classList.remove("hidden");
+      document.getElementById("finalOutput").innerHTML = `
+❌ <strong>Submission Failed</strong><br>
+Please try again later.<br><br>
+Error: ${err.message || err}
+      `;
       console.error(err);
     }
-  }
+  };
 </script>
 
 </body>
