@@ -54,10 +54,6 @@
       margin-top: 20px;
     }
   </style>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -95,13 +91,25 @@
   </div>
 
   <div id="dynamicSection" class="section hidden"></div>
+
   <button type="button" onclick="generateEmail()">Submit</button>
 </form>
 
 <div id="finalOutput" class="output-box hidden"></div>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"></script>
+
 <script>
-  // Firebase Config (unchanged as you said)
+  const autoCountry = document.getElementById("autoCountry");
+  fetch("https://ipapi.co/json")
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("country").value = data.country_name;
+      autoCountry.textContent = data.country_name;
+    });
+
   const firebaseConfig = {
     apiKey: "AIzaSyBYdOviUib8EfVGa9wRl0cKvYUx5OKSGl0",
     authDomain: "report-662a0.firebaseapp.com",
@@ -111,16 +119,13 @@
     appId: "1:320223417600:web:7835db6138803a17050fe5"
   };
 
-  firebase.initializeApp(firebaseConfig);
+  const app = firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  const autoCountry = document.getElementById("autoCountry");
-  fetch("https://ipapi.co/json")
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("country").value = data.country_name;
-      autoCountry.textContent = data.country_name;
-    });
+  function isValidEmail(email) {
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return pattern.test(email);
+  }
 
   function loadIssueSection(issue) {
     const section = document.getElementById("dynamicSection");
@@ -130,48 +135,138 @@
     if (issue === "1") {
       section.innerHTML = `
         <h3>My Account Has Been Hacked</h3>
+        <label>Email (required)</label><input id="newEmail" type="email" required />
         <label>Name of true user of Profile</label><input id="trueUserName" />
         <label>Profile URL (Optional)</label><input id="profileURL" />
         <label>Date you noticed the issue</label><input type="date" id="lossDate" />
         <label>Estimated year account was created</label><input id="yearCreated" />
         <label>Email(s) before hack</label><input id="oldEmails" />
         <label>Phone(s) before hack</label><input id="oldPhones" />
-        <label>New secure email</label><input id="newEmail" />
         <label>Summary of what happened</label><textarea id="summary" rows="4"></textarea>
       `;
+    } else if (issue === "2") {
+      section.innerHTML = `
+        <h3>Lost Access to Page or Group</h3>
+        <label>Secure Email (required)</label><input id="newEmail2" type="email" required />
+        <label>Page/Group URL</label><input id="pageURL" />
+        <label>Type</label><select id="assetType"><option value="page">Page</option><option value="group">Group</option></select>
+        <label>Date of access loss</label><input type="date" id="lossDate2" />
+        <label>Were you the original creator?</label><select id="isCreator"><option value="yes">Yes</option><option value="no">No</option></select>
+        <label>Describe what happened</label><textarea id="summary2" rows="4"></textarea>
+      `;
+    } else if (issue === "3") {
+      section.innerHTML = `
+        <h3>Fake or Impersonating Profile</h3>
+        <label>Impersonated individual has account?</label>
+        <select id="hasOriginal"><option value="">-- Select --</option><option value="yes">Yes</option><option value="no">No</option></select>
+        <label>Original profile URL</label><input id="originalURL" />
+        <label>Fake profile URL</label><input id="fakeURL" />
+      `;
+    } else if (issue === "4") {
+      section.innerHTML = `
+        <h3>Bullying or Harassment</h3>
+        <label>Type of content</label>
+        <select id="contentType"><option value="chat">Chat</option><option value="comment">Comment</option><option value="image">Image</option><option value="article">Article</option></select>
+        <label>Content link</label><input id="contentLink" />
+        <label>Description</label><textarea id="bullySummary" rows="4"></textarea>
+      `;
+    } else if (issue === "5") {
+      section.innerHTML = `
+        <h3>Inappropriate or Abusive Content</h3>
+        <label>Content link</label><input id="abuseLink" />
+        <label>Description</label><textarea id="abuseDesc" rows="4"></textarea>
+      `;
+    } else if (issue === "6" || issue === "7") {
+      section.innerHTML = `
+        <h3>Privacy or Sexual Content Violation</h3>
+        <label>Full name</label><input id="nudeName" />
+        <label>Country</label><input id="nudeCountry" />
+        <label>Email</label><input id="nudeEmail" type="email" />
+        <label>Who are you reporting for?</label>
+        <select id="reportFor"><option value="self">Self</option><option value="child">Child</option><option value="adult">Another adult</option></select>
+      `;
+    } else if (issue === "8" || issue === "9") {
+      section.innerHTML = `
+        <h3>Official or Legal Submission</h3>
+        <label>Your name</label><input id="govName" />
+        <label>Organization</label><input id="govOrg" />
+        <label>Email</label><input id="govEmail" type="email" />
+        <label>Upload order or notice</label><input type="file" />
+      `;
+    } else if (issue === "10") {
+      section.innerHTML = `
+        <h3>Privacy Rights Request</h3>
+        <label>Location</label><input id="dataLoc" />
+        <label>Support needed</label>
+        <select id="dataSupport"><option value="all">All Info</option><option value="articles">Articles</option><option value="payments">Payments</option></select>
+      `;
+    } else if (issue === "11") {
+      section.innerHTML = `
+        <h3>Intellectual Property Infringement</h3>
+        <label>Organization</label><input id="ipOrg" />
+        <label>Full Name</label><input id="ipName" />
+        <label>Email</label><input id="ipEmail" type="email" />
+        <label>Confirm Email</label><input id="ipConfirmEmail" type="email" />
+      `;
+    } else if (issue === "12") {
+      section.innerHTML = `
+        <h3>Other Issue</h3>
+        <label>Describe your issue</label><textarea id="otherIssue" rows="4"></textarea>
+        <label>Email</label><input id="otherEmail" type="email" />
+      `;
     }
-    // You can add more sections like above (you already have it all!)
   }
 
-  function generateEmail() {
-    const issueText = document.getElementById("issue").selectedOptions[0].text;
+  async function generateEmail() {
+    const issue = document.getElementById("issue").value;
+    const issueText = document.getElementById("issue").selectedOptions[0]?.text || "Unknown";
     const country = document.getElementById("country").value;
     const now = new Date().toLocaleString();
 
+    if (!issue || !country) {
+      alert("Please select both country and issue.");
+      return;
+    }
+
+    const emailInputs = document.querySelectorAll("input[type='email']");
+    for (let input of emailInputs) {
+      const val = input.value.trim();
+      if (val && !isValidEmail(val)) {
+        alert(`Invalid email format: ${val}`);
+        input.focus();
+        return;
+      }
+    }
+
     const data = {
-      issue: issueText,
+      issue,
+      issueText,
       country,
-      timestamp: now,
-      trueUserName: document.getElementById("trueUserName")?.value || "",
-      profileURL: document.getElementById("profileURL")?.value || "",
-      lossDate: document.getElementById("lossDate")?.value || "",
-      yearCreated: document.getElementById("yearCreated")?.value || "",
-      oldEmails: document.getElementById("oldEmails")?.value || "",
-      oldPhones: document.getElementById("oldPhones")?.value || "",
-      newEmail: document.getElementById("newEmail")?.value || "",
-      summary: document.getElementById("summary")?.value || ""
+      submittedAt: now
     };
 
-    db.collection("grievances").add(data)
-      .then(() => {
-        document.getElementById("finalOutput").classList.remove("hidden");
-        document.getElementById("finalOutput").textContent =
-          "✅ Your grievance has been submitted and saved successfully.\n\n" +
-          "Issue: " + issueText + "\nCountry: " + country + "\nSubmitted at: " + now;
-      })
-      .catch(error => {
-        alert("❌ Error saving grievance: " + error.message);
-      });
+    document.querySelectorAll("#dynamicSection input, #dynamicSection textarea, #dynamicSection select").forEach(input => {
+      if (input.id) data[input.id] = input.value;
+    });
+
+    try {
+      await db.collection("grievance_reports").add(data);
+      document.getElementById("finalOutput").classList.remove("hidden");
+      document.getElementById("finalOutput").textContent = `
+To: teamof@oriontec.xyz
+Subject: ${issueText} Complaint – ${country}
+
+This is to report: "${issueText}"
+Reported from: ${country}
+Submitted at: ${now}
+
+Your grievance has been recorded successfully.
+      `;
+      alert("Complaint submitted and saved successfully.");
+    } catch (err) {
+      alert("Failed to submit. Please try again.");
+      console.error(err);
+    }
   }
 </script>
 
