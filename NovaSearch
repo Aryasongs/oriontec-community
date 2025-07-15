@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nova Search</title>
+  <link rel="icon" href="https://www.google.com/favicon.ico" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 40px 20px 10px;
+    }
+    header h1 {
+      font-size: 48px;
+      color: #4285f4;
+    }
+    .search-bar {
+      text-align: center;
+      margin: 20px 0;
+    }
+    input[type="text"] {
+      width: 60%;
+      padding: 12px;
+      font-size: 18px;
+      border-radius: 30px;
+      border: 1px solid #ccc;
+      text-indent: 15px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      margin-left: 10px;
+      border-radius: 30px;
+      border: none;
+      background-color: #4285f4;
+      color: white;
+      cursor: pointer;
+    }
+    .container {
+      display: flex;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .left {
+      flex: 3;
+    }
+    .right {
+      flex: 1;
+      margin-left: 20px;
+    }
+    .result-item {
+      border-bottom: 1px solid #e0e0e0;
+      padding: 15px 0;
+    }
+    .result-item a {
+      font-size: 20px;
+      color: #1a0dab;
+      text-decoration: none;
+    }
+    .result-item a:hover {
+      text-decoration: underline;
+    }
+    .result-item .link {
+      color: #006621;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .result-item .snippet {
+      font-size: 15px;
+      color: #4d5156;
+    }
+    .kg-box {
+      background: #f8f9fa;
+      border: 1px solid #dcdcdc;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+    .kg-box img {
+      width: 100px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    .kg-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #202124;
+    }
+    .kg-summary {
+      font-size: 14px;
+      color: #555;
+      margin-top: 10px;
+    }
+    .loader {
+      text-align: center;
+      padding: 20px;
+      font-size: 16px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Nova Search</h1>
+  </header>
+
+  <div class="search-bar">
+    <input type="text" id="searchBox" placeholder="Search..." />
+    <button onclick="performSearch()">Search</button>
+  </div>
+
+  <div class="container">
+    <div class="left" id="results"></div>
+    <div class="right" id="knowledgeGraph"></div>
+  </div>
+
+  <script>
+    async function performSearch() {
+      const query = document.getElementById("searchBox").value.trim();
+      const resultsDiv = document.getElementById("results");
+      const kgDiv = document.getElementById("knowledgeGraph");
+
+      if (!query) return;
+
+      resultsDiv.innerHTML = '<div class="loader">Searching Nova...</div>';
+      kgDiv.innerHTML = "";
+
+      // === Wikipedia Knowledge Graph ===
+      try {
+        const wikiResp = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+        const wikiData = await wikiResp.json();
+
+        if (wikiData && wikiData.extract && wikiData.thumbnail) {
+          kgDiv.innerHTML = `
+            <div class="kg-box">
+              <img src="${wikiData.thumbnail.source}" alt="${wikiData.title}" />
+              <div class="kg-title">${wikiData.title}</div>
+              <div class="kg-summary">${wikiData.extract}</div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        kgDiv.innerHTML = "";
+      }
+
+      // === Google Custom Search ===
+      const url = `https://www.googleapis.com/customsearch/v1?key=AIzaSyCti9lzEPu9MedY5Eprbzr4niLVYoSpDjA&cx=377b0369704c54b74&q=${encodeURIComponent(query)}`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.items || data.items.length === 0) {
+          resultsDiv.innerHTML = "<p>No results found</p>";
+          return;
+        }
+
+        let html = "";
+        data.items.forEach(item => {
+          const domain = new URL(item.link).hostname;
+          html += `
+            <div class="result-item">
+              <div class="link">
+                <img src="https://www.google.com/s2/favicons?domain=${domain}" width="16">
+                ${domain}
+              </div>
+              <a href="${item.link}" target="_blank">${item.title}</a>
+              <div class="snippet">${item.snippet}</div>
+            </div>
+          `;
+        });
+
+        resultsDiv.innerHTML = html;
+
+      } catch (err) {
+        resultsDiv.innerHTML = "<p>Error loading results</p>";
+      }
+    }
+
+    // Allow Enter key to search
+    document.getElementById("searchBox").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") performSearch();
+    });
+  </script>
+
+</body>
+</html>
