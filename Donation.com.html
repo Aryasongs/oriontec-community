@@ -3,95 +3,107 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🌱 Donate for Environment</title>
+  <title>Donate for the Environment | Oriontec Foundation</title>
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background: #f4fff4;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f9f0;
       margin: 0;
-      padding: 0;
-      text-align: center;
+      padding: 20px;
     }
     .container {
       max-width: 500px;
-      margin: 50px auto;
-      background: #ffffff;
+      margin: auto;
+      background: #fff;
+      border-radius: 10px;
       padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    input[type="number"], button {
+    h2 {
+      color: green;
+      text-align: center;
+    }
+    label, input, select {
+      display: block;
       width: 100%;
-      padding: 12px;
-      margin-top: 12px;
-      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    input[type="number"],
+    input[type="text"],
+    select {
+      padding: 10px;
       border: 1px solid #ccc;
-      font-size: 16px;
+      border-radius: 5px;
     }
     button {
-      background: #28a745;
+      background: green;
       color: white;
+      padding: 12px;
       border: none;
-      font-weight: bold;
+      border-radius: 5px;
       cursor: pointer;
     }
-    button:disabled {
-      background: #ccc;
+    button:hover {
+      background: darkgreen;
     }
-    #payment-methods, #bank-details, #upi-details {
+    .payment-options, .bank-details, .qr-code {
       display: none;
-      margin-top: 20px;
-      text-align: left;
     }
-    img.qr {
-      margin: 20px 0;
-      width: 200px;
-      height: 200px;
+    .countdown {
+      margin-top: 15px;
+      color: red;
+      font-size: 14px;
     }
-    .timer {
-      font-size: 18px;
-      color: #d9534f;
-      margin-top: 10px;
+    .terms {
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>🌱 Donate for the Environment</h2>
-    <input type="number" id="amount" placeholder="Enter Amount (₹1 - ₹5000)" min="1" max="5000"/>
-    <label><input type="checkbox" id="terms"/> I agree to the Terms & Conditions</label>
-    <button id="payBtn" disabled>Pay</button>
+    <h2>Donate to Support Environment 🌿</h2>
+    <form id="donationForm">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" required placeholder="Your full name"/>
 
-    <div id="payment-methods">
-      <h3>Choose Payment Method</h3>
+      <label for="email">Email Address</label>
+      <input type="text" id="email" required placeholder="Your email"/>
+
+      <label for="amount">Donation Amount (₹1 – ₹5000)</label>
+      <input type="number" id="amount" min="1" max="5000" required />
+
+      <label><input type="checkbox" required /> I agree to the <a href="#">terms and conditions</a></label>
+
+      <button type="submit">Proceed to Pay</button>
+    </form>
+
+    <div class="payment-options">
+      <h3>Select Payment Method</h3>
       <button onclick="showUPI()">Pay via UPI</button>
-      <button onclick="showBank()">Bank Transfer</button>
+      <button onclick="showBank()">Pay via Bank Transfer</button>
     </div>
 
-    <div id="bank-details">
+    <div class="bank-details">
       <h4>Bank Transfer Details</h4>
-      <ul>
-        <li><b>Bank:</b> Punjab National Bank</li>
-        <li><b>Account No:</b> 00732121001177</li>
-        <li><b>IFSC:</b> PUNB0007310</li>
-        <li><b>Account Name:</b> Ranjit Kaur</li>
-        <li><b>TX Note:</b> Oriontec.ltd</li>
-      </ul>
-      <div class="timer" id="timer">⏳ 2-day timer: loading...</div>
+      <p><strong>Bank:</strong> Punjab National Bank</p>
+      <p><strong>Account Number:</strong> 00732121001177</p>
+      <p><strong>IFSC:</strong> PUNB0007310</p>
+      <p><strong>Account Holder:</strong> Ranjit Kaur</p>
+      <p><strong>TX:</strong> Oriontec.ltd</p>
+      <div class="countdown">⏳ Complete within 2 days: <strong id="deadlineText">July 19, 2025 08:44:20</strong></div>
     </div>
 
-    <div id="upi-details">
+    <div class="qr-code">
       <h4>Scan to Pay via UPI</h4>
-      <img id="qrImage" class="qr" src="" alt="UPI QR Code"/>
-      <p>Or pay using any UPI app</p>
-      <button onclick="redirectToUPI()">Pay in App</button>
+      <img id="qrImage" src="" alt="UPI QR Code" width="250" />
+      <p>OR <a id="upiLink" href="#" target="_blank">Open in UPI App</a></p>
     </div>
   </div>
 
-  <!-- Firebase Integration -->
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+    import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBX2NKRpG3u4YtdjDWx9av0ZZvNq1OHfKA",
@@ -105,79 +117,51 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let selectedAmount = 0;
+    const form = document.getElementById("donationForm");
+    const options = document.querySelector(".payment-options");
+    const bankDetails = document.querySelector(".bank-details");
+    const qrCode = document.querySelector(".qr-code");
 
-    document.getElementById("amount").addEventListener("input", validateForm);
-    document.getElementById("terms").addEventListener("change", validateForm);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const amount = parseInt(document.getElementById("amount").value);
 
-    function validateForm() {
-      const amt = parseInt(document.getElementById("amount").value);
-      const terms = document.getElementById("terms").checked;
-      const btn = document.getElementById("payBtn");
-      if (amt >= 1 && amt <= 5000 && terms) {
-        btn.disabled = false;
-      } else {
-        btn.disabled = true;
-      }
-    }
+      // Save to Firebase
+      await addDoc(collection(db, "donations"), {
+        name,
+        email,
+        amount,
+        timestamp: new Date().toISOString()
+      });
 
-    document.getElementById("payBtn").addEventListener("click", () => {
-      selectedAmount = parseInt(document.getElementById("amount").value);
-      document.getElementById("payment-methods").style.display = "block";
+      // Show payment options
+      form.style.display = "none";
+      options.style.display = "block";
     });
 
-    window.showBank = function () {
-      document.getElementById("bank-details").style.display = "block";
-      document.getElementById("upi-details").style.display = "none";
-      saveDonation("bank");
-      startTimer();
+    window.showBank = () => {
+      bankDetails.style.display = "block";
+      qrCode.style.display = "none";
     };
 
-    window.showUPI = function () {
-      document.getElementById("upi-details").style.display = "block";
-      document.getElementById("bank-details").style.display = "none";
-      const upiLink = `upi://pay?pa=7347417931@pthdfc&pn=EnvironmentDonation&am=${selectedAmount}&cu=INR`;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(upiLink)}&size=200x200`;
-      document.getElementById("qrImage").src = qrUrl;
-      saveDonation("upi");
+    window.showUPI = () => {
+      const amount = parseInt(document.getElementById("amount").value);
+      const upiId = "7347417931@pthdfc";
+      const upiUri = `upi://pay?pa=${upiId}&pn=Ranjit%20Kaur&am=${amount}&cu=INR&tn=Donation`;
+
+      document.getElementById("qrImage").src = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(upiUri)}`;
+      document.getElementById("upiLink").href = upiUri;
+
+      qrCode.style.display = "block";
+      bankDetails.style.display = "none";
+
+      // Auto redirect to most common app (simulate)
+      setTimeout(() => {
+        window.location.href = upiUri;
+      }, 2000);
     };
-
-    window.redirectToUPI = function () {
-      const upiLink = `upi://pay?pa=7347417931@pthdfc&pn=EnvironmentDonation&am=${selectedAmount}&cu=INR`;
-      window.location.href = upiLink;
-    };
-
-    async function saveDonation(method) {
-      try {
-        await addDoc(collection(db, "donations"), {
-          amount: selectedAmount,
-          method: method,
-          date: new Date().toISOString()
-        });
-      } catch (e) {
-        console.error("Error saving to Firebase:", e);
-      }
-    }
-
-    function startTimer() {
-      const deadline = new Date('2025-07-19T08:34:57').getTime();
-      const timerDisplay = document.getElementById("timer");
-
-      const x = setInterval(() => {
-        const now = new Date().getTime();
-        const distance = deadline - now;
-        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((distance % (1000 * 60)) / 1000);
-        if (distance > 0) {
-          timerDisplay.innerHTML = `⏳ Time left: ${d}d ${h}h ${m}m ${s}s`;
-        } else {
-          clearInterval(x);
-          timerDisplay.innerHTML = "❌ Payment time expired.";
-        }
-      }, 1000);
-    }
   </script>
 </body>
 </html>
