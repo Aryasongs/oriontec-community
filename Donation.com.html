@@ -1,126 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Donate to Save the Environment | Oriontec</title>
+  <meta charset="UTF-8">
+  <title>Donate for the Environment | Oriontec</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
+      background: #f4f7f9;
       font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      background: #f4f4f4;
-      padding: 0;
-    }
-    header {
-      background: #00563f;
-      color: white;
-      padding: 20px;
-      text-align: center;
+      color: #333;
     }
     .container {
-      max-width: 600px;
-      margin: 30px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      max-width: 700px;
+      margin-top: 30px;
+      padding: 30px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
-    h2 { margin-top: 0; }
-    label, input, select, textarea {
-      width: 100%;
-      display: block;
-      margin-bottom: 10px;
-    }
-    input[type="number"], input[type="text"], textarea {
-      padding: 10px;
-      font-size: 1em;
-    }
-    .payment-options button {
-      padding: 15px;
-      margin-top: 10px;
-      width: 48%;
-      font-size: 1em;
-      cursor: pointer;
-      border: none;
-      background: #00695c;
-      color: white;
-      border-radius: 5px;
-    }
-    .hidden { display: none; }
-    .terms { font-size: 0.9em; margin: 10px 0; }
-    .qr img { width: 200px; display: block; margin: 15px auto; }
-    .policies {
-      background: #eee;
-      padding: 15px;
-      font-size: 0.95em;
+    .qr-box {
+      text-align: center;
       margin-top: 20px;
-      border-left: 4px solid #00897b;
     }
-    .timer {
-      margin-top: 10px;
-      font-size: 0.9em;
-      color: red;
+    .info {
+      font-size: 14px;
+      margin-top: 20px;
+    }
+    .bank-box, .upi-box {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>Donate to Save Nature 🌿</h1>
-  <p>Support environmental projects from ₹1 to ₹5000</p>
-</header>
-
 <div class="container">
-  <h2>Donation Form</h2>
-  <label>Full Name</label>
-  <input type="text" id="name" required placeholder="Enter your full name">
+  <h2 class="mb-4 text-center">🌱 Donate to Protect Nature</h2>
 
-  <label>Donation Amount (₹1 - ₹5000)</label>
-  <input type="number" id="amount" min="1" max="5000" required>
-
-  <label><input type="checkbox" id="terms"> I agree to the terms & conditions</label>
-
-  <div class="payment-options">
-    <button onclick="showBank()">Pay via Bank</button>
-    <button onclick="showUPI()">Pay via UPI</button>
-  </div>
-
-  <div id="bank-details" class="hidden">
-    <h3>Bank Transfer Details</h3>
-    <p><strong>Bank:</strong> Punjab National Bank</p>
-    <p><strong>Account Number:</strong> 00732121001177</p>
-    <p><strong>IFSC:</strong> PUNB0007310</p>
-    <p><strong>Account Holder:</strong> Ranjit Kaur</p>
-    <p><strong>TXN Ref:</strong> Oriontec.Ltd</p>
-    <div class="timer" id="bankTimer"></div>
-  </div>
-
-      <div class="qr-code">
-      <h4>Scan to Pay via UPI</h4>
-      <img id="qrImage" src="" alt="UPI QR Code" width="250" />
-      <p>OR <a id="upiLink" href="#" target="_blank">Open in UPI App</a></p>
+  <form id="donationForm">
+    <div class="mb-3">
+      <label for="donationAmount" class="form-label">Enter Amount (₹1 to ₹5000):</label>
+      <input type="number" id="donationAmount" class="form-control" required min="1" max="5000">
     </div>
-  </div>
-    <p><strong>UPI ID:</strong> 7347417931@pthdfc</p>
-    <p><strong>Auto amount:</strong> will reflect in your UPI App</p>
-    <p><a href="#" onclick="redirectUPI()">Tap to open in UPI App</a></p>
-  </div>
 
-  <div class="policies">
-    <h4>Donation Policy</h4>
+    <div class="mb-3">
+      <label class="form-label">Select Payment Method:</label><br>
+      <button type="button" class="btn btn-outline-primary me-2" onclick="showBank()">Bank Transfer</button>
+      <button type="button" class="btn btn-outline-success" onclick="showUPI()">UPI Payment</button>
+    </div>
+
+    <div class="bank-box" id="bankDetails">
+      <h5>Bank Transfer Details:</h5>
+      <ul>
+        <li><strong>Bank:</strong> Punjab National Bank</li>
+        <li><strong>Account Number:</strong> 00732121001177</li>
+        <li><strong>IFSC Code:</strong> PUNB0007310</li>
+        <li><strong>Account Holder:</strong> Ranjit Kaur</li>
+        <li><strong>TX:</strong> Oriontec.ltd</li>
+      </ul>
+      <p class="text-danger"><b>Note:</b> Payment must be made within 2 days or will expire on <span id="expiryDate"></span>.</p>
+    </div>
+
+    <div class="upi-box" id="upiQR">
+      <h5>Scan QR Code to Pay:</h5>
+      <div id="qr"></div>
+      <p>UPI ID: <code>7347417931@pthdfc</code></p>
+      <p><em>Automatically opens amount in UPI apps like GPay, Paytm, PhonePe.</em></p>
+    </div>
+
+    <div class="form-check mt-3">
+      <input class="form-check-input" type="checkbox" required>
+      <label class="form-check-label">I agree to the <a href="#terms">Terms & Conditions</a></label>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3 w-100">Donate</button>
+  </form>
+
+  <div class="info mt-4">
+    <h5>🌍 Why Donate?</h5>
+    <p>Your ₹1 could plant a seed. We use every donation transparently for tree plantations, climate awareness, and clean water projects.</p>
+
+    <h5>🔐 Refund & Privacy Policy</h5>
+    <p>Donations are non-refundable once processed. We never share your information with anyone.</p>
+
+    <h5 id="terms">📜 Terms & Conditions</h5>
     <ul>
-      <li>100% of your donation supports environmental cleanup drives, tree planting, and green awareness campaigns.</li>
-      <li>We do not share your personal data. Data is securely stored in Firebase.</li>
-      <li>Refunds not allowed once payment is processed.</li>
-      <li>Monthly autopay option available soon.</li>
+      <li>Minimum amount ₹1, maximum ₹5000.</li>
+      <li>All donations are voluntary.</li>
+      <li>You'll receive a donation certificate once payment is verified.</li>
     </ul>
   </div>
 </div>
 
-<!-- Firebase & Logic -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-  import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBX2NKRpG3u4YtdjDWx9av0ZZvNq1OHfKA",
@@ -134,69 +111,45 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window.showBank = async () => {
-    const amount = document.getElementById("amount").value;
-    const name = document.getElementById("name").value;
-    if (!amount || !name || !document.getElementById("terms").checked) {
-      alert("Please fill all fields and agree to terms.");
-      return;
+  document.getElementById("donationForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const amount = document.getElementById("donationAmount").value;
+    const upiBox = document.getElementById("upiQR");
+    const bankBox = document.getElementById("bankDetails");
+
+    const formData = {
+      amount: amount,
+      method: upiBox.style.display === "block" ? "UPI" : "Bank",
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      await addDoc(collection(db, "donations"), formData);
+      alert("✅ Thank you for your donation! A confirmation will be sent shortly.");
+    } catch (err) {
+      alert("❌ Something went wrong while saving. Please try again.");
     }
+  });
 
-    document.getElementById("bank-details").classList.remove("hidden");
-
-    // Store in Firebase
-    await addDoc(collection(db, "donations"), {
-      name, amount, method: "Bank", date: new Date().toISOString()
+  window.showUPI = function () {
+    document.getElementById("upiQR").style.display = "block";
+    document.getElementById("bankDetails").style.display = "none";
+    const amount = document.getElementById("donationAmount").value || 1;
+    const qrDiv = document.getElementById("qr");
+    qrDiv.innerHTML = "";
+    const upi = `upi://pay?pa=7347417931@pthdfc&pn=Oriontec%20Donation&am=${amount}&cu=INR`;
+    QRCode.toCanvas(document.createElement("canvas"), upi, function (err, canvas) {
+      if (!err) qrDiv.appendChild(canvas);
     });
+  }
 
-    // Timer (2 days)
-    const deadline = new Date("2025-07-19T08:44:20");
-    const x = setInterval(function () {
-      const now = new Date().getTime();
-      const distance = deadline - now;
-      if (distance < 0) {
-        clearInterval(x);
-        document.getElementById("bankTimer").innerHTML = "⛔ Time expired.";
-        return;
-      }
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      document.getElementById("bankTimer").innerHTML = `⏳ Complete payment within ${days}d ${hours}h`;
-    }, 1000);
-  };
-
-  window.showUPI = async () => {
-    const amount = document.getElementById("amount").value;
-    const name = document.getElementById("name").value;
-    if (!amount || !name || !document.getElementById("terms").checked) {
-      alert("Please fill all fields and agree to terms.");
-      return;
-    }
-
-    document.getElementById("upi").classList.remove("hidden");
-
-    // Store in Firebase
-    await addDoc(collection(db, "donations"), {
-      name, amount, method: "UPI", date: new Date().toISOString()
-    });
-  };
-
-  window.redirectUPI = () => {
-    const amount = document.getElementById("amount").value;
-    const upiURL = `upi://pay?pa=7347417931@pthdfc&pn=Oriontec%20Donation&am=${amount}&cu=INR`;
-    window.location.href = upiURL;
-  };
+  window.showBank = function () {
+    document.getElementById("bankDetails").style.display = "block";
+    document.getElementById("upiQR").style.display = "none";
+    const expire = new Date();
+    expire.setDate(expire.getDate() + 2);
+    document.getElementById("expiryDate").innerText = expire.toDateString();
+  }
 </script>
-
-<!-- Prevent Inspect Element (Basic) -->
-<script>
-  document.addEventListener("contextmenu", e => e.preventDefault());
-  document.onkeydown = function(e) {
-    if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ['I','J','C','U'].includes(e.key))) {
-      return false;
-    }
-  };
-</script>
-
 </body>
 </html>
