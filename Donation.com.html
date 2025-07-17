@@ -1,109 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Donate for the Environment | Oriontec Foundation</title>
+  <meta charset="UTF-8">
+  <title>Donate for Environment | Oriontec</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f9f0;
+      font-family: 'Inter', sans-serif;
       margin: 0;
-      padding: 20px;
+      background: #f4f6f9;
+      padding: 30px;
+      color: #222;
     }
     .container {
-      max-width: 500px;
+      max-width: 700px;
       margin: auto;
-      background: #fff;
+      background: white;
+      padding: 40px;
       border-radius: 10px;
-      padding: 25px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     }
-    h2 {
-      color: green;
-      text-align: center;
+    h1, h2 {
+      color: #0a3d62;
     }
-    label, input, select {
-      display: block;
+    input[type="number"], input[type="text"], input[type="email"] {
       width: 100%;
-      margin-bottom: 15px;
-    }
-    input[type="number"],
-    input[type="text"],
-    select {
       padding: 10px;
+      margin: 8px 0 16px;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
     button {
-      background: green;
-      color: white;
-      padding: 12px;
+      background: #0abde3;
       border: none;
+      padding: 12px 20px;
+      font-size: 16px;
       border-radius: 5px;
+      color: white;
       cursor: pointer;
     }
     button:hover {
-      background: darkgreen;
+      background: #0795c5;
     }
-    .payment-options, .bank-details, .qr-code {
-      display: none;
+    .bank-details, .qr-section {
+      margin-top: 20px;
+      background: #f1f2f6;
+      padding: 20px;
+      border-radius: 10px;
     }
-    .countdown {
-      margin-top: 15px;
-      color: red;
+    .note {
       font-size: 14px;
+      color: #666;
+      margin-top: 10px;
     }
     .terms {
-      font-size: 13px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Donate to Support Environment 🌿</h2>
-    <form id="donationForm">
-      <label for="name">Full Name</label>
-      <input type="text" id="name" required placeholder="Your full name"/>
+    <h1>🌱 Donate to Save the Environment</h1>
+    <p>Every rupee helps us plant trees, clean rivers, and reduce carbon emissions. You can donate from ₹1 to ₹5000. Your donation is safe and transparent.</p>
+    
+    <h2>Enter Your Donation</h2>
+    <input type="number" id="donationAmount" placeholder="Enter amount (₹1 - ₹5000)" min="1" max="5000" required>
 
-      <label for="email">Email Address</label>
-      <input type="text" id="email" required placeholder="Your email"/>
+    <h2>Your Details</h2>
+    <input type="text" id="donorName" placeholder="Full Name" required>
+    <input type="email" id="donorEmail" placeholder="Email Address (optional)">
+    
+    <div class="terms">
+      <label><input type="checkbox" id="agreeTerms"> I agree to the <a href="#">Terms & Conditions</a> and understand this donation is voluntary.</label>
+    </div>
+    
+    <button onclick="showPaymentOptions()">Proceed to Payment</button>
 
-      <label for="amount">Donation Amount (₹1 – ₹5000)</label>
-      <input type="number" id="amount" min="1" max="5000" required />
-
-      <label><input type="checkbox" required /> I agree to the <a href="#">terms and conditions</a></label>
-
-      <button type="submit">Proceed to Pay</button>
-    </form>
-
-    <div class="payment-options">
-      <h3>Select Payment Method</h3>
+    <div id="paymentOptions" style="display:none;">
+      <h2>Select Payment Method</h2>
       <button onclick="showUPI()">Pay via UPI</button>
-      <button onclick="showBank()">Pay via Bank Transfer</button>
+      <button onclick="showBank()">Bank Transfer</button>
     </div>
 
-    <div class="bank-details">
-      <h4>Bank Transfer Details</h4>
+    <div id="qr" class="qr-section" style="display:none;">
+      <h3>Scan this QR to Pay</h3>
+      <img src="donation_upi_qr.png" alt="UPI QR" width="200">
+      <p>Amount will be prefilled. Use UPI apps like Google Pay, PhonePe, or Paytm.</p>
+      <div class="note">If scanning fails, <a href="upi://pay?pa=7347417931@pthdfc&pn=Oriontec%20Donation&am=100&cu=INR">Click here</a> to open in your UPI app.</div>
+    </div>
+
+    <div id="bank" class="bank-details" style="display:none;">
+      <h3>Bank Transfer Details</h3>
       <p><strong>Bank:</strong> Punjab National Bank</p>
       <p><strong>Account Number:</strong> 00732121001177</p>
-      <p><strong>IFSC:</strong> PUNB0007310</p>
+      <p><strong>IFSC Code:</strong> PUNB0007310</p>
       <p><strong>Account Holder:</strong> Ranjit Kaur</p>
-      <p><strong>TX:</strong> Oriontec.ltd</p>
-      <div class="countdown">⏳ Complete within 2 days: <strong id="deadlineText">July 19, 2025 08:44:20</strong></div>
+      <p><strong>TXN Note:</strong> Oriontec.ltd</p>
+      <div class="note">Complete your donation within 2 days. Otherwise, this request will expire on <strong>July 19, 2025</strong>.</div>
     </div>
 
-    <div class="qr-code">
-      <h4>Scan to Pay via UPI</h4>
-      <img id="qrImage" src="" alt="UPI QR Code" width="250" />
-      <p>OR <a id="upiLink" href="#" target="_blank">Open in UPI App</a></p>
-    </div>
+    <p class="note">We are committed to full transparency. You will receive updates about how your donation is used.</p>
+
+    <h2>How Your Donation Helps</h2>
+    <ul>
+      <li>🌳 ₹50 plants one tree</li>
+      <li>🚰 ₹100 cleans 50L of river water</li>
+      <li>💡 ₹500 helps install solar lights in rural areas</li>
+    </ul>
+
+    <h2>Want to setup AutoPay?</h2>
+    <p>To enable monthly donation (₹50 - ₹5000), <a href="#">click here to set up Autopay</a>.</p>
   </div>
 
-  <!-- Firebase -->
+  <!-- Firebase setup -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBX2NKRpG3u4YtdjDWx9av0ZZvNq1OHfKA",
@@ -115,53 +128,38 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db = getDatabase(app);
 
-    const form = document.getElementById("donationForm");
-    const options = document.querySelector(".payment-options");
-    const bankDetails = document.querySelector(".bank-details");
-    const qrCode = document.querySelector(".qr-code");
+    function showPaymentOptions() {
+      const amount = document.getElementById('donationAmount').value;
+      const name = document.getElementById('donorName').value;
+      const email = document.getElementById('donorEmail').value;
+      const agreed = document.getElementById('agreeTerms').checked;
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const amount = parseInt(document.getElementById("amount").value);
+      if (!amount || !name || !agreed) {
+        alert("Please fill all required fields and accept terms.");
+        return;
+      }
 
-      // Save to Firebase
-      await addDoc(collection(db, "donations"), {
-        name,
-        email,
-        amount,
+      set(ref(db, 'donations/' + Date.now()), {
+        name: name,
+        email: email || "Not Provided",
+        amount: amount,
         timestamp: new Date().toISOString()
       });
 
-      // Show payment options
-      form.style.display = "none";
-      options.style.display = "block";
-    });
+      document.getElementById('paymentOptions').style.display = 'block';
+    }
 
-    window.showBank = () => {
-      bankDetails.style.display = "block";
-      qrCode.style.display = "none";
-    };
+    window.showUPI = function() {
+      document.getElementById('qr').style.display = 'block';
+      document.getElementById('bank').style.display = 'none';
+    }
 
-    window.showUPI = () => {
-      const amount = parseInt(document.getElementById("amount").value);
-      const upiId = "7347417931@pthdfc";
-      const upiUri = `upi://pay?pa=${upiId}&pn=Ranjit%20Kaur&am=${amount}&cu=INR&tn=Donation`;
-
-      document.getElementById("qrImage").src = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(upiUri)}`;
-      document.getElementById("upiLink").href = upiUri;
-
-      qrCode.style.display = "block";
-      bankDetails.style.display = "none";
-
-      // Auto redirect to most common app (simulate)
-      setTimeout(() => {
-        window.location.href = upiUri;
-      }, 2000);
-    };
+    window.showBank = function() {
+      document.getElementById('bank').style.display = 'block';
+      document.getElementById('qr').style.display = 'none';
+    }
   </script>
 </body>
 </html>
