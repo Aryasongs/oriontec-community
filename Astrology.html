@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🪐 Kundli Generator | Astrology AI</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0b0c10;
+      color: #fff;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 { color: #00d1b2; }
+    form {
+      background: #1f1f1f;
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+      max-width: 400px;
+      margin-bottom: 30px;
+    }
+    input, button {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      background: #00d1b2;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .result {
+      background: #161616;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: auto;
+      line-height: 1.6;
+    }
+    .highlight {
+      color: #ffc107;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔮 Kundli Generator (AI Astrology)</h1>
+  <p style="font-size: 16px;">अपनी जानकारी भरें और अपनी कुंडली पाएं (Enter your details to get your Kundli)</p>
+
+  <form id="kundliForm">
+    <input type="text" id="name" placeholder="Name / नाम" required />
+    <input type="date" id="dob" required />
+    <input type="time" id="tob" required />
+    <input type="text" id="place" placeholder="Birthplace / जन्म स्थान" required />
+    <button type="submit">🔮 Generate Kundli</button>
+  </form>
+
+  <div class="result" id="output"></div>
+
+  <script>
+    function getZodiacSign(day, month) {
+      const signs = [
+        "Capricorn", "Aquarius", "Pisces", "Aries", "Taurus", "Gemini",
+        "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius"
+      ];
+      const lastDay = [19, 18, 20, 20, 21, 21, 22, 22, 21, 22, 21, 20];
+      return day > lastDay[month - 1] ? signs[month % 12] : signs[month - 1];
+    }
+
+    document.getElementById('kundliForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const dob = new Date(document.getElementById('dob').value);
+      const time = document.getElementById('tob').value;
+      const place = document.getElementById('place').value;
+
+      const day = dob.getDate();
+      const month = dob.getMonth() + 1;
+      const year = dob.getFullYear();
+      const sign = getZodiacSign(day, month);
+
+      const greeting = `नमस्ते ${name} जी 👋`;
+      const zodiac = `आपकी राशि (Zodiac Sign) है: <span class="highlight">${sign}</span>`;
+      const detail = `आपका जन्म <span class="highlight">${day}-${month}-${year}</span> को ${place} में हुआ।`;
+
+      let nature = "";
+      if (sign === "Leo" || sign === "Aries") {
+        nature = "आपमें नेतृत्व की भावना है और आप आत्मविश्वासी व्यक्ति हैं।";
+      } else if (sign === "Cancer" || sign === "Pisces") {
+        nature = "आप भावुक और रचनात्मक व्यक्ति हैं।";
+      } else {
+        nature = "आप संतुलित और व्यावहारिक सोच वाले व्यक्ति हैं।";
+      }
+
+      document.getElementById('output').innerHTML = `
+        <h3>${greeting}</h3>
+        <p>${zodiac}</p>
+        <p>${detail}</p>
+        <p>${nature}</p>
+        <hr>
+        <p><b>Note:</b> यह कुंडली साधारण ज्योतिष ज्ञान के आधार पर है। अधिक जानकारी के लिए पेशेवर ज्योतिषी से सलाह लें।</p>
+      `;
+    });
+  </script>
+
+</body>
+</html>
