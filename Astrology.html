@@ -1,147 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Kundli AI Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kundli AI - Your Personalized Horoscope</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #e0eafc, #cfdef3);
+      background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+      color: #222;
       padding: 20px;
     }
-    h1 { text-align: center; color: #3e3e3e; }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
+    h1, h2 {
+      color: #2c3e50;
+    }
+    label, select, input {
+      display: block;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    .response-box {
+      margin-top: 20px;
+      background: white;
+      padding: 15px;
       border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    label { display: block; margin-top: 15px; }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
     button {
-      margin-top: 20px;
-      padding: 12px;
-      background: #0078D7;
+      padding: 10px 20px;
+      background: #3498db;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       font-size: 16px;
       cursor: pointer;
     }
-    .output {
-      margin-top: 25px;
-      background: #f1f1f1;
-      padding: 15px;
-      border-radius: 6px;
-      white-space: pre-line;
+    .lang-toggle {
+      float: right;
+      margin-top: -40px;
     }
   </style>
 </head>
 <body>
-
-  <h1>🔮 Kundli AI Generator</h1>
-  <div class="container">
-    <label>Your Name</label>
-    <input type="text" id="name">
-
-    <label>Date of Birth</label>
-    <input type="date" id="dob">
-
-    <label>Time of Birth</label>
-    <input type="time" id="tob">
-
-    <label>Place of Birth (City)</label>
-    <input type="text" id="location">
-
-    <label>Language</label>
-    <select id="lang">
-      <option value="en">English</option>
+  <h1>Kundli AI</h1>
+  <div class="lang-toggle">
+    <label for="language">🌐 Language:</label>
+    <select id="language" onchange="updateLanguage()">
+      <option value="en" selected>English</option>
       <option value="hi">हिन्दी</option>
     </select>
-
-    <button onclick="generateKundli()">Generate Kundli</button>
-
-    <div class="output" id="result"></div>
   </div>
 
-  <script>
-    function getZodiac(month, day) {
-      const zodiacSigns = [
-        { sign: "Capricorn", start: [12, 22], end: [1, 19] },
-        { sign: "Aquarius", start: [1, 20], end: [2, 18] },
-        { sign: "Pisces", start: [2, 19], end: [3, 20] },
-        { sign: "Aries", start: [3, 21], end: [4, 19] },
-        { sign: "Taurus", start: [4, 20], end: [5, 20] },
-        { sign: "Gemini", start: [5, 21], end: [6, 20] },
-        { sign: "Cancer", start: [6, 21], end: [7, 22] },
-        { sign: "Leo", start: [7, 23], end: [8, 22] },
-        { sign: "Virgo", start: [8, 23], end: [9, 22] },
-        { sign: "Libra", start: [9, 23], end: [10, 22] },
-        { sign: "Scorpio", start: [10, 23], end: [11, 21] },
-        { sign: "Sagittarius", start: [11, 22], end: [12, 21] },
-      ];
-      for (let z of zodiacSigns) {
-        const [sMonth, sDay] = z.start;
-        const [eMonth, eDay] = z.end;
-        if ((month === sMonth && day >= sDay) || (month === eMonth && day <= eDay)) {
-          return z.sign;
-        }
+  <label>Date of Birth:</label>
+  <input type="date" id="dob"/>
+
+  <label>Time of Birth:</label>
+  <input type="time" id="tob"/>
+
+  <label>Place of Birth:</label>
+  <input type="text" id="pob" placeholder="City, State"/>
+
+  <button onclick="generateKundli()">Generate Kundli</button>
+
+  <div class="response-box" id="kundliResponse"></div>
+
+<script>
+  const translations = {
+    en: {
+      title: "Your Personalized Kundli",
+      rashi: "Your Rashi (Zodiac):",
+      manglik: "Manglik Status:",
+      sadeSati: "Shani Sade Sati:",
+      dosh: "Other Dosh:",
+      remedies: "Remedies:",
+      default_msg: "Here’s what the stars say about you:"
+    },
+    hi: {
+      title: "आपकी व्यक्तिगत कुंडली",
+      rashi: "आपकी राशि:",
+      manglik: "मंगलिक स्थिति:",
+      sadeSati: "शनि साढ़ेसाती:",
+      dosh: "अन्य दोष:",
+      remedies: "उपाय:",
+      default_msg: "सितारे आपके बारे में ये कहते हैं:"
+    }
+  };
+
+  let currentLang = "en";
+
+  function updateLanguage() {
+    currentLang = document.getElementById("language").value;
+  }
+
+  function getZodiacSign(month, day) {
+    const signs = [
+      { sign: "Capricorn", start: [12, 22], end: [1, 19] },
+      { sign: "Aquarius", start: [1, 20], end: [2, 18] },
+      { sign: "Pisces", start: [2, 19], end: [3, 20] },
+      { sign: "Aries", start: [3, 21], end: [4, 19] },
+      { sign: "Taurus", start: [4, 20], end: [5, 20] },
+      { sign: "Gemini", start: [5, 21], end: [6, 20] },
+      { sign: "Cancer", start: [6, 21], end: [7, 22] },
+      { sign: "Leo", start: [7, 23], end: [8, 22] },
+      { sign: "Virgo", start: [8, 23], end: [9, 22] },
+      { sign: "Libra", start: [9, 23], end: [10, 22] },
+      { sign: "Scorpio", start: [10, 23], end: [11, 21] },
+      { sign: "Sagittarius", start: [11, 22], end: [12, 21] }
+    ];
+
+    for (const s of signs) {
+      const [sm, sd] = s.start;
+      const [em, ed] = s.end;
+      if ((month === sm && day >= sd) || (month === em && day <= ed)) {
+        return s.sign;
       }
-      return "Unknown";
+    }
+    return "Capricorn";
+  }
+
+  function generateKundli() {
+    const dob = document.getElementById("dob").value;
+    const tob = document.getElementById("tob").value;
+    const pob = document.getElementById("pob").value;
+
+    if (!dob || !tob || !pob) {
+      alert("Please fill all fields.");
+      return;
     }
 
-    function generateKundli() {
-      const name = document.getElementById("name").value;
-      const dob = document.getElementById("dob").value;
-      const tob = document.getElementById("tob").value;
-      const location = document.getElementById("location").value;
-      const lang = document.getElementById("lang").value;
-      const result = document.getElementById("result");
+    const birthDate = new Date(dob);
+    const month = birthDate.getMonth() + 1;
+    const day = birthDate.getDate();
+    const zodiac = getZodiacSign(month, day);
 
-      if (!name || !dob || !tob || !location) {
-        result.innerText = "⚠️ Please fill all fields.";
-        return;
-      }
+    const isManglik = (day % 2 === 0) ? "Yes" : "No";
+    const sadeSati = (month % 3 === 0) ? "Active" : "Not Active";
+    const dosh = (day % 5 === 0) ? "Kaal Sarp Dosh" : "None";
+    const remedies = (isManglik === "Yes") ? "Chant Hanuman Chalisa daily." : "Wear Rudraksha.";
 
-      const dateObj = new Date(dob);
-      const month = dateObj.getMonth() + 1;
-      const day = dateObj.getDate();
-      const year = dateObj.getFullYear();
-      const zodiac = getZodiac(month, day);
+    const t = translations[currentLang];
 
-      const isManglik = (month === 3 || month === 8); // dummy logic
-      const sadeSati = (zodiac === "Capricorn" || zodiac === "Aquarius");
-
-      let message = "";
-
-      if (lang === "en") {
-        message += `Hello ${name},\n`;
-        message += `Your Zodiac sign is ${zodiac}.\n`;
-        message += `You were born on ${dob} at ${tob} in ${location}.\n`;
-        message += isManglik ? "You are Manglik.\n" : "You are not Manglik.\n";
-        message += sadeSati ? "Shani Sade Sati is active in your chart.\n" : "No Sade Sati currently.\n";
-        message += `🌟 You are a confident person. Favorable time in career soon.`;
-      } else {
-        message += `नमस्ते ${name},\n`;
-        message += `आपकी राशि है ${zodiac}।\n`;
-        message += `आपका जन्म ${dob} को ${tob} बजे ${location} में हुआ।\n`;
-        message += isManglik ? "आप मांगलिक हैं।\n" : "आप मांगलिक नहीं हैं।\n";
-        message += sadeSati ? "आपकी कुंडली में शनि साढ़ेसाती चल रही है।\n" : "साढ़ेसाती नहीं है।\n";
-        message += `🌟 आप आत्मविश्वासी हैं। करियर में जल्द शुभ समाचार मिलेगा।`;
-      }
-
-      result.innerText = message;
-    }
-  </script>
-
+    document.getElementById("kundliResponse").innerHTML = `
+      <h2>${t.title}</h2>
+      <p><strong>${t.default_msg}</strong></p>
+      <p><strong>${t.rashi}</strong> ${zodiac}</p>
+      <p><strong>${t.manglik}</strong> ${isManglik}</p>
+      <p><strong>${t.sadeSati}</strong> ${sadeSati}</p>
+      <p><strong>${t.dosh}</strong> ${dosh}</p>
+      <p><strong>${t.remedies}</strong> ${remedies}</p>
+    `;
+  }
+</script>
 </body>
 </html>
