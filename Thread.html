@@ -1,43 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>MiniTwitter</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial; padding: 20px; background: #f2f2f2; }
-    .user-box { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .verified { height: 16px; margin-left: 4px; vertical-align: middle; }
-    #adminPanel { display: none; padding: 10px; background: #ffd; margin-top: 20px; border: 1px solid #ccc; }
-    #loginBtn, #logoutBtn { padding: 10px 20px; border: none; background: #1da1f2; color: white; border-radius: 5px; cursor: pointer; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background: #f5f8fa; }
+    header { background: #1da1f2; color: white; padding: 10px 20px; font-size: 22px; }
+    #auth-section, #post-section, #feed, #admin-panel { max-width: 500px; margin: auto; padding: 20px; }
+    input, textarea, button {
+      width: 100%; padding: 12px; margin-top: 10px;
+      border-radius: 5px; border: 1px solid #ccc;
+    }
+    button { background: #1da1f2; color: white; font-weight: bold; cursor: pointer; }
+    .tweet { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    .tweet-header { display: flex; justify-content: space-between; align-items: center; }
+    .tick { width: 16px; vertical-align: middle; margin-left: 5px; }
+    .actions button { margin-right: 10px; }
+    #admin-panel { display: none; background: #fff; border: 1px solid #ccc; margin-top: 20px; }
   </style>
 </head>
 <body>
+  <header>MiniTwitter</header>
 
-  <div id="authSection">
-    <button id="loginBtn">Sign in with Google</button>
+  <div id="auth-section">
+    <h3>Login / Register</h3>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <button onclick="signup()">Sign Up</button>
   </div>
 
-  <div id="userSection" style="display:none;">
-    <div class="user-box">
-      <b id="userName">User</b>
-      <button id="logoutBtn" onclick="logout()">Logout</button>
-    </div>
-
-    <div id="adminPanel">
-      <h3>Admin Panel</h3>
-      <p>Click a user to verify:</p>
-      <ul id="userList"></ul>
-    </div>
+  <div id="post-section" style="display:none;">
+    <h3>Welcome, <span id="user-name"></span></h3>
+    <textarea id="tweet" placeholder="What's happening?"></textarea>
+    <button onclick="postTweet()">Tweet</button>
   </div>
+
+  <div id="feed"></div>
+
+  <div id="admin-panel">
+    <h3>Admin: Verify User</h3>
+    <input type="text" id="verify-email" placeholder="User Email to Verify">
+    <button onclick="verifyUser()">Verify</button>
+  </div>
+
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAAW5SVJaFORSLPU98leoDTH8UgL0sTuh8",
       authDomain: "minitwitter-5796c.firebaseapp.com",
       projectId: "minitwitter-5796c",
-      storageBucket: "minitwitter-5796c.appspot.com",
+      storageBucket: "minitwitter-5796c.firebasestorage.app",
       messagingSenderId: "941893539495",
       appId: "1:941893539495:web:edbda27749202529e2ed82"
     };
@@ -46,66 +65,110 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const verifiedImg = `<img class="verified" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh3FxSHv8nGeIbloxtSpBg87ze90h5q65rr-fzkei4M0Hjj-KoqrzwWDpNjMcBNRITtwhUwulzt--EjCcJ1WhorCcMaQFdZAJOzi0pKqOr9xJGyN_Ap-pENZjuuIDXFEOMHdPagB-BRNtvq4akCa70sHqoAUsT6ZGdJviS6tHgMyMkyh8iMW7rx_NAKKmy/s626/IMG_8195.png" alt="Verified">`;
-
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider);
-    });
-
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        document.getElementById("authSection").style.display = "none";
-        document.getElementById("userSection").style.display = "block";
-
-        const userRef = db.collection("users").doc(user.uid);
-        const doc = await userRef.get();
-
-        if (!doc.exists) {
-          await userRef.set({
-            name: user.displayName,
-            email: user.email,
-            verified: false,
-            followers: 0,
-            following: 0
+    // Signup
+    function signup() {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      auth.createUserWithEmailAndPassword(email, pass)
+        .then((userCred) => {
+          db.collection("users").doc(userCred.user.uid).set({
+            email: email,
+            name: email.split("@")[0],
+            verified: false
           });
-        }
-
-        const data = (await userRef.get()).data();
-        document.getElementById("userName").innerHTML = `${data.name}${data.verified ? verifiedImg : ""}`;
-
-        if (user.email === "sdozera@gmail.com") {
-          document.getElementById("adminPanel").style.display = "block";
-          loadUsersForAdmin();
-        }
-      }
-    });
-
-    function logout() {
-      auth.signOut();
-      location.reload();
+        });
     }
 
-    async function loadUsersForAdmin() {
-      const usersSnapshot = await db.collection("users").get();
-      const list = document.getElementById("userList");
-      list.innerHTML = "";
-
-      usersSnapshot.forEach(doc => {
-        const data = doc.data();
-        const li = document.createElement("li");
-        li.innerHTML = `${data.name} (${data.email}) - ${data.verified ? "✅" : "❌"}`;
-        li.style.cursor = "pointer";
-        li.onclick = () => verifyUser(doc.id);
-        list.appendChild(li);
+    // Login
+    function login() {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      auth.signInWithEmailAndPassword(email, pass).then(() => {
+        loadApp();
       });
     }
 
-    async function verifyUser(userId) {
-      await db.collection("users").doc(userId).update({ verified: true });
-      alert("User Verified!");
-      loadUsersForAdmin();
+    // Load App
+    function loadApp() {
+      const user = auth.currentUser;
+      document.getElementById("auth-section").style.display = "none";
+      document.getElementById("post-section").style.display = "block";
+
+      db.collection("users").doc(user.uid).get().then(doc => {
+        const data = doc.data();
+        document.getElementById("user-name").innerHTML = data.name +
+          (data.verified ? `<img class="tick" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh3FxSHv8nGeIbloxtSpBg87ze90h5q65rr-fzkei4M0Hjj-KoqrzwWDpNjMcBNRITtwhUwulzt--EjCcJ1WhorCcMaQFdZAJOzi0pKqOr9xJGyN_Ap-pENZjuuIDXFEOMHdPagB-BRNtvq4akCa70sHqoAUsT6ZGdJviS6tHgMyMkyh8iMW7rx_NAKKmy/s626/IMG_8195.png">` : "");
+
+        // Admin Panel
+        if (data.email === "sdozera@gmail.com") {
+          document.getElementById("admin-panel").style.display = "block";
+        }
+
+        loadFeed();
+      });
     }
+
+    // Post a tweet
+    function postTweet() {
+      const user = auth.currentUser;
+      const content = document.getElementById("tweet").value;
+
+      db.collection("tweets").add({
+        userId: user.uid,
+        content: content,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        document.getElementById("tweet").value = "";
+        loadFeed();
+      });
+    }
+
+    // Load Feed
+    async function loadFeed() {
+      const feedDiv = document.getElementById("feed");
+      feedDiv.innerHTML = "";
+      const tweets = await db.collection("tweets").orderBy("timestamp", "desc").get();
+
+      for (let doc of tweets.docs) {
+        const tweet = doc.data();
+        const userDoc = await db.collection("users").doc(tweet.userId).get();
+        const userData = userDoc.data();
+        feedDiv.innerHTML += `
+          <div class="tweet">
+            <div class="tweet-header">
+              <strong>${userData.name}</strong>
+              ${userData.verified ? '<img class="tick" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh3FxSHv8nGeIbloxtSpBg87ze90h5q65rr-fzkei4M0Hjj-KoqrzwWDpNjMcBNRITtwhUwulzt--EjCcJ1WhorCcMaQFdZAJOzi0pKqOr9xJGyN_Ap-pENZjuuIDXFEOMHdPagB-BRNtvq4akCa70sHqoAUsT6ZGdJviS6tHgMyMkyh8iMW7rx_NAKKmy/s626/IMG_8195.png">' : ''}
+            </div>
+            <p>${tweet.content}</p>
+            <div class="actions">
+              <button>Like</button>
+              <button>Comment</button>
+              <button>Reshare</button>
+            </div>
+          </div>`;
+      }
+    }
+
+    // Admin Verify User
+    function verifyUser() {
+      const email = document.getElementById("verify-email").value;
+      db.collection("users").where("email", "==", email).get().then(snapshot => {
+        if (!snapshot.empty) {
+          const id = snapshot.docs[0].id;
+          db.collection("users").doc(id).update({ verified: true }).then(() => {
+            alert("User Verified!");
+            loadFeed();
+          });
+        } else {
+          alert("User not found.");
+        }
+      });
+    }
+
+    // Auto Load on Login
+    auth.onAuthStateChanged(user => {
+      if (user) loadApp();
+    });
   </script>
 </body>
 </html>
