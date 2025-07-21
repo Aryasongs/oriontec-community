@@ -1,145 +1,157 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>MiniTwitter</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <style>
-    body { font-family: Arial; background: #f2f2f2; margin: 0; }
-    .navbar { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; border-top: 1px solid #ccc; padding: 10px 0; }
-    .navbar div { font-size: 14px; color: #333; }
-    .tweetbox, .tweet { background: white; padding: 15px; margin: 10px; border-radius: 8px; box-shadow: 0 0 5px #ccc; }
-    .tweet img.tick { width: 16px; vertical-align: middle; margin-left: 4px; }
-    .btn { padding: 8px 15px; background: #1DA1F2; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    .btn.following { background: gray; }
-    .admin-options { color: red; font-size: 12px; margin-top: 5px; }
-    .login-container { display: flex; flex-direction: column; align-items: center; margin-top: 50px; }
-  </style>
+<meta charset="UTF-8">
+<title>MiniTwitter App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { margin:0; padding:0; font-family: Arial,sans-serif; background:#f2f2f2; }
+  .container { max-width:500px; margin:auto; padding-top:20px; }
+  .card { background:#fff; padding:15px; margin-bottom:15px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.1); }
+  input, textarea { width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:5px; }
+  button { padding:10px; margin:5px 0; width:100%; border:none; background:#1DA1F2; color:#fff; border-radius:5px; font-size:16px; cursor:pointer; }
+  .tweet-header { font-weight:bold; }
+  img.tick { width:16px; vertical-align:middle; margin-left:4px; }
+  .admin-buttons button { width:auto; margin-right:10px; background:#e74c3c; font-size:14px; padding:5px 10px; }
+</style>
 </head>
 <body>
+<div class="container">
 
-<div id="app">
-  <div class="login-container" id="auth-section">
-    <h2>MiniTwitter</h2>
-    <input id="email" placeholder="Email"><br>
-    <input id="password" placeholder="Password" type="password"><br>
-    <button class="btn" onclick="login()">Login</button>
-    <button class="btn" onclick="signup()">Sign Up</button>
+  <!-- AUTH AREA -->
+  <div id="auth-area" class="card">
+    <h2>Login / Sign Up</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <button onclick="signup()">Sign Up</button>
   </div>
 
-  <div style="display:none" id="main-section">
-    <div class="tweetbox">
-      <textarea id="tweetInput" placeholder="What's happening?" rows="3" style="width:100%;"></textarea>
-      <button class="btn" onclick="postTweet()">Tweet</button>
+  <!-- MAIN AREA -->
+  <div id="main-area" style="display:none;">
+    <div class="card">
+      <textarea id="tweetInput" placeholder="What's happening?"></textarea>
+      <button onclick="postTweet()">Tweet</button>
+      <button onclick="logout()" style="background:#95a5a6;">Logout</button>
     </div>
 
-    <div id="tweets"></div>
-
-    <div class="navbar">
-      <div>🏠 Home</div>
-      <div>🔍 Explore</div>
-      <div>👤 Profile</div>
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="card" style="display:none;">
+      <h3>Admin Controls</h3>
+      <p>You're Admin 👑</p>
     </div>
+
+    <!-- Feed -->
+    <div id="feed"></div>
   </div>
 </div>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 
 <script>
-  const firebaseConfig = {
+  // ⚙️ Your Firebase Config
+  firebase.initializeApp({
     apiKey: "AIzaSyAAW5SVJaFORSLPU98leoDTH8UgL0sTuh8",
     authDomain: "minitwitter-5796c.firebaseapp.com",
     projectId: "minitwitter-5796c",
     storageBucket: "minitwitter-5796c.appspot.com",
     messagingSenderId: "941893539495",
     appId: "1:941893539495:web:edbda27749202529e2ed82"
-  };
+  });
 
-  const app = firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
   const ADMIN_EMAIL = "sdozera@gmail.com";
-  const VERIFIED_TICK = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh3FxSHv8nGeIbloxtSpBg87ze90h5q65rr-fzkei4M0Hjj-KoqrzwWDpNjMcBNRITtwhUwulztb--EjCcJ1WhorCcMaQFdZAJOzi0pKqOr9xJGyN_Ap-pENZjuuIDXFEOMHdPagB-BRNtvq4akCa70sHqoAUsT6ZGdJviS6tHgMyMkyh8iMW7rx_NAKKmy/s626/IMG_8195.png";
+  const TICK_IMG = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh3FxSHv8nGeIbloxtSpBg87ze90h5q65rr-fzkei4M0Hjj-KoqrzwWDpNjMcBNRITtwhUwulzt--EjCcJ1WhorCcMaQFdZAJOzi0pKqOr9xJGyN_Ap-pENZjuuIDXFEOMHdPagB-BRNtvq4akCa70sHqoAUsT6ZGdJviS6tHgMyMkyh8iMW7rx_NAKKmy/s626/IMG_8195.png";
 
+  // Auth state listener
   auth.onAuthStateChanged(user => {
     if (user) {
-      document.getElementById('auth-section').style.display = "none";
-      document.getElementById('main-section').style.display = "block";
-      loadTweets();
+      document.getElementById("auth-area").style.display = "none";
+      document.getElementById("main-area").style.display = "block";
+      if (user.email === ADMIN_EMAIL) {
+        document.getElementById("admin-panel").style.display = "block";
+      }
+      listenTweets();
+    } else {
+      document.getElementById("auth-area").style.display = "block";
+      document.getElementById("main-area").style.display = "none";
     }
   });
 
   function login() {
-    let email = document.getElementById('email').value;
-    let pass = document.getElementById('password').value;
-    auth.signInWithEmailAndPassword(email, pass).catch(alert);
+    const e = document.getElementById("email").value;
+    const p = document.getElementById("password").value;
+    auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
   }
-
   function signup() {
-    let email = document.getElementById('email').value;
-    let pass = document.getElementById('password').value;
-    auth.createUserWithEmailAndPassword(email, pass).then(userCred => {
-      db.collection("users").doc(userCred.user.uid).set({
-        email: email,
-        verified: false,
-        followers: 0
-      });
-    }).catch(alert);
+    const e = document.getElementById("email").value;
+    const p = document.getElementById("password").value;
+    auth.createUserWithEmailAndPassword(e, p)
+      .then(uc => db.collection("users").doc(uc.user.uid).set({ email:e, verified:false, suspended:false }))
+      .catch(err => alert(err.message));
+  }
+  function logout() {
+    auth.signOut();
+    location.reload();
   }
 
   function postTweet() {
-    let tweet = document.getElementById('tweetInput').value;
-    let user = auth.currentUser;
+    const user = auth.currentUser;
+    const txt = document.getElementById("tweetInput").value.trim();
+    if (!txt) return alert("Write something!");
     db.collection("tweets").add({
       uid: user.uid,
       email: user.email,
-      tweet: tweet,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      text: txt,
+      ts: firebase.firestore.FieldValue.serverTimestamp()
     });
-    document.getElementById('tweetInput').value = "";
+    document.getElementById("tweetInput").value = "";
   }
 
-  async function loadTweets() {
-    db.collection("tweets").orderBy("createdAt", "desc").onSnapshot(async (snap) => {
-      let container = document.getElementById("tweets");
-      container.innerHTML = "";
-      for (let doc of snap.docs) {
-        let data = doc.data();
-        let userDoc = await db.collection("users").doc(data.uid).get();
-        let userData = userDoc.exists ? userDoc.data() : { verified: false };
+  function listenTweets() {
+    db.collection("tweets").orderBy("ts", "desc")
+      .onSnapshot(snap => {
+        const feed = document.getElementById("feed");
+        feed.innerHTML = "";
+        snap.forEach(async doc => {
+          const t = doc.data();
+          const tweetId = doc.id;
+          const userDoc = await db.collection("users").doc(t.uid).get();
+          const ud = userDoc.exists ? userDoc.data() : {};
+          if (ud.suspended) return; // skip suspended
+          const tick = ud.verified ? `<img class="tick" src="${TICK_IMG}">` : "";
+          let html = `<div class="card">
+            <div class="tweet-header">${t.email} ${tick}</div>
+            <p>${t.text}</p>`;
 
-        let tweetHTML = `<div class="tweet">
-            <strong>${data.email}</strong>
-            ${userData.verified ? `<img class="tick" src="${VERIFIED_TICK}" />` : ""}
-            <p>${data.tweet}</p>`;
-
-        if (auth.currentUser.email === ADMIN_EMAIL) {
-          tweetHTML += `<div class="admin-options">
-              <button onclick="deleteTweet('${doc.id}')">Delete</button>
-              <button onclick="verifyUser('${data.uid}')">Verify</button>
-              <button onclick="suspendUser('${data.uid}')">Suspend</button>
+          // Admin actions
+          if (auth.currentUser.email === ADMIN_EMAIL) {
+            html += `<div class="admin-buttons">
+              <button onclick="deleteTweet('${tweetId}')">Delete</button>
+              <button onclick="verifyUser('${t.uid}')">Verify</button>
+              <button onclick="suspendUser('${t.uid}')">Suspend</button>
             </div>`;
-        }
+          }
 
-        tweetHTML += `</div>`;
-        container.innerHTML += tweetHTML;
-      }
-    });
+          html += `</div>`;
+          feed.innerHTML += html;
+        });
+      });
   }
 
   function deleteTweet(id) {
     db.collection("tweets").doc(id).delete();
   }
-
   function verifyUser(uid) {
-    db.collection("users").doc(uid).update({ verified: true });
+    db.collection("users").doc(uid).update({ verified:true });
   }
-
   function suspendUser(uid) {
-    db.collection("users").doc(uid).update({ suspended: true });
+    db.collection("users").doc(uid).update({ suspended:true });
   }
 </script>
-
 </body>
 </html>
