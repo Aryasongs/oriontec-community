@@ -1,98 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dozera MiniTwitter</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MiniTwitter</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-
-    #app {
-      max-width: 600px;
-      margin: 30px auto;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 10px #ccc;
-      padding: 20px;
-    }
-
-    .tweet {
-      border-bottom: 1px solid #ddd;
-      padding: 10px 0;
-    }
-
-    .tweet strong {
-      font-size: 15px;
-    }
-
-    .verified {
-      height: 16px;
-      vertical-align: middle;
-      margin-left: 4px;
-    }
-
-    .comment {
-      font-size: 14px;
-      padding: 4px 0;
-      margin-left: 20px;
-      color: #444;
-    }
-
-    button {
-      background: #1DA1F2;
-      color: white;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin: 4px;
-    }
-
-    .admin-btn {
-      background-color: darkorange;
-    }
-
-    .follow-btn {
-      background-color: #657786;
-    }
-
-    #adminPanel {
-      margin-top: 20px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      display: none;
-    }
+    body { font-family: Arial; padding: 20px; background: #f2f2f2; }
+    .user-box { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .verified { height: 16px; margin-left: 4px; vertical-align: middle; }
+    #adminPanel { display: none; padding: 10px; background: #ffd; margin-top: 20px; border: 1px solid #ccc; }
+    #loginBtn, #logoutBtn { padding: 10px 20px; border: none; background: #1da1f2; color: white; border-radius: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <div id="app">
-    <h2>Dozera MiniTwitter</h2>
-    <div id="loginArea">
-      <button onclick="signIn()">Sign in with Google</button>
-    </div>
 
-    <div id="userArea" style="display:none;">
-      <p>Welcome, <span id="userName"></span></p>
-      <textarea id="tweetText" placeholder="What's happening?" rows="2" style="width:100%;"></textarea>
-      <button onclick="postTweet()">Post</button>
-      <div id="tweets"></div>
+  <div id="authSection">
+    <button id="loginBtn">Sign in with Google</button>
+  </div>
+
+  <div id="userSection" style="display:none;">
+    <div class="user-box">
+      <b id="userName">User</b>
+      <button id="logoutBtn" onclick="logout()">Logout</button>
     </div>
 
     <div id="adminPanel">
       <h3>Admin Panel</h3>
-      <input type="text" id="verifyUID" placeholder="User UID to verify" />
-      <button class="admin-btn" onclick="verifyUser()">Verify This User</button>
+      <p>Click a user to verify:</p>
+      <ul id="userList"></ul>
     </div>
   </div>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -107,95 +45,66 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    let currentUser = null;
 
-    function signIn() {
+    const verifiedImg = `<img class="verified" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh3FxSHv8nGeIbloxtSpBg87ze90h5q65rr-fzkei4M0Hjj-KoqrzwWDpNjMcBNRITtwhUwulzt--EjCcJ1WhorCcMaQFdZAJOzi0pKqOr9xJGyN_Ap-pENZjuuIDXFEOMHdPagB-BRNtvq4akCa70sHqoAUsT6ZGdJviS6tHgMyMkyh8iMW7rx_NAKKmy/s626/IMG_8195.png" alt="Verified">`;
+
+    document.getElementById("loginBtn").addEventListener("click", () => {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider);
-    }
+    });
 
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async (user) => {
       if (user) {
-        currentUser = user;
-        document.getElementById("loginArea").style.display = "none";
-        document.getElementById("userArea").style.display = "block";
-
-        // Show admin panel for sdozera@gmail.com
-        if (user.email === "sdozera@gmail.com") {
-          document.getElementById("adminPanel").style.display = "block";
-        }
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("userSection").style.display = "block";
 
         const userRef = db.collection("users").doc(user.uid);
-        userRef.get().then(doc => {
-          if (!doc.exists) {
-            userRef.set({
-              name: user.displayName,
-              email: user.email,
-              verified: false,
-              followers: 0,
-              following: 0
-            });
-          }
-          displayUserName(user.uid);
-          loadTweets();
-        });
+        const doc = await userRef.get();
+
+        if (!doc.exists) {
+          await userRef.set({
+            name: user.displayName,
+            email: user.email,
+            verified: false,
+            followers: 0,
+            following: 0
+          });
+        }
+
+        const data = (await userRef.get()).data();
+        document.getElementById("userName").innerHTML = `${data.name}${data.verified ? verifiedImg : ""}`;
+
+        if (user.email === "sdozera@gmail.com") {
+          document.getElementById("adminPanel").style.display = "block";
+          loadUsersForAdmin();
+        }
       }
     });
 
-    function displayUserName(uid) {
-      db.collection("users").doc(uid).get().then(doc => {
+    function logout() {
+      auth.signOut();
+      location.reload();
+    }
+
+    async function loadUsersForAdmin() {
+      const usersSnapshot = await db.collection("users").get();
+      const list = document.getElementById("userList");
+      list.innerHTML = "";
+
+      usersSnapshot.forEach(doc => {
         const data = doc.data();
-        const badge = data.verified
-          ? `<img class="verified" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh3FxSHv8nGeIbloxtSpBg87ze90h5q65rr-fzkei4M0Hjj-KoqrzwWDpNjMcBNRITtwhUwulzt--EjCcJ1WhorCcMaQFdZAJOzi0pKqOr9xJGyN_Ap-pENZjuuIDXFEOMHdPagB-BRNtvq4akCa70sHqoAUsT6ZGdJviS6tHgMyMkyh8iMW7rx_NAKKmy/s626/IMG_8195.png">` : "";
-        document.getElementById("userName").innerHTML = data.name + badge;
+        const li = document.createElement("li");
+        li.innerHTML = `${data.name} (${data.email}) - ${data.verified ? "✅" : "❌"}`;
+        li.style.cursor = "pointer";
+        li.onclick = () => verifyUser(doc.id);
+        list.appendChild(li);
       });
     }
 
-    function postTweet() {
-      const text = document.getElementById("tweetText").value;
-      if (text.trim() === "") return;
-
-      db.collection("tweets").add({
-        text: text,
-        uid: currentUser.uid,
-        timestamp: Date.now()
-      });
-
-      document.getElementById("tweetText").value = "";
-      loadTweets();
-    }
-
-    async function loadTweets() {
-      const tweetsContainer = document.getElementById("tweets");
-      tweetsContainer.innerHTML = "";
-
-      const tweets = await db.collection("tweets").orderBy("timestamp", "desc").get();
-      for (const doc of tweets.docs) {
-        const tweet = doc.data();
-        const userDoc = await db.collection("users").doc(tweet.uid).get();
-        const user = userDoc.data();
-        const badge = user.verified
-          ? `<img class="verified" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh3FxSHv8nGeIbloxtSpBg87ze90h5q65rr-fzkei4M0Hjj-KoqrzwWDpNjMcBNRITtwhUwulzt--EjCcJ1WhorCcMaQFdZAJOzi0pKqOr9xJGyN_Ap-pENZjuuIDXFEOMHdPagB-BRNtvq4akCa70sHqoAUsT6ZGdJviS6tHgMyMkyh8iMW7rx_NAKKmy/s626/IMG_8195.png">` : "";
-
-        tweetsContainer.innerHTML += `
-          <div class="tweet">
-            <strong>${user.name}${badge}</strong>
-            <p>${tweet.text}</p>
-            <div class="comment">Comments coming soon...</div>
-          </div>
-        `;
-      }
-    }
-
-    function verifyUser() {
-      const uid = document.getElementById("verifyUID").value.trim();
-      if (!uid) return;
-      db.collection("users").doc(uid).update({
-        verified: true
-      }).then(() => {
-        alert("User verified!");
-        loadTweets();
-      });
+    async function verifyUser(userId) {
+      await db.collection("users").doc(userId).update({ verified: true });
+      alert("User Verified!");
+      loadUsersForAdmin();
     }
   </script>
 </body>
