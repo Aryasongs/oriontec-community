@@ -1,35 +1,118 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Publish Article Form</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publish Article</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
+    /* Global Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #f8f9fa, #e3e8ef);
+      color: #212529;
       padding: 20px;
     }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #222;
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    label {
+      margin-top: 15px;
+      display: block;
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: all 0.2s ease-in-out;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #0066ff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 20px;
+      background-color: #0066ff;
+      color: #fff;
+      padding: 14px;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #004dc4;
+    }
+
     .hidden {
       display: none;
     }
-    label {
-      display: block;
-      margin-top: 10px;
+
+    #message {
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
     }
-    textarea {
-      width: 100%;
-      height: 150px;
-    }
-    select, input[type="text"], input[type="number"], input[type="email"] {
-      width: 100%;
-      padding: 8px;
+
+    @media (max-width: 600px) {
+      form {
+        padding: 15px;
+        border-radius: 10px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      input, select, textarea {
+        font-size: 14px;
+      }
+
+      button {
+        font-size: 15px;
+      }
     }
   </style>
 </head>
 <body>
 
-<h2>Publish Your Article</h2>
+<h2>📝 Publish Your Article</h2>
 
 <form id="articleForm">
   <label for="type">Select Article Type:</label>
@@ -102,7 +185,7 @@
     <label>Years of Experience:</label>
     <input type="number" id="experience" min="0">
 
-    <label>Institute or Organization (optional):</label>
+    <label>Institute or Organization:</label>
     <input type="text" id="institute">
 
     <label>Peer-reviewed or self-written:</label>
@@ -125,7 +208,7 @@
       <option value="Freelancer">Freelancer</option>
     </select>
 
-    <label>Website URL (optional):</label>
+    <label>Website URL:</label>
     <input type="text" id="website">
 
     <label>Article Purpose:</label>
@@ -148,12 +231,11 @@
     <label>Legal Representative Name:</label>
     <input type="text" id="legalRep">
 
-    <label>GST Number (optional):</label>
+    <label>GST Number:</label>
     <input type="text" id="gst">
   </div>
 
-  <br>
-  <button type="submit">Submit Article</button>
+  <button type="submit">📤 Submit Article</button>
 </form>
 
 <div id="message"></div>
@@ -240,11 +322,11 @@
 
     try {
       await db.collection("articles").add(formData);
-      document.getElementById("message").innerHTML = `<p style="color:green;">Article submitted successfully! Your ID: <b>${articleId}</b></p>`;
+      document.getElementById("message").innerHTML = `<p style="color:green;">✅ Article submitted successfully!<br><strong>Your ID:</strong> ${articleId}</p>`;
       document.getElementById("articleForm").reset();
       typeSelect.dispatchEvent(new Event("change"));
     } catch (error) {
-      document.getElementById("message").innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+      document.getElementById("message").innerHTML = `<p style="color:red;">❌ Error: ${error.message}</p>`;
     }
   });
 </script>
