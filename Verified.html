@@ -3,177 +3,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Request Verification - Article Portal</title>
+  <title>Get Verified on Our Platform</title>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
     body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f9f9fb;
+      color: #333;
       margin: 0;
-      background: #0f0f0f;
-      color: white;
-      padding: 30px;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
-
     .form-container {
-      max-width: 600px;
-      margin: auto;
-      background: #1c1c1c;
+      background: white;
+      border-radius: 20px;
       padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+      animation: slideIn 0.5s ease-out;
     }
-
+    @keyframes slideIn {
+      from {transform: translateY(30px); opacity: 0;}
+      to {transform: translateY(0); opacity: 1;}
+    }
     h2 {
-      text-align: center;
-      color: #00bfff;
+      margin-top: 0;
+      color: #007aff;
     }
-
-    label {
-      margin-top: 15px;
-      display: block;
-      font-size: 14px;
-    }
-
     input, textarea, select {
       width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      border: none;
-      border-radius: 8px;
-      background: #2d2d2d;
-      color: white;
-      font-size: 15px;
-    }
-
-    textarea {
-      resize: vertical;
-    }
-
-    button {
-      margin-top: 20px;
-      width: 100%;
-      background-color: #00bfff;
-      border: none;
-      padding: 14px;
-      color: white;
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
       font-size: 16px;
-      font-weight: bold;
-      border-radius: 8px;
+      outline: none;
+    }
+    button {
+      background: #007aff;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      width: 100%;
+      border: none;
+      border-radius: 12px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: 0.3s ease;
     }
-
     button:hover {
-      background-color: #0099cc;
+      background: #005ecb;
     }
-
-    .message {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 15px;
-      color: #00ff99;
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 10px;
-      }
+    .success {
+      display: none;
+      margin-top: 15px;
+      color: green;
     }
   </style>
 </head>
 <body>
   <div class="form-container">
-    <h2>🔵 Apply for Verified Tick</h2>
-
+    <h2>✅ Get Verified</h2>
+    <p>💡 Submit your article URL and get a Verified Tick. Optional proof URLs speed up review.</p>
     <form id="verifyForm">
-      <label for="username">Username (For Verification)</label>
-      <input type="text" id="username" required />
-
-      <label for="email">Email (Confirmation will be sent)</label>
-      <input type="email" id="email" required />
-
-      <label for="profileLink">Profile or Article Link</label>
-      <input type="url" id="profileLink" required />
-
-      <label for="reason">Why Should We Verify You?</label>
-      <textarea id="reason" rows="5" required></textarea>
-
-      <label for="source">Provide At Least One Valid Source</label>
-      <input type="url" id="source" required />
-
-      <button type="submit">🔒 Review & Submit</button>
-
-      <div class="message" id="msgBox"></div>
+      <input type="text" name="name" placeholder="Full Name" required />
+      <input type="text" name="username" placeholder="Username or Handle" required />
+      <input type="email" name="email" placeholder="Email Address" required />
+      <input type="text" name="mobile" placeholder="Mobile Number (+91...)" />
+      <input type="url" id="articleUrl" name="articleUrl" placeholder="Article or Content URL" required />
+      <input type="text" id="articleTitle" placeholder="Auto fetched title..." disabled />
+      <textarea name="proofUrls" placeholder="Optional Proof URLs (Twitter, LinkedIn etc.)"></textarea>
+      <input type="text" name="platform" placeholder="Platform Name (e.g., Blogger, Medium)" />
+      <textarea name="reason" placeholder="Why you want verification? (max 500 chars)" maxlength="500" required></textarea>
+      <select name="country" id="countryDropdown" required>
+        <option value="">Select Country</option>
+      </select>
+      <label>
+        <input type="checkbox" required /> I agree to terms and allow review of provided content.
+      </label>
+      <button type="submit">🔐 Submit Request</button>
+      <div class="success" id="successMsg"></div>
     </form>
   </div>
 
-  <!-- Firebase + EmailJS -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-  <script>
-    // Firebase config
     const firebaseConfig = {
-      apiKey: "AIzaSyBWXCNvP-JgIt-jhT3h9aiWSvd9c2sHfjA",
-      authDomain: "article-portal-ec1b6.firebaseapp.com",
-      projectId: "article-portal-ec1b6",
-      storageBucket: "article-portal-ec1b6.firebasestorage.app",
-      messagingSenderId: "851170849394",
-      appId: "1:851170849394:web:d3a6e2363cbaee0aa3c8eb"
+      apiKey: "AIzaSyDf484oAB2abMTTeDd3Asxv3jac6yf3D8A",
+      authDomain: "getverified-dd955.firebaseapp.com",
+      projectId: "getverified-dd955",
+      storageBucket: "getverified-dd955.firebasestorage.app",
+      messagingSenderId: "638952876965",
+      appId: "1:638952876965:web:96b344ec32524c1301964c"
     };
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    // Initialize EmailJS
-    emailjs.init("QI1aOpAqKdm9d4BkT");
+    // EmailJS
+    window.onload = () => {
+      fetch("https://ipapi.co/json/")
+        .then(res => res.json())
+        .then(data => {
+          const dropdown = document.getElementById("countryDropdown");
+          dropdown.innerHTML += `<option value="${data.country_name}" selected>${data.country_name}</option>`;
+        });
+    };
+
+    document.getElementById("articleUrl").addEventListener("blur", async () => {
+      const url = document.getElementById("articleUrl").value;
+      if (!url) return;
+
+      try {
+        const response = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent(url));
+        const data = await response.json();
+        const titleMatch = data.contents.match(/<title>(.*?)<\/title>/);
+        document.getElementById("articleTitle").value = titleMatch ? titleMatch[1] : "No title found";
+      } catch {
+        document.getElementById("articleTitle").value = "Error fetching title";
+      }
+    });
 
     document.getElementById("verifyForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-
-      const username = document.getElementById("username").value;
-      const email = document.getElementById("email").value;
-      const profileLink = document.getElementById("profileLink").value;
-      const reason = document.getElementById("reason").value;
-      const source = document.getElementById("source").value;
-
-      const msgBox = document.getElementById("msgBox");
+      const form = e.target;
+      const formData = {
+        name: form.name.value,
+        username: form.username.value,
+        email: form.email.value,
+        mobile: form.mobile.value,
+        articleUrl: form.articleUrl.value,
+        articleTitle: document.getElementById("articleTitle").value,
+        proofUrls: form.proofUrls.value,
+        platform: form.platform.value,
+        reason: form.reason.value,
+        country: form.country.value
+      };
 
       try {
-        // Save to Firestore
-        await db.collection("verification_requests").add({
-          username,
-          email,
-          profileLink,
-          reason,
-          source,
-          status: "pending",
-          timestamp: new Date()
-        });
+        await addDoc(collection(db, "verifyRequests"), formData);
 
-        // Send confirmation email
-        await emailjs.send("service_z3x1v6e", "template_yl4fwyg", {
-          to_email: email,
-          to_name: username,
-          message: `Thank you ${username}, your request for verification is under review. You'll be notified soon.`
-        });
+        // Send Email using EmailJS
+        emailjs.send("service_z3x1v6e", "template_yl4fwyg", {
+          to_name: form.name.value,
+          email: form.email.value,
+          username: form.username.value,
+          article_url: form.articleUrl.value,
+          article_title: document.getElementById("articleTitle").value,
+        }, "QI1aOpAqKdm9d4BkT");
 
-        msgBox.textContent = "✅ Submitted successfully! Check your email.";
+        document.getElementById("successMsg").style.display = "block";
+        document.getElementById("successMsg").innerText = 
+          `✅ Thanks! We’ve received your verification request. Track at: https://www.oriontec.xyz/verified/${form.username.value}`;
 
-        // Clear form
-        document.getElementById("verifyForm").reset();
-
-      } catch (error) {
-        console.error(error);
-        msgBox.textContent = "❌ Submission failed. Try again.";
-        msgBox.style.color = "red";
+        form.reset();
+        document.getElementById("articleTitle").value = "";
+      } catch (err) {
+        alert("❌ Error submitting form. Try again later.");
+        console.error(err);
       }
     });
+  </script>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    emailjs.init("QI1aOpAqKdm9d4BkT");
   </script>
 </body>
 </html>
