@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Publish Article Form</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWXCNvP-JgIt-jhT3h9aiWSvd9c2sHfjA",
+      authDomain: "article-portal-ec1b6.firebaseapp.com",
+      projectId: "article-portal-ec1b6",
+      storageBucket: "article-portal-ec1b6.firebasestorage.app",
+      messagingSenderId: "851170849394",
+      appId: "1:851170849394:web:d3a6e2363cbaee0aa3c8eb"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const articleForm = document.getElementById('articleForm');
+      const categorySection = document.getElementById('categorySection');
+      const detailsSection = document.getElementById('detailsSection');
+      const submitSection = document.getElementById('submitSection');
+      const personalFields = document.getElementById('personalFields');
+      const professionalFields = document.getElementById('professionalFields');
+      const businessFields = document.getElementById('businessFields');
+      const wordCount = document.getElementById('wordCount');
+      const submitButton = document.getElementById('submitButton');
+      const progressBar = document.getElementById('progressBar');
+      const progressPercentage = document.getElementById('progressPercentage');
+      const progressText = document.getElementById('progressText');
+      const progressSteps = document.querySelectorAll('.step');
+      let currentStep = 1;
+
+      function updateProgress(step) {
+        currentStep = step;
+        const percentage = ((step - 1) / 2) * 100;
+        progressBar.style.width = `${percentage}%`;
+        progressPercentage.textContent = `${percentage}%`;
+        progressText.textContent = step === 1 ? 'Step 1 of 3: Category Selection' : step === 2 ? 'Step 2 of 3: Article Details' : 'Step 3 of 3: Submission Complete';
+        progressSteps.forEach((stepEl, index) => {
+          if (index < step) {
+            stepEl.classList.remove('text-gray-400');
+            stepEl.classList.add('text-indigo-600');
+          } else {
+            stepEl.classList.remove('text-indigo-600');
+            stepEl.classList.add('text-gray-400');
+          }
+        });
+      }
+
+      function validateForm() {
+        const articleContent = document.getElementById('articleContent').value.trim();
+        const reference1 = document.getElementById('reference1').value.trim();
+        const reference2 = document.getElementById('reference2').value.trim();
+        const wordCountValue = articleContent.split(/\s+/).length;
+        wordCount.textContent = wordCountValue;
+        submitButton.disabled = wordCountValue < 800 || !reference1 || !reference2;
+        return !submitButton.disabled;
+      }
+
+      document.getElementById('category').addEventListener('change', function () {
+        const selectedCategory = this.value;
+        personalFields.classList.add('hidden');
+        professionalFields.classList.add('hidden');
+        businessFields.classList.add('hidden');
+        if (selectedCategory === 'personal') personalFields.classList.remove('hidden');
+        else if (selectedCategory === 'professional') professionalFields.classList.remove('hidden');
+        else if (selectedCategory === 'business') businessFields.classList.remove('hidden');
+        updateProgress(2);
+        categorySection.classList.add('hidden');
+        detailsSection.classList.remove('hidden');
+      });
+
+      articleForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!validateForm()) return;
+        const formData = new FormData(articleForm);
+        const formObject = {};
+        formData.forEach((value, key) => formObject[key] = value);
+        formObject.timestamp = Timestamp.now();
+        formObject.wordCount = formObject.articleContent.trim().split(/\s+/).length;
+        formObject.articleId = 'ART-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        try {
+          await addDoc(collection(db, "articles"), formObject);
+          articleForm.reset();
+          updateProgress(3);
+          detailsSection.classList.add('hidden');
+          submitSection.classList.remove('hidden');
+          document.getElementById('articleIdDisplay').textContent = formObject.articleId;
+        } catch (error) {
+          alert("Error submitting article: " + error.message);
+        }
+      });
+
+      const formInputs = articleForm.querySelectorAll('input, textarea, select');
+      formInputs.forEach(input => {
+        input.addEventListener('input', validateForm);
+      });
+
+      updateProgress(1);
+    });
+  </script>
+  <style>
+    .hidden { display: none; }
+    .step { margin-right: 10px; }
+  </style>
+</head>
+<body>
+  <div id="progressContainer">
+    <div id="progressText">Step 1 of 3: Category Selection</div>
+    <div style="background: #ddd; height: 10px; width: 100%;">
+      <div id="progressBar" style="height: 10px; width: 0%; background: #4f46e5;"></div>
+    </div>
+    <div>Progress: <span id="progressPercentage">0%</span></div>
+    <div class="steps"><span class="step text-indigo-600">1</span><span class="step text-gray-400">2</span><span class="step text-gray-400">3</span></div>
+  </div>
+
+  <form id="articleForm">
+    <div id="categorySection">
+      <label>Select Category:
+        <select id="category" name="category" required>
+          <option value="">Choose</option>
+          <option value="personal">Personal</option>
+          <option value="professional">Professional</option>
+          <option value="business">Business</option>
+        </select>
+      </label>
+    </div>
+
+    <div id="detailsSection" class="hidden">
+      <input name="name" placeholder="Full Name" required><br>
+      <input name="email" placeholder="Email" type="email" required><br>
+      <input name="age" type="number" placeholder="Age" required><br>
+      <textarea name="articleContent" id="articleContent" placeholder="Write your article..." required></textarea>
+      <div>Word Count: <span id="wordCount">0</span></div>
+      <input name="reference1" id="reference1" placeholder="Reference 1" required><br>
+      <input name="reference2" id="reference2" placeholder="Reference 2" required><br>
+
+      <div id="personalFields" class="hidden">
+        <input name="personalTopic" placeholder="Personal Topic"><br>
+      </div>
+      <div id="professionalFields" class="hidden">
+        <input name="profession" placeholder="Your Profession"><br>
+      </div>
+      <div id="businessFields" class="hidden">
+        <input name="businessName" placeholder="Business Name"><br>
+      </div>
+
+      <button id="submitButton" type="submit" disabled>Submit Article</button>
+    </div>
+
+    <div id="submitSection" class="hidden">
+      <h3>Thank you! Your article ID is <span id="articleIdDisplay"></span></h3>
+    </div>
+  </form>
+</body>
+</html>
