@@ -1,156 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Get Verified</title>
+  <meta charset="UTF-8">
+  <title>Get Verified on Our Platform</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'San Francisco', Roboto, sans-serif; }
-    body { background: #f4f4f8; margin: 0; padding: 20px; }
-    .form-container {
-      max-width: 500px;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'San Francisco', Roboto, Helvetica;
+      background: #f2f2f7;
+      padding: 30px;
+    }
+    .form-box {
       background: white;
-      margin: 0 auto;
+      padding: 30px;
       border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       animation: fadeIn 1s ease;
     }
-    h2 { text-align: center; color: #333; }
-    label { font-weight: 600; display: block; margin-top: 15px; }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
     input, textarea, select {
-      width: 100%; padding: 10px; margin-top: 6px; border-radius: 10px;
-      border: 1px solid #ddd; font-size: 14px;
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      font-size: 16px;
     }
     button {
-      margin-top: 20px; width: 100%; padding: 12px;
-      background: #007aff; color: white; border: none;
-      border-radius: 12px; font-size: 16px;
-      transition: background 0.3s ease;
+      background: #007aff;
+      color: white;
+      border: none;
+      padding: 15px;
+      width: 100%;
+      border-radius: 12px;
+      font-weight: bold;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: 0.3s;
     }
-    button:hover { background: #005fcc; }
-    .success-message { color: green; text-align: center; font-weight: bold; margin-top: 15px; }
-    @keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
+    button:hover {
+      background: #0051d4;
+    }
+    .success {
+      color: green;
+      text-align: center;
+      font-weight: bold;
+      padding-top: 20px;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
   </style>
 </head>
 <body>
+  <div class="form-box">
+    <h2>✅ Get Verified on Our Platform</h2>
+    <p>Submit your article or content URL and get a Verified Tick on your profile.</p>
+    <form id="verifyForm">
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="text" id="username" placeholder="Username / Handle" required>
+      <input type="email" id="email" placeholder="Email ID" required>
+      <input type="text" id="mobile" placeholder="Mobile (+91...)">
+      <input type="url" id="articleUrl" placeholder="Article / Content URL" required>
+      <input type="text" id="articleTitle" placeholder="Fetching title..." disabled>
+      <textarea id="proofUrls" placeholder="Optional Proof URLs (LinkedIn, Twitter, Press Links)..."></textarea>
+      <input type="text" id="platform" placeholder="Platform Name (e.g. Blogger)">
+      <textarea id="reason" maxlength="500" placeholder="Why you want verification?" required></textarea>
+      <select id="country"></select>
+      <label><input type="checkbox" id="terms" required> I agree to terms and review</label>
+      <button type="submit">🚀 Submit Request</button>
+    </form>
+    <div class="success" id="successMsg"></div>
+  </div>
 
-<div class="form-container">
-  <h2>Get Verified ✅</h2>
-  <form id="verifyForm">
-    <label>Full Name*</label>
-    <input type="text" name="fullName" required />
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDf484oAB2abMTTeDd3Asxv3jac6yf3D8A",
+      authDomain: "getverified-dd955.firebaseapp.com",
+      projectId: "getverified-dd955",
+      storageBucket: "getverified-dd955.appspot.com",
+      messagingSenderId: "638952876965",
+      appId: "1:638952876965:web:96b344ec32524c1301964c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    <label>Username / Handle*</label>
-    <input type="text" name="username" required />
+    emailjs.init("QI1aOpAqKdm9d4BkT");
 
-    <label>Email ID*</label>
-    <input type="email" name="email" required />
+    // Auto detect country
+    fetch("https://ipapi.co/json/")
+      .then(res => res.json())
+      .then(data => {
+        const select = document.getElementById("country");
+        select.innerHTML = `<option value="${data.country_name}">${data.country_name}</option>`;
+      });
 
-    <label>Mobile Number (+country code)</label>
-    <input type="text" name="phone" />
-
-    <label>Article or Content URL*</label>
-    <input type="url" name="articleUrl" required onblur="fetchTitle()" />
-
-    <div id="articleTitle" style="margin-top:10px;color:#444;font-weight:500;"></div>
-
-    <label>Reliable Proof URLs (Optional)</label>
-    <textarea name="proofs" placeholder="Add multiple URLs separated by commas..."></textarea>
-
-    <label>Platform Name</label>
-    <input type="text" name="platform" />
-
-    <label>Why you want verification?*</label>
-    <textarea name="reason" required maxlength="500"></textarea>
-
-    <label>Country</label>
-    <input type="text" name="country" id="country" />
-
-    <label><input type="checkbox" required /> I agree to terms and allow review of provided content.</label>
-
-    <button type="submit">🔍 Submit for Review</button>
-    <div class="success-message" id="msg"></div>
-  </form>
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDf484oAB2abMTTeDd3Asxv3jac6yf3D8A",
-    authDomain: "getverified-dd955.firebaseapp.com",
-    projectId: "getverified-dd955",
-    storageBucket: "getverified-dd955.appspot.com",
-    messagingSenderId: "638952876965",
-    appId: "1:638952876965:web:96b344ec32524c1301964c"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
-
-<!-- EmailJS -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-<script>
-  emailjs.init("QI1aOpAqKdm9d4BkT");
-</script>
-
-<!-- Logic -->
-<script>
-document.getElementById("verifyForm").addEventListener("submit", async function(e){
-  e.preventDefault();
-  const form = e.target;
-  const data = {
-    fullName: form.fullName.value,
-    username: form.username.value.toLowerCase(),
-    email: form.email.value,
-    phone: form.phone.value,
-    articleUrl: form.articleUrl.value,
-    title: document.getElementById("articleTitle").textContent,
-    proofs: form.proofs.value,
-    platform: form.platform.value,
-    reason: form.reason.value,
-    country: form.country.value || "Unknown",
-    createdAt: new Date().toISOString()
-  };
-
-  try {
-    // Firestore Save
-    await db.collection("verifications").doc(data.username).set(data);
-
-    // Email Send
-    await emailjs.send("service_z3x1v6e", "template_yl4fwyg", {
-      to_name: data.fullName,
-      message: `Hi ${data.fullName},\n\nThanks for submitting your verification request.\nYou can track it here:\nhttps://www.oriontec.xyz/verified/${data.username}`
+    // Fetch title from URL
+    document.getElementById("articleUrl").addEventListener("blur", async function () {
+      let url = this.value;
+      if (!url) return;
+      try {
+        const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
+        const text = await res.text();
+        const titleMatch = text.match(/<title>(.*?)<\/title>/i);
+        document.getElementById("articleTitle").value = titleMatch ? titleMatch[1] : "Title not found";
+      } catch {
+        document.getElementById("articleTitle").value = "Error fetching title";
+      }
     });
 
-    document.getElementById("msg").innerText = `Thanks! We’ve received your request. Track at /verified/${data.username}`;
-    form.reset();
-    document.getElementById("articleTitle").textContent = "";
-  } catch (err) {
-    alert("Error submitting form. Try again later.\n" + err.message);
-  }
-});
+    // Form Submission
+    document.getElementById("verifyForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const username = document.getElementById("username").value;
+      const data = {
+        name: document.getElementById("name").value,
+        username,
+        email,
+        mobile: document.getElementById("mobile").value,
+        articleUrl: document.getElementById("articleUrl").value,
+        articleTitle: document.getElementById("articleTitle").value,
+        proofUrls: document.getElementById("proofUrls").value,
+        platform: document.getElementById("platform").value,
+        reason: document.getElementById("reason").value,
+        country: document.getElementById("country").value,
+        timestamp: new Date().toISOString()
+      };
 
-function fetchTitle(){
-  const url = document.querySelector("[name='articleUrl']").value;
-  if (!url) return;
-  fetch("https://textance.herokuapp.com/title/" + encodeURIComponent(url))
-    .then(res => res.text())
-    .then(title => {
-      document.getElementById("articleTitle").textContent = "🔖 Title: " + title;
-    }).catch(() => {
-      document.getElementById("articleTitle").textContent = "Could not fetch title.";
+      try {
+        await db.collection("verifications").doc(username).set(data);
+
+        await emailjs.send("service_z3x1v6e", "template_yl4fwyg", {
+          to_email: email,
+          username: username,
+          article_title: data.articleTitle,
+          article_url: data.articleUrl,
+        });
+
+        document.getElementById("successMsg").innerText =
+          `🎉 Thanks! We’ve received your verification request.\nTrack at: https://www.oriontec.xyz/verified/${username}`;
+        document.getElementById("verifyForm").reset();
+      } catch (err) {
+        alert("❌ Error submitting form. Try again later.\n" + err.message);
+      }
     });
-}
-
-// Auto Country from IP
-fetch('https://ipapi.co/json/')
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("country").value = data.country_name;
-  });
-</script>
+  </script>
 </body>
 </html>
