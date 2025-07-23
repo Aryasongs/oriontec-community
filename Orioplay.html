@@ -2,32 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>OrioPlay</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OrioPlay Reels</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #000; color: #fff; font-family: Arial, sans-serif; overflow-y: scroll; scroll-snap-type: y mandatory; }
-    .reel { height: 100vh; position: relative; scroll-snap-align: start; }
-    video { width: 100%; height: 100%; object-fit: cover; }
-    .overlay {
-      position: absolute; bottom: 80px; left: 10px; color: white;
-      background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px;
-    }
+    * {margin: 0; padding: 0; box-sizing: border-box;}
+    body {background: #000; font-family: sans-serif; color: #fff; scroll-snap-type: y mandatory; overflow-y: scroll;}
+    .reel {height: 100vh; position: relative; scroll-snap-align: start;}
+    video {width: 100%; height: 100%; object-fit: cover;}
     .actions {
-      position: absolute; right: 10px; bottom: 80px; text-align: center;
+      position: absolute; bottom: 100px; right: 10px; text-align: center;
     }
     .actions i {
-      display: block; margin: 12px 0; font-size: 24px; cursor: pointer;
+      font-size: 24px; margin: 10px 0; cursor: pointer;
     }
-    .comment-box {
-      position: absolute; bottom: 10px; width: 100%; padding: 10px;
-      background: rgba(0,0,0,0.6);
+    .meta {
+      position: absolute; bottom: 30px; left: 15px;
     }
-    .comment-box input {
-      width: 48%; margin-right: 2%; padding: 8px; border: none; border-radius: 4px;
+    .meta .uploader {
+      font-weight: bold;
+      margin-bottom: 8px;
     }
-    .comment-box button {
-      width: 30%; padding: 8px; background: #007bff; color: white; border: none; border-radius: 4px;
+    .meta input, .meta button {
+      padding: 5px;
+      margin-top: 5px;
+      border: none;
+      border-radius: 3px;
+    }
+    .meta input {
+      width: 150px;
+    }
+    .meta button {
+      background: #007aff; color: #fff; cursor: pointer;
+    }
+    .comment-count, .like-count {
+      font-size: 14px;
+      color: #ddd;
     }
   </style>
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
@@ -35,99 +44,113 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div id="reels-container"></div>
 
-  <script>
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCVY2IUiijgzRPcOKWQl0MVlBQz0_N__sE",
-      authDomain: "reels-bb234.firebaseapp.com",
-      projectId: "reels-bb234",
-      storageBucket: "reels-bb234.appspot.com",
-      messagingSenderId: "752485971097",
-      appId: "1:752485971097:web:7132cccccb41f050ba3408"
+<div id="reels-container"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCVY2IUiijgzRPcOKWQl0MVlBQz0_N__sE",
+  authDomain: "reels-bb234.firebaseapp.com",
+  projectId: "reels-bb234",
+  storageBucket: "reels-bb234.appspot.com",
+  messagingSenderId: "752485971097",
+  appId: "1:752485971097:web:7132cccccb41f050ba3408"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const videoURLs = [
+  "https://community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4",
+  "https://community.oriontec.xyz/AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY.mp4",
+  "https://community.oriontec.xyz/AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8.mp4",
+  "https://community.oriontec.xyz/AQNbGZpSZMrNlMTvlvyPCOFT_O19Oo77mPkwY_xmkp_Uijj5mB77PX0yNXv5ziWG93v_xBuK9vhgms6h1c6-XZhP5P_ziDJmnz1DkIU.mp4",
+  "https://community.oriontec.xyz/AQM-uzNKIG53Qn8OIE6C8ke-zbxFn4kS-LWhPln2JkRe0TV1-XKRidGM_MX5xoafOo3CftfOJmU--d93RSDAMZbJEvCuvVOtWe_7-6g.mp4",
+  "https://community.oriontec.xyz/AQMfYCk6cglI-EYVM_ikXiPDHu6AI0G5n63OfIlOlGB1mPStMS9-S3p4GZUMqKe7tHnS_y2LZU4We9ZFos7lwyAyTKZ2y9KHK7fwqDg.mp4",
+  "https://community.oriontec.xyz/AQNmookkwQ4zcFJa6WmnPpWtwPlAAhAs1NqUv4OO81rHqj4_-2rNmKYQL9EoUflZFM9CUJdKNCjX3JeXqCFHxky9YG-r85gHXVuFqDM%202.mp4",
+  "https://community.oriontec.xyz/AQOJk_n-zCbInDwXSaeQhdHKZswXi5iUwDsE6961Vk4leC0kjU5Ji2oYoNojQy-ehbSi0oiB86CU15kBD0SdlvpI8NsrIw2Vo5ne0AY.mp4",
+  "https://community.oriontec.xyz/AQOrFzZWJ0gGJbq2LbuH2rKMSQPkaEvLT2Tm5zpY3A3aP7vTvC13rcGDFjNbqYiqPRykI409W56EOGlFfrA-InKAu0sjC_rUlhgbUo4.mp4",
+  "https://community.oriontec.xyz/AQPWkxDUFBKHmU2AEfEnlO5uIDVpO3p6891VU_juxmxWWajnveqqJLGQr6Vrl1AlIIUezUV54LCSA5xIVBMKHF7joccNrY7HbTIBwfg.mp4"
+];
+
+const usernames = [
+  "alex_usa", "meera.in", "tyson.aus", "rahul123", "samantha.nyc",
+  "harry.london", "sid_kolkata", "oliver.au", "neha.mumbai", "emma.tx"
+];
+
+const likesPreset = [10343, 2671, 14000, 967, 8239, 1222, 9999, 204, 3044, 764];
+
+function loadReels() {
+  const container = document.getElementById("reels-container");
+  container.innerHTML = "";
+
+  videoURLs.forEach((url, index) => {
+    const docID = `reel_${index}`;
+    const likeCount = likesPreset[index];
+    const uploader = usernames[index];
+
+    const reel = document.createElement("div");
+    reel.className = "reel";
+    reel.innerHTML = `
+      <video src="${url}" autoplay loop muted></video>
+      <div class="actions">
+        <i class="fas fa-heart" id="like-${docID}"></i>
+        <div class="like-count" id="count-${docID}">${likeCount} Likes</div>
+        <div class="comment-count" id="comment-${docID}">0 Comments</div>
+      </div>
+      <div class="meta">
+        <div class="uploader">@${uploader}</div>
+        <input type="text" placeholder="Your name" id="name-${docID}"/><br>
+        <input type="text" placeholder="Write a comment" id="input-${docID}"/>
+        <button onclick="postComment('${docID}')">Post</button>
+      </div>
+    `;
+    container.appendChild(reel);
+
+    // Setup like button
+    document.getElementById(`like-${docID}`).onclick = () => {
+      const countRef = document.getElementById(`count-${docID}`);
+      let current = parseInt(countRef.innerText);
+      current++;
+      countRef.innerText = current + " Likes";
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
 
-    // Video List
-    const videos = [
-      { url: "https://community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4" },
-      { url: "https://community.oriontec.xyz/AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY.mp4" },
-      { url: "https://community.oriontec.xyz/AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8.mp4" },
-      { url: "https://community.oriontec.xyz/AQNbGZpSZMrNlMTvlvyPCOFT_O19Oo77mPkwY_xmkp_Uijj5mB77PX0yNXv5ziWG93v_xBuK9vhgms6h1c6-XZhP5P_ziDJmnz1DkIU.mp4" },
-      { url: "https://community.oriontec.xyz/AQM-uzNKIG53Qn8OIE6C8ke-zbxFn4kS-LWhPln2JkRe0TV1-XKRidGM_MX5xoafOo3CftfOJmU--d93RSDAMZbJEvCuvVOtWe_7-6g.mp4" },
-      { url: "https://community.oriontec.xyz/AQMfYCk6cglI-EYVM_ikXiPDHu6AI0G5n63OfIlOlGB1mPStMS9-S3p4GZUMqKe7tHnS_y2LZU4We9ZFos7lwyAyTKZ2y9KHK7fwqDg.mp4" },
-      { url: "https://community.oriontec.xyz/AQNmookkwQ4zcFJa6WmnPpWtwPlAAhAs1NqUv4OO81rHqj4_-2rNmKYQL9EoUflZFM9CUJdKNCjX3JeXqCFHxky9YG-r85gHXVuFqDM%202.mp4" },
-      { url: "https://community.oriontec.xyz/AQOJk_n-zCbInDwXSaeQhdHKZswXi5iUwDsE6961Vk4leC0kjU5Ji2oYoNojQy-ehbSi0oiB86CU15kBD0SdlvpI8NsrIw2Vo5ne0AY.mp4" },
-      { url: "https://community.oriontec.xyz/AQOrFzZWJ0gGJbq2LbuH2rKMSQPkaEvLT2Tm5zpY3A3aP7vTvC13rcGDFjNbqYiqPRykI409W56EOGlFfrA-InKAu0sjC_rUlhgbUo4.mp4" },
-      { url: "https://community.oriontec.xyz/AQPWkxDUFBKHmU2AEfEnlO5uIDVpO3p6891VU_juxmxWWajnveqqJLGQr6Vrl1AlIIUezUV54LCSA5xIVBMKHF7joccNrY7HbTIBwfg.mp4" }
-    ];
-
-    const names = ["Lakshmi", "Marki037", "ris837", "Sharanpooni", "18ye", "king", "india", "yoehso07", "Luv", "Simran"];
-
-    const container = document.getElementById("reels-container");
-
-    videos.forEach((vid, index) => {
-      const id = "vid" + index;
-      const likes = Math.floor(Math.random() * 10000) + 300; // Random likes
-      const name = names[Math.floor(Math.random() * names.length)];
-      const div = document.createElement("div");
-      div.className = "reel";
-      div.innerHTML = `
-        <video src="${vid.url}" autoplay loop muted></video>
-        <div class="overlay">
-          <div><strong>Uploaded by:</strong> ${name}</div>
-          <div><span id="likeCount-${id}">${likes}</span> Likes</div>
-          <div><span id="commentCount-${id}">0</span> Comments</div>
-        </div>
-        <div class="actions">
-          <i class="fas fa-heart" onclick="like('${id}')"></i>
-        </div>
-        <div class="comment-box">
-          <input type="text" placeholder="Your Name" id="name-${id}" />
-          <input type="text" placeholder="Your Comment" id="comment-${id}" />
-          <button onclick="submitComment('${id}')">Post</button>
-        </div>
-      `;
-      container.appendChild(div);
-    });
-
-    function like(id) {
-      const countSpan = document.getElementById("likeCount-" + id);
-      let current = parseInt(countSpan.textContent);
-      countSpan.textContent = current + 1;
-    }
-
-    function submitComment(id) {
-      const name = document.getElementById("name-" + id).value.trim();
-      const comment = document.getElementById("comment-" + id).value.trim();
-      if (name && comment) {
-        const countSpan = document.getElementById("commentCount-" + id);
-        let current = parseInt(countSpan.textContent);
-        countSpan.textContent = current + 1;
-        alert("Comment posted by " + name + ": " + comment);
-      }
-    }
-
-    // Loop playback
-    window.addEventListener('scroll', () => {
-      const all = document.querySelectorAll("video");
-      let playingOne = false;
-      all.forEach(video => {
-        const rect = video.getBoundingClientRect();
-        if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-          if (!playingOne) {
-            video.play();
-            playingOne = true;
-          } else {
-            video.pause();
-          }
-        } else {
-          video.pause();
+    // Simulate real-time comments from DB
+    db.collection("Oriontec")
+      .doc("MainFeed")
+      .collection("OrioPlay")
+      .doc(docID)
+      .onSnapshot((snap) => {
+        const data = snap.data();
+        if (data && data.comments) {
+          document.getElementById(`comment-${docID}`).innerText =
+            data.comments.length + " Comments";
         }
       });
-    });
-  </script>
+  });
+
+  // Loop when end is reached
+  window.addEventListener("scroll", () => {
+    if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
+      loadReels();
+    }
+  });
+}
+
+function postComment(docID) {
+  const user = document.getElementById(`name-${docID}`).value.trim();
+  const comment = document.getElementById(`input-${docID}`).value.trim();
+  if (!user || !comment) return alert("Enter your name and comment");
+
+  const ref = db.collection("Oriontec").doc("MainFeed").collection("OrioPlay").doc(docID);
+  ref.set({
+    comments: firebase.firestore.FieldValue.arrayUnion(`${user}: ${comment}`)
+  }, { merge: true });
+
+  document.getElementById(`input-${docID}`).value = "";
+}
+
+loadReels();
+</script>
+
 </body>
 </html>
