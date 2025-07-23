@@ -133,6 +133,12 @@
             font-weight: bold;
         }
         
+        .verified-badge {
+            color: #3897f0;
+            margin-left: 4px;
+            font-size: 14px;
+        }
+        
         .music-info {
             display: flex;
             align-items: center;
@@ -252,6 +258,11 @@
             -webkit-text-fill-color: transparent;
             display: inline-block;
         }
+        
+        .username-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -300,35 +311,89 @@
         
         // Global variables
         let reelsData = [];
+        let verifiedReelsData = [];
         let currentVideoElement = null;
-        let isVideoMuted = false; // Changed to false so videos play with sound by default
+        let isVideoMuted = false; // Videos play with sound by default
+        let isLoadingMoreReels = false;
+        let initialReelsCount = 5; // Number of reels to show initially
+        let reelsToAddOnScroll = 3; // Number of reels to add when scrolling
+        let reelIdCounter = 0;
         
-        // Sample user data
-        const users = [
+        // Verified users with their content
+        const verifiedUsers = [
+            {
+                id: 'verified1',
+                username: 'Gursharn_Arya',
+                profilePic: 'https://community.oriontec.xyz/gursharn_profile.jpg', // Replace with actual image URL
+                isVerified: true
+            },
+            {
+                id: 'verified2',
+                username: 'orry',
+                profilePic: 'https://community.oriontec.xyz/orry_profile.jpg', // Replace with actual image URL
+                isVerified: true
+            },
+            {
+                id: 'verified3',
+                username: 'oriontec',
+                profilePic: 'https://community.oriontec.xyz/oriontec_profile.jpg', // Replace with actual image URL
+                isVerified: true
+            }
+        ];
+        
+        // Verified users' videos - these will be manually added
+        const verifiedVideos = [
+            {
+                userId: 'verified1',
+                videoUrl: "https://community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4",
+                caption: "New dance moves! #trending",
+                music: "Diljit Dosanjh - GOAT"
+            },
+            {
+                userId: 'verified2',
+                videoUrl: "https://community.oriontec.xyz/AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY.mp4",
+                caption: "Party vibes only! 🎉",
+                music: "AP Dhillon - Insane"
+            },
+            {
+                userId: 'verified3',
+                videoUrl: "https://community.oriontec.xyz/AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8.mp4",
+                caption: "Tech innovation at its best! #oriontec",
+                music: "Nucleya - Bass Rani"
+            }
+        ];
+        
+        // Sample user data (non-verified)
+        const regularUsers = [
             {
                 id: 'user1',
                 username: 'dance_lover',
-                profilePic: createUserAvatar('dance_lover')
+                profilePic: createUserAvatar('dance_lover'),
+                isVerified: false
             },
             {
                 id: 'user2',
                 username: 'travel_addict',
-                profilePic: createUserAvatar('travel_addict')
+                profilePic: createUserAvatar('travel_addict'),
+                isVerified: false
             },
             {
                 id: 'user3',
                 username: 'food_explorer',
-                profilePic: createUserAvatar('food_explorer')
+                profilePic: createUserAvatar('food_explorer'),
+                isVerified: false
             },
             {
                 id: 'user4',
                 username: 'fitness_guru',
-                profilePic: createUserAvatar('fitness_guru')
+                profilePic: createUserAvatar('fitness_guru'),
+                isVerified: false
             },
             {
                 id: 'user5',
                 username: 'comedy_central',
-                profilePic: createUserAvatar('comedy_central')
+                profilePic: createUserAvatar('comedy_central'),
+                isVerified: false
             }
         ];
         
@@ -348,7 +413,7 @@
         
         // Sample music
         const musicTracks = [
-            "Diljit Dosanjh - GOAT",
+            "LLRD - Phonk",
             "AP Dhillon - Insane",
             "Badshah - Jugnu",
             "Arijit Singh - Kesariya",
@@ -360,11 +425,8 @@
             "Sidhu Moose Wala - 295"
         ];
         
-        // Video URLs from your input
+        // Video URLs from your input (for regular users)
         const videoUrls = [
-            "https://community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4",
-            "https://community.oriontec.xyz/AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY.mp4",
-            "https://community.oriontec.xyz/AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8.mp4",
             "https://community.oriontec.xyz/AQNbGZpSZMrNlMTvlvyPCOFT_O19Oo77mPkwY_xmkp_Uijj5mB77PX0yNXv5ziWG93v_xBuK9vhgms6h1c6-XZhP5P_ziDJmnz1DkIU.mp4",
             "https://community.oriontec.xyz/AQM-uzNKIG53Qn8OIE6C8ke-zbxFn4kS-LWhPln2JkRe0TV1-XKRidGM_MX5xoafOo3CftfOJmU--d93RSDAMZbJEvCuvVOtWe_7-6g.mp4",
             "https://community.oriontec.xyz/AQMfYCk6cglI-EYVM_ikXiPDHu6AI0G5n63OfIlOlGB1mPStMS9-S3p4GZUMqKe7tHnS_y2LZU4We9ZFos7lwyAyTKZ2y9KHK7fwqDg.mp4",
@@ -383,140 +445,129 @@
             return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='${randomColor}'/><text x='50' y='60' font-size='40' text-anchor='middle' fill='white'>${initial}</text></svg>`;
         }
         
-        // Generate reels data
-        function generateReelsData() {
-            reelsData = [];
+        // Shuffle array (Fisher-Yates algorithm)
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // Generate verified reels data
+        function generateVerifiedReelsData() {
+            verifiedReelsData = [];
             
-            videoUrls.forEach((videoUrl, index) => {
-                const user = users[index % users.length];
-                const caption = captions[index % captions.length];
-                const music = musicTracks[index % musicTracks.length];
+            verifiedVideos.forEach((video, index) => {
+                const user = verifiedUsers.find(user => user.id === video.userId);
+                if (!user) return;
                 
-                reelsData.push({
-                    id: `reel-${index + 1}`,
-                    videoUrl: videoUrl,
-                    caption: caption,
-                    music: music,
-                    likes: Math.floor(Math.random() * 10000),
-                    comments: Math.floor(Math.random() * 1000),
-                    shares: Math.floor(Math.random() * 500),
+                verifiedReelsData.push({
+                    id: `verified-reel-${++reelIdCounter}`,
+                    videoUrl: video.videoUrl,
+                    caption: video.caption,
+                    music: video.music,
+                    likes: Math.floor(Math.random() * 100000) + 50000, // Verified users get more likes
+                    comments: Math.floor(Math.random() * 10000) + 1000,
+                    shares: Math.floor(Math.random() * 5000) + 500,
                     username: user.username,
                     userImage: user.profilePic,
                     userId: user.id,
-                    isLiked: false
+                    isLiked: false,
+                    isVerified: true
                 });
             });
+        }
+        
+        // Generate a single regular reel data
+        function generateRegularReelData() {
+            // Get random video URL
+            const videoUrl = videoUrls[Math.floor(Math.random() * videoUrls.length)];
+            
+            // Get random user, caption, and music
+            const user = regularUsers[Math.floor(Math.random() * regularUsers.length)];
+            const caption = captions[Math.floor(Math.random() * captions.length)];
+            const music = musicTracks[Math.floor(Math.random() * musicTracks.length)];
+            
+            return {
+                id: `reel-${++reelIdCounter}`,
+                videoUrl: videoUrl,
+                caption: caption,
+                music: music,
+                likes: Math.floor(Math.random() * 10000),
+                comments: Math.floor(Math.random() * 1000),
+                shares: Math.floor(Math.random() * 500),
+                username: user.username,
+                userImage: user.profilePic,
+                userId: user.id,
+                isLiked: false,
+                isVerified: false
+            };
+        }
+        
+        // Generate initial reels data
+        function generateInitialReelsData() {
+            reelsData = [];
+            
+            // Generate verified reels data
+            generateVerifiedReelsData();
+            
+            // Generate regular reels
+            for (let i = 0; i < initialReelsCount; i++) {
+                reelsData.push(generateRegularReelData());
+            }
+            
+            // Mix verified and regular reels
+            const allReels = [...verifiedReelsData, ...reelsData];
+            
+            // Shuffle the reels to randomize the order
+            reelsData = shuffleArray(allReels);
             
             createReels();
+        }
+        
+        // Generate more reels data for infinite scroll
+        function generateMoreReelsData() {
+            if (isLoadingMoreReels) return;
+            
+            isLoadingMoreReels = true;
+            
+            // Generate more regular reels
+            const newReels = [];
+            for (let i = 0; i < reelsToAddOnScroll; i++) {
+                newReels.push(generateRegularReelData());
+            }
+            
+            // Add a verified reel occasionally (20% chance)
+            if (Math.random() < 0.2 && verifiedReelsData.length > 0) {
+                const randomVerifiedReel = verifiedReelsData[Math.floor(Math.random() * verifiedReelsData.length)];
+                // Create a copy with a new ID to avoid duplicate keys
+                const verifiedReelCopy = {
+                    ...randomVerifiedReel,
+                    id: `verified-reel-${++reelIdCounter}`
+                };
+                newReels.push(verifiedReelCopy);
+            }
+            
+            // Shuffle the new reels
+            const shuffledNewReels = shuffleArray(newReels);
+            
+            // Add to existing reels
+            reelsData = [...reelsData, ...shuffledNewReels];
+            
+            // Add new reels to DOM
+            addMoreReelsToDOM(shuffledNewReels);
+            
+            isLoadingMoreReels = false;
         }
         
         // Create reels in the DOM
         function createReels() {
             reelContainer.innerHTML = '';
             
-            reelsData.forEach((reel, index) => {
-                const reelElement = document.createElement('div');
-                reelElement.className = 'reel';
-                reelElement.setAttribute('data-reel-id', reel.id);
-                
-                const videoContainer = document.createElement('div');
-                videoContainer.className = 'video-container';
-                
-                const video = document.createElement('video');
-                video.className = 'reel-video';
-                video.src = reel.videoUrl;
-                video.loop = true;
-                video.muted = isVideoMuted; // Now false by default
-                video.preload = 'auto';
-                video.setAttribute('playsinline', '');
-                
-                videoContainer.appendChild(video);
-                
-                const progressBar = document.createElement('div');
-                progressBar.className = 'progress-bar';
-                progressBar.innerHTML = '<div class="progress" id="progress-' + reel.id + '"></div>';
-                
-                const videoControls = document.createElement('div');
-                videoControls.className = 'video-controls';
-                videoControls.innerHTML = `
-                    <div class="mute-btn" data-reel-id="${reel.id}">
-                        <i class="fas ${isVideoMuted ? 'fa-volume-mute' : 'fa-volume-up'}"></i>
-                    </div>
-                `;
-                
-                const timestamp = document.createElement('div');
-                timestamp.className = 'timestamp';
-                timestamp.id = `timestamp-${reel.id}`;
-                timestamp.textContent = '0:00';
-                
-                const reelContent = document.createElement('div');
-                reelContent.className = 'reel-content';
-                
-                const userInfo = document.createElement('div');
-                userInfo.className = 'flex items-center';
-                userInfo.innerHTML = `
-                    <div class="relative">
-                        <img src="${reel.userImage}" alt="${reel.username}" class="profile-pic">
-                        <div class="plus-icon">+</div>
-                    </div>
-                    <div class="ml-2 font-semibold">${reel.username}</div>
-                    <button class="ml-2 text-sm bg-transparent border border-white text-white px-2 py-0.5 rounded-md follow-btn" data-user-id="${reel.userId}">Follow</button>
-                `;
-                
-                const caption = document.createElement('div');
-                caption.className = 'mt-2 text-sm';
-                caption.textContent = reel.caption;
-                
-                const musicInfo = document.createElement('div');
-                musicInfo.className = 'music-info text-xs';
-                musicInfo.innerHTML = `
-                    <div class="music-note"><i class="fas fa-music"></i></div>
-                    <div>${reel.music}</div>
-                `;
-                
-                reelContent.appendChild(userInfo);
-                reelContent.appendChild(caption);
-                reelContent.appendChild(musicInfo);
-                
-                const reelActions = document.createElement('div');
-                reelActions.className = 'reel-actions';
-                
-                reelActions.innerHTML = `
-                    <div class="action-btn like-btn ${reel.isLiked ? 'liked' : ''}" data-reel-id="${reel.id}">
-                        <i class="fas fa-heart text-2xl"></i>
-                        <span class="text-xs">${formatNumber(reel.likes)}</span>
-                    </div>
-                    <div class="action-btn comment-btn" data-reel-id="${reel.id}">
-                        <i class="fas fa-comment text-2xl"></i>
-                        <span class="text-xs">${formatNumber(reel.comments)}</span>
-                    </div>
-                    <div class="action-btn share-btn" data-reel-id="${reel.id}">
-                        <i class="fas fa-paper-plane text-2xl"></i>
-                        <span class="text-xs">${formatNumber(reel.shares)}</span>
-                    </div>
-                    <div class="action-btn more-btn" data-reel-id="${reel.id}">
-                        <i class="fas fa-ellipsis-h text-2xl"></i>
-                    </div>
-                `;
-                
-                reelElement.appendChild(videoContainer);
-                reelElement.appendChild(progressBar);
-                reelElement.appendChild(videoControls);
-                reelElement.appendChild(timestamp);
-                reelElement.appendChild(reelContent);
-                reelElement.appendChild(reelActions);
-                
-                reelContainer.appendChild(reelElement);
-                
-                // Double tap to like
-                reelElement.addEventListener('dblclick', function() {
-                    const reelId = this.getAttribute('data-reel-id');
-                    showLikeAnimation();
-                    toggleLike(reelId, true);
-                });
-                
-                // Observe when reel is in viewport
-                observeReel(reelElement, video);
+            reelsData.forEach((reel) => {
+                createReelElement(reel);
             });
             
             // Start playing first reel
@@ -540,6 +591,128 @@
                     updateTimestamp(firstVideo, reelsData[0].id);
                 }
             }
+        }
+        
+        // Add more reels to DOM for infinite scroll
+        function addMoreReelsToDOM(newReels) {
+            newReels.forEach(reel => {
+                createReelElement(reel);
+            });
+        }
+        
+        // Create a single reel element
+        function createReelElement(reel) {
+            const reelElement = document.createElement('div');
+            reelElement.className = 'reel';
+            reelElement.setAttribute('data-reel-id', reel.id);
+            
+            const videoContainer = document.createElement('div');
+            videoContainer.className = 'video-container';
+            
+            const video = document.createElement('video');
+            video.className = 'reel-video';
+            video.src = reel.videoUrl;
+            video.loop = true;
+            video.muted = isVideoMuted;
+            video.preload = 'auto';
+            video.setAttribute('playsinline', '');
+            
+            videoContainer.appendChild(video);
+            
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            progressBar.innerHTML = '<div class="progress" id="progress-' + reel.id + '"></div>';
+            
+            const videoControls = document.createElement('div');
+            videoControls.className = 'video-controls';
+            videoControls.innerHTML = `
+                <div class="mute-btn" data-reel-id="${reel.id}">
+                    <i class="fas ${isVideoMuted ? 'fa-volume-mute' : 'fa-volume-up'}"></i>
+                </div>
+            `;
+            
+            const timestamp = document.createElement('div');
+            timestamp.className = 'timestamp';
+            timestamp.id = `timestamp-${reel.id}`;
+            timestamp.textContent = '0:00';
+            
+            const reelContent = document.createElement('div');
+            reelContent.className = 'reel-content';
+            
+            const userInfo = document.createElement('div');
+            userInfo.className = 'flex items-center';
+            
+            // Create username container with verification badge if verified
+            const usernameContainer = `
+                <div class="username-container">
+                    <div class="font-semibold">${reel.username}</div>
+                    ${reel.isVerified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
+                </div>
+            `;
+            
+            userInfo.innerHTML = `
+                <div class="relative">
+                    <img src="${reel.userImage}" alt="${reel.username}" class="profile-pic">
+                    <div class="plus-icon">+</div>
+                </div>
+                <div class="ml-2">${usernameContainer}</div>
+                <button class="ml-2 text-sm bg-transparent border border-white text-white px-2 py-0.5 rounded-md follow-btn" data-user-id="${reel.userId}">Follow</button>
+            `;
+            
+            const caption = document.createElement('div');
+            caption.className = 'mt-2 text-sm';
+            caption.textContent = reel.caption;
+            
+            const musicInfo = document.createElement('div');
+            musicInfo.className = 'music-info text-xs';
+            musicInfo.innerHTML = `
+                <div class="music-note"><i class="fas fa-music"></i></div>
+                <div>${reel.music}</div>
+            `;
+            
+            reelContent.appendChild(userInfo);
+            reelContent.appendChild(caption);
+            reelContent.appendChild(musicInfo);
+            
+            const reelActions = document.createElement('div');
+            reelActions.className = 'reel-actions';
+            
+            reelActions.innerHTML = `
+                <div class="action-btn like-btn ${reel.isLiked ? 'liked' : ''}" data-reel-id="${reel.id}">
+                    <i class="fas fa-heart text-2xl"></i>
+                    <span class="text-xs">${formatNumber(reel.likes)}</span>
+                </div>
+                <div class="action-btn comment-btn" data-reel-id="${reel.id}">
+                    <i class="fas fa-comment text-2xl"></i>
+                    <span class="text-xs">${formatNumber(reel.comments)}</span>
+                </div>
+                <div class="action-btn share-btn" data-reel-id="${reel.id}">
+                    <i class="fas fa-paper-plane text-2xl"></i>
+                    <span class="text-xs">${formatNumber(reel.shares)}</span>
+                </div>
+                <div class="action-btn more-btn" data-reel-id="${reel.id}">
+                    <i class="fas fa-ellipsis-h text-2xl"></i>
+                </div>
+            `;
+            
+            reelElement.appendChild(videoContainer);
+            reelElement.appendChild(progressBar);
+            reelElement.appendChild(videoControls);
+            reelElement.appendChild(timestamp);
+            reelElement.appendChild(reelContent);
+            reelElement.appendChild(reelActions);
+            
+            reelContainer.appendChild(reelElement);
+            
+            // Double tap to like
+            reelElement.addEventListener('dblclick', function() {
+                const reelId = this.getAttribute('data-reel-id');
+                showLikeAnimation();
+                toggleLike(reelId, true);
+            });
+            
+            // Observe when reel is in viewport
+            observeReel(reelElement, video);
         }
         
         // Format number (e.g. 1.2k)
@@ -584,6 +757,7 @@
         // Update timestamp
         function updateTimestamp(videoElement, reelId) {
             const timestampElement = document.getElementById(`timestamp-${reelId}`);
+            if (!timestampElement) return;
             
             const updateTime = () => {
                 const currentTime = Math.floor(videoElement.currentTime);
@@ -631,6 +805,8 @@
             
             const reel = reelsData[reelIndex];
             const likeBtn = document.querySelector(`.like-btn[data-reel-id="${reelId}"]`);
+            if (!likeBtn) return;
+            
             const likeIcon = likeBtn.querySelector('i');
             const likeCount = likeBtn.querySelector('span');
             
@@ -665,9 +841,20 @@
             });
         }
         
+        // Check if user has scrolled to the bottom
+        function checkScroll() {
+            const scrollPosition = reelContainer.scrollTop + reelContainer.clientHeight;
+            const scrollHeight = reelContainer.scrollHeight;
+            
+            // If user has scrolled to near the bottom, load more reels
+            if (scrollHeight - scrollPosition < 500) {
+                generateMoreReelsData();
+            }
+        }
+        
         // Initialize app
         function initApp() {
-            generateReelsData();
+            generateInitialReelsData();
             loadingScreen.style.display = 'none';
             
             // Add initial click handler to enable audio (needed for mobile browsers)
@@ -680,6 +867,9 @@
                 });
                 document.removeEventListener('click', initialClickHandler);
             });
+            
+            // Add scroll event listener for infinite scroll
+            reelContainer.addEventListener('scroll', checkScroll);
         }
         
         // Event Listeners
@@ -726,5 +916,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'963af1d5f6033e93',t:'MTc1MzI3MTI2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'963b3da904a991b0',t:'MTc1MzI3NDM2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
