@@ -3,90 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OrioPlay Reels</title>
+  <title>OrioPlay</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-    body { background: #000; overflow-x: hidden; color: #fff; }
-
-    .reel-container {
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: sans-serif;
+      background: black;
+      overflow-x: hidden;
+      color: white;
+    }
+    .reel {
+      position: relative;
+      height: 100vh;
+      scroll-snap-align: start;
+      overflow: hidden;
+    }
+    video {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
+    }
+    .overlay {
+      position: absolute;
+      bottom: 80px;
+      left: 10px;
+      z-index: 2;
+      color: white;
+    }
+    .username {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      position: absolute;
+      top: 20px;
+      left: 10px;
+      background: rgba(0,0,0,0.5);
+      padding: 6px 10px;
+      border-radius: 20px;
+    }
+    .actions {
+      position: absolute;
+      right: 15px;
+      bottom: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    .actions i {
+      font-size: 26px;
+      cursor: pointer;
+    }
+    .like-count, .comment-count {
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .comment-box {
+      display: none;
+      background: rgba(0, 0, 0, 0.8);
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      max-height: 50%;
+      overflow-y: auto;
+      padding: 10px;
+      z-index: 5;
+    }
+    .comment-box textarea {
+      width: 100%;
+      height: 40px;
+      resize: none;
+      margin-top: 5px;
+    }
+    .reels-container {
       scroll-snap-type: y mandatory;
       overflow-y: scroll;
       height: 100vh;
     }
-
-    .reel {
-      scroll-snap-align: start;
-      height: 100vh;
-      position: relative;
-    }
-
-    video {
-      width: 100%;
-      height: 100vh;
-      object-fit: cover;
-    }
-
-    .overlay {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      z-index: 2;
-    }
-
-    .username {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .actions {
-      position: absolute;
-      right: 20px;
-      bottom: 80px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .actions img {
-      width: 28px;
-      height: 28px;
-      filter: brightness(0) invert(1);
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-
-    .actions img.liked {
-      filter: none;
-    }
-
-    .comment-box {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      width: 90%;
-    }
-
-    .comment-box input {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 25px;
-      outline: none;
-      font-size: 14px;
-    }
-
-    .likes-count {
-      font-size: 14px;
-      margin-top: 4px;
-      color: #aaa;
-    }
   </style>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
-<div class="reel-container" id="reelContainer">
+<div class="reels-container" id="reelsContainer">
   <!-- Reels will be injected here -->
 </div>
 
@@ -94,82 +97,71 @@
 const videos = [
   {
     url: "https://community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4",
-    user: "@american_girl92",
-    likes: 10243,
-    id: "1"
+    username: "indian_user89",
+    likes: 10200,
+    comments: ["🔥🔥🔥", "Banger!", "Awesome reel 🔥"]
   },
   {
     url: "https://community.oriontec.xyz/AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY.mp4",
-    user: "@indian_vibes99",
+    username: "american_reelz",
     likes: 20400,
-    id: "2"
+    comments: ["USA style 💯", "Superb shot!"]
   },
   {
-    url: "https://community.oriontec.xyz/AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8.mp4",
-    user: "@aussie_traveler",
-    likes: 967,
-    id: "3"
+    url: "https://community.oriontec.xyz/AQPWkxDUFBKHmU2AEfEnlO5uIDVpO3p6891VU_juxmxWWajnveqqJLGQr6Vrl1AlIIUezUV54LCSA5xIVBMKHF7joccNrY7HbTIBwfg.mp4",
+    username: "aussie_wave91",
+    likes: 957,
+    comments: ["Nice mood 🎶", "Vibes 🔥"]
   }
 ];
 
-const reelContainer = document.getElementById("reelContainer");
-
-videos.forEach(video => {
+function createReel(reelData) {
   const reel = document.createElement("div");
   reel.className = "reel";
 
   reel.innerHTML = `
-    <video src="${video.url}" autoplay muted loop playsinline></video>
+    <video src="${reelData.url}" autoplay muted loop playsinline></video>
+    <div class="username">@${reelData.username}</div>
     <div class="overlay">
-      <div class="username">${video.user}</div>
-      <div class="likes-count" id="like-count-${video.id}">${video.likes.toLocaleString()} likes</div>
+      <div class="comment-box" id="comment-${reelData.username}">
+        <strong>Comments:</strong><br/>
+        ${reelData.comments.map(c => `<div>• ${c}</div>`).join("")}
+        <textarea placeholder="Add a comment..."></textarea>
+      </div>
     </div>
     <div class="actions">
-      <img src="https://cdn-icons-png.flaticon.com/512/1077/1077035.png" class="like-button" data-id="${video.id}" />
-      <a href="/orioplay/${video.id}" target="_blank">
-        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828919.png" />
-      </a>
-    </div>
-    <div class="comment-box">
-      <input type="text" placeholder="Add a comment as guest..." />
+      <i class="fas fa-heart" style="color:white;" onclick="toggleLike(this)"></i>
+      <div class="like-count">${reelData.likes} Likes</div>
+      <i class="fas fa-comment" onclick="toggleComments('${reelData.username}')"></i>
     </div>
   `;
-  reelContainer.appendChild(reel);
-});
+  return reel;
+}
 
-// Like button toggle
-document.addEventListener("click", function(e) {
-  if (e.target.classList.contains("like-button")) {
-    const img = e.target;
-    const id = img.dataset.id;
-    const likeText = document.getElementById(`like-count-${id}`);
-
-    if (img.classList.contains("liked")) {
-      img.classList.remove("liked");
-      likeText.textContent = (parseInt(likeText.textContent.replace(/\D/g, "")) - 1).toLocaleString() + " likes";
-    } else {
-      img.classList.add("liked");
-      img.src = "https://cdn-icons-png.flaticon.com/512/833/833472.png"; // red heart
-      likeText.textContent = (parseInt(likeText.textContent.replace(/\D/g, "")) + 1).toLocaleString() + " likes";
-    }
+function toggleLike(icon) {
+  if (icon.style.color === "white") {
+    icon.style.color = "red";
+    let countDiv = icon.nextElementSibling;
+    let count = parseInt(countDiv.textContent);
+    countDiv.textContent = `${count + 1} Likes`;
+  } else {
+    icon.style.color = "white";
+    let countDiv = icon.nextElementSibling;
+    let count = parseInt(countDiv.textContent);
+    countDiv.textContent = `${count - 1} Likes`;
   }
+}
+
+function toggleComments(username) {
+  const box = document.getElementById("comment-" + username);
+  box.style.display = box.style.display === "block" ? "none" : "block";
+}
+
+const container = document.getElementById("reelsContainer");
+videos.forEach(v => {
+  const reelElement = createReel(v);
+  container.appendChild(reelElement);
 });
-
-// Unmute when in view
-const videosOnPage = document.querySelectorAll("video");
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.play();
-      entry.target.muted = false;
-    } else {
-      entry.target.pause();
-    }
-  });
-}, { threshold: 0.8 });
-
-videosOnPage.forEach(video => observer.observe(video));
 </script>
-
 </body>
 </html>
