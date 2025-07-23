@@ -301,7 +301,7 @@
         // Global variables
         let reelsData = [];
         let currentVideoElement = null;
-        let isVideoMuted = true;
+        let isVideoMuted = false; // Changed to false so videos play with sound by default
         
         // Sample user data
         const users = [
@@ -426,7 +426,7 @@
                 video.className = 'reel-video';
                 video.src = reel.videoUrl;
                 video.loop = true;
-                video.muted = isVideoMuted;
+                video.muted = isVideoMuted; // Now false by default
                 video.preload = 'auto';
                 video.setAttribute('playsinline', '');
                 
@@ -523,7 +523,18 @@
             if (reelsData.length > 0) {
                 const firstVideo = document.querySelector('.reel-video');
                 if (firstVideo) {
-                    firstVideo.play();
+                    // Add a click event to start playing with sound (needed for mobile)
+                    document.body.addEventListener('click', function() {
+                        if (firstVideo.paused) {
+                            firstVideo.play();
+                        }
+                    }, { once: true });
+                    
+                    // Try to play automatically (may be blocked by browser)
+                    firstVideo.play().catch(e => {
+                        console.log('Auto-play was prevented. Please interact with the document first.');
+                    });
+                    
                     currentVideoElement = firstVideo;
                     startProgress(reelsData[0].id);
                     updateTimestamp(firstVideo, reelsData[0].id);
@@ -548,7 +559,9 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         // Reel is visible
-                        videoElement.play();
+                        videoElement.play().catch(e => {
+                            console.log('Auto-play was prevented. Please interact with the document first.');
+                        });
                         currentVideoElement = videoElement;
                         const reelId = reelElement.getAttribute('data-reel-id');
                         
@@ -656,6 +669,17 @@
         function initApp() {
             generateReelsData();
             loadingScreen.style.display = 'none';
+            
+            // Add initial click handler to enable audio (needed for mobile browsers)
+            document.addEventListener('click', function initialClickHandler() {
+                const videos = document.querySelectorAll('.reel-video');
+                videos.forEach(video => {
+                    if (video.paused) {
+                        video.play().catch(e => console.log('Could not play video'));
+                    }
+                });
+                document.removeEventListener('click', initialClickHandler);
+            });
         }
         
         // Event Listeners
@@ -702,5 +726,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'963aecede2c64701',t:'MTc1MzI3MTA2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'963af1d5f6033e93',t:'MTc1MzI3MTI2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
