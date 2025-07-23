@@ -3,165 +3,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OrioPlay</title>
+  <title>OrioPlay Reels</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    * {margin: 0; padding: 0; box-sizing: border-box;}
+    html, body {
+      height: 100%; overflow: hidden;
+      background: #000; color: white;
+      font-family: Arial, sans-serif;
     }
-    body {
-      font-family: sans-serif;
-      background: black;
-      overflow-x: hidden;
-      color: white;
+    .reel-container {
+      height: 100vh; width: 100vw;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
     }
     .reel {
+      height: 100vh; width: 100%;
       position: relative;
-      height: 100vh;
       scroll-snap-align: start;
-      overflow: hidden;
+      display: flex; justify-content: center; align-items: center;
     }
     video {
-      height: 100%;
-      width: 100%;
+      height: 100%; width: 100%;
       object-fit: cover;
     }
     .overlay {
-      position: absolute;
-      bottom: 80px;
-      left: 10px;
-      z-index: 2;
-      color: white;
+      position: absolute; bottom: 20px; left: 20px; z-index: 10;
     }
-    .username {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 6px;
-      position: absolute;
-      top: 20px;
-      left: 10px;
-      background: rgba(0,0,0,0.5);
-      padding: 6px 10px;
-      border-radius: 20px;
-    }
+    .overlay h4 {margin-bottom: 5px;}
     .actions {
-      position: absolute;
-      right: 15px;
-      bottom: 90px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
+      position: absolute; right: 20px; bottom: 100px; z-index: 10;
+      display: flex; flex-direction: column; align-items: center;
     }
-    .actions i {
-      font-size: 26px;
-      cursor: pointer;
+    .actions div {
+      margin: 10px 0; cursor: pointer;
+      text-align: center;
     }
-    .like-count, .comment-count {
-      font-size: 14px;
-      margin-top: 4px;
+    .comments {
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; background: rgba(0,0,0,0.7); padding: 10px;
     }
-    .comment-box {
-      display: none;
-      background: rgba(0, 0, 0, 0.8);
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      max-height: 50%;
-      overflow-y: auto;
-      padding: 10px;
-      z-index: 5;
+    .comments input {
+      width: 70%; padding: 8px; border: none; border-radius: 4px;
     }
-    .comment-box textarea {
-      width: 100%;
-      height: 40px;
-      resize: none;
-      margin-top: 5px;
+    .comments button {
+      padding: 8px 12px; margin-left: 8px;
+      background: #2196f3; color: white; border: none; border-radius: 4px;
     }
-    .reels-container {
-      scroll-snap-type: y mandatory;
-      overflow-y: scroll;
-      height: 100vh;
+    .comments-list {
+      max-height: 100px; overflow-y: auto;
+      font-size: 14px; margin-top: 5px;
     }
   </style>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
-<div class="reels-container" id="reelsContainer">
-  <!-- Reels will be injected here -->
-</div>
+<div class="reel-container" id="reelContainer"></div>
 
-<script>
-const videos = [
-  {
-    url: "https://community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4",
-    username: "indian_user89",
-    likes: 10200,
-    comments: ["🔥🔥🔥", "Banger!", "Awesome reel 🔥"]
-  },
-  {
-    url: "https://community.oriontec.xyz/AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY.mp4",
-    username: "american_reelz",
-    likes: 20400,
-    comments: ["USA style 💯", "Superb shot!"]
-  },
-  {
-    url: "https://community.oriontec.xyz/AQPWkxDUFBKHmU2AEfEnlO5uIDVpO3p6891VU_juxmxWWajnveqqJLGQr6Vrl1AlIIUezUV54LCSA5xIVBMKHF7joccNrY7HbTIBwfg.mp4",
-    username: "aussie_wave91",
-    likes: 957,
-    comments: ["Nice mood 🎶", "Vibes 🔥"]
-  }
-];
+<script type="module">
+  // ✅ Firebase SDKs
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, updateDoc,
+    increment, collection, getDocs, setDoc
+  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-function createReel(reelData) {
-  const reel = document.createElement("div");
-  reel.className = "reel";
+  // ✅ Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCVY2IUiijgzRPcOKWQl0MVlBQz0_N__sE",
+    authDomain: "reels-bb234.firebaseapp.com",
+    projectId: "reels-bb234",
+    storageBucket: "reels-bb234.firebasestorage.app",
+    messagingSenderId: "752485971097",
+    appId: "1:752485971097:web:7132cccccb41f050ba3408"
+  };
 
-  reel.innerHTML = `
-    <video src="${reelData.url}" autoplay muted loop playsinline></video>
-    <div class="username">@${reelData.username}</div>
-    <div class="overlay">
-      <div class="comment-box" id="comment-${reelData.username}">
-        <strong>Comments:</strong><br/>
-        ${reelData.comments.map(c => `<div>• ${c}</div>`).join("")}
-        <textarea placeholder="Add a comment..."></textarea>
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const videos = [
+    "AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA",
+    "AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY",
+    "AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8",
+    "AQNbGZpSZMrNlMTvlvyPCOFT_O19Oo77mPkwY_xmkp_Uijj5mB77PX0yNXv5ziWG93v_xBuK9vhgms6h1c6-XZhP5P_ziDJmnz1DkIU",
+    "AQM-uzNKIG53Qn8OIE6C8ke-zbxFn4kS-LWhPln2JkRe0TV1-XKRidGM_MX5xoafOo3CftfOJmU--d93RSDAMZbJEvCuvVOtWe_7-6g",
+    "AQMfYCk6cglI-EYVM_ikXiPDHu6AI0G5n63OfIlOlGB1mPStMS9-S3p4GZUMqKe7tHnS_y2LZU4We9ZFos7lwyAyTKZ2y9KHK7fwqDg",
+    "AQNmookkwQ4zcFJa6WmnPpWtwPlAAhAs1NqUv4OO81rHqj4_-2rNmKYQL9EoUflZFM9CUJdKNCjX3JeXqCFHxky9YG-r85gHXVuFqDM",
+    "AQOJk_n-zCbInDwXSaeQhdHKZswXi5iUwDsE6961Vk4leC0kjU5Ji2oYoNojQy-ehbSi0oiB86CU15kBD0SdlvpI8NsrIw2Vo5ne0AY",
+    "AQOrFzZWJ0gGJbq2LbuH2rKMSQPkaEvLT2Tm5zpY3A3aP7vTvC13rcGDFjNbqYiqPRykI409W56EOGlFfrA-InKAu0sjC_rUlhgbUo4",
+    "AQPWkxDUFBKHmU2AEfEnlO5uIDVpO3p6891VU_juxmxWWajnveqqJLGQr6Vrl1AlIIUezUV54LCSA5xIVBMKHF7joccNrY7HbTIBwfg"
+  ];
+
+  const usernames = ["@reelking98", "@aussieTrend", "@nyc.vibes", "@desiSwag", "@travelQueen", "@orionGuy", "@LA_drifter", "@punjabibae", "@australia.one", "@musicmoodz"];
+
+  const reelContainer = document.getElementById("reelContainer");
+
+  videos.forEach(async (vid, index) => {
+    const videoId = `video_${index}`;
+    const user = usernames[Math.floor(Math.random() * usernames.length)];
+    const videoUrl = `https://community.oriontec.xyz/${vid}.mp4`;
+
+    const docRef = doc(db, "Oriontec", videoId);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      await setDoc(docRef, {
+        likes: Math.floor(Math.random() * 10000) + 1000,
+        comments: [],
+        user: user,
+        videoUrl: videoUrl
+      });
+    }
+
+    const reelDiv = document.createElement("div");
+    reelDiv.className = "reel";
+    reelDiv.innerHTML = `
+      <video src="${videoUrl}" muted loop playsinline></video>
+      <div class="overlay">
+        <h4>${user}</h4>
       </div>
-    </div>
-    <div class="actions">
-      <i class="fas fa-heart" style="color:white;" onclick="toggleLike(this)"></i>
-      <div class="like-count">${reelData.likes} Likes</div>
-      <i class="fas fa-comment" onclick="toggleComments('${reelData.username}')"></i>
-    </div>
-  `;
-  return reel;
-}
+      <div class="actions">
+        <div class="likeBtn">❤️ <span id="like-${videoId}">0</span></div>
+      </div>
+      <div class="comments">
+        <input placeholder="Your name" id="name-${videoId}" />
+        <input placeholder="Add comment..." id="comment-${videoId}" />
+        <button onclick="postComment('${videoId}')">Post</button>
+        <div class="comments-list" id="clist-${videoId}"></div>
+      </div>
+    `;
+    reelContainer.appendChild(reelDiv);
 
-function toggleLike(icon) {
-  if (icon.style.color === "white") {
-    icon.style.color = "red";
-    let countDiv = icon.nextElementSibling;
-    let count = parseInt(countDiv.textContent);
-    countDiv.textContent = `${count + 1} Likes`;
-  } else {
-    icon.style.color = "white";
-    let countDiv = icon.nextElementSibling;
-    let count = parseInt(countDiv.textContent);
-    countDiv.textContent = `${count - 1} Likes`;
-  }
-}
+    const video = reelDiv.querySelector("video");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          entry.isIntersecting ? video.play() : video.pause();
+        });
+      },
+      { threshold: 0.7 }
+    );
+    observer.observe(video);
 
-function toggleComments(username) {
-  const box = document.getElementById("comment-" + username);
-  box.style.display = box.style.display === "block" ? "none" : "block";
-}
+    const updateLikes = async () => {
+      const snap = await getDoc(docRef);
+      document.getElementById(`like-${videoId}`).innerText = snap.data().likes;
+      const clist = snap.data().comments || [];
+      document.getElementById(`clist-${videoId}`).innerHTML = clist.map(c => `<div><b>${c.name}:</b> ${c.text}</div>`).join("");
+    };
 
-const container = document.getElementById("reelsContainer");
-videos.forEach(v => {
-  const reelElement = createReel(v);
-  container.appendChild(reelElement);
-});
+    updateLikes();
+
+    reelDiv.querySelector(".likeBtn").onclick = async () => {
+      await updateDoc(docRef, { likes: increment(1) });
+      updateLikes();
+    };
+  });
+
+  window.postComment = async (id) => {
+    const name = document.getElementById(`name-${id}`).value;
+    const text = document.getElementById(`comment-${id}`).value;
+    if (!name || !text) return alert("Fill both fields!");
+
+    const ref = doc(db, "Oriontec", id);
+    const snap = await getDoc(ref);
+    const data = snap.data();
+    const comments = data.comments || [];
+    comments.push({ name, text });
+    await updateDoc(ref, { comments });
+    document.getElementById(`comment-${id}`).value = "";
+    const clist = document.getElementById(`clist-${id}`);
+    clist.innerHTML += `<div><b>${name}:</b> ${text}</div>`;
+  };
 </script>
 </body>
 </html>
