@@ -6,9 +6,6 @@
     <title>OrioPlay Reels</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -263,6 +260,24 @@
             display: flex;
             align-items: center;
         }
+        
+        .mention {
+            color: #3897f0;
+            font-weight: 500;
+        }
+        
+        .hashtag {
+            color: #3897f0;
+            font-weight: 500;
+        }
+        
+        .like-count {
+            transition: transform 0.3s ease;
+        }
+        
+        .like-count.pulse {
+            transform: scale(1.3);
+        }
     </style>
 </head>
 <body>
@@ -288,22 +303,6 @@
     </div>
     
     <script>
-        // Initialize Firebase with your configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVY2IUiijgzRPcOKWQl0MVlBQz0_N__sE",
-            authDomain: "reels-bb234.firebaseapp.com",
-            projectId: "reels-bb234",
-            storageBucket: "reels-bb234.firebasestorage.app",
-            messagingSenderId: "752485971097",
-            appId: "1:752485971097:web:7132cccccb41f050ba3408"
-        };
-        
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        
-        // Get Firebase services
-        const db = firebase.firestore();
-        
         // DOM Elements
         const loadingScreen = document.getElementById('loadingScreen');
         const reelContainer = document.getElementById('reelContainer');
@@ -319,47 +318,59 @@
         let reelsToAddOnScroll = 3; // Number of reels to add when scrolling
         let reelIdCounter = 0;
         
+        // Local storage key for liked videos
+        const LIKED_VIDEOS_STORAGE_KEY = 'orioplay_liked_videos';
+        
         // Verified users with their content - UPDATED with exact profile pictures
         const verifiedUsers = [
             {
                 id: 'verified1',
                 username: 'Gursharn_Arya',
-                profilePic: 'https://community.oriontec.xyz/IMG_8983.jpeg', // Updated with exact URL
+                profilePic: 'https://community.oriontec.xyz/IMG_8983.jpeg',
                 isVerified: true
             },
             {
                 id: 'verified2',
                 username: 'orry',
-                profilePic: 'https://community.oriontec.xyz/IMG_9034.jpeg', // Updated with exact URL
+                profilePic: 'https://community.oriontec.xyz/IMG_9034.jpeg',
                 isVerified: true
             },
             {
                 id: 'verified3',
                 username: 'oriontec',
-                profilePic: 'https://community.oriontec.xyz/24819A5B-86D4-4779-841B-3E0664EB2479.png', // Updated with exact URL
+                profilePic: 'https://community.oriontec.xyz/24819A5B-86D4-4779-841B-3E0664EB2479.png',
                 isVerified: true
             }
         ];
         
-        // Verified users' videos - UPDATED with Orry's video
+        // Verified users' videos with specific captions
         const verifiedVideos = [
             {
                 userId: 'verified1',
                 videoUrl: "https://community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4",
-                caption: "Real squid game! #trending",
-                music: "Phonk - GOAT"
+                caption: "Real squid game <span class='hashtag'>#trending</span>",
+                music: "Diljit Dosanjh - GOAT",
+                fixedLikes: 87500,
+                fixedComments: 3200,
+                fixedShares: 1800
             },
             {
                 userId: 'verified2',
-                videoUrl: "https://community.oriontec.xyz/AQO-UjmAyMarz74DjIRw2HBpYsmLCx2SfzJtUQ1WPULylpbbcA5UZ6g2S3YLq5e7DcJnwtIcRoDgm9Dtx7DLRbg4zkZdCbFLn0djOdY.mp4", // Updated with Orry's video
-                caption: "Party vibes only! @ananyapanday 🎉",
-                music: "AP Dhillon - Insane"
+                videoUrl: "https://community.oriontec.xyz/AQO-UjmAyMarz74DjIRw2HBpYsmLCx2SfzJtUQ1WPULylpbbcA5UZ6g2S3YLq5e7DcJnwtIcRoDgm9Dtx7DLRbg4zkZdCbFLn0djOdY.mp4",
+                caption: "fish jal ki rani <span class='mention'>@ananyapanday</span>",
+                music: "AP Dhillon - Insane",
+                fixedLikes: 125000,
+                fixedComments: 5600,
+                fixedShares: 2900
             },
             {
                 userId: 'verified3',
                 videoUrl: "https://community.oriontec.xyz/AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8.mp4",
-                caption: "Tech innovation at its best! #oriontec",
-                music: "Nucleya - Bass Rani"
+                caption: "Tech innovation at its best! <span class='hashtag'>#oriontec</span>",
+                music: "Nucleya - Bass Rani",
+                fixedLikes: 95000,
+                fixedComments: 4100,
+                fixedShares: 2200
             }
         ];
         
@@ -397,23 +408,23 @@
             }
         ];
         
-        // Sample captions
+        // Sample captions with hashtags
         const captions = [
-            "Living my best life! #vibes",
+            "Living my best life! <span class='hashtag'>#vibes</span>",
             "Can't get enough of this song 🎵",
             "Weekend mood activated ✨",
             "This trend is everything! 🔥",
             "Just another day in paradise 🌴",
             "When the beat drops... 💃",
             "POV: You're scrolling through reels at 2am",
-            "This is how we do it! #trending",
+            "This is how we do it! <span class='hashtag'>#trending</span>",
             "Trying this for the first time 😂",
             "Couldn't resist joining this challenge!"
         ];
         
         // Sample music
         const musicTracks = [
-            "LLRD - Phonk",
+            "Diljit Dosanjh - GOAT",
             "AP Dhillon - Insane",
             "Badshah - Jugnu",
             "Arijit Singh - Kesariya",
@@ -425,7 +436,7 @@
             "Sidhu Moose Wala - 295"
         ];
         
-        // Video URLs from your input (for regular users)
+        // Video URLs for regular users
         const videoUrls = [
             "https://community.oriontec.xyz/AQNbGZpSZMrNlMTvlvyPCOFT_O19Oo77mPkwY_xmkp_Uijj5mB77PX0yNXv5ziWG93v_xBuK9vhgms6h1c6-XZhP5P_ziDJmnz1DkIU.mp4",
             "https://community.oriontec.xyz/AQM-uzNKIG53Qn8OIE6C8ke-zbxFn4kS-LWhPln2JkRe0TV1-XKRidGM_MX5xoafOo3CftfOJmU--d93RSDAMZbJEvCuvVOtWe_7-6g.mp4",
@@ -445,6 +456,17 @@
             return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='${randomColor}'/><text x='50' y='60' font-size='40' text-anchor='middle' fill='white'>${initial}</text></svg>`;
         }
         
+        // Load liked videos from local storage
+        function loadLikedVideos() {
+            const likedVideos = localStorage.getItem(LIKED_VIDEOS_STORAGE_KEY);
+            return likedVideos ? JSON.parse(likedVideos) : {};
+        }
+        
+        // Save liked videos to local storage
+        function saveLikedVideos(likedVideos) {
+            localStorage.setItem(LIKED_VIDEOS_STORAGE_KEY, JSON.stringify(likedVideos));
+        }
+        
         // Shuffle array (Fisher-Yates algorithm)
         function shuffleArray(array) {
             const newArray = [...array];
@@ -458,24 +480,29 @@
         // Generate verified reels data
         function generateVerifiedReelsData() {
             verifiedReelsData = [];
+            const likedVideos = loadLikedVideos();
             
             verifiedVideos.forEach((video, index) => {
                 const user = verifiedUsers.find(user => user.id === video.userId);
                 if (!user) return;
                 
+                const reelId = `verified-reel-${++reelIdCounter}`;
+                const isLiked = likedVideos[reelId] === true;
+                
                 verifiedReelsData.push({
-                    id: `verified-reel-${++reelIdCounter}`,
+                    id: reelId,
                     videoUrl: video.videoUrl,
                     caption: video.caption,
                     music: video.music,
-                    likes: Math.floor(Math.random() * 100000) + 50000, // Verified users get more likes
-                    comments: Math.floor(Math.random() * 10000) + 1000,
-                    shares: Math.floor(Math.random() * 5000) + 500,
+                    likes: video.fixedLikes + (isLiked ? 1 : 0), // Add user like if previously liked
+                    comments: video.fixedComments,
+                    shares: video.fixedShares,
                     username: user.username,
                     userImage: user.profilePic,
                     userId: user.id,
-                    isLiked: false,
-                    isVerified: true
+                    isLiked: isLiked,
+                    isVerified: true,
+                    fixedLikes: video.fixedLikes // Store original fixed likes for reference
                 });
             });
         }
@@ -490,19 +517,27 @@
             const caption = captions[Math.floor(Math.random() * captions.length)];
             const music = musicTracks[Math.floor(Math.random() * musicTracks.length)];
             
+            const reelId = `reel-${++reelIdCounter}`;
+            const likedVideos = loadLikedVideos();
+            const isLiked = likedVideos[reelId] === true;
+            
+            // Fixed likes for regular videos (between 5,000 and 50,000)
+            const fixedLikes = Math.floor(Math.random() * 45000) + 5000;
+            
             return {
-                id: `reel-${++reelIdCounter}`,
+                id: reelId,
                 videoUrl: videoUrl,
                 caption: caption,
                 music: music,
-                likes: Math.floor(Math.random() * 10000),
+                likes: fixedLikes + (isLiked ? 1 : 0), // Add user like if previously liked
                 comments: Math.floor(Math.random() * 1000),
                 shares: Math.floor(Math.random() * 500),
                 username: user.username,
                 userImage: user.profilePic,
                 userId: user.id,
-                isLiked: false,
-                isVerified: false
+                isLiked: isLiked,
+                isVerified: false,
+                fixedLikes: fixedLikes // Store original fixed likes for reference
             };
         }
         
@@ -539,13 +574,19 @@
                 newReels.push(generateRegularReelData());
             }
             
-            // Add a verified reel occasionally (30% chance - increased from 20%)
+            // Add a verified reel occasionally (30% chance)
             if (Math.random() < 0.3 && verifiedReelsData.length > 0) {
                 const randomVerifiedReel = verifiedReelsData[Math.floor(Math.random() * verifiedReelsData.length)];
                 // Create a copy with a new ID to avoid duplicate keys
+                const reelId = `verified-reel-${++reelIdCounter}`;
+                const likedVideos = loadLikedVideos();
+                const isLiked = likedVideos[reelId] === true;
+                
                 const verifiedReelCopy = {
                     ...randomVerifiedReel,
-                    id: `verified-reel-${++reelIdCounter}`
+                    id: reelId,
+                    isLiked: isLiked,
+                    likes: randomVerifiedReel.fixedLikes + (isLiked ? 1 : 0)
                 };
                 newReels.push(verifiedReelCopy);
             }
@@ -598,6 +639,17 @@
             newReels.forEach(reel => {
                 createReelElement(reel);
             });
+        }
+        
+        // Format number (e.g. 1.2k)
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'm';
+            }
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'k';
+            }
+            return num;
         }
         
         // Create a single reel element
@@ -661,7 +713,7 @@
             
             const caption = document.createElement('div');
             caption.className = 'mt-2 text-sm';
-            caption.textContent = reel.caption;
+            caption.innerHTML = reel.caption; // Using innerHTML to render HTML in caption
             
             const musicInfo = document.createElement('div');
             musicInfo.className = 'music-info text-xs';
@@ -680,7 +732,7 @@
             reelActions.innerHTML = `
                 <div class="action-btn like-btn ${reel.isLiked ? 'liked' : ''}" data-reel-id="${reel.id}">
                     <i class="fas fa-heart text-2xl"></i>
-                    <span class="text-xs">${formatNumber(reel.likes)}</span>
+                    <span class="text-xs like-count" id="like-count-${reel.id}">${formatNumber(reel.likes)}</span>
                 </div>
                 <div class="action-btn comment-btn" data-reel-id="${reel.id}">
                     <i class="fas fa-comment text-2xl"></i>
@@ -713,17 +765,6 @@
             
             // Observe when reel is in viewport
             observeReel(reelElement, video);
-        }
-        
-        // Format number (e.g. 1.2k)
-        function formatNumber(num) {
-            if (num >= 1000000) {
-                return (num / 1000000).toFixed(1) + 'm';
-            }
-            if (num >= 1000) {
-                return (num / 1000).toFixed(1) + 'k';
-            }
-            return num;
         }
         
         // Observe when reel is in viewport
@@ -798,7 +839,7 @@
             }, 1000);
         }
         
-        // Toggle like
+        // Toggle like with local storage persistence
         function toggleLike(reelId, forceAdd = false) {
             const reelIndex = reelsData.findIndex(reel => reel.id === reelId);
             if (reelIndex === -1) return;
@@ -808,21 +849,36 @@
             if (!likeBtn) return;
             
             const likeIcon = likeBtn.querySelector('i');
-            const likeCount = likeBtn.querySelector('span');
+            const likeCount = document.getElementById(`like-count-${reelId}`);
+            
+            // Get liked videos from local storage
+            const likedVideos = loadLikedVideos();
             
             if (reel.isLiked && !forceAdd) {
                 // Unlike
                 reel.likes--;
                 reel.isLiked = false;
                 likeIcon.classList.remove('liked');
+                likedVideos[reelId] = false; // Mark as unliked in local storage
             } else if (!reel.isLiked) {
                 // Like
                 reel.likes++;
                 reel.isLiked = true;
                 likeIcon.classList.add('liked');
+                likedVideos[reelId] = true; // Mark as liked in local storage
+                
+                // Add like animation to the count
+                likeCount.classList.add('pulse');
+                setTimeout(() => {
+                    likeCount.classList.remove('pulse');
+                }, 300);
             }
             
+            // Update like count display
             likeCount.textContent = formatNumber(reel.likes);
+            
+            // Save updated liked videos to local storage
+            saveLikedVideos(likedVideos);
         }
         
         // Toggle video mute
@@ -916,5 +972,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'963b4cd7b09de89d',t:'MTc1MzI3NDk5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'963b6b07f77e80bb',t:'MTc1MzI3NjIyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
