@@ -6,161 +6,104 @@
   <title>OrioPlay Reels</title>
   <style>
     * {margin: 0; padding: 0; box-sizing: border-box;}
-    html, body {
-      height: 100%;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      background-color: #000;
-      color: #fff;
-    }
-    .reel-container {
-      height: 100vh;
-      width: 100%;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-    }
-    .reel {
-      position: relative;
-      scroll-snap-align: start;
-      height: 100vh;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: flex-start;
-    }
-    video {
-      position: absolute;
-      height: 100%;
-      width: 100%;
-      object-fit: cover;
-    }
-    .overlay {
-      position: relative;
-      z-index: 2;
-      padding: 20px;
-      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent 70%);
-      width: 100%;
-    }
-    .username {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    .likes, .comment-box {
-      margin-top: 5px;
-      font-size: 14px;
-    }
-    .like-btn {
-      background: red;
-      border: none;
-      color: white;
-      padding: 5px 10px;
-      margin-top: 5px;
-      cursor: pointer;
-    }
-    .comment-box input {
-      width: 80%;
-      padding: 5px;
-      margin-top: 5px;
-      border: none;
-      border-radius: 4px;
-    }
+    body, html {height: 100%; overflow: hidden; font-family: sans-serif;}
+    .reel-container {height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory;}
+    .reel {position: relative; height: 100vh; scroll-snap-align: start; background: #000; display: flex; justify-content: center; align-items: center; flex-direction: column;}
+    video {max-height: 100%; width: 100%; object-fit: cover;}
+    .overlay {position: absolute; bottom: 20px; left: 10px; color: white; z-index: 10;}
+    .likes, .comments {margin-top: 10px; font-size: 14px;}
+    .like-btn {background: rgba(255,255,255,0.2); padding: 6px 12px; border: none; color: white; cursor: pointer;}
+    .comment-box {margin-top: 10px;}
+    .comment-box input {padding: 5px; width: 200px;}
+    .username {position: absolute; top: 20px; left: 10px; color: #fff; font-size: 13px;}
   </style>
 </head>
 <body>
   <div class="reel-container" id="reelContainer"></div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBuh5J8N-A0JW8MywVtFeTbVJrYnxv7crI",
-      authDomain: "oriochat-4c0ae.firebaseapp.com",
-      projectId: "oriochat-4c0ae",
-      storageBucket: "oriochat-4c0ae.appspot.com",
-      messagingSenderId: "527399554563",
-      appId: "1:527399554563:web:3c24d7543d2eea6f72d28e"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
     const videos = [
-      "AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA",
-      "AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY",
-      "AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8",
-      "AQNbGZpSZMrNlMTvlvyPCOFT_O19Oo77mPkwY_xmkp_Uijj5mB77PX0yNXv5ziWG93v_xBuK9vhgms6h1c6-XZhP5P_ziDJmnz1DkIU",
-      "AQM-uzNKIG53Qn8OIE6C8ke-zbxFn4kS-LWhPln2JkRe0TV1-XKRidGM_MX5xoafOo3CftfOJmU--d93RSDAMZbJEvCuvVOtWe_7-6g",
-      "AQMfYCk6cglI-EYVM_ikXiPDHu6AI0G5n63OfIlOlGB1mPStMS9-S3p4GZUMqKe7tHnS_y2LZU4We9ZFos7lwyAyTKZ2y9KHK7fwqDg",
-      "AQNmookkwQ4zcFJa6WmnPpWtwPlAAhAs1NqUv4OO81rHqj4_-2rNmKYQL9EoUflZFM9CUJdKNCjX3JeXqCFHxky9YG-r85gHXVuFqDM%202",
-      "AQOJk_n-zCbInDwXSaeQhdHKZswXi5iUwDsE6961Vk4leC0kjU5Ji2oYoNojQy-ehbSi0oiB86CU15kBD0SdlvpI8NsrIw2Vo5ne0AY",
-      "AQOrFzZWJ0gGJbq2LbuH2rKMSQPkaEvLT2Tm5zpY3A3aP7vTvC13rcGDFjNbqYiqPRykI409W56EOGlFfrA-InKAu0sjC_rUlhgbUo4",
-      "AQPWkxDUFBKHmU2AEfEnlO5uIDVpO3p6891VU_juxmxWWajnveqqJLGQr6Vrl1AlIIUezUV54LCSA5xIVBMKHF7joccNrY7HbTIBwfg"
+      {url: "https://community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4"},
+      {url: "https://community.oriontec.xyz/AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY.mp4"},
+      {url: "https://community.oriontec.xyz/AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8.mp4"},
+      {url: "https://community.oriontec.xyz/AQNbGZpSZMrNlMTvlvyPCOFT_O19Oo77mPkwY_xmkp_Uijj5mB77PX0yNXv5ziWG93v_xBuK9vhgms6h1c6-XZhP5P_ziDJmnz1DkIU.mp4"},
+      {url: "https://community.oriontec.xyz/AQM-uzNKIG53Qn8OIE6C8ke-zbxFn4kS-LWhPln2JkRe0TV1-XKRidGM_MX5xoafOo3CftfOJmU--d93RSDAMZbJEvCuvVOtWe_7-6g.mp4"},
+      {url: "https://community.oriontec.xyz/AQMfYCk6cglI-EYVM_ikXiPDHu6AI0G5n63OfIlOlGB1mPStMS9-S3p4GZUMqKe7tHnS_y2LZU4We9ZFos7lwyAyTKZ2y9KHK7fwqDg.mp4"},
+      {url: "https://community.oriontec.xyz/AQNmookkwQ4zcFJa6WmnPpWtwPlAAhAs1NqUv4OO81rHqj4_-2rNmKYQL9EoUflZFM9CUJdKNCjX3JeXqCFHxky9YG-r85gHXVuFqDM.mp4"},
+      {url: "https://community.oriontec.xyz/AQOJk_n-zCbInDwXSaeQhdHKZswXi5iUwDsE6961Vk4leC0kjU5Ji2oYoNojQy-ehbSi0oiB86CU15kBD0SdlvpI8NsrIw2Vo5ne0AY.mp4"},
+      {url: "https://community.oriontec.xyz/AQOrFzZWJ0gGJbq2LbuH2rKMSQPkaEvLT2Tm5zpY3A3aP7vTvC13rcGDFjNbqYiqPRykI409W56EOGlFfrA-InKAu0sjC_rUlhgbUo4.mp4"},
+      {url: "https://community.oriontec.xyz/AQPWkxDUFBKHmU2AEfEnlO5uIDVpO3p6891VU_juxmxWWajnveqqJLGQr6Vrl1AlIIUezUV54LCSA5xIVBMKHF7joccNrY7HbTIBwfg.mp4"}
     ];
-    
-    const usernames = ["aussie_guy07", "americanqueen29", "indian_star92", "vloglife101", "musicman66", "desi_dreamer", "traveler.in", "coder_jatt", "dancer_girlx", "sportsjunkie"];
 
-    const getRandomLikes = () => Math.floor(Math.random() * (20000 - 1000 + 1)) + 1000;
+    const usernames = ["@aussie_boy12", "@usa_gal_999", "@indian_star", "@sydney_beach", "@texas_hero", "@bengal_tiger", "@nyc_mood", "@delhi_boyz", "@punjabisinger", "@hollywood_hype"];
+
     const reelContainer = document.getElementById("reelContainer");
 
-    videos.forEach((vid, index) => {
-      const username = usernames[Math.floor(Math.random() * usernames.length)];
-      const reel = document.createElement("div");
-      reel.className = "reel";
-      reel.innerHTML = `
-        <video src="https://community.oriontec.xyz/${vid}.mp4" muted playsinline loop></video>
-        <div class="overlay">
-          <div class="username">@${username}</div>
-          <div class="likes" id="likes-${index}">${getRandomLikes()} Likes</div>
-          <button class="like-btn" onclick="addLike(${index})">❤️ Like</button>
-          <div class="comment-box">
-            <input type="text" id="comment-${index}" placeholder="Add a comment..." onkeydown="submitComment(event, ${index}, '${username}')">
-          </div>
-        </div>
-      `;
-      reelContainer.appendChild(reel);
-    });
+    function renderReels() {
+      reelContainer.innerHTML = '';
+      videos.forEach((video, i) => {
+        const id = `video${i}`;
+        const div = document.createElement("div");
+        div.className = "reel";
+        div.id = id;
 
-    function addLike(index) {
-      const likeElem = document.getElementById(`likes-${index}`);
-      let likes = parseInt(likeElem.innerText.split(' ')[0].replace(/,/g, ''));
-      likes += 1;
-      likeElem.innerText = `${likes} Likes`;
+        div.innerHTML = `
+          <video src="${video.url}" muted playsinline loop></video>
+          <div class="username">${usernames[i % usernames.length]}</div>
+          <div class="overlay">
+            <div class="likes">❤️ <span id="likeCount${i}">${Math.floor(500 + Math.random() * 10000)}</span></div>
+            <button class="like-btn" onclick="like(${i})">Like</button>
+            <div class="comment-box">
+              <input type="text" placeholder="Your name..." id="name${i}"/>
+              <input type="text" placeholder="Write a comment..." id="comment${i}"/>
+              <button onclick="postComment(${i})">Post</button>
+            </div>
+          </div>
+        `;
+        reelContainer.appendChild(div);
+      });
     }
 
-    function submitComment(e, index, username) {
-      if (e.key === 'Enter') {
-        const commentInput = document.getElementById(`comment-${index}`);
-        const text = commentInput.value.trim();
-        if (text) {
-          db.collection("Oriontec").add({
-            videoID: index,
-            username: username,
-            comment: text,
-            timestamp: new Date()
-          });
-          commentInput.value = '';
-          alert("Comment Added!");
-        }
+    function like(i) {
+      const countEl = document.getElementById(`likeCount${i}`);
+      countEl.innerText = parseInt(countEl.innerText) + 1;
+    }
+
+    function postComment(i) {
+      const name = document.getElementById(`name${i}`).value;
+      const comment = document.getElementById(`comment${i}`).value;
+      if (name && comment) {
+        alert(`${name} commented: ${comment}`);
       }
     }
 
-    // Auto play logic
-    const observer = new IntersectionObserver((entries) => {
+    // Auto play visible video
+    const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        const video = entry.target.querySelector("video");
+        const video = entry.target.querySelector('video');
         if (entry.isIntersecting) {
           video.play();
+          window.location.hash = entry.target.id;
         } else {
           video.pause();
         }
       });
-    }, { threshold: 0.75 });
+    }, { threshold: 0.9 });
 
-    document.querySelectorAll(".reel").forEach(reel => {
-      observer.observe(reel);
-    });
+    function observeAll() {
+      document.querySelectorAll('.reel').forEach(r => observer.observe(r));
+    }
+
+    function scrollToHash() {
+      const hash = window.location.hash.replace("#", "");
+      if (hash && document.getElementById(hash)) {
+        document.getElementById(hash).scrollIntoView();
+      }
+    }
+
+    renderReels();
+    observeAll();
+    scrollToHash();
   </script>
 </body>
 </html>
