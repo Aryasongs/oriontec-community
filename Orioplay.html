@@ -1,3 +1,4 @@
+<!-- Paste this directly into any HTML page -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,152 +6,207 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>OrioPlay Reels</title>
   <style>
-    * {margin: 0; padding: 0; box-sizing: border-box;}
-    body {background: #000; font-family: sans-serif; color: #fff; scroll-snap-type: y mandatory; overflow-y: scroll;}
-    .reel {height: 100vh; position: relative; scroll-snap-align: start;}
-    video {width: 100%; height: 100%; object-fit: cover;}
-    .actions {
-      position: absolute; bottom: 100px; right: 10px; text-align: center;
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      font-family: 'Segoe UI', sans-serif;
+      background: black;
+      color: white;
     }
-    .actions i {
-      font-size: 24px; margin: 10px 0; cursor: pointer;
+
+    .reel {
+      position: relative;
+      height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
     }
-    .meta {
-      position: absolute; bottom: 30px; left: 15px;
+
+    video {
+      height: 100vh;
+      width: 100vw;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
-    .meta .uploader {
+
+    .overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 10;
+      color: white;
+    }
+
+    .username {
       font-weight: bold;
-      margin-bottom: 8px;
+      margin-bottom: 5px;
     }
-    .meta input, .meta button {
-      padding: 5px;
-      margin-top: 5px;
+
+    .actions {
+      position: absolute;
+      right: 10px;
+      bottom: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .actions button {
+      background: none;
       border: none;
-      border-radius: 3px;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
     }
-    .meta input {
-      width: 150px;
+
+    .comments {
+      margin-top: 10px;
     }
-    .meta button {
-      background: #007aff; color: #fff; cursor: pointer;
+
+    .comment-box {
+      margin-top: 10px;
     }
-    .comment-count, .like-count {
-      font-size: 14px;
-      color: #ddd;
+
+    .comment-box input, .comment-box textarea {
+      width: 90%;
+      margin-bottom: 5px;
+      padding: 5px;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .comment-box button {
+      padding: 5px 10px;
+      background: #1e90ff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .profile-pic {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: #888;
+      display: inline-block;
+      margin-right: 10px;
+      text-align: center;
+      line-height: 35px;
+      font-weight: bold;
     }
   </style>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
+  <div id="app"></div>
 
-<div id="reels-container"></div>
+  <script>
+    const videos = [
+      "Community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4",
+      "Community.oriontec.xyz/AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY.mp4",
+      "Community.oriontec.xyz/AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8.mp4",
+      "Community.oriontec.xyz/AQNbGZpSZMrNlMTvlvyPCOFT_O19Oo77mPkwY_xmkp_Uijj5mB77PX0yNXv5ziWG93v_xBuK9vhgms6h1c6-XZhP5P_ziDJmnz1DkIU.mp4",
+      "Community.oriontec.xyz/AQM-uzNKIG53Qn8OIE6C8ke-zbxFn4kS-LWhPln2JkRe0TV1-XKRidGM_MX5xoafOo3CftfOJmU--d93RSDAMZbJEvCuvVOtWe_7-6g.mp4",
+      "Community.oriontec.xyz/AQMfYCk6cglI-EYVM_ikXiPDHu6AI0G5n63OfIlOlGB1mPStMS9-S3p4GZUMqKe7tHnS_y2LZU4We9ZFos7lwyAyTKZ2y9KHK7fwqDg.mp4",
+      "Community.oriontec.xyz/AQNmookkwQ4zcFJa6WmnPpWtwPlAAhAs1NqUv4OO81rHqj4_-2rNmKYQL9EoUflZFM9CUJdKNCjX3JeXqCFHxky9YG-r85gHXVuFqDM.mp4",
+      "Community.oriontec.xyz/AQOJk_n-zCbInDwXSaeQhdHKZswXi5iUwDsE6961Vk4leC0kjU5Ji2oYoNojQy-ehbSi0oiB86CU15kBD0SdlvpI8NsrIw2Vo5ne0AY.mp4",
+      "Community.oriontec.xyz/AQOrFzZWJ0gGJbq2LbuH2rKMSQPkaEvLT2Tm5zpY3A3aP7vTvC13rcGDFjNbqYiqPRykI409W56EOGlFfrA-InKAu0sjC_rUlhgbUo4.mp4",
+      "Community.oriontec.xyz/AQPWkxDUFBKHmU2AEfEnlO5uIDVpO3p6891VU_juxmxWWajnveqqJLGQr6Vrl1AlIIUezUV54LCSA5xIVBMKHF7joccNrY7HbTIBwfg.mp4"
+    ];
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCVY2IUiijgzRPcOKWQl0MVlBQz0_N__sE",
-  authDomain: "reels-bb234.firebaseapp.com",
-  projectId: "reels-bb234",
-  storageBucket: "reels-bb234.appspot.com",
-  messagingSenderId: "752485971097",
-  appId: "1:752485971097:web:7132cccccb41f050ba3408"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    const usernames = [
+      "usa_reel_guy", "desiQueen_88", "aussie.vibes_89",
+      "nyc_dancer1", "punjabistar302", "sydney_shots",
+      "california_star", "random_user329", "bollywood.vibe", "tamil_tiger47"
+    ];
 
-const videoURLs = [
-  "https://community.oriontec.xyz/AQMz7l-cbcOcNYT-F98p0tPeXpKNjd1C90HzaL4k-_e1HlXEMOXyJcmLTRXgsR85xblB-KEK6L-cfmKZTn1ne3LU43Pp6y1-r0FpoAA.mp4",
-  "https://community.oriontec.xyz/AQO8Id8yrvrtLFsQ3em-7eGeNKC0SWYQDCnGgPe6fRKWPRzc2jNrSiS6_6hfXzCbCiMhg-4fMBBPdZnw7I4FFDcKc8aSiNuvkHIpklY.mp4",
-  "https://community.oriontec.xyz/AQNI48SC1msBhQKuxyjeRYSo_3KKBsZ7sJU7evYodvwwNkKzx15RpfQD6bmIws9SqkKXumHfmm1_Zpse3sGfTN12qbr_LAAtNihZCj8.mp4",
-  "https://community.oriontec.xyz/AQNbGZpSZMrNlMTvlvyPCOFT_O19Oo77mPkwY_xmkp_Uijj5mB77PX0yNXv5ziWG93v_xBuK9vhgms6h1c6-XZhP5P_ziDJmnz1DkIU.mp4",
-  "https://community.oriontec.xyz/AQM-uzNKIG53Qn8OIE6C8ke-zbxFn4kS-LWhPln2JkRe0TV1-XKRidGM_MX5xoafOo3CftfOJmU--d93RSDAMZbJEvCuvVOtWe_7-6g.mp4",
-  "https://community.oriontec.xyz/AQMfYCk6cglI-EYVM_ikXiPDHu6AI0G5n63OfIlOlGB1mPStMS9-S3p4GZUMqKe7tHnS_y2LZU4We9ZFos7lwyAyTKZ2y9KHK7fwqDg.mp4",
-  "https://community.oriontec.xyz/AQNmookkwQ4zcFJa6WmnPpWtwPlAAhAs1NqUv4OO81rHqj4_-2rNmKYQL9EoUflZFM9CUJdKNCjX3JeXqCFHxky9YG-r85gHXVuFqDM%202.mp4",
-  "https://community.oriontec.xyz/AQOJk_n-zCbInDwXSaeQhdHKZswXi5iUwDsE6961Vk4leC0kjU5Ji2oYoNojQy-ehbSi0oiB86CU15kBD0SdlvpI8NsrIw2Vo5ne0AY.mp4",
-  "https://community.oriontec.xyz/AQOrFzZWJ0gGJbq2LbuH2rKMSQPkaEvLT2Tm5zpY3A3aP7vTvC13rcGDFjNbqYiqPRykI409W56EOGlFfrA-InKAu0sjC_rUlhgbUo4.mp4",
-  "https://community.oriontec.xyz/AQPWkxDUFBKHmU2AEfEnlO5uIDVpO3p6891VU_juxmxWWajnveqqJLGQr6Vrl1AlIIUezUV54LCSA5xIVBMKHF7joccNrY7HbTIBwfg.mp4"
-];
+    const likes = ["10.2K", "967", "20.1K", "5.1K", "1.7K", "3.2K", "18.9K", "2.8K", "9.9K", "12.5K"];
 
-const usernames = [
-  "alex_usa", "meera.in", "tyson.aus", "rahul123", "samantha.nyc",
-  "harry.london", "sid_kolkata", "oliver.au", "neha.mumbai", "emma.tx"
-];
+    const app = document.getElementById("app");
 
-const likesPreset = [10343, 2671, 14000, 967, 8239, 1222, 9999, 204, 3044, 764];
+    videos.forEach((url, i) => {
+      const reel = document.createElement("div");
+      reel.className = "reel";
 
-function loadReels() {
-  const container = document.getElementById("reels-container");
-  container.innerHTML = "";
+      const video = document.createElement("video");
+      video.src = "https://" + url;
+      video.muted = true;
+      video.loop = true;
+      video.autoplay = false;
+      video.playsInline = true;
 
-  videoURLs.forEach((url, index) => {
-    const docID = `reel_${index}`;
-    const likeCount = likesPreset[index];
-    const uploader = usernames[index];
+      const overlay = document.createElement("div");
+      overlay.className = "overlay";
+      overlay.innerHTML = `
+        <div class="username"><span class="profile-pic">${usernames[i][0].toUpperCase()}</span>@${usernames[i]}</div>
+        <div>❤️ <span id="like-count-${i}">${likes[i]}</span></div>
+        <div class="comments" id="comments-${i}"></div>
+        <div class="comment-box">
+          <input type="text" placeholder="Your name" id="name-${i}" /><br/>
+          <textarea placeholder="Your comment" id="comment-${i}"></textarea><br/>
+          <button onclick="addComment(${i})">Post</button>
+        </div>
+      `;
 
-    const reel = document.createElement("div");
-    reel.className = "reel";
-    reel.innerHTML = `
-      <video src="${url}" autoplay loop muted></video>
-      <div class="actions">
-        <i class="fas fa-heart" id="like-${docID}"></i>
-        <div class="like-count" id="count-${docID}">${likeCount} Likes</div>
-        <div class="comment-count" id="comment-${docID}">0 Comments</div>
-      </div>
-      <div class="meta">
-        <div class="uploader">@${uploader}</div>
-        <input type="text" placeholder="Your name" id="name-${docID}"/><br>
-        <input type="text" placeholder="Write a comment" id="input-${docID}"/>
-        <button onclick="postComment('${docID}')">Post</button>
-      </div>
-    `;
-    container.appendChild(reel);
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      actions.innerHTML = `
+        <button onclick="like(${i})">❤️</button>
+        <button onclick="document.getElementById('name-${i}').focus()">💬</button>
+        <button onclick="alert('Saved!')">💾</button>
+        <button onclick="copyLink(${i})">📤</button>
+      `;
 
-    // Setup like button
-    document.getElementById(`like-${docID}`).onclick = () => {
-      const countRef = document.getElementById(`count-${docID}`);
-      let current = parseInt(countRef.innerText);
-      current++;
-      countRef.innerText = current + " Likes";
-    };
+      reel.appendChild(video);
+      reel.appendChild(overlay);
+      reel.appendChild(actions);
+      app.appendChild(reel);
+    });
 
-    // Simulate real-time comments from DB
-    db.collection("Oriontec")
-      .doc("MainFeed")
-      .collection("OrioPlay")
-      .doc(docID)
-      .onSnapshot((snap) => {
-        const data = snap.data();
-        if (data && data.comments) {
-          document.getElementById(`comment-${docID}`).innerText =
-            data.comments.length + " Comments";
-        }
-      });
-  });
-
-  // Loop when end is reached
-  window.addEventListener("scroll", () => {
-    if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
-      loadReels();
+    function like(i) {
+      const el = document.getElementById(`like-count-${i}`);
+      let val = el.innerText.replace("K", "");
+      if (val.includes(".")) {
+        val = parseFloat(val) + 0.1;
+        el.innerText = val.toFixed(1) + "K";
+      } else {
+        el.innerText = (parseInt(val) + 1).toString();
+      }
     }
-  });
-}
 
-function postComment(docID) {
-  const user = document.getElementById(`name-${docID}`).value.trim();
-  const comment = document.getElementById(`input-${docID}`).value.trim();
-  if (!user || !comment) return alert("Enter your name and comment");
+    function copyLink(i) {
+      const id = i.toString().padStart(8, "0");
+      const url = `${location.origin}/orioplay/${id}`;
+      navigator.clipboard.writeText(url).then(() => alert("Link copied: " + url));
+    }
 
-  const ref = db.collection("Oriontec").doc("MainFeed").collection("OrioPlay").doc(docID);
-  ref.set({
-    comments: firebase.firestore.FieldValue.arrayUnion(`${user}: ${comment}`)
-  }, { merge: true });
+    function addComment(i) {
+      const name = document.getElementById(`name-${i}`).value.trim();
+      const msg = document.getElementById(`comment-${i}`).value.trim();
+      if (!name || !msg) return alert("Enter name and comment.");
+      const box = document.getElementById(`comments-${i}`);
+      const newComment = document.createElement("div");
+      newComment.textContent = `${name}: ${msg}`;
+      box.appendChild(newComment);
+      document.getElementById(`comment-${i}`).value = "";
+    }
 
-  document.getElementById(`input-${docID}`).value = "";
-}
+    const allVideos = document.querySelectorAll("video");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        entry.target[entry.isIntersecting ? "play" : "pause"]();
+      });
+    }, { threshold: 0.75 });
 
-loadReels();
-</script>
-
+    allVideos.forEach(video => observer.observe(video));
+  </script>
 </body>
 </html>
