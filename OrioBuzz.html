@@ -124,6 +124,14 @@
                 </nav>
             </div>
 
+            <!-- Mobile Search Bar -->
+            <div class="lg:hidden bg-white border-b border-gray-200 p-4">
+                <input type="text" id="mobileSearchInput" placeholder="Search users..." class="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm" oninput="mobileSearchUsers()">
+                <div id="mobileSearchResults" class="hidden mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    <!-- Mobile search results will appear here -->
+                </div>
+            </div>
+
             <!-- Mobile Bottom Navigation -->
             <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
                 <div class="flex justify-around py-2">
@@ -175,8 +183,8 @@
                                 <p id="profileLocation" class="text-gray-500 text-sm mb-2">📍 <span id="locationText">Location not set</span></p>
                                 <p id="profileBio" class="text-gray-700 mb-4"></p>
                                 <div class="flex justify-center sm:justify-start space-x-4 mb-4">
-                                    <span class="text-sm"><strong id="followingCount">0</strong> Following</span>
-                                    <span class="text-sm"><strong id="followersCount">0</strong> Followers</span>
+                                    <span onclick="showFollowersPage('following')" class="text-sm cursor-pointer hover:text-pink-500"><strong id="followingCount">0</strong> Following</span>
+                                    <span onclick="showFollowersPage('followers')" class="text-sm cursor-pointer hover:text-pink-500"><strong id="followersCount">0</strong> Followers</span>
                                 </div>
                                 <button onclick="openEditProfile()" class="gradient-bg text-white px-4 lg:px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
                                     Edit Profile
@@ -277,6 +285,15 @@
                         </div>
 
                         <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold mb-4">Verification</h3>
+                            <div class="space-y-3">
+                                <button onclick="openVerificationModal()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
+                                    ✅ Get Verified
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
                             <h3 class="text-lg font-bold mb-4">Account Actions</h3>
                             <div class="space-y-3">
                                 <button onclick="exportData()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
@@ -287,6 +304,21 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Followers Page -->
+                <div id="followersPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <button onclick="goBack()" class="text-pink-500 hover:text-pink-700">← Back</button>
+                        <h2 id="followersTitle" class="text-xl lg:text-2xl font-bold gradient-text">Followers</h2>
+                    </div>
+                    <div class="flex space-x-4 mb-6">
+                        <button id="followersTab" onclick="showFollowersTab()" class="px-4 py-2 rounded-full bg-pink-500 text-white">Followers</button>
+                        <button id="followingTab" onclick="showFollowingTab()" class="px-4 py-2 rounded-full bg-gray-200 text-gray-700">Following</button>
+                    </div>
+                    <div id="followersContent" class="space-y-4">
+                        <!-- Followers/Following list will be loaded here -->
                     </div>
                 </div>
 
@@ -304,8 +336,8 @@
                                 <p id="otherProfileLocation" class="text-gray-500 text-sm mb-2">📍 <span id="otherLocationText">Location not set</span></p>
                                 <p id="otherProfileBio" class="text-gray-700 mb-4"></p>
                                 <div class="flex justify-center sm:justify-start space-x-4 mb-4">
-                                    <span class="text-sm"><strong id="otherFollowingCount">0</strong> Following</span>
-                                    <span class="text-sm"><strong id="otherFollowersCount">0</strong> Followers</span>
+                                    <span onclick="showOtherUserFollowersPage('following')" class="text-sm cursor-pointer hover:text-pink-500"><strong id="otherFollowingCount">0</strong> Following</span>
+                                    <span onclick="showOtherUserFollowersPage('followers')" class="text-sm cursor-pointer hover:text-pink-500"><strong id="otherFollowersCount">0</strong> Followers</span>
                                 </div>
                                 <div class="flex justify-center sm:justify-start space-x-3">
                                     <button id="followBtn" onclick="toggleFollow()" class="gradient-bg text-white px-4 lg:px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
@@ -328,7 +360,10 @@
             <!-- Right Sidebar - Desktop & Tablet -->
             <div class="hidden md:block w-full md:w-80 bg-white h-screen sticky top-16 border-l border-gray-200 p-4 lg:p-6">
                 <div class="mb-6">
-                    <input type="text" placeholder="Search OrioBuzz..." class="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
+                    <input type="text" id="searchInput" placeholder="Search users..." class="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" oninput="searchUsers()">
+                    <div id="searchResults" class="hidden mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                        <!-- Search results will appear here -->
+                    </div>
                 </div>
                 <div class="bg-gray-50 rounded-2xl p-4">
                     <h3 class="font-bold mb-4 text-sm lg:text-base">Verified Users</h3>
@@ -362,6 +397,59 @@
             <div class="flex justify-end">
                 <button id="postBuzzBtn" onclick="postBuzz()" class="gradient-bg text-white px-6 lg:px-8 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
                     Post Buzz
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Modal -->
+    <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 class="text-lg lg:text-xl font-bold">Get Verified ✅</h3>
+                <button onclick="closeVerificationModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Full Name *</label>
+                    <input type="text" id="verifyName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Age *</label>
+                    <input type="number" id="verifyAge" min="13" max="100" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Category *</label>
+                    <select id="verifyCategory" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" required>
+                        <option value="">Select Category</option>
+                        <option value="professional">Professional</option>
+                        <option value="business">Business</option>
+                        <option value="creator">Content Creator</option>
+                        <option value="public_figure">Public Figure</option>
+                        <option value="organization">Organization</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Verification Link *</label>
+                    <div class="flex">
+                        <span class="bg-gray-100 px-3 py-3 border border-r-0 border-gray-300 rounded-l-xl text-sm">www.orintec.xyz/</span>
+                        <input type="text" id="verifyLink" placeholder="your-username" class="flex-1 p-3 border border-gray-300 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" required>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Your username must appear on this link for verification</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-xl">
+                    <h4 class="font-medium text-blue-800 mb-2">Verification Requirements:</h4>
+                    <ul class="text-sm text-blue-700 space-y-1">
+                        <li>• Your name must appear on the provided link</li>
+                        <li>• Link will be checked within 5 minutes</li>
+                        <li>• You'll receive a notification about the result</li>
+                        <li>• Verification is free and permanent</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button onclick="submitVerification()" class="gradient-bg text-white px-6 lg:px-8 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
+                    Submit for Verification
                 </button>
             </div>
         </div>
@@ -423,6 +511,8 @@
         let currentUser = null;
         let currentChatUser = null;
         let currentViewingUser = null;
+        let lastPage = 'home';
+        let currentFollowersUserId = null;
 
         // Authentication State Observer
         auth.onAuthStateChanged((user) => {
@@ -536,6 +626,126 @@
             }
         }
 
+        // Search Users
+        function searchUsers() {
+            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            const searchResults = document.getElementById('searchResults');
+            
+            if (searchTerm.length < 2) {
+                searchResults.classList.add('hidden');
+                return;
+            }
+            
+            const usersRef = database.ref('users');
+            usersRef.once('value').then((snapshot) => {
+                searchResults.innerHTML = '';
+                let hasResults = false;
+                
+                snapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    if (user.uid !== currentUser.uid && 
+                        (user.username.toLowerCase().includes(searchTerm) || 
+                         user.email.toLowerCase().includes(searchTerm))) {
+                        
+                        hasResults = true;
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'flex items-center space-x-3 p-3 hover:bg-gray-100 cursor-pointer';
+                        userDiv.onclick = () => {
+                            viewUserProfile(user.uid);
+                            searchResults.classList.add('hidden');
+                            document.getElementById('searchInput').value = '';
+                        };
+                        
+                        userDiv.innerHTML = `
+                            <img class="w-10 h-10 rounded-full border-2 border-pink-300" src="${user.photoURL}" alt="User">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-1">
+                                    <span class="font-medium text-sm">${user.username}</span>
+                                    ${user.verified ? '<span class="verified-badge">✓</span>' : ''}
+                                </div>
+                                <p class="text-xs text-gray-600">${user.bio || 'OrioBuzz user'}</p>
+                            </div>
+                        `;
+                        searchResults.appendChild(userDiv);
+                    }
+                });
+                
+                if (!hasResults) {
+                    searchResults.innerHTML = '<p class="p-3 text-gray-500 text-sm">No users found</p>';
+                }
+                
+                searchResults.classList.remove('hidden');
+            });
+        }
+
+        // Mobile Search Users
+        function mobileSearchUsers() {
+            const searchTerm = document.getElementById('mobileSearchInput').value.trim().toLowerCase();
+            const searchResults = document.getElementById('mobileSearchResults');
+            
+            if (searchTerm.length < 2) {
+                searchResults.classList.add('hidden');
+                return;
+            }
+            
+            const usersRef = database.ref('users');
+            usersRef.once('value').then((snapshot) => {
+                searchResults.innerHTML = '';
+                let hasResults = false;
+                
+                snapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    if (user.uid !== currentUser.uid && 
+                        (user.username.toLowerCase().includes(searchTerm) || 
+                         user.email.toLowerCase().includes(searchTerm))) {
+                        
+                        hasResults = true;
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'flex items-center space-x-3 p-3 hover:bg-gray-100 cursor-pointer';
+                        userDiv.onclick = () => {
+                            viewUserProfile(user.uid);
+                            searchResults.classList.add('hidden');
+                            document.getElementById('mobileSearchInput').value = '';
+                        };
+                        
+                        userDiv.innerHTML = `
+                            <img class="w-10 h-10 rounded-full border-2 border-pink-300" src="${user.photoURL}" alt="User">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-1">
+                                    <span class="font-medium text-sm">${user.username}</span>
+                                    ${user.verified ? '<span class="verified-badge">✓</span>' : ''}
+                                </div>
+                                <p class="text-xs text-gray-600">${user.bio || 'OrioBuzz user'}</p>
+                            </div>
+                        `;
+                        searchResults.appendChild(userDiv);
+                    }
+                });
+                
+                if (!hasResults) {
+                    searchResults.innerHTML = '<p class="p-3 text-gray-500 text-sm">No users found</p>';
+                }
+                
+                searchResults.classList.remove('hidden');
+            });
+        }
+
+        // Hide search results when clicking outside
+        document.addEventListener('click', (e) => {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            const mobileSearchInput = document.getElementById('mobileSearchInput');
+            const mobileSearchResults = document.getElementById('mobileSearchResults');
+            
+            if (searchInput && searchResults && !searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
+            }
+            
+            if (mobileSearchInput && mobileSearchResults && !mobileSearchInput.contains(e.target) && !mobileSearchResults.contains(e.target)) {
+                mobileSearchResults.classList.add('hidden');
+            }
+        });
+
         // Navigation
         function showHome() {
             hideAllPages();
@@ -576,6 +786,155 @@
             document.getElementById('messagesPage').classList.add('hidden');
             document.getElementById('settingsPage').classList.add('hidden');
             document.getElementById('otherUserProfile').classList.add('hidden');
+            document.getElementById('followersPage').classList.add('hidden');
+        }
+
+        // Followers Page Functions
+        function showFollowersPage(type) {
+            lastPage = 'profile';
+            currentFollowersUserId = currentUser.uid;
+            hideAllPages();
+            document.getElementById('followersPage').classList.remove('hidden');
+            document.getElementById('followersTitle').textContent = type === 'followers' ? 'Followers' : 'Following';
+            
+            if (type === 'followers') {
+                showFollowersTab();
+            } else {
+                showFollowingTab();
+            }
+        }
+
+        function showOtherUserFollowersPage(type) {
+            lastPage = 'otherProfile';
+            currentFollowersUserId = currentViewingUser;
+            hideAllPages();
+            document.getElementById('followersPage').classList.remove('hidden');
+            document.getElementById('followersTitle').textContent = type === 'followers' ? 'Followers' : 'Following';
+            
+            if (type === 'followers') {
+                showFollowersTab();
+            } else {
+                showFollowingTab();
+            }
+        }
+
+        function showFollowersTab() {
+            document.getElementById('followersTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('followingTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            loadFollowersList('followers');
+        }
+
+        function showFollowingTab() {
+            document.getElementById('followingTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('followersTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            loadFollowersList('following');
+        }
+
+        function loadFollowersList(type) {
+            if (!currentFollowersUserId) return;
+            
+            const ref = database.ref(type + '/' + currentFollowersUserId);
+            ref.once('value').then((snapshot) => {
+                const followersContent = document.getElementById('followersContent');
+                followersContent.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    followersContent.innerHTML = `<p class="text-gray-500 text-center py-8">No ${type} yet</p>`;
+                    return;
+                }
+                
+                const userIds = Object.keys(snapshot.val());
+                userIds.forEach(userId => {
+                    database.ref('users/' + userId).once('value').then((userSnapshot) => {
+                        const userData = userSnapshot.val();
+                        if (userData) {
+                            const userElement = createFollowerElement(userData);
+                            followersContent.appendChild(userElement);
+                        }
+                    });
+                });
+            });
+        }
+
+        function createFollowerElement(userData) {
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-xl shadow-lg p-4 flex items-center space-x-4';
+            
+            div.innerHTML = `
+                <img class="w-12 h-12 rounded-full border-2 border-pink-300" src="${userData.photoURL}" alt="User">
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2">
+                        <span onclick="viewUserProfile('${userData.uid}')" class="font-bold cursor-pointer hover:text-pink-500">${userData.username}</span>
+                        ${userData.verified ? '<span class="verified-badge">✓</span>' : ''}
+                    </div>
+                    <p class="text-gray-600 text-sm">${userData.bio || 'OrioBuzz user'}</p>
+                </div>
+                ${userData.uid !== currentUser.uid ? `
+                    <button onclick="toggleFollowFromList('${userData.uid}', this)" class="px-4 py-2 rounded-full text-sm transition-colors" id="followBtn-${userData.uid}">
+                        Follow
+                    </button>
+                ` : ''}
+            `;
+            
+            // Check follow status
+            if (userData.uid !== currentUser.uid) {
+                checkFollowStatusForButton(userData.uid);
+            }
+            
+            return div;
+        }
+
+        function checkFollowStatusForButton(userId) {
+            const followRef = database.ref('following/' + currentUser.uid + '/' + userId);
+            followRef.once('value').then((snapshot) => {
+                const followBtn = document.getElementById('followBtn-' + userId);
+                if (followBtn) {
+                    if (snapshot.exists()) {
+                        followBtn.textContent = 'Following';
+                        followBtn.className = 'px-4 py-2 rounded-full text-sm bg-gray-500 text-white transition-colors';
+                    } else {
+                        followBtn.textContent = 'Follow';
+                        followBtn.className = 'px-4 py-2 rounded-full text-sm gradient-bg text-white transition-colors';
+                    }
+                }
+            });
+        }
+
+        function toggleFollowFromList(userId, button) {
+            const followRef = database.ref('following/' + currentUser.uid + '/' + userId);
+            const followerRef = database.ref('followers/' + userId + '/' + currentUser.uid);
+            
+            followRef.once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    // Unfollow
+                    followRef.remove();
+                    followerRef.remove();
+                    button.textContent = 'Follow';
+                    button.className = 'px-4 py-2 rounded-full text-sm gradient-bg text-white transition-colors';
+                } else {
+                    // Follow
+                    followRef.set(true);
+                    followerRef.set(true);
+                    button.textContent = 'Following';
+                    button.className = 'px-4 py-2 rounded-full text-sm bg-gray-500 text-white transition-colors';
+                    
+                    // Create notification
+                    database.ref('users/' + currentUser.uid).once('value').then((userSnapshot) => {
+                        const userData = userSnapshot.val();
+                        createNotification(userId, 'follow', userData.username + ' started following you');
+                    });
+                }
+            });
+        }
+
+        function goBack() {
+            if (lastPage === 'profile') {
+                showProfile();
+            } else if (lastPage === 'otherProfile') {
+                viewUserProfile(currentViewingUser);
+            } else {
+                showHome();
+            }
         }
 
         // Load user profile
@@ -1284,6 +1643,85 @@
             });
         }
 
+        // Verification Functions
+        function openVerificationModal() {
+            document.getElementById('verificationModal').classList.remove('hidden');
+        }
+
+        function closeVerificationModal() {
+            document.getElementById('verificationModal').classList.add('hidden');
+            // Clear form
+            document.getElementById('verifyName').value = '';
+            document.getElementById('verifyAge').value = '';
+            document.getElementById('verifyCategory').value = '';
+            document.getElementById('verifyLink').value = '';
+        }
+
+        function submitVerification() {
+            const name = document.getElementById('verifyName').value.trim();
+            const age = document.getElementById('verifyAge').value;
+            const category = document.getElementById('verifyCategory').value;
+            const link = document.getElementById('verifyLink').value.trim();
+            
+            if (!name || !age || !category || !link) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            if (age < 13) {
+                alert('You must be at least 13 years old to get verified');
+                return;
+            }
+            
+            // Special names that get instant verification
+            const instantVerifyNames = ['oriontec', 'dozera', 'gursharn arya', 'orry', 'anmol sunda'];
+            const isInstantVerify = instantVerifyNames.some(specialName => 
+                name.toLowerCase().includes(specialName.toLowerCase())
+            );
+            
+            const verificationData = {
+                uid: currentUser.uid,
+                name: name,
+                age: age,
+                category: category,
+                link: 'www.orintec.xyz/' + link,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                status: 'pending'
+            };
+            
+            // Save verification request
+            database.ref('verificationRequests/' + currentUser.uid).set(verificationData);
+            
+            closeVerificationModal();
+            
+            if (isInstantVerify) {
+                // Instant verification for special names
+                setTimeout(() => {
+                    database.ref('users/' + currentUser.uid).update({ verified: true });
+                    createNotification(currentUser.uid, 'verification', '🎉 Congratulations! Your verification request has been approved. You are now verified!');
+                    database.ref('verificationRequests/' + currentUser.uid).update({ status: 'approved' });
+                }, 2000); // 2 seconds
+            } else {
+                // Regular verification process - simulate link checking
+                setTimeout(() => {
+                    // Simulate checking if username appears on the link
+                    // In real implementation, this would make an actual HTTP request
+                    const linkContainsUsername = Math.random() > 0.7; // 30% success rate for demo
+                    
+                    if (linkContainsUsername) {
+                        database.ref('users/' + currentUser.uid).update({ verified: true });
+                        createNotification(currentUser.uid, 'verification', '🎉 Congratulations! Your verification request has been approved. You are now verified!');
+                        database.ref('verificationRequests/' + currentUser.uid).update({ status: 'approved' });
+                    } else {
+                        createNotification(currentUser.uid, 'verification', '❌ Your verification request has been rejected. Your username was not found on the provided link. Please try again with a valid link.');
+                        database.ref('verificationRequests/' + currentUser.uid).update({ status: 'rejected' });
+                    }
+                }, 300000); // 5 minutes
+            }
+            
+            alert('Verification request submitted! You will receive a notification about the result.');
+        }
+
         // Export Data
         function exportData() {
             if (!currentUser) return;
@@ -1360,5 +1798,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640bddbc74f5469',t:'MTc1MzMzMjA0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640ce0ba222002d',t:'MTc1MzMzMjcxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
