@@ -186,9 +186,14 @@
                                     <span onclick="showFollowersPage('following')" class="text-sm cursor-pointer hover:text-pink-500"><strong id="followingCount">0</strong> Following</span>
                                     <span onclick="showFollowersPage('followers')" class="text-sm cursor-pointer hover:text-pink-500"><strong id="followersCount">0</strong> Followers</span>
                                 </div>
-                                <button onclick="openEditProfile()" class="gradient-bg text-white px-4 lg:px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
-                                    Edit Profile
-                                </button>
+                                <div class="flex space-x-3">
+                                    <button onclick="openEditProfile()" class="gradient-bg text-white px-4 lg:px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
+                                        Edit Profile
+                                    </button>
+                                    <button onclick="openProfileSettings()" class="border border-gray-300 text-gray-700 px-4 lg:px-6 py-2 rounded-full hover:bg-gray-50 transition-colors text-sm lg:text-base">
+                                        ⚙️ Settings
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -450,6 +455,90 @@
             <div class="flex justify-end mt-6">
                 <button onclick="submitVerification()" class="gradient-bg text-white px-6 lg:px-8 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
                     Submit for Verification
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Settings Modal -->
+    <div id="profileSettingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 class="text-lg lg:text-xl font-bold">Profile Settings</h3>
+                <button onclick="closeProfileSettings()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-gray-50 rounded-2xl p-4">
+                    <h3 class="font-bold mb-4 text-sm lg:text-base">Account Settings</h3>
+                    <div class="space-y-3">
+                        <button onclick="openEditProfile(); closeProfileSettings();" class="w-full text-left p-3 hover:bg-gray-100 rounded-xl flex items-center space-x-3">
+                            <span>✏️</span>
+                            <span>Edit Profile</span>
+                        </button>
+                        <button onclick="openVerificationModal(); closeProfileSettings();" class="w-full text-left p-3 hover:bg-gray-100 rounded-xl flex items-center space-x-3">
+                            <span>✅</span>
+                            <span>Get Verified</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-2xl p-4">
+                    <h3 class="font-bold mb-4 text-sm lg:text-base">Privacy Settings</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Private Account</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="profilePrivateAccount" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Show Online Status</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="profileShowOnlineStatus" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-2xl p-4">
+                    <h3 class="font-bold mb-4 text-sm lg:text-base">Notification Settings</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Push Notifications</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="profilePushNotifications" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Email Notifications</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="profileEmailNotifications" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-2xl p-4">
+                    <h3 class="font-bold mb-4 text-sm lg:text-base">Account Actions</h3>
+                    <div class="space-y-3">
+                        <button onclick="exportData()" class="w-full text-left p-3 hover:bg-gray-100 rounded-xl flex items-center space-x-3">
+                            <span>📥</span>
+                            <span>Export My Data</span>
+                        </button>
+                        <button onclick="deactivateAccount()" class="w-full text-left p-3 hover:bg-gray-100 rounded-xl text-red-600 flex items-center space-x-3">
+                            <span>⚠️</span>
+                            <span>Deactivate Account</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button onclick="saveProfileSettings()" class="gradient-bg text-white px-6 lg:px-8 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
+                    Save Settings
                 </button>
             </div>
         </div>
@@ -1186,6 +1275,44 @@
             });
         }
 
+        // Profile Settings Functions
+        function openProfileSettings() {
+            if (!currentUser) return;
+            
+            const userRef = database.ref('users/' + currentUser.uid);
+            userRef.once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('profilePrivateAccount').checked = userData.private || false;
+                    document.getElementById('profileShowOnlineStatus').checked = userData.showOnlineStatus !== false;
+                    document.getElementById('profilePushNotifications').checked = userData.pushNotifications !== false;
+                    document.getElementById('profileEmailNotifications').checked = userData.emailNotifications || false;
+                }
+            });
+            
+            document.getElementById('profileSettingsModal').classList.remove('hidden');
+        }
+
+        function closeProfileSettings() {
+            document.getElementById('profileSettingsModal').classList.add('hidden');
+        }
+
+        function saveProfileSettings() {
+            if (!currentUser) return;
+            
+            const settings = {
+                private: document.getElementById('profilePrivateAccount').checked,
+                showOnlineStatus: document.getElementById('profileShowOnlineStatus').checked,
+                pushNotifications: document.getElementById('profilePushNotifications').checked,
+                emailNotifications: document.getElementById('profileEmailNotifications').checked
+            };
+            
+            database.ref('users/' + currentUser.uid).update(settings).then(() => {
+                closeProfileSettings();
+                alert('Settings saved successfully!');
+            });
+        }
+
         // Edit Profile Functions
         function openEditProfile() {
             if (!currentUser) return;
@@ -1798,5 +1925,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640ce0ba222002d',t:'MTc1MzMzMjcxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640d54881e4ff63',t:'MTc1MzMzMzAwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
