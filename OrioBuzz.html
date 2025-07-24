@@ -354,14 +354,10 @@
                 </div>
             </div>
             <div class="mb-4">
-                <input type="file" id="buzzImage" accept="image/*" class="hidden">
-                <button onclick="document.getElementById('buzzImage').click()" class="text-pink-500 hover:text-pink-600 flex items-center space-x-2 text-sm lg:text-base">
+                <button class="text-gray-400 cursor-not-allowed flex items-center space-x-2 text-sm lg:text-base" disabled>
                     <span>📷</span>
-                    <span>Add Image</span>
+                    <span>Add Image - Coming Soon</span>
                 </button>
-                <div id="imagePreview" class="hidden mt-3">
-                    <img id="previewImg" class="max-w-full h-32 object-cover rounded-xl">
-                </div>
             </div>
             <div class="flex justify-end">
                 <button id="postBuzzBtn" onclick="postBuzz()" class="gradient-bg text-white px-6 lg:px-8 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
@@ -393,7 +389,9 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Profile Photo</label>
-                    <input type="file" id="editPhoto" accept="image/*" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm">
+                    <button class="w-full p-3 border border-gray-300 rounded-xl bg-gray-100 text-gray-400 text-sm cursor-not-allowed" disabled>
+                        Coming Soon - Photo Upload
+                    </button>
                 </div>
             </div>
             <div class="flex justify-end mt-6">
@@ -447,20 +445,68 @@
             });
         });
 
+        // Generate random username
+        function generateRandomUsername() {
+            const adjectives = ['Cool', 'Smart', 'Happy', 'Bright', 'Swift', 'Bold', 'Kind', 'Wise', 'Fun', 'Nice'];
+            const nouns = ['User', 'Buzz', 'Star', 'Wave', 'Fire', 'Sky', 'Moon', 'Sun', 'Wind', 'Rock'];
+            const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+            const randomNum = Math.floor(Math.random() * 1000);
+            return randomAdj + randomNoun + randomNum;
+        }
+
+        // Generate colorful avatar with initials
+        function generateAvatar(name) {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'];
+            const initial = name ? name.charAt(0).toUpperCase() : 'U';
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 100;
+            canvas.height = 100;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw circle background
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(50, 50, 50, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Draw initial
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(initial, 50, 50);
+            
+            return canvas.toDataURL();
+        }
+
         // Save user to database
         function saveUserToDatabase(user) {
             const userRef = database.ref('users/' + user.uid);
             userRef.once('value').then((snapshot) => {
                 if (!snapshot.exists()) {
+                    const username = user.displayName || generateRandomUsername();
+                    const photoURL = user.photoURL || generateAvatar(username);
+                    
                     userRef.set({
                         uid: user.uid,
-                        username: user.displayName,
+                        username: username,
                         email: user.email,
-                        photoURL: user.photoURL,
+                        photoURL: photoURL,
                         bio: '',
                         verified: false,
                         joinedAt: firebase.database.ServerValue.TIMESTAMP
                     });
+                } else {
+                    // Update existing user if they don't have a photo
+                    const userData = snapshot.val();
+                    if (!userData.photoURL || userData.photoURL === '') {
+                        userRef.update({
+                            photoURL: generateAvatar(userData.username)
+                        });
+                    }
                 }
             });
         }
@@ -479,9 +525,14 @@
 
         function updateTopBar() {
             if (currentUser) {
-                document.getElementById('topBarUserImage').src = currentUser.photoURL;
-                document.getElementById('topBarUsername').textContent = currentUser.displayName;
-                document.getElementById('modalUserImage').src = currentUser.photoURL;
+                database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                    const userData = snapshot.val();
+                    if (userData) {
+                        document.getElementById('topBarUserImage').src = userData.photoURL;
+                        document.getElementById('topBarUsername').textContent = userData.username;
+                        document.getElementById('modalUserImage').src = userData.photoURL;
+                    }
+                });
             }
         }
 
@@ -586,35 +637,13 @@
             document.getElementById('imagePreview').classList.add('hidden');
         }
 
-        // Handle image preview
-        document.getElementById('buzzImage').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('previewImg').src = e.target.result;
-                    document.getElementById('imagePreview').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
         // Post Buzz
         async function postBuzz() {
             const content = document.getElementById('buzzContent').value.trim();
-            const imageFile = document.getElementById('buzzImage').files[0];
             
-            if (!content && !imageFile) return;
+            if (!content) return;
 
             const buzzId = database.ref('buzz').push().key;
-            let imageURL = null;
-
-            // Upload image if exists
-            if (imageFile) {
-                const imageRef = storage.ref('buzz-images/' + buzzId);
-                const snapshot = await imageRef.put(imageFile);
-                imageURL = await snapshot.ref.getDownloadURL();
-            }
 
             // Get user data
             const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
@@ -628,7 +657,7 @@
                 userImage: userData.photoURL,
                 verified: userData.verified || false,
                 content: content,
-                imageURL: imageURL,
+                imageURL: null,
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 likes: {},
                 rebuzzes: {}
@@ -825,15 +854,15 @@
             const name = document.getElementById('editName').value.trim();
             const bio = document.getElementById('editBio').value.trim();
             const location = document.getElementById('editLocation').value.trim();
-            const photoFile = document.getElementById('editPhoto').files[0];
             
-            let photoURL = currentUser.photoURL;
+            // Get current user data
+            const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+            const userData = userSnapshot.val();
+            let photoURL = userData.photoURL;
             
-            // Upload new photo if selected
-            if (photoFile) {
-                const photoRef = storage.ref('profile-photos/' + currentUser.uid);
-                const snapshot = await photoRef.put(photoFile);
-                photoURL = await snapshot.ref.getDownloadURL();
+            // If no photo exists, generate avatar with new name
+            if (!photoURL || photoURL.startsWith('data:')) {
+                photoURL = generateAvatar(name);
             }
             
             // Update user data
@@ -1331,5 +1360,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640b739a0a447ed',t:'MTc1MzMzMTc3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640bddbc74f5469',t:'MTc1MzMzMjA0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
