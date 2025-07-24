@@ -202,9 +202,19 @@
                             </div>
                         </div>
                     </div>
-                    <h3 class="text-lg lg:text-xl font-bold mb-4">My Buzz</h3>
+                    <div class="flex space-x-4 mb-6">
+                        <button id="buzzTab" onclick="showBuzzTab()" class="px-4 py-2 rounded-full bg-pink-500 text-white">Buzz</button>
+                        <button id="repliesTab" onclick="showRepliesTab()" class="px-4 py-2 rounded-full bg-gray-200 text-gray-700">Replies</button>
+                        <button id="resharesTab" onclick="showResharesTab()" class="px-4 py-2 rounded-full bg-gray-200 text-gray-700">Reshares</button>
+                    </div>
                     <div id="userBuzzFeed" class="space-y-4 lg:space-y-6">
                         <!-- User's buzz posts will be loaded here -->
+                    </div>
+                    <div id="userRepliesFeed" class="hidden space-y-4 lg:space-y-6">
+                        <!-- User's replies will be loaded here -->
+                    </div>
+                    <div id="userResharesFeed" class="hidden space-y-4 lg:space-y-6">
+                        <!-- User's reshares will be loaded here -->
                     </div>
                 </div>
 
@@ -544,6 +554,79 @@
             <div class="flex justify-end mt-6">
                 <button onclick="saveProfileSettings()" class="gradient-bg text-white px-6 lg:px-8 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
                     Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="commentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 class="text-lg lg:text-xl font-bold">Comments</h3>
+                <button onclick="closeCommentModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div id="commentsContainer" class="space-y-4 mb-6 max-h-60 overflow-y-auto">
+                <!-- Comments will be loaded here -->
+            </div>
+            <div class="flex items-start space-x-3">
+                <img id="commentUserImage" class="w-8 h-8 rounded-full border-2 border-pink-300" src="" alt="User">
+                <div class="flex-1">
+                    <textarea id="commentContent" placeholder="Write a comment..." class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm" rows="2"></textarea>
+                    <div class="flex justify-end mt-2">
+                        <button onclick="postComment()" class="gradient-bg text-white px-4 py-2 rounded-full hover:opacity-90 transition-opacity text-sm">
+                            Post Comment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 class="text-lg lg:text-xl font-bold">Report Buzz</h3>
+                <button onclick="closeReportModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div class="space-y-4">
+                <p class="text-gray-600 text-sm">Why are you reporting this buzz?</p>
+                <div class="space-y-3">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="reportReason" value="spam" class="text-pink-500">
+                        <span>Spam or misleading content</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="reportReason" value="harassment" class="text-pink-500">
+                        <span>Harassment or bullying</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="reportReason" value="hate" class="text-pink-500">
+                        <span>Hate speech or discrimination</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="reportReason" value="violence" class="text-pink-500">
+                        <span>Violence or threats</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="reportReason" value="inappropriate" class="text-pink-500">
+                        <span>Inappropriate content</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="reportReason" value="copyright" class="text-pink-500">
+                        <span>Copyright violation</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="reportReason" value="other" class="text-pink-500">
+                        <span>Other</span>
+                    </label>
+                </div>
+                <textarea id="reportDetails" placeholder="Additional details (optional)" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm" rows="3"></textarea>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button onclick="submitReport()" class="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors text-sm">
+                    Submit Report
                 </button>
             </div>
         </div>
@@ -1123,7 +1206,7 @@
             });
         }
 
-        // Load Buzz Feed
+        // Load Buzz Feed with Smart Algorithm
         function loadBuzzFeed() {
             const buzzRef = database.ref('buzz').orderByChild('timestamp');
             buzzRef.on('value', (snapshot) => {
@@ -1135,11 +1218,142 @@
                     buzzes.push(childSnapshot.val());
                 });
                 
-                buzzes.reverse().forEach((buzz) => {
-                    const buzzElement = createBuzzElement(buzz);
-                    buzzFeed.appendChild(buzzElement);
+                // Apply smart algorithm
+                applySmartFeedAlgorithm(buzzes).then(sortedBuzzes => {
+                    sortedBuzzes.forEach((buzz) => {
+                        const buzzElement = createBuzzElement(buzz);
+                        buzzFeed.appendChild(buzzElement);
+                    });
                 });
             });
+        }
+
+        // Smart Feed Algorithm
+        async function applySmartFeedAlgorithm(buzzes) {
+            if (!currentUser) return buzzes.reverse();
+            
+            // Get user's following list
+            const followingSnapshot = await database.ref('following/' + currentUser.uid).once('value');
+            const following = followingSnapshot.exists() ? Object.keys(followingSnapshot.val()) : [];
+            
+            // Get user's interactions (likes, comments, rebuzzes)
+            const userInteractions = await getUserInteractions();
+            
+            // Score each buzz
+            const scoredBuzzes = buzzes.map(buzz => {
+                let score = 0;
+                const buzzAge = Date.now() - buzz.timestamp;
+                
+                // Base score from timestamp (newer = higher)
+                score += Math.max(0, 1000 - (buzzAge / 3600000)); // Decrease over hours
+                
+                // Following boost (highest priority)
+                if (following.includes(buzz.uid)) {
+                    score += 5000;
+                }
+                
+                // Interaction history boost
+                if (userInteractions.likedUsers.includes(buzz.uid)) {
+                    score += 2000;
+                }
+                if (userInteractions.commentedUsers.includes(buzz.uid)) {
+                    score += 2500;
+                }
+                if (userInteractions.rebuzzedUsers.includes(buzz.uid)) {
+                    score += 2200;
+                }
+                
+                // Engagement boost
+                const likesCount = buzz.likes ? Object.keys(buzz.likes).length : 0;
+                const rebuzzesCount = buzz.rebuzzes ? Object.keys(buzz.rebuzzes).length : 0;
+                const commentsCount = buzz.comments ? Object.keys(buzz.comments).length : 0;
+                
+                score += likesCount * 10;
+                score += rebuzzesCount * 15;
+                score += commentsCount * 20;
+                
+                // Verified user boost
+                if (buzz.verified) {
+                    score += 500;
+                }
+                
+                return { ...buzz, score };
+            });
+            
+            // Sort by score (highest first)
+            return scoredBuzzes.sort((a, b) => b.score - a.score);
+        }
+
+        // Get User Interactions
+        async function getUserInteractions() {
+            const interactions = {
+                likedUsers: [],
+                commentedUsers: [],
+                rebuzzedUsers: []
+            };
+            
+            // Get all buzzes and check user's interactions
+            const buzzSnapshot = await database.ref('buzz').once('value');
+            buzzSnapshot.forEach(childSnapshot => {
+                const buzz = childSnapshot.val();
+                
+                if (buzz.likes && buzz.likes[currentUser.uid]) {
+                    if (!interactions.likedUsers.includes(buzz.uid)) {
+                        interactions.likedUsers.push(buzz.uid);
+                    }
+                }
+                
+                if (buzz.rebuzzes && buzz.rebuzzes[currentUser.uid]) {
+                    if (!interactions.rebuzzedUsers.includes(buzz.uid)) {
+                        interactions.rebuzzedUsers.push(buzz.uid);
+                    }
+                }
+                
+                if (buzz.comments) {
+                    Object.values(buzz.comments).forEach(comment => {
+                        if (comment.uid === currentUser.uid && !interactions.commentedUsers.includes(buzz.uid)) {
+                            interactions.commentedUsers.push(buzz.uid);
+                        }
+                    });
+                }
+            });
+            
+            return interactions;
+        }
+
+        // Profile Tab Functions
+        function showBuzzTab() {
+            document.getElementById('buzzTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('repliesTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            document.getElementById('resharesTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            
+            document.getElementById('userBuzzFeed').classList.remove('hidden');
+            document.getElementById('userRepliesFeed').classList.add('hidden');
+            document.getElementById('userResharesFeed').classList.add('hidden');
+        }
+
+        function showRepliesTab() {
+            document.getElementById('repliesTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('buzzTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            document.getElementById('resharesTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            
+            document.getElementById('userBuzzFeed').classList.add('hidden');
+            document.getElementById('userRepliesFeed').classList.remove('hidden');
+            document.getElementById('userResharesFeed').classList.add('hidden');
+            
+            loadUserReplies();
+        }
+
+        function showResharesTab() {
+            document.getElementById('resharesTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('buzzTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            document.getElementById('repliesTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            
+            document.getElementById('userBuzzFeed').classList.add('hidden');
+            document.getElementById('userRepliesFeed').classList.add('hidden');
+            document.getElementById('userResharesFeed').classList.remove('hidden');
+            
+            loadUserReshares();
         }
 
         // Load User Buzz
@@ -1161,6 +1375,141 @@
                     userBuzzFeed.appendChild(buzzElement);
                 });
             });
+        }
+
+        // Load User Replies
+        function loadUserReplies() {
+            if (!currentUser) return;
+            
+            const buzzRef = database.ref('buzz');
+            buzzRef.on('value', (snapshot) => {
+                const userRepliesFeed = document.getElementById('userRepliesFeed');
+                userRepliesFeed.innerHTML = '';
+                
+                const userReplies = [];
+                
+                snapshot.forEach((childSnapshot) => {
+                    const buzz = childSnapshot.val();
+                    if (buzz.comments) {
+                        Object.values(buzz.comments).forEach(comment => {
+                            if (comment.uid === currentUser.uid) {
+                                userReplies.push({
+                                    ...buzz,
+                                    userComment: comment,
+                                    isReply: true
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                // Sort by comment timestamp
+                userReplies.sort((a, b) => b.userComment.timestamp - a.userComment.timestamp);
+                
+                if (userReplies.length === 0) {
+                    userRepliesFeed.innerHTML = '<p class="text-gray-500 text-center py-8">No replies yet</p>';
+                    return;
+                }
+                
+                userReplies.forEach((reply) => {
+                    const replyElement = createReplyElement(reply);
+                    userRepliesFeed.appendChild(replyElement);
+                });
+            });
+        }
+
+        // Load User Reshares
+        function loadUserReshares() {
+            if (!currentUser) return;
+            
+            const buzzRef = database.ref('buzz');
+            buzzRef.on('value', (snapshot) => {
+                const userResharesFeed = document.getElementById('userResharesFeed');
+                userResharesFeed.innerHTML = '';
+                
+                const userReshares = [];
+                
+                snapshot.forEach((childSnapshot) => {
+                    const buzz = childSnapshot.val();
+                    if (buzz.rebuzzes && buzz.rebuzzes[currentUser.uid]) {
+                        userReshares.push({
+                            ...buzz,
+                            isReshare: true
+                        });
+                    }
+                });
+                
+                // Sort by timestamp
+                userReshares.sort((a, b) => b.timestamp - a.timestamp);
+                
+                if (userReshares.length === 0) {
+                    userResharesFeed.innerHTML = '<p class="text-gray-500 text-center py-8">No reshares yet</p>';
+                    return;
+                }
+                
+                userReshares.forEach((reshare) => {
+                    const reshareElement = createReshareElement(reshare);
+                    userResharesFeed.appendChild(reshareElement);
+                });
+            });
+        }
+
+        // Create Reply Element
+        function createReplyElement(reply) {
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-2xl shadow-lg p-4 lg:p-6 border-l-4 border-blue-500';
+            
+            div.innerHTML = `
+                <div class="mb-3">
+                    <span class="text-sm text-blue-600 font-medium">💬 You replied to</span>
+                </div>
+                <div class="flex items-start space-x-3 lg:space-x-4 mb-4">
+                    <img class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-pink-300 flex-shrink-0" src="${reply.userImage}" alt="User">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center space-x-2 mb-2 flex-wrap">
+                            <span class="font-bold text-sm lg:text-base truncate">${reply.username}</span>
+                            ${reply.verified ? '<img src="https://community.oriontec.xyz/verify.png" alt="Verified" class="verified-badge flex-shrink-0">' : ''}
+                            <span class="text-gray-500 text-xs lg:text-sm flex-shrink-0">${formatTimestamp(reply.timestamp)}</span>
+                        </div>
+                        <p class="text-gray-800 text-sm lg:text-base break-words">${reply.content}</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-3 ml-8">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="font-medium text-sm">Your reply:</span>
+                        <span class="text-gray-500 text-xs">${formatTimestamp(reply.userComment.timestamp)}</span>
+                    </div>
+                    <p class="text-sm text-gray-800">${reply.userComment.content}</p>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Create Reshare Element
+        function createReshareElement(reshare) {
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-2xl shadow-lg p-4 lg:p-6 border-l-4 border-green-500';
+            
+            div.innerHTML = `
+                <div class="mb-3">
+                    <span class="text-sm text-green-600 font-medium">🔁 You reshared</span>
+                </div>
+                <div class="flex items-start space-x-3 lg:space-x-4">
+                    <img class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-pink-300 flex-shrink-0" src="${reshare.userImage}" alt="User">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center space-x-2 mb-2 flex-wrap">
+                            <span class="font-bold text-sm lg:text-base truncate">${reshare.username}</span>
+                            ${reshare.verified ? '<img src="https://community.oriontec.xyz/verify.png" alt="Verified" class="verified-badge flex-shrink-0">' : ''}
+                            <span class="text-gray-500 text-xs lg:text-sm flex-shrink-0">${formatTimestamp(reshare.timestamp)}</span>
+                        </div>
+                        <p class="text-gray-800 mb-3 text-sm lg:text-base break-words">${reshare.content}</p>
+                        ${reshare.imageURL ? `<img class="w-full max-w-md rounded-xl mb-3" src="${reshare.imageURL}" alt="Buzz image">` : ''}
+                    </div>
+                </div>
+            `;
+            
+            return div;
         }
 
         // Create Buzz Element
@@ -1194,9 +1543,13 @@
                                     <span>🔁</span>
                                     <span id="rebuzzes-${buzz.buzzId}">${rebuzzesCount}</span>
                                 </button>
-                                <button class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-blue-500 transition-colors text-sm lg:text-base">
+                                <button onclick="openCommentModal('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-blue-500 transition-colors text-sm lg:text-base">
                                     <span>💬</span>
-                                    <span class="hidden sm:inline">Comment</span>
+                                    <span id="comments-${buzz.buzzId}">${buzz.comments ? Object.keys(buzz.comments).length : 0}</span>
+                                </button>
+                                <button onclick="openReportModal('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-red-500 transition-colors text-sm lg:text-base">
+                                    <span>🚨</span>
+                                    <span class="hidden sm:inline">Report</span>
                                 </button>
                             </div>
                             ${buzz.uid === currentUser.uid ? `<button onclick="deleteBuzz('${buzz.buzzId}')" class="text-red-500 hover:text-red-700 transition-colors text-sm lg:text-base">🗑️</button>` : ''}
@@ -1906,11 +2259,180 @@
             }
         }
 
-        // Real-time updates for likes and rebuzzes
+        // Comment Modal Functions
+        let currentCommentBuzzId = null;
+
+        function openCommentModal(buzzId) {
+            currentCommentBuzzId = buzzId;
+            document.getElementById('commentModal').classList.remove('hidden');
+            
+            // Set user image
+            if (currentUser) {
+                database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                    const userData = snapshot.val();
+                    if (userData) {
+                        document.getElementById('commentUserImage').src = userData.photoURL;
+                    }
+                });
+            }
+            
+            loadComments(buzzId);
+        }
+
+        function closeCommentModal() {
+            document.getElementById('commentModal').classList.add('hidden');
+            document.getElementById('commentContent').value = '';
+            currentCommentBuzzId = null;
+        }
+
+        function loadComments(buzzId) {
+            const commentsRef = database.ref('buzz/' + buzzId + '/comments');
+            commentsRef.on('value', (snapshot) => {
+                const commentsContainer = document.getElementById('commentsContainer');
+                commentsContainer.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    commentsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No comments yet</p>';
+                    return;
+                }
+                
+                const comments = [];
+                snapshot.forEach((childSnapshot) => {
+                    comments.push(childSnapshot.val());
+                });
+                
+                comments.sort((a, b) => a.timestamp - b.timestamp);
+                
+                comments.forEach((comment) => {
+                    const commentElement = createCommentElement(comment);
+                    commentsContainer.appendChild(commentElement);
+                });
+            });
+        }
+
+        function createCommentElement(comment) {
+            const div = document.createElement('div');
+            div.className = 'flex items-start space-x-3 p-3 bg-gray-50 rounded-xl';
+            
+            div.innerHTML = `
+                <img class="w-8 h-8 rounded-full border-2 border-pink-300" src="${comment.userImage}" alt="User">
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="font-medium text-sm">${comment.username}</span>
+                        ${comment.verified ? '<img src="https://community.oriontec.xyz/verify.png" alt="Verified" class="verified-badge">' : ''}
+                        <span class="text-gray-500 text-xs">${formatTimestamp(comment.timestamp)}</span>
+                    </div>
+                    <p class="text-sm text-gray-800">${comment.content}</p>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        async function postComment() {
+            const content = document.getElementById('commentContent').value.trim();
+            
+            if (!content || !currentCommentBuzzId) return;
+
+            // Get user data
+            const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+            const userData = userSnapshot.val();
+
+            const commentId = database.ref('buzz/' + currentCommentBuzzId + '/comments').push().key;
+
+            const commentData = {
+                commentId: commentId,
+                uid: currentUser.uid,
+                username: userData.username,
+                userImage: userData.photoURL,
+                verified: userData.verified || false,
+                content: content,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            // Save comment
+            database.ref('buzz/' + currentCommentBuzzId + '/comments/' + commentId).set(commentData).then(() => {
+                document.getElementById('commentContent').value = '';
+                
+                // Create notification for buzz author
+                database.ref('buzz/' + currentCommentBuzzId).once('value').then((buzzSnapshot) => {
+                    const buzz = buzzSnapshot.val();
+                    if (buzz && buzz.uid !== currentUser.uid) {
+                        createNotification(buzz.uid, 'comment', userData.username + ' commented on your buzz');
+                    }
+                });
+            });
+        }
+
+        // Report Modal Functions
+        let currentReportBuzzId = null;
+
+        function openReportModal(buzzId) {
+            currentReportBuzzId = buzzId;
+            document.getElementById('reportModal').classList.remove('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+            document.getElementById('reportDetails').value = '';
+            // Clear radio buttons
+            const radioButtons = document.querySelectorAll('input[name="reportReason"]');
+            radioButtons.forEach(radio => radio.checked = false);
+            currentReportBuzzId = null;
+        }
+
+        async function submitReport() {
+            const selectedReason = document.querySelector('input[name="reportReason"]:checked');
+            const details = document.getElementById('reportDetails').value.trim();
+            
+            if (!selectedReason || !currentReportBuzzId) {
+                alert('Please select a reason for reporting');
+                return;
+            }
+
+            const reportId = database.ref('reports').push().key;
+            const reportData = {
+                reportId: reportId,
+                buzzId: currentReportBuzzId,
+                reporterId: currentUser.uid,
+                reason: selectedReason.value,
+                details: details,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                status: 'pending'
+            };
+
+            // Save report
+            await database.ref('reports/' + reportId).set(reportData);
+
+            // Check if buzz should be auto-deleted (50+ reports)
+            const reportsRef = database.ref('reports').orderByChild('buzzId').equalTo(currentReportBuzzId);
+            reportsRef.once('value').then((snapshot) => {
+                const reportCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                
+                if (reportCount >= 50) {
+                    // Auto-delete buzz
+                    database.ref('buzz/' + currentReportBuzzId).remove();
+                    
+                    // Notify buzz author
+                    database.ref('buzz/' + currentReportBuzzId).once('value').then((buzzSnapshot) => {
+                        const buzz = buzzSnapshot.val();
+                        if (buzz) {
+                            createNotification(buzz.uid, 'moderation', 'Your buzz has been removed due to multiple reports');
+                        }
+                    });
+                }
+            });
+
+            closeReportModal();
+            alert('Report submitted successfully. Thank you for helping keep OrioBuzz safe!');
+        }
+
+        // Real-time updates for likes, rebuzzes, and comments
         database.ref('buzz').on('child_changed', (snapshot) => {
             const buzz = snapshot.val();
             const likesElement = document.getElementById(`likes-${buzz.buzzId}`);
             const rebuzzesElement = document.getElementById(`rebuzzes-${buzz.buzzId}`);
+            const commentsElement = document.getElementById(`comments-${buzz.buzzId}`);
             
             if (likesElement) {
                 const likesCount = buzz.likes ? Object.keys(buzz.likes).length : 0;
@@ -1921,6 +2443,11 @@
                 const rebuzzesCount = buzz.rebuzzes ? Object.keys(buzz.rebuzzes).length : 0;
                 rebuzzesElement.textContent = rebuzzesCount;
             }
+            
+            if (commentsElement) {
+                const commentsCount = buzz.comments ? Object.keys(buzz.comments).length : 0;
+                commentsElement.textContent = commentsCount;
+            }
         });
 
         // Listen for notifications
@@ -1930,5 +2457,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640f01c0017551d',t:'MTc1MzMzNDEwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640fe32038e3d3f',t:'MTc1MzMzNDY4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
