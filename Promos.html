@@ -2,103 +2,151 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Buzz Ad - Cartoon Style</title>
+  <title>OrioBuzz Suspense Ad</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500&display=swap');
-    body {
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+    * {
       margin: 0;
       padding: 0;
-      background: #fff7f9;
-      font-family: 'Fredoka', sans-serif;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      box-sizing: border-box;
+    }
+    body {
+      background: black;
+      color: white;
       height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      overflow: hidden;
+      position: relative;
     }
 
-    .ad-container {
-      background: #fff;
-      border: 4px dashed #ff85a2;
-      border-radius: 30px;
-      padding: 30px;
-      width: 350px;
+    .suspense-text {
+      position: absolute;
+      top: 40%;
+      width: 100%;
       text-align: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      animation: float 3s ease-in-out infinite;
+      font-size: 2rem;
+      opacity: 0;
+      animation: suspenseFadeIn 2s forwards;
     }
 
-    .emoji {
-      font-size: 50px;
-      animation: pop 1.5s infinite ease-in-out;
+    @keyframes suspenseFadeIn {
+      to { opacity: 1; }
     }
 
-    h1 {
-      font-size: 22px;
-      margin-top: 15px;
-      color: #333;
+    .explosion {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 100px;
+      opacity: 0;
+      animation: boom 1s 2.5s forwards;
     }
 
-    p {
-      font-size: 14px;
-      color: #555;
-      margin-top: 10px;
+    @keyframes boom {
+      0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; color: red; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
     }
 
-    .buzz-btn {
-      margin-top: 20px;
-      padding: 12px 25px;
-      background: linear-gradient(45deg, #ff4e50, #ff85a2);
-      color: #fff;
-      border: none;
-      border-radius: 25px;
-      font-weight: bold;
-      font-size: 15px;
-      cursor: pointer;
-      animation: bounce 2s infinite;
+    .chat-rain {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      pointer-events: none;
+      z-index: 10;
     }
 
-    .scene {
-      margin-top: 20px;
+    .chat-icon {
+      position: absolute;
       font-size: 30px;
+      animation: fall linear infinite;
+      color: #00ff99;
     }
 
-    .scene span {
-      animation: wave 2s infinite ease-in-out;
-      display: inline-block;
-      margin: 0 4px;
+    @keyframes fall {
+      0% { transform: translateY(-100px); opacity: 0; }
+      20% { opacity: 1; }
+      100% { transform: translateY(110vh); opacity: 0; }
     }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+    .app-showcase {
+      position: absolute;
+      bottom: -100%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      animation: showApp 1s 5s forwards;
     }
 
-    @keyframes pop {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
+    .phone {
+      width: 250px;
+      height: 500px;
+      border: 10px solid #fff;
+      border-radius: 30px;
+      margin: 0 auto 15px;
+      background: linear-gradient(to bottom, #ffc4ec, #c2dfff);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+      position: relative;
     }
 
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
+    .phone::before {
+      content: '💬';
+      font-size: 50px;
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: bounceIcon 1.2s infinite;
     }
 
-    @keyframes wave {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
+    @keyframes bounceIcon {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -60%) scale(1.3); }
     }
+
+    .orio-logo {
+      font-size: 28px;
+      font-weight: 600;
+      background: linear-gradient(to right, #ff4d88, #4d9cff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    @keyframes showApp {
+      to { bottom: 10%; }
+    }
+
   </style>
 </head>
 <body>
-  <div class="ad-container">
-    <div class="emoji">💬🔥</div>
-    <h1>Start Your Buzz on OrioBuzz!</h1>
-    <p>Create threads, talk in real-time, and connect with the world 🌍</p>
-    <button class="buzz-btn">Buzz Now!</button>
-    <div class="scene">
-      <span>🎉</span><span>💡</span><span>👥</span><span>🚀</span>
-    </div>
+
+  <div class="suspense-text">Something is coming...</div>
+
+  <div class="explosion">💥</div>
+
+  <div class="chat-rain" id="rain"></div>
+
+  <div class="app-showcase">
+    <div class="phone"></div>
+    <div class="orio-logo">OrioBuzz</div>
+    <p style="color:#ccc;">Buzz • Connect • Chat in Real Time</p>
   </div>
+
+  <script>
+    // Generate falling 💬 icons after explosion
+    setTimeout(() => {
+      const rain = document.getElementById("rain");
+      for (let i = 0; i < 60; i++) {
+        const icon = document.createElement("div");
+        icon.className = "chat-icon";
+        icon.style.left = Math.random() * 100 + "vw";
+        icon.style.animationDuration = (2 + Math.random() * 3) + "s";
+        icon.innerText = "💬";
+        rain.appendChild(icon);
+      }
+    }, 3300);
+  </script>
 </body>
 </html>
