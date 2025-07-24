@@ -84,10 +84,29 @@
                             <span class="font-medium">Home</span>
                         </div>
                     </div>
+                    <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="showNotifications()">
+                        <div class="flex items-center space-x-3 relative">
+                            <span class="text-xl">🔔</span>
+                            <span class="font-medium">Notifications</span>
+                            <span id="notificationBadgeDesktop" class="hidden absolute -top-1 left-5 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="showMessages()">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl">💬</span>
+                            <span class="font-medium">Messages</span>
+                        </div>
+                    </div>
                     <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="showProfile()">
                         <div class="flex items-center space-x-3">
                             <span class="text-xl">👤</span>
                             <span class="font-medium">Profile</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="showSettings()">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl">⚙️</span>
+                            <span class="font-medium">Settings</span>
                         </div>
                     </div>
                     <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="openBuzzModal()">
@@ -112,6 +131,15 @@
                         <span class="text-xl">🏠</span>
                         <span class="text-xs">Home</span>
                     </button>
+                    <button onclick="showNotifications()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500 relative">
+                        <span class="text-xl">🔔</span>
+                        <span class="text-xs">Notifications</span>
+                        <span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                    </button>
+                    <button onclick="showMessages()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
+                        <span class="text-xl">💬</span>
+                        <span class="text-xs">Messages</span>
+                    </button>
                     <button onclick="showProfile()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
                         <span class="text-xl">👤</span>
                         <span class="text-xs">Profile</span>
@@ -119,10 +147,6 @@
                     <button onclick="openBuzzModal()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
                         <span class="text-xl">✍️</span>
                         <span class="text-xs">Create</span>
-                    </button>
-                    <button onclick="logout()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
-                        <span class="text-xl">🚪</span>
-                        <span class="text-xs">Logout</span>
                     </button>
                 </div>
             </div>
@@ -148,7 +172,12 @@
                                     <span id="profileVerified" class="hidden verified-badge">✓</span>
                                 </div>
                                 <p id="profileUsername" class="text-gray-600 mb-2"></p>
+                                <p id="profileLocation" class="text-gray-500 text-sm mb-2">📍 <span id="locationText">Location not set</span></p>
                                 <p id="profileBio" class="text-gray-700 mb-4"></p>
+                                <div class="flex justify-center sm:justify-start space-x-4 mb-4">
+                                    <span class="text-sm"><strong id="followingCount">0</strong> Following</span>
+                                    <span class="text-sm"><strong id="followersCount">0</strong> Followers</span>
+                                </div>
                                 <button onclick="openEditProfile()" class="gradient-bg text-white px-4 lg:px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
                                     Edit Profile
                                 </button>
@@ -158,6 +187,140 @@
                     <h3 class="text-lg lg:text-xl font-bold mb-4">My Buzz</h3>
                     <div id="userBuzzFeed" class="space-y-4 lg:space-y-6">
                         <!-- User's buzz posts will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Notifications Page -->
+                <div id="notificationsPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    <h2 class="text-xl lg:text-2xl font-bold mb-4 lg:mb-6 gradient-text">Notifications</h2>
+                    <div id="notificationsFeed" class="space-y-4">
+                        <!-- Notifications will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Messages Page -->
+                <div id="messagesPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    <h2 class="text-xl lg:text-2xl font-bold mb-4 lg:mb-6 gradient-text">Messages</h2>
+                    <div class="flex h-96">
+                        <div class="w-1/3 border-r border-gray-200 pr-4">
+                            <h3 class="font-bold mb-4">Conversations</h3>
+                            <div id="conversationsList" class="space-y-2">
+                                <!-- Conversations will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="flex-1 pl-4">
+                            <div id="chatArea" class="hidden">
+                                <div class="flex items-center space-x-3 mb-4 pb-4 border-b">
+                                    <img id="chatUserImage" class="w-10 h-10 rounded-full" src="" alt="User">
+                                    <div>
+                                        <h4 id="chatUserName" class="font-bold"></h4>
+                                        <p class="text-sm text-gray-500">Online</p>
+                                    </div>
+                                </div>
+                                <div id="messagesContainer" class="h-64 overflow-y-auto mb-4 space-y-2">
+                                    <!-- Messages will appear here -->
+                                </div>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 p-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300">
+                                    <button onclick="sendMessage()" class="gradient-bg text-white px-4 py-2 rounded-full hover:opacity-90">Send</button>
+                                </div>
+                            </div>
+                            <div id="noChatSelected" class="flex items-center justify-center h-full text-gray-500">
+                                Select a conversation to start messaging
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Page -->
+                <div id="settingsPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    <h2 class="text-xl lg:text-2xl font-bold mb-4 lg:mb-6 gradient-text">Settings</h2>
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold mb-4">Privacy Settings</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span>Private Account</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="privateAccount" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>Show Online Status</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="showOnlineStatus" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold mb-4">Notification Settings</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span>Push Notifications</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="pushNotifications" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>Email Notifications</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="emailNotifications" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold mb-4">Account Actions</h3>
+                            <div class="space-y-3">
+                                <button onclick="exportData()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
+                                    📥 Export My Data
+                                </button>
+                                <button onclick="deactivateAccount()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl text-red-600">
+                                    ⚠️ Deactivate Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other User Profile Page -->
+                <div id="otherUserProfile" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    <div class="bg-white rounded-2xl shadow-lg p-4 lg:p-8 mb-6">
+                        <div class="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6">
+                            <img id="otherProfileImage" class="w-20 h-20 lg:w-24 lg:h-24 rounded-full border-4 border-pink-300 mx-auto sm:mx-0" src="" alt="Profile">
+                            <div class="flex-1 text-center sm:text-left">
+                                <div class="flex items-center justify-center sm:justify-start space-x-2 mb-2">
+                                    <h2 id="otherProfileName" class="text-xl lg:text-2xl font-bold"></h2>
+                                    <span id="otherProfileVerified" class="hidden verified-badge">✓</span>
+                                </div>
+                                <p id="otherProfileUsername" class="text-gray-600 mb-2"></p>
+                                <p id="otherProfileLocation" class="text-gray-500 text-sm mb-2">📍 <span id="otherLocationText">Location not set</span></p>
+                                <p id="otherProfileBio" class="text-gray-700 mb-4"></p>
+                                <div class="flex justify-center sm:justify-start space-x-4 mb-4">
+                                    <span class="text-sm"><strong id="otherFollowingCount">0</strong> Following</span>
+                                    <span class="text-sm"><strong id="otherFollowersCount">0</strong> Followers</span>
+                                </div>
+                                <div class="flex justify-center sm:justify-start space-x-3">
+                                    <button id="followBtn" onclick="toggleFollow()" class="gradient-bg text-white px-4 lg:px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
+                                        Follow
+                                    </button>
+                                    <button onclick="startChat()" class="border border-pink-500 text-pink-500 px-4 lg:px-6 py-2 rounded-full hover:bg-pink-50 transition-colors text-sm lg:text-base">
+                                        Message
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-lg lg:text-xl font-bold mb-4">Buzz Posts</h3>
+                    <div id="otherUserBuzzFeed" class="space-y-4 lg:space-y-6">
+                        <!-- Other user's buzz posts will be loaded here -->
                     </div>
                 </div>
             </div>
@@ -225,6 +388,10 @@
                     <textarea id="editBio" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" rows="3"></textarea>
                 </div>
                 <div>
+                    <label class="block text-sm font-medium mb-2">Location</label>
+                    <input type="text" id="editLocation" placeholder="Enter your location" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
+                </div>
+                <div>
                     <label class="block text-sm font-medium mb-2">Profile Photo</label>
                     <input type="file" id="editPhoto" accept="image/*" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm">
                 </div>
@@ -256,6 +423,8 @@
         const storage = firebase.storage();
 
         let currentUser = null;
+        let currentChatUser = null;
+        let currentViewingUser = null;
 
         // Authentication State Observer
         auth.onAuthStateChanged((user) => {
@@ -318,16 +487,44 @@
 
         // Navigation
         function showHome() {
+            hideAllPages();
             document.getElementById('homeFeed').classList.remove('hidden');
-            document.getElementById('profilePage').classList.add('hidden');
             loadBuzzFeed();
         }
 
         function showProfile() {
-            document.getElementById('homeFeed').classList.add('hidden');
+            hideAllPages();
             document.getElementById('profilePage').classList.remove('hidden');
             loadUserProfile();
             loadUserBuzz();
+        }
+
+        function showNotifications() {
+            hideAllPages();
+            document.getElementById('notificationsPage').classList.remove('hidden');
+            loadNotifications();
+            clearNotificationBadge();
+        }
+
+        function showMessages() {
+            hideAllPages();
+            document.getElementById('messagesPage').classList.remove('hidden');
+            loadConversations();
+        }
+
+        function showSettings() {
+            hideAllPages();
+            document.getElementById('settingsPage').classList.remove('hidden');
+            loadSettings();
+        }
+
+        function hideAllPages() {
+            document.getElementById('homeFeed').classList.add('hidden');
+            document.getElementById('profilePage').classList.add('hidden');
+            document.getElementById('notificationsPage').classList.add('hidden');
+            document.getElementById('messagesPage').classList.add('hidden');
+            document.getElementById('settingsPage').classList.add('hidden');
+            document.getElementById('otherUserProfile').classList.add('hidden');
         }
 
         // Load user profile
@@ -342,12 +539,38 @@
                     document.getElementById('profileName').textContent = userData.username;
                     document.getElementById('profileUsername').textContent = '@' + userData.username.toLowerCase().replace(/\s+/g, '');
                     document.getElementById('profileBio').textContent = userData.bio || 'No bio yet';
+                    document.getElementById('locationText').textContent = userData.location || 'Location not set';
+                    
+                    // Load follower counts
+                    loadFollowerCounts(currentUser.uid);
                     
                     if (userData.verified) {
                         document.getElementById('profileVerified').classList.remove('hidden');
                     } else {
                         document.getElementById('profileVerified').classList.add('hidden');
                     }
+                }
+            });
+        }
+
+        // Load follower counts
+        function loadFollowerCounts(userId) {
+            const followersRef = database.ref('followers/' + userId);
+            const followingRef = database.ref('following/' + userId);
+            
+            followersRef.once('value').then((snapshot) => {
+                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                document.getElementById('followersCount').textContent = count;
+                if (document.getElementById('otherFollowersCount')) {
+                    document.getElementById('otherFollowersCount').textContent = count;
+                }
+            });
+            
+            followingRef.once('value').then((snapshot) => {
+                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                document.getElementById('followingCount').textContent = count;
+                if (document.getElementById('otherFollowingCount')) {
+                    document.getElementById('otherFollowingCount').textContent = count;
                 }
             });
         }
@@ -473,25 +696,28 @@
                     <img class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-pink-300 flex-shrink-0" src="${buzz.userImage}" alt="User">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center space-x-2 mb-2 flex-wrap">
-                            <span class="font-bold text-sm lg:text-base truncate">${buzz.username}</span>
+                            <span onclick="viewUserProfile('${buzz.uid}')" class="font-bold text-sm lg:text-base truncate cursor-pointer hover:text-pink-500 transition-colors">${buzz.username}</span>
                             ${buzz.verified ? '<span class="verified-badge flex-shrink-0">✓</span>' : ''}
                             <span class="text-gray-500 text-xs lg:text-sm flex-shrink-0">${formatTimestamp(buzz.timestamp)}</span>
                         </div>
                         <p class="text-gray-800 mb-3 text-sm lg:text-base break-words">${buzz.content}</p>
                         ${buzz.imageURL ? `<img class="w-full max-w-md rounded-xl mb-3" src="${buzz.imageURL}" alt="Buzz image">` : ''}
-                        <div class="flex items-center space-x-4 lg:space-x-6">
-                            <button onclick="toggleLike('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 ${isLiked ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors text-sm lg:text-base">
-                                <span>${isLiked ? '❤️' : '🤍'}</span>
-                                <span id="likes-${buzz.buzzId}">${likesCount}</span>
-                            </button>
-                            <button onclick="toggleRebuzz('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 ${isRebuzzed ? 'text-green-500' : 'text-gray-500'} hover:text-green-500 transition-colors text-sm lg:text-base">
-                                <span>🔁</span>
-                                <span id="rebuzzes-${buzz.buzzId}">${rebuzzesCount}</span>
-                            </button>
-                            <button class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-blue-500 transition-colors text-sm lg:text-base">
-                                <span>💬</span>
-                                <span class="hidden sm:inline">Comment</span>
-                            </button>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4 lg:space-x-6">
+                                <button onclick="toggleLike('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 ${isLiked ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors text-sm lg:text-base">
+                                    <span>${isLiked ? '❤️' : '🤍'}</span>
+                                    <span id="likes-${buzz.buzzId}">${likesCount}</span>
+                                </button>
+                                <button onclick="toggleRebuzz('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 ${isRebuzzed ? 'text-green-500' : 'text-gray-500'} hover:text-green-500 transition-colors text-sm lg:text-base">
+                                    <span>🔁</span>
+                                    <span id="rebuzzes-${buzz.buzzId}">${rebuzzesCount}</span>
+                                </button>
+                                <button class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-blue-500 transition-colors text-sm lg:text-base">
+                                    <span>💬</span>
+                                    <span class="hidden sm:inline">Comment</span>
+                                </button>
+                            </div>
+                            ${buzz.uid === currentUser.uid ? `<button onclick="deleteBuzz('${buzz.buzzId}')" class="text-red-500 hover:text-red-700 transition-colors text-sm lg:text-base">🗑️</button>` : ''}
                         </div>
                     </div>
                 </div>
@@ -510,6 +736,14 @@
                     likeRef.remove();
                 } else {
                     likeRef.set(true);
+                    
+                    // Get buzz author and create notification
+                    database.ref(`buzz/${buzzId}`).once('value').then((buzzSnapshot) => {
+                        const buzz = buzzSnapshot.val();
+                        if (buzz && buzz.uid !== currentUser.uid) {
+                            createNotification(buzz.uid, 'like', currentUser.displayName + ' liked your buzz');
+                        }
+                    });
                 }
             });
         }
@@ -524,6 +758,14 @@
                     rebuzzRef.remove();
                 } else {
                     rebuzzRef.set(true);
+                    
+                    // Get buzz author and create notification
+                    database.ref(`buzz/${buzzId}`).once('value').then((buzzSnapshot) => {
+                        const buzz = buzzSnapshot.val();
+                        if (buzz && buzz.uid !== currentUser.uid) {
+                            createNotification(buzz.uid, 'rebuzz', currentUser.displayName + ' rebuzzed your post');
+                        }
+                    });
                 }
             });
         }
@@ -566,6 +808,7 @@
                 if (userData) {
                     document.getElementById('editName').value = userData.username;
                     document.getElementById('editBio').value = userData.bio || '';
+                    document.getElementById('editLocation').value = userData.location || '';
                 }
             });
             
@@ -581,6 +824,7 @@
             
             const name = document.getElementById('editName').value.trim();
             const bio = document.getElementById('editBio').value.trim();
+            const location = document.getElementById('editLocation').value.trim();
             const photoFile = document.getElementById('editPhoto').files[0];
             
             let photoURL = currentUser.photoURL;
@@ -596,6 +840,7 @@
             const updates = {
                 username: name,
                 bio: bio,
+                location: location,
                 photoURL: photoURL
             };
             
@@ -623,6 +868,445 @@
             auth.signOut();
         }
 
+        // Delete Buzz
+        function deleteBuzz(buzzId) {
+            if (confirm('Are you sure you want to delete this buzz?')) {
+                database.ref('buzz/' + buzzId).remove().then(() => {
+                    loadBuzzFeed();
+                    loadUserBuzz();
+                });
+            }
+        }
+
+        // View User Profile
+        function viewUserProfile(userId) {
+            if (userId === currentUser.uid) {
+                showProfile();
+                return;
+            }
+            
+            currentViewingUser = userId;
+            hideAllPages();
+            document.getElementById('otherUserProfile').classList.remove('hidden');
+            loadOtherUserProfile(userId);
+            loadOtherUserBuzz(userId);
+        }
+
+        // Load Other User Profile
+        function loadOtherUserProfile(userId) {
+            const userRef = database.ref('users/' + userId);
+            userRef.once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('otherProfileImage').src = userData.photoURL;
+                    document.getElementById('otherProfileName').textContent = userData.username;
+                    document.getElementById('otherProfileUsername').textContent = '@' + userData.username.toLowerCase().replace(/\s+/g, '');
+                    document.getElementById('otherProfileBio').textContent = userData.bio || 'No bio yet';
+                    document.getElementById('otherLocationText').textContent = userData.location || 'Location not set';
+                    
+                    // Load follower counts
+                    loadFollowerCounts(userId);
+                    
+                    // Check if following
+                    checkFollowStatus(userId);
+                    
+                    if (userData.verified) {
+                        document.getElementById('otherProfileVerified').classList.remove('hidden');
+                    } else {
+                        document.getElementById('otherProfileVerified').classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // Load Other User Buzz
+        function loadOtherUserBuzz(userId) {
+            const buzzRef = database.ref('buzz').orderByChild('uid').equalTo(userId);
+            buzzRef.on('value', (snapshot) => {
+                const otherUserBuzzFeed = document.getElementById('otherUserBuzzFeed');
+                otherUserBuzzFeed.innerHTML = '';
+                
+                const buzzes = [];
+                snapshot.forEach((childSnapshot) => {
+                    buzzes.push(childSnapshot.val());
+                });
+                
+                buzzes.reverse().forEach((buzz) => {
+                    const buzzElement = createBuzzElement(buzz);
+                    otherUserBuzzFeed.appendChild(buzzElement);
+                });
+            });
+        }
+
+        // Check Follow Status
+        function checkFollowStatus(userId) {
+            const followRef = database.ref('following/' + currentUser.uid + '/' + userId);
+            followRef.once('value').then((snapshot) => {
+                const followBtn = document.getElementById('followBtn');
+                if (snapshot.exists()) {
+                    followBtn.textContent = 'Following';
+                    followBtn.classList.remove('gradient-bg');
+                    followBtn.classList.add('bg-gray-500');
+                } else {
+                    followBtn.textContent = 'Follow';
+                    followBtn.classList.add('gradient-bg');
+                    followBtn.classList.remove('bg-gray-500');
+                }
+            });
+        }
+
+        // Toggle Follow
+        function toggleFollow() {
+            if (!currentViewingUser) return;
+            
+            const followRef = database.ref('following/' + currentUser.uid + '/' + currentViewingUser);
+            const followerRef = database.ref('followers/' + currentViewingUser + '/' + currentUser.uid);
+            
+            followRef.once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    // Unfollow
+                    followRef.remove();
+                    followerRef.remove();
+                    createNotification(currentViewingUser, 'unfollow', currentUser.displayName + ' unfollowed you');
+                } else {
+                    // Follow
+                    followRef.set(true);
+                    followerRef.set(true);
+                    createNotification(currentViewingUser, 'follow', currentUser.displayName + ' started following you');
+                }
+                checkFollowStatus(currentViewingUser);
+                loadFollowerCounts(currentViewingUser);
+            });
+        }
+
+        // Start Chat
+        function startChat() {
+            if (!currentViewingUser) return;
+            
+            currentChatUser = currentViewingUser;
+            showMessages();
+            openChat(currentViewingUser);
+        }
+
+        // Load Notifications
+        function loadNotifications() {
+            if (!currentUser) return;
+            
+            const notificationsRef = database.ref('notifications/' + currentUser.uid).orderByChild('timestamp');
+            notificationsRef.on('value', (snapshot) => {
+                const notificationsFeed = document.getElementById('notificationsFeed');
+                notificationsFeed.innerHTML = '';
+                
+                const notifications = [];
+                snapshot.forEach((childSnapshot) => {
+                    notifications.push(childSnapshot.val());
+                });
+                
+                if (notifications.length === 0) {
+                    notificationsFeed.innerHTML = '<p class="text-gray-500 text-center py-8">No notifications yet</p>';
+                    return;
+                }
+                
+                notifications.reverse().forEach((notification) => {
+                    const notificationElement = createNotificationElement(notification);
+                    notificationsFeed.appendChild(notificationElement);
+                });
+            });
+        }
+
+        // Create Notification Element
+        function createNotificationElement(notification) {
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-xl shadow-lg p-4 hover:bg-gray-50 transition-colors';
+            
+            let icon = '🔔';
+            if (notification.type === 'like') icon = '❤️';
+            if (notification.type === 'rebuzz') icon = '🔁';
+            if (notification.type === 'follow') icon = '👤';
+            if (notification.type === 'comment') icon = '💬';
+            
+            div.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <span class="text-2xl">${icon}</span>
+                    <div class="flex-1">
+                        <p class="text-sm lg:text-base">${notification.message}</p>
+                        <p class="text-xs text-gray-500 mt-1">${formatTimestamp(notification.timestamp)}</p>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Create Notification
+        function createNotification(userId, type, message) {
+            if (userId === currentUser.uid) return; // Don't notify yourself
+            
+            const notificationId = database.ref('notifications/' + userId).push().key;
+            const notificationData = {
+                id: notificationId,
+                type: type,
+                message: message,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                read: false
+            };
+            
+            database.ref('notifications/' + userId + '/' + notificationId).set(notificationData);
+            updateNotificationBadge(userId);
+        }
+
+        // Update Notification Badge
+        function updateNotificationBadge(userId) {
+            if (userId !== currentUser.uid) return;
+            
+            const notificationsRef = database.ref('notifications/' + userId).orderByChild('read').equalTo(false);
+            notificationsRef.once('value').then((snapshot) => {
+                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                const badge = document.getElementById('notificationBadge');
+                const badgeDesktop = document.getElementById('notificationBadgeDesktop');
+                
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.classList.remove('hidden');
+                    badgeDesktop.textContent = count;
+                    badgeDesktop.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                    badgeDesktop.classList.add('hidden');
+                }
+            });
+        }
+
+        // Clear Notification Badge
+        function clearNotificationBadge() {
+            if (!currentUser) return;
+            
+            const notificationsRef = database.ref('notifications/' + currentUser.uid);
+            notificationsRef.once('value').then((snapshot) => {
+                const updates = {};
+                snapshot.forEach((childSnapshot) => {
+                    updates[childSnapshot.key + '/read'] = true;
+                });
+                notificationsRef.update(updates);
+            });
+            
+            document.getElementById('notificationBadge').classList.add('hidden');
+            document.getElementById('notificationBadgeDesktop').classList.add('hidden');
+        }
+
+        // Load Conversations
+        function loadConversations() {
+            if (!currentUser) return;
+            
+            const conversationsRef = database.ref('conversations').orderByChild('participants/' + currentUser.uid).equalTo(true);
+            conversationsRef.on('value', (snapshot) => {
+                const conversationsList = document.getElementById('conversationsList');
+                conversationsList.innerHTML = '';
+                
+                snapshot.forEach((childSnapshot) => {
+                    const conversation = childSnapshot.val();
+                    const otherUserId = Object.keys(conversation.participants).find(id => id !== currentUser.uid);
+                    
+                    if (otherUserId) {
+                        database.ref('users/' + otherUserId).once('value').then((userSnapshot) => {
+                            const userData = userSnapshot.val();
+                            if (userData) {
+                                const conversationElement = createConversationElement(conversation, userData, otherUserId);
+                                conversationsList.appendChild(conversationElement);
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        // Create Conversation Element
+        function createConversationElement(conversation, userData, userId) {
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-3 p-3 hover:bg-gray-100 rounded-xl cursor-pointer';
+            div.onclick = () => openChat(userId);
+            
+            div.innerHTML = `
+                <img class="w-10 h-10 rounded-full border-2 border-pink-300" src="${userData.photoURL}" alt="User">
+                <div class="flex-1">
+                    <h4 class="font-medium text-sm">${userData.username}</h4>
+                    <p class="text-xs text-gray-500">${conversation.lastMessage || 'Start a conversation'}</p>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Open Chat
+        function openChat(userId) {
+            currentChatUser = userId;
+            
+            database.ref('users/' + userId).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('chatUserImage').src = userData.photoURL;
+                    document.getElementById('chatUserName').textContent = userData.username;
+                    
+                    document.getElementById('noChatSelected').classList.add('hidden');
+                    document.getElementById('chatArea').classList.remove('hidden');
+                    
+                    loadMessages(userId);
+                }
+            });
+        }
+
+        // Load Messages
+        function loadMessages(userId) {
+            const conversationId = [currentUser.uid, userId].sort().join('_');
+            const messagesRef = database.ref('messages/' + conversationId).orderByChild('timestamp');
+            
+            messagesRef.on('value', (snapshot) => {
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.innerHTML = '';
+                
+                snapshot.forEach((childSnapshot) => {
+                    const message = childSnapshot.val();
+                    const messageElement = createMessageElement(message);
+                    messagesContainer.appendChild(messageElement);
+                });
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            });
+        }
+
+        // Create Message Element
+        function createMessageElement(message) {
+            const div = document.createElement('div');
+            const isOwn = message.senderId === currentUser.uid;
+            
+            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'}`;
+            
+            div.innerHTML = `
+                <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${isOwn ? 'bg-pink-500 text-white' : 'bg-gray-200 text-gray-800'}">
+                    <p class="text-sm">${message.text}</p>
+                    <p class="text-xs ${isOwn ? 'text-pink-100' : 'text-gray-500'} mt-1">${formatTimestamp(message.timestamp)}</p>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Send Message
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+            
+            if (!messageText || !currentChatUser) return;
+            
+            const conversationId = [currentUser.uid, currentChatUser].sort().join('_');
+            const messageId = database.ref('messages/' + conversationId).push().key;
+            
+            const messageData = {
+                id: messageId,
+                senderId: currentUser.uid,
+                receiverId: currentChatUser,
+                text: messageText,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            // Save message
+            database.ref('messages/' + conversationId + '/' + messageId).set(messageData);
+            
+            // Update conversation
+            const conversationData = {
+                participants: {
+                    [currentUser.uid]: true,
+                    [currentChatUser]: true
+                },
+                lastMessage: messageText,
+                lastMessageTime: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            database.ref('conversations/' + conversationId).set(conversationData);
+            
+            messageInput.value = '';
+        }
+
+        // Handle Enter key in message input
+        document.addEventListener('DOMContentLoaded', () => {
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+            }
+        });
+
+        // Load Settings
+        function loadSettings() {
+            if (!currentUser) return;
+            
+            const userRef = database.ref('users/' + currentUser.uid);
+            userRef.once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('privateAccount').checked = userData.private || false;
+                    document.getElementById('showOnlineStatus').checked = userData.showOnlineStatus !== false;
+                    document.getElementById('pushNotifications').checked = userData.pushNotifications !== false;
+                    document.getElementById('emailNotifications').checked = userData.emailNotifications || false;
+                }
+            });
+        }
+
+        // Export Data
+        function exportData() {
+            if (!currentUser) return;
+            
+            const userData = {
+                profile: {},
+                buzzes: [],
+                followers: [],
+                following: []
+            };
+            
+            // Get user data
+            database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                userData.profile = snapshot.val();
+                
+                // Get user's buzzes
+                return database.ref('buzz').orderByChild('uid').equalTo(currentUser.uid).once('value');
+            }).then((snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    userData.buzzes.push(childSnapshot.val());
+                });
+                
+                // Create and download file
+                const dataStr = JSON.stringify(userData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'oriobuzz-data.json';
+                link.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        // Deactivate Account
+        function deactivateAccount() {
+            if (confirm('Are you sure you want to deactivate your account? This action cannot be undone.')) {
+                if (confirm('This will permanently delete all your data. Are you absolutely sure?')) {
+                    // Delete user data
+                    database.ref('users/' + currentUser.uid).remove();
+                    database.ref('buzz').orderByChild('uid').equalTo(currentUser.uid).once('value').then((snapshot) => {
+                        snapshot.forEach((childSnapshot) => {
+                            childSnapshot.ref.remove();
+                        });
+                    });
+                    
+                    // Sign out
+                    auth.signOut();
+                }
+            }
+        }
+
         // Real-time updates for likes and rebuzzes
         database.ref('buzz').on('child_changed', (snapshot) => {
             const buzz = snapshot.val();
@@ -639,6 +1323,13 @@
                 rebuzzesElement.textContent = rebuzzesCount;
             }
         });
+
+        // Listen for notifications
+        if (currentUser) {
+            database.ref('notifications/' + currentUser.uid).on('child_added', () => {
+                updateNotificationBadge(currentUser.uid);
+            });
+        }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640a8ceb062ff99',t:'MTc1MzMzMTE4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9640b739a0a447ed',t:'MTc1MzMzMTc3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
