@@ -4,39 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OrioBuzz - Social Media</title>
-    <!-- Meta Tags for SEO and Social Sharing -->
-<meta name="description" content="Discover what's trending now on OrioBuzz – the ultimate space for viral stories, images, and updates from around the globe.">
-<meta name="keywords" content="OrioBuzz, viral stories, trending images, latest updates, online buzz, global trends, hot topics, social media highlights, Oriontec Buzz, IMG_9078">
-<meta name="author" content="Oriontec Pvt. Ltd.">
-<meta name="robots" content="index, follow">
-
-<!-- Open Graph for Facebook/LinkedIn -->
-<meta property="og:title" content="OrioBuzz  Where Trends Begin">
-<meta property="og:description" content="See the image that's catching everyone's attention on OrioBuzz. Stay in the loop with daily viral updates and community highlights.">
-<meta property="og:image" content="https://community.oriontec.xyz/IMG_9078.png">
-<meta property="og:url" content="https://community.oriontec.xyz/OrioBuzz.html">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="OrioBuzz">
-
-<!-- Twitter Cards -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="OrioBuzz – Trending Viral Stories & Images">
-<meta name="twitter:description" content="Explore the latest viral image and buzz only on OrioBuzz. Powered by Oriontec.">
-<meta name="twitter:image" content="https://community.oriontec.xyz/IMG_9078.png">
-<meta name="twitter:url" content="https://community.oriontec.xyz/OrioBuzz.html">
-
-<!-- Favicon & App Icon -->
-<link rel="icon" type="image/png" href="https://community.oriontec.xyz/IMG_9078.png">
-<link rel="apple-touch-icon" href="https://community.oriontec.xyz/IMG_9078.png">
-<link rel="manifest" href="/manifest.json">
-
-<!-- Apple Add to Home Screen -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="OrioBuzz">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<!-- Android Chrome -->
-<meta name="theme-color" content="#000000">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
@@ -262,32 +229,52 @@
                 <!-- Messages Page -->
                 <div id="messagesPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
                     <h2 class="text-xl lg:text-2xl font-bold mb-4 lg:mb-6 gradient-text">Messages</h2>
-                    <div class="flex h-96">
-                        <div class="w-1/3 border-r border-gray-200 pr-4">
-                            <h3 class="font-bold mb-4">Conversations</h3>
-                            <div id="conversationsList" class="space-y-2">
+                    <div class="flex h-96 bg-white rounded-2xl shadow-lg overflow-hidden">
+                        <div class="w-1/3 border-r border-gray-200">
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 class="font-bold text-lg">Conversations</h3>
+                            </div>
+                            <div id="conversationsList" class="overflow-y-auto h-full">
                                 <!-- Conversations will be loaded here -->
                             </div>
                         </div>
-                        <div class="flex-1 pl-4">
-                            <div id="chatArea" class="hidden">
-                                <div class="flex items-center space-x-3 mb-4 pb-4 border-b">
-                                    <img id="chatUserImage" class="w-10 h-10 rounded-full" src="" alt="User">
-                                    <div>
-                                        <h4 id="chatUserName" class="font-bold"></h4>
-                                        <p class="text-sm text-gray-500">Online</p>
+                        <div class="flex-1 flex flex-col">
+                            <div id="chatArea" class="hidden flex flex-col h-full">
+                                <div class="flex items-center space-x-3 p-4 border-b border-gray-200 bg-gray-50">
+                                    <div class="relative">
+                                        <img id="chatUserImage" class="w-10 h-10 rounded-full border-2 border-pink-300" src="" alt="User">
+                                        <div id="chatUserOnlineIndicator" class="absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
                                     </div>
+                                    <div class="flex-1">
+                                        <h4 id="chatUserName" class="font-bold"></h4>
+                                        <p id="chatUserStatus" class="text-sm text-gray-500">Offline</p>
+                                    </div>
+                                    <button onclick="shareProfile(currentChatUser)" class="text-gray-500 hover:text-pink-500 transition-colors">
+                                        🔗
+                                    </button>
                                 </div>
-                                <div id="messagesContainer" class="h-64 overflow-y-auto mb-4 space-y-2">
+                                <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
                                     <!-- Messages will appear here -->
                                 </div>
-                                <div class="flex space-x-2">
-                                    <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 p-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300">
-                                    <button onclick="sendMessage()" class="gradient-bg text-white px-4 py-2 rounded-full hover:opacity-90">Send</button>
+                                <div id="typingIndicator" class="hidden px-4 py-2 text-sm text-gray-500 italic">
+                                    <span id="typingUsername"></span> is typing...
+                                </div>
+                                <div class="p-4 border-t border-gray-200 bg-white">
+                                    <div class="flex space-x-2">
+                                        <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm" oninput="handleTyping()">
+                                        <button onclick="sendMessage()" class="gradient-bg text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
+                                            <span class="hidden sm:inline">Send</span>
+                                            <span class="sm:hidden">📤</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div id="noChatSelected" class="flex items-center justify-center h-full text-gray-500">
-                                Select a conversation to start messaging
+                                <div class="text-center">
+                                    <div class="text-6xl mb-4">💬</div>
+                                    <h3 class="text-xl font-bold mb-2">Select a conversation</h3>
+                                    <p>Choose a conversation to start messaging</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -351,6 +338,12 @@
                             <div class="space-y-3">
                                 <button onclick="exportData()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
                                     📥 Export My Data
+                                </button>
+                                <button onclick="openAccountSwitcher()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
+                                    🔄 Switch Account
+                                </button>
+                                <button onclick="logout()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
+                                    🚪 Logout
                                 </button>
                                 <button onclick="deactivateAccount()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl text-red-600">
                                     ⚠️ Deactivate Account
@@ -665,6 +658,24 @@
         </div>
     </div>
 
+    <!-- Account Switcher Modal -->
+    <div id="accountSwitcherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 class="text-lg lg:text-xl font-bold">Switch Account</h3>
+                <button onclick="closeAccountSwitcher()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div id="savedAccountsList" class="space-y-3 mb-6">
+                <!-- Saved accounts will be loaded here -->
+            </div>
+            <div class="border-t pt-4">
+                <button onclick="addNewAccount()" class="w-full gradient-bg text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
+                    ➕ Add New Account
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
@@ -704,7 +715,7 @@
         // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAl8eI-_8Ew9va0KPV8p4D2hc9WUTGiwuI",
-            authDomain: "auth.oriontec.xyz",
+            authDomain: "chat-d647c.firebaseapp.com",
             databaseURL: "https://chat-d647c-default-rtdb.firebaseio.com",
             projectId: "chat-d647c",
             storageBucket: "chat-d647c.firebasestorage.app",
@@ -732,10 +743,112 @@
                 showMainApp();
                 loadBuzzFeed();
                 loadVerifiedUsers();
+                updateOnlineStatus(true);
+                handleURLHash();
             } else {
                 showLoginScreen();
+                updateOnlineStatus(false);
             }
         });
+
+        // URL Hash Navigation
+        function handleURLHash() {
+            const hash = window.location.hash.substring(1);
+            if (hash.startsWith('buzz')) {
+                const buzzId = hash.replace('buzz', '');
+                openBuzzFromURL(buzzId);
+            } else if (hash.startsWith('profile')) {
+                const userId = hash.replace('profile', '');
+                viewUserProfile(userId);
+            } else if (hash === 'home') {
+                showHome();
+            }
+        }
+
+        // Listen for hash changes
+        window.addEventListener('hashchange', handleURLHash);
+
+        // Open buzz from URL
+        function openBuzzFromURL(buzzId) {
+            database.ref('buzz/' + buzzId).once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    showHome();
+                    // Scroll to buzz after a short delay
+                    setTimeout(() => {
+                        const buzzElement = document.querySelector(`[data-buzz-id="${buzzId}"]`);
+                        if (buzzElement) {
+                            buzzElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            buzzElement.style.border = '2px solid #f093fb';
+                            setTimeout(() => {
+                                buzzElement.style.border = '';
+                            }, 3000);
+                        }
+                    }, 500);
+                }
+            });
+        }
+
+        // Share Buzz
+        function shareBuzz(buzzId) {
+            const url = window.location.origin + window.location.pathname + '#buzz' + buzzId;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this buzz on OrioBuzz',
+                    url: url
+                });
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Buzz link copied to clipboard!');
+                });
+            }
+        }
+
+        // Share Profile
+        function shareProfile(userId) {
+            const url = window.location.origin + window.location.pathname + '#profile' + userId;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this profile on OrioBuzz',
+                    url: url
+                });
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Profile link copied to clipboard!');
+                });
+            }
+        }
+
+        // Online Status Management
+        function updateOnlineStatus(isOnline) {
+            if (!currentUser) return;
+            
+            const userStatusRef = database.ref('userStatus/' + currentUser.uid);
+            if (isOnline) {
+                userStatusRef.set({
+                    online: true,
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Set offline when user disconnects
+                userStatusRef.onDisconnect().set({
+                    online: false,
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+                });
+            } else {
+                userStatusRef.set({
+                    online: false,
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        }
+
+        // Get user online status
+        function getUserOnlineStatus(userId, callback) {
+            database.ref('userStatus/' + userId).on('value', (snapshot) => {
+                const status = snapshot.val();
+                callback(status);
+            });
+        }
 
         // Google Sign In
         document.getElementById('googleSignIn').addEventListener('click', () => {
@@ -1549,6 +1662,7 @@
         function createBuzzElement(buzz) {
             const div = document.createElement('div');
             div.className = 'buzz-card bg-white rounded-2xl shadow-lg p-4 lg:p-6';
+            div.setAttribute('data-buzz-id', buzz.buzzId);
             
             const likesCount = buzz.likes ? Object.keys(buzz.likes).length : 0;
             const rebuzzesCount = buzz.rebuzzes ? Object.keys(buzz.rebuzzes).length : 0;
@@ -1557,7 +1671,10 @@
             
             div.innerHTML = `
                 <div class="flex items-start space-x-3 lg:space-x-4">
-                    <img class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-pink-300 flex-shrink-0" src="${buzz.userImage}" alt="User">
+                    <div class="relative">
+                        <img class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-pink-300 flex-shrink-0" src="${buzz.userImage}" alt="User">
+                        <div id="onlineIndicator-${buzz.uid}" class="absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
+                    </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center space-x-2 mb-2 flex-wrap">
                             <span onclick="viewUserProfile('${buzz.uid}')" class="font-bold text-sm lg:text-base truncate cursor-pointer hover:text-pink-500 transition-colors">${buzz.username}</span>
@@ -1580,6 +1697,10 @@
                                     <span>💬</span>
                                     <span id="comments-${buzz.buzzId}">${buzz.comments ? Object.keys(buzz.comments).length : 0}</span>
                                 </button>
+                                <button onclick="shareBuzz('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-purple-500 transition-colors text-sm lg:text-base">
+                                    <span>🔗</span>
+                                    <span class="hidden sm:inline">Share</span>
+                                </button>
                                 <button onclick="openReportModal('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-red-500 transition-colors text-sm lg:text-base">
                                     <span>🚨</span>
                                     <span class="hidden sm:inline">Report</span>
@@ -1590,6 +1711,11 @@
                     </div>
                 </div>
             `;
+            
+            // Update online status for this user
+            getUserOnlineStatus(buzz.uid, (status) => {
+                updateUserOnlineIndicator(buzz.uid, status);
+            });
             
             return div;
         }
@@ -1757,6 +1883,107 @@
             });
         }
 
+        // Account Switcher Functions
+        function openAccountSwitcher() {
+            document.getElementById('accountSwitcherModal').classList.remove('hidden');
+            loadSavedAccounts();
+        }
+
+        function closeAccountSwitcher() {
+            document.getElementById('accountSwitcherModal').classList.add('hidden');
+        }
+
+        function loadSavedAccounts() {
+            const savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
+            const accountsList = document.getElementById('savedAccountsList');
+            accountsList.innerHTML = '';
+
+            if (savedAccounts.length === 0) {
+                accountsList.innerHTML = '<p class="text-gray-500 text-center py-4">No saved accounts</p>';
+                return;
+            }
+
+            savedAccounts.forEach((account, index) => {
+                const accountDiv = document.createElement('div');
+                accountDiv.className = 'flex items-center space-x-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors';
+                
+                const isCurrentAccount = currentUser && account.uid === currentUser.uid;
+                
+                accountDiv.innerHTML = `
+                    <img class="w-10 h-10 rounded-full border-2 border-pink-300" src="${account.photoURL}" alt="User">
+                    <div class="flex-1">
+                        <h4 class="font-medium">${account.username}</h4>
+                        <p class="text-sm text-gray-600">${account.email}</p>
+                        ${isCurrentAccount ? '<span class="text-xs text-green-600">Current Account</span>' : ''}
+                    </div>
+                    <div class="flex space-x-2">
+                        ${!isCurrentAccount ? `<button onclick="switchToAccount(${index})" class="text-sm bg-pink-500 text-white px-3 py-1 rounded-full hover:bg-pink-600">Switch</button>` : ''}
+                        <button onclick="removeAccount(${index})" class="text-sm text-red-500 hover:text-red-700">Remove</button>
+                    </div>
+                `;
+                
+                accountsList.appendChild(accountDiv);
+            });
+        }
+
+        function switchToAccount(index) {
+            const savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
+            const account = savedAccounts[index];
+            
+            if (account) {
+                // Sign out current user and sign in with saved account
+                auth.signOut().then(() => {
+                    // This would require implementing custom token authentication
+                    // For now, we'll redirect to login
+                    alert('Please sign in with the account: ' + account.email);
+                    closeAccountSwitcher();
+                });
+            }
+        }
+
+        function removeAccount(index) {
+            if (confirm('Remove this account from saved accounts?')) {
+                const savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
+                savedAccounts.splice(index, 1);
+                localStorage.setItem('oriobuzz_accounts', JSON.stringify(savedAccounts));
+                loadSavedAccounts();
+            }
+        }
+
+        function addNewAccount() {
+            closeAccountSwitcher();
+            logout();
+        }
+
+        function saveCurrentAccount() {
+            if (!currentUser) return;
+            
+            database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    const savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
+                    
+                    // Check if account already exists
+                    const existingIndex = savedAccounts.findIndex(acc => acc.uid === currentUser.uid);
+                    
+                    const accountData = {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        username: userData.username,
+                        photoURL: userData.photoURL
+                    };
+                    
+                    if (existingIndex >= 0) {
+                        savedAccounts[existingIndex] = accountData;
+                    } else {
+                        savedAccounts.push(accountData);
+                    }
+                    
+                    localStorage.setItem('oriobuzz_accounts', JSON.stringify(savedAccounts));
+                }
+            });
+        }
+
         // Utility Functions
         function formatTimestamp(timestamp) {
             if (!timestamp) return '';
@@ -1771,6 +1998,8 @@
         }
 
         function logout() {
+            // Save current account before logout
+            saveCurrentAccount();
             auth.signOut();
         }
 
@@ -1816,30 +2045,107 @@
                     // Check if following
                     checkFollowStatus(userId);
                     
+                    // Check online status
+                    getUserOnlineStatus(userId, (status) => {
+                        updateUserOnlineIndicator(userId, status);
+                    });
+                    
                     if (userData.verified) {
                         document.getElementById('otherProfileVerified').classList.remove('hidden');
                     } else {
                         document.getElementById('otherProfileVerified').classList.add('hidden');
                     }
+
+                    // Add share profile button
+                    const shareBtn = document.createElement('button');
+                    shareBtn.onclick = () => shareProfile(userId);
+                    shareBtn.className = 'border border-gray-300 text-gray-700 px-4 lg:px-6 py-2 rounded-full hover:bg-gray-50 transition-colors text-sm lg:text-base';
+                    shareBtn.innerHTML = '🔗 Share';
+                    
+                    const buttonContainer = document.querySelector('#otherUserProfile .flex.space-x-3');
+                    if (buttonContainer && !buttonContainer.querySelector('.share-profile-btn')) {
+                        shareBtn.classList.add('share-profile-btn');
+                        buttonContainer.appendChild(shareBtn);
+                    }
                 }
             });
         }
 
+        // Update user online indicator
+        function updateUserOnlineIndicator(userId, status) {
+            const indicator = document.getElementById('onlineIndicator-' + userId);
+            if (indicator) {
+                if (status && status.online) {
+                    indicator.className = 'w-3 h-3 bg-green-500 rounded-full border-2 border-white';
+                    indicator.title = 'Online';
+                } else {
+                    indicator.className = 'w-3 h-3 bg-gray-400 rounded-full border-2 border-white';
+                    if (status && status.lastSeen) {
+                        indicator.title = 'Last seen ' + formatTimestamp(status.lastSeen);
+                    } else {
+                        indicator.title = 'Offline';
+                    }
+                }
+            }
+        }
+
         // Load Other User Buzz
         function loadOtherUserBuzz(userId) {
-            const buzzRef = database.ref('buzz').orderByChild('uid').equalTo(userId);
-            buzzRef.on('value', (snapshot) => {
-                const otherUserBuzzFeed = document.getElementById('otherUserBuzzFeed');
-                otherUserBuzzFeed.innerHTML = '';
+            // First check if user account is private
+            database.ref('users/' + userId).once('value').then((userSnapshot) => {
+                const userData = userSnapshot.val();
+                const isPrivate = userData && userData.private;
                 
-                const buzzes = [];
-                snapshot.forEach((childSnapshot) => {
-                    buzzes.push(childSnapshot.val());
-                });
+                if (isPrivate) {
+                    // Check if current user is following
+                    database.ref('following/' + currentUser.uid + '/' + userId).once('value').then((followSnapshot) => {
+                        const isFollowing = followSnapshot.exists();
+                        
+                        const otherUserBuzzFeed = document.getElementById('otherUserBuzzFeed');
+                        
+                        if (!isFollowing) {
+                            // Show private account message
+                            otherUserBuzzFeed.innerHTML = `
+                                <div class="bg-gray-100 rounded-2xl p-8 text-center">
+                                    <div class="text-6xl mb-4">🔒</div>
+                                    <h3 class="text-xl font-bold mb-2">This Account is Private</h3>
+                                    <p class="text-gray-600 mb-4">Follow ${userData.username} to see their buzz posts</p>
+                                    <button onclick="toggleFollow()" class="gradient-bg text-white px-6 py-2 rounded-full hover:opacity-90 transition-opacity">
+                                        Follow
+                                    </button>
+                                </div>
+                            `;
+                            return;
+                        }
+                    });
+                }
                 
-                buzzes.reverse().forEach((buzz) => {
-                    const buzzElement = createBuzzElement(buzz);
-                    otherUserBuzzFeed.appendChild(buzzElement);
+                // Load buzz posts (either public account or following private account)
+                const buzzRef = database.ref('buzz').orderByChild('uid').equalTo(userId);
+                buzzRef.on('value', (snapshot) => {
+                    const otherUserBuzzFeed = document.getElementById('otherUserBuzzFeed');
+                    
+                    // Don't overwrite private message if user is not following
+                    if (isPrivate && otherUserBuzzFeed.innerHTML.includes('This Account is Private')) {
+                        return;
+                    }
+                    
+                    otherUserBuzzFeed.innerHTML = '';
+                    
+                    const buzzes = [];
+                    snapshot.forEach((childSnapshot) => {
+                        buzzes.push(childSnapshot.val());
+                    });
+                    
+                    if (buzzes.length === 0) {
+                        otherUserBuzzFeed.innerHTML = '<p class="text-gray-500 text-center py-8">No buzz posts yet</p>';
+                        return;
+                    }
+                    
+                    buzzes.reverse().forEach((buzz) => {
+                        const buzzElement = createBuzzElement(buzz);
+                        otherUserBuzzFeed.appendChild(buzzElement);
+                    });
                 });
             });
         }
@@ -2053,10 +2359,71 @@
                     document.getElementById('chatUserImage').src = userData.photoURL;
                     document.getElementById('chatUserName').textContent = userData.username;
                     
+                    // Update online status
+                    getUserOnlineStatus(userId, (status) => {
+                        const statusElement = document.getElementById('chatUserStatus');
+                        const indicatorElement = document.getElementById('chatUserOnlineIndicator');
+                        
+                        if (status && status.online) {
+                            statusElement.textContent = 'Online';
+                            statusElement.className = 'text-sm text-green-500';
+                            indicatorElement.className = 'absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white';
+                        } else {
+                            statusElement.textContent = status && status.lastSeen ? 
+                                'Last seen ' + formatTimestamp(status.lastSeen) : 'Offline';
+                            statusElement.className = 'text-sm text-gray-500';
+                            indicatorElement.className = 'absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border-2 border-white';
+                        }
+                    });
+                    
                     document.getElementById('noChatSelected').classList.add('hidden');
                     document.getElementById('chatArea').classList.remove('hidden');
                     
                     loadMessages(userId);
+                    listenForTyping(userId);
+                }
+            });
+        }
+
+        // Handle typing indicator
+        let typingTimeout;
+        function handleTyping() {
+            if (!currentChatUser) return;
+            
+            const conversationId = [currentUser.uid, currentChatUser].sort().join('_');
+            
+            // Show typing indicator for other user
+            database.ref('typing/' + conversationId + '/' + currentUser.uid).set({
+                typing: true,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            // Clear typing indicator after 3 seconds
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                database.ref('typing/' + conversationId + '/' + currentUser.uid).remove();
+            }, 3000);
+        }
+
+        // Listen for typing indicator
+        function listenForTyping(userId) {
+            const conversationId = [currentUser.uid, userId].sort().join('_');
+            
+            database.ref('typing/' + conversationId + '/' + userId).on('value', (snapshot) => {
+                const typingData = snapshot.val();
+                const typingIndicator = document.getElementById('typingIndicator');
+                const typingUsername = document.getElementById('typingUsername');
+                
+                if (typingData && typingData.typing) {
+                    database.ref('users/' + userId).once('value').then((userSnapshot) => {
+                        const userData = userSnapshot.val();
+                        if (userData) {
+                            typingUsername.textContent = userData.username;
+                            typingIndicator.classList.remove('hidden');
+                        }
+                    });
+                } else {
+                    typingIndicator.classList.add('hidden');
                 }
             });
         }
@@ -2085,14 +2452,33 @@
             const div = document.createElement('div');
             const isOwn = message.senderId === currentUser.uid;
             
-            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'}`;
+            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} items-end space-x-2`;
             
-            div.innerHTML = `
-                <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${isOwn ? 'bg-pink-500 text-white' : 'bg-gray-200 text-gray-800'}">
-                    <p class="text-sm">${message.text}</p>
-                    <p class="text-xs ${isOwn ? 'text-pink-100' : 'text-gray-500'} mt-1">${formatTimestamp(message.timestamp)}</p>
-                </div>
-            `;
+            if (isOwn) {
+                div.innerHTML = `
+                    <div class="max-w-xs lg:max-w-md">
+                        <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-2xl rounded-br-md shadow-lg">
+                            <p class="text-sm break-words">${message.text}</p>
+                        </div>
+                        <div class="flex items-center justify-end space-x-1 mt-1">
+                            <p class="text-xs text-gray-500">${formatTimestamp(message.timestamp)}</p>
+                            <span class="text-xs ${message.read ? 'text-blue-500' : 'text-gray-400'}">${message.read ? '✓✓' : '✓'}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
+                        <img class="w-full h-full object-cover" src="${message.senderImage || ''}" alt="User">
+                    </div>
+                    <div class="max-w-xs lg:max-w-md">
+                        <div class="bg-white border border-gray-200 text-gray-800 px-4 py-2 rounded-2xl rounded-bl-md shadow-sm">
+                            <p class="text-sm break-words">${message.text}</p>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1 ml-2">${formatTimestamp(message.timestamp)}</p>
+                    </div>
+                `;
+            }
             
             return div;
         }
@@ -2490,5 +2876,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9641453f70a8f806',t:'MTc1MzMzNzU5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'964864cc32f05495',t:'MTc1MzQxMjI4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
