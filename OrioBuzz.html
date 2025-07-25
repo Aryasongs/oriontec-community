@@ -3870,24 +3870,57 @@
         // Initialize Call (Get user media and create peer connection)
         async function initializeCall(type) {
             try {
-                // Get user media
+                console.log('🎯 Initializing call with type:', type);
+                
+                // Get user media with proper constraints
                 const constraints = {
-                    audio: true,
-                    video: type === 'video'
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    },
+                    video: type === 'video' ? {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 30 }
+                    } : false
                 };
                 
-                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                console.log('📱 Requesting media with constraints:', constraints);
+                
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    console.log('✅ Got local stream:', localStream);
+                    
+                    // Set local video immediately for video calls
+                    if (type === 'video') {
+                        const localVideo = document.getElementById('localVideo');
+                        if (localVideo) {
+                            localVideo.srcObject = localStream;
+                            localVideo.muted = true; // Prevent feedback
+                            localVideo.play().catch(e => console.log('Local video play error:', e));
+                            console.log('✅ Local video stream set');
+                        }
+                    }
+                    
+                } catch (mediaError) {
+                    console.error("Media permission error: ", mediaError);
+                    alert("Camera ya mic access allow karo. Please allow camera and microphone access.");
+                    throw mediaError;
+                }
                 
                 // Create peer connection
                 localPeerConnection = new RTCPeerConnection(rtcConfiguration);
+                console.log('🔗 Created peer connection');
                 
-                // Add local stream to peer connection
+                // Add local stream tracks to peer connection
                 localStream.getTracks().forEach(track => {
+                    console.log('➕ Adding track to peer connection:', track.kind);
                     localPeerConnection.addTrack(track, localStream);
                 });
                 
-                // Handle remote stream
-                localPeerConnection.ontrack = (event) => {
+                // Handle remote stream - FIXED VERSION
+                localPeerConnection.ontrack = function(event) {
                     console.log('📺 Received remote stream:', event.streams[0]);
                     remoteStream = event.streams[0];
                     
@@ -3896,8 +3929,17 @@
                         const remoteVideo = document.getElementById('remoteVideo');
                         if (remoteVideo) {
                             remoteVideo.srcObject = remoteStream;
-                            remoteVideo.play().catch(e => console.log('Remote video play error:', e));
-                            console.log('✅ Remote video stream set');
+                            remoteVideo.autoplay = true;
+                            remoteVideo.playsInline = true;
+                            remoteVideo.play().then(() => {
+                                console.log('✅ Remote video playing successfully');
+                            }).catch(e => {
+                                console.log('Remote video play error:', e);
+                                // Try to play again after a short delay
+                                setTimeout(() => {
+                                    remoteVideo.play().catch(e2 => console.log('Second attempt failed:', e2));
+                                }, 1000);
+                            });
                         }
                     }
                     
@@ -3905,14 +3947,23 @@
                     const remoteAudio = document.getElementById('remoteAudio');
                     if (remoteAudio) {
                         remoteAudio.srcObject = remoteStream;
-                        remoteAudio.play().catch(e => console.log('Remote audio play error:', e));
-                        console.log('✅ Remote audio stream set');
+                        remoteAudio.autoplay = true;
+                        remoteAudio.play().then(() => {
+                            console.log('✅ Remote audio playing successfully');
+                        }).catch(e => {
+                            console.log('Remote audio play error:', e);
+                            // Try to play again after a short delay
+                            setTimeout(() => {
+                                remoteAudio.play().catch(e2 => console.log('Audio second attempt failed:', e2));
+                            }, 1000);
+                        });
                     }
                 };
                 
                 // Handle ICE candidates
                 localPeerConnection.onicecandidate = (event) => {
                     if (event.candidate && currentCallId) {
+                        console.log('🧊 Sending ICE candidate');
                         sendSignalingData({
                             type: 'ice-candidate',
                             candidate: event.candidate
@@ -3922,17 +3973,26 @@
                 
                 // Handle connection state changes
                 localPeerConnection.onconnectionstatechange = () => {
-                    console.log('Connection state:', localPeerConnection.connectionState);
+                    console.log('🔗 Connection state:', localPeerConnection.connectionState);
                     if (localPeerConnection.connectionState === 'connected') {
+                        console.log('✅ Call connected successfully');
                         startCallTimer();
                     } else if (localPeerConnection.connectionState === 'disconnected' || 
                               localPeerConnection.connectionState === 'failed') {
+                        console.log('❌ Call connection failed or disconnected');
                         endCall();
                     }
                 };
                 
+                // Handle ICE connection state changes
+                localPeerConnection.oniceconnectionstatechange = () => {
+                    console.log('🧊 ICE connection state:', localPeerConnection.iceConnectionState);
+                };
+                
+                console.log('✅ Call initialization completed');
+                
             } catch (error) {
-                console.error('Error initializing call:', error);
+                console.error('❌ Error initializing call:', error);
                 throw error;
             }
         }
@@ -4386,5 +4446,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9648d16d174391d3',t:'MTc1MzQxNjczNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9648da4a609a54b0',t:'MTc1MzQxNzEwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
