@@ -756,10 +756,13 @@
                     <p class="text-green-600 mb-4">Connected - <span id="callDuration">00:00</span></p>
                     
                     <!-- Video Elements -->
-                    <div id="videoContainer" class="hidden mb-4">
-                        <video id="remoteVideo" class="w-full h-48 bg-gray-900 rounded-xl mb-2" autoplay playsinline></video>
-                        <video id="localVideo" class="w-24 h-18 bg-gray-700 rounded-lg absolute top-4 right-4" autoplay playsinline muted></video>
+                    <div id="videoContainer" class="hidden mb-4 relative">
+                        <video id="remoteVideo" class="w-full h-64 bg-gray-900 rounded-xl object-cover" autoplay playsinline controls="false"></video>
+                        <video id="localVideo" class="w-20 h-16 bg-gray-700 rounded-lg absolute top-2 right-2 object-cover border-2 border-white" autoplay playsinline muted controls="false"></video>
                     </div>
+                    
+                    <!-- Audio Element for Audio Calls -->
+                    <audio id="remoteAudio" autoplay style="display: none;"></audio>
                 </div>
                 
                 <div class="flex justify-center space-x-4">
@@ -3885,10 +3888,25 @@
                 
                 // Handle remote stream
                 localPeerConnection.ontrack = (event) => {
+                    console.log('📺 Received remote stream:', event.streams[0]);
                     remoteStream = event.streams[0];
-                    const remoteVideo = document.getElementById('remoteVideo');
-                    if (remoteVideo) {
-                        remoteVideo.srcObject = remoteStream;
+                    
+                    // Set remote video for video calls
+                    if (currentCallType === 'video') {
+                        const remoteVideo = document.getElementById('remoteVideo');
+                        if (remoteVideo) {
+                            remoteVideo.srcObject = remoteStream;
+                            remoteVideo.play().catch(e => console.log('Remote video play error:', e));
+                            console.log('✅ Remote video stream set');
+                        }
+                    }
+                    
+                    // Set remote audio for both audio and video calls
+                    const remoteAudio = document.getElementById('remoteAudio');
+                    if (remoteAudio) {
+                        remoteAudio.srcObject = remoteStream;
+                        remoteAudio.play().catch(e => console.log('Remote audio play error:', e));
+                        console.log('✅ Remote audio stream set');
                     }
                 };
                 
@@ -3943,6 +3961,8 @@
         // Accept Call
         async function acceptCall() {
             try {
+                console.log('🎯 Accepting call...');
+                
                 // Initialize call
                 await initializeCall(currentCallType);
                 
@@ -3951,22 +3971,39 @@
                     status: 'accepted'
                 });
                 
-                // Create answer
-                const offer = await getStoredOffer();
-                if (offer) {
-                    await localPeerConnection.setRemoteDescription(offer);
-                    const answer = await localPeerConnection.createAnswer();
-                    await localPeerConnection.setLocalDescription(answer);
-                    
-                    // Send answer
-                    await sendSignalingData({
-                        type: 'answer',
-                        answer: answer
-                    });
-                }
+                console.log('✅ Call status updated to accepted');
                 
-                showActiveCall();
-                isCallActive = true;
+                // Wait a moment for the offer to arrive
+                setTimeout(async () => {
+                    try {
+                        // Create answer
+                        const offer = await getStoredOffer();
+                        console.log('📥 Retrieved offer:', offer);
+                        
+                        if (offer) {
+                            await localPeerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+                            console.log('✅ Remote description set');
+                            
+                            const answer = await localPeerConnection.createAnswer();
+                            await localPeerConnection.setLocalDescription(answer);
+                            console.log('✅ Answer created and set');
+                            
+                            // Send answer
+                            await sendSignalingData({
+                                type: 'answer',
+                                answer: answer
+                            });
+                            console.log('📤 Answer sent');
+                        }
+                        
+                        showActiveCall();
+                        isCallActive = true;
+                        
+                    } catch (error) {
+                        console.error('Error in delayed accept process:', error);
+                        rejectCall();
+                    }
+                }, 1000);
                 
             } catch (error) {
                 console.error('Error accepting call:', error);
@@ -4012,20 +4049,35 @@
 
         // Handle Call Status Changes
         async function handleCallStatusChange(callData) {
+            console.log('📞 Call status changed:', callData.status);
+            
             switch (callData.status) {
                 case 'accepted':
                     if (callData.callerId === currentUser.uid) {
-                        // Caller side - create offer
-                        const offer = await localPeerConnection.createOffer();
-                        await localPeerConnection.setLocalDescription(offer);
+                        console.log('📞 Caller side - creating offer...');
                         
-                        await sendSignalingData({
-                            type: 'offer',
-                            offer: offer
-                        });
-                        
-                        showActiveCall();
-                        isCallActive = true;
+                        try {
+                            // Caller side - create offer
+                            const offer = await localPeerConnection.createOffer({
+                                offerToReceiveAudio: true,
+                                offerToReceiveVideo: currentCallType === 'video'
+                            });
+                            await localPeerConnection.setLocalDescription(offer);
+                            console.log('✅ Offer created and set');
+                            
+                            await sendSignalingData({
+                                type: 'offer',
+                                offer: offer
+                            });
+                            console.log('📤 Offer sent');
+                            
+                            showActiveCall();
+                            isCallActive = true;
+                            
+                        } catch (error) {
+                            console.error('Error creating offer:', error);
+                            endCall();
+                        }
                     }
                     break;
                     
@@ -4041,17 +4093,30 @@
         // Handle Signaling Data
         async function handleSignalingData(signalingData) {
             try {
+                console.log('📡 Handling signaling data:', signalingData.type);
+                
+                if (!localPeerConnection) {
+                    console.log('⚠️ No peer connection available');
+                    return;
+                }
+                
                 switch (signalingData.type) {
                     case 'offer':
-                        await localPeerConnection.setRemoteDescription(signalingData.offer);
+                        console.log('📥 Processing offer...');
+                        await localPeerConnection.setRemoteDescription(new RTCSessionDescription(signalingData.offer));
+                        console.log('✅ Offer processed');
                         break;
                         
                     case 'answer':
-                        await localPeerConnection.setRemoteDescription(signalingData.answer);
+                        console.log('📥 Processing answer...');
+                        await localPeerConnection.setRemoteDescription(new RTCSessionDescription(signalingData.answer));
+                        console.log('✅ Answer processed');
                         break;
                         
                     case 'ice-candidate':
-                        await localPeerConnection.addIceCandidate(signalingData.candidate);
+                        console.log('📥 Processing ICE candidate...');
+                        await localPeerConnection.addIceCandidate(new RTCIceCandidate(signalingData.candidate));
+                        console.log('✅ ICE candidate processed');
                         break;
                 }
                 
@@ -4158,6 +4223,8 @@
         }
 
         function showActiveCall() {
+            console.log('📺 Showing active call UI...');
+            
             // Get other user info
             const otherUserId = currentChatUser;
             database.ref('users/' + otherUserId).once('value').then((snapshot) => {
@@ -4173,6 +4240,7 @@
             const videoBtn = document.getElementById('videoBtn');
             
             if (currentCallType === 'video') {
+                console.log('📹 Setting up video call UI...');
                 videoContainer.classList.remove('hidden');
                 videoBtn.classList.remove('hidden');
                 
@@ -4180,8 +4248,19 @@
                 const localVideo = document.getElementById('localVideo');
                 if (localVideo && localStream) {
                     localVideo.srcObject = localStream;
+                    localVideo.play().catch(e => console.log('Local video play error:', e));
+                    console.log('✅ Local video set');
+                }
+                
+                // Set remote video if available
+                const remoteVideo = document.getElementById('remoteVideo');
+                if (remoteVideo && remoteStream) {
+                    remoteVideo.srcObject = remoteStream;
+                    remoteVideo.play().catch(e => console.log('Remote video play error:', e));
+                    console.log('✅ Remote video set');
                 }
             } else {
+                console.log('🎵 Setting up audio call UI...');
                 videoContainer.classList.add('hidden');
                 videoBtn.classList.add('hidden');
             }
@@ -4307,5 +4386,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9648c3a3f5685a1d',t:'MTc1MzQxNjE3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9648d16d174391d3',t:'MTc1MzQxNjczNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
