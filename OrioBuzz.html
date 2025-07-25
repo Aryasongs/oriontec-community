@@ -430,8 +430,11 @@
             </div>
             <div class="flex items-start space-x-3 lg:space-x-4 mb-4">
                 <img id="modalUserImage" class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-pink-300" src="" alt="User">
-                <div class="flex-1">
-                    <textarea id="buzzContent" placeholder="What's buzzing?" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" rows="4"></textarea>
+                <div class="flex-1 relative">
+                    <textarea id="buzzContent" placeholder="What's buzzing? Use #hashtags and @mentions" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" rows="4" oninput="handleBuzzInput()"></textarea>
+                    <div id="hashtagSuggestions" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg max-h-40 overflow-y-auto z-10">
+                        <!-- Hashtag suggestions will appear here -->
+                    </div>
                 </div>
             </div>
             <div class="mb-4">
@@ -685,8 +688,9 @@
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-2">Display Name</label>
-                    <input type="text" id="editName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
+                    <label class="block text-sm font-medium mb-2">Username</label>
+                    <input type="text" id="editName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" onchange="checkUsernameAvailability()">
+                    <p id="usernameStatus" class="text-xs mt-1"></p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Bio</label>
@@ -695,6 +699,10 @@
                 <div>
                     <label class="block text-sm font-medium mb-2">Location</label>
                     <input type="text" id="editLocation" placeholder="Enter your location" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Website</label>
+                    <input type="url" id="editWebsite" placeholder="https://yourwebsite.com" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Profile Photo</label>
@@ -2869,6 +2877,300 @@
             }
         });
 
+        // Handle buzz input for hashtag suggestions
+        function handleBuzzInput() {
+            const content = document.getElementById('buzzContent').value;
+            const cursorPosition = document.getElementById('buzzContent').selectionStart;
+            const textBeforeCursor = content.substring(0, cursorPosition);
+            const lastHashtag = textBeforeCursor.match(/#(\w*)$/);
+            
+            if (lastHashtag) {
+                const hashtagPrefix = lastHashtag[1];
+                showHashtagSuggestions(hashtagPrefix);
+            } else {
+                hideHashtagSuggestions();
+            }
+        }
+
+        // Show hashtag suggestions
+        function showHashtagSuggestions(prefix) {
+            database.ref('hashtags').once('value').then((snapshot) => {
+                const suggestions = document.getElementById('hashtagSuggestions');
+                suggestions.innerHTML = '';
+                
+                if (snapshot.exists()) {
+                    const hashtags = Object.keys(snapshot.val());
+                    const filteredHashtags = hashtags.filter(hashtag => 
+                        hashtag.toLowerCase().startsWith(prefix.toLowerCase())
+                    ).slice(0, 5);
+                    
+                    if (filteredHashtags.length > 0) {
+                        filteredHashtags.forEach(hashtag => {
+                            const div = document.createElement('div');
+                            div.className = 'p-2 hover:bg-gray-100 cursor-pointer text-sm';
+                            div.textContent = '#' + hashtag;
+                            div.onclick = () => selectHashtag(hashtag);
+                            suggestions.appendChild(div);
+                        });
+                        suggestions.classList.remove('hidden');
+                    } else {
+                        hideHashtagSuggestions();
+                    }
+                } else {
+                    hideHashtagSuggestions();
+                }
+            });
+        }
+
+        // Hide hashtag suggestions
+        function hideHashtagSuggestions() {
+            document.getElementById('hashtagSuggestions').classList.add('hidden');
+        }
+
+        // Select hashtag from suggestions
+        function selectHashtag(hashtag) {
+            const textarea = document.getElementById('buzzContent');
+            const content = textarea.value;
+            const cursorPosition = textarea.selectionStart;
+            const textBeforeCursor = content.substring(0, cursorPosition);
+            const textAfterCursor = content.substring(cursorPosition);
+            
+            // Replace the partial hashtag with the selected one
+            const newTextBefore = textBeforeCursor.replace(/#\w*$/, '#' + hashtag + ' ');
+            textarea.value = newTextBefore + textAfterCursor;
+            
+            // Set cursor position after the hashtag
+            const newCursorPosition = newTextBefore.length;
+            textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+            textarea.focus();
+            
+            hideHashtagSuggestions();
+        }
+
+        // Check username availability
+        async function checkUsernameAvailability() {
+            const username = document.getElementById('editName').value.trim();
+            const statusElement = document.getElementById('usernameStatus');
+            
+            if (!username) {
+                statusElement.textContent = '';
+                return;
+            }
+            
+            // Check if username is already taken
+            const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+            
+            if (usersSnapshot.exists()) {
+                const users = usersSnapshot.val();
+                const userIds = Object.keys(users);
+                
+                // Check if it's the current user's username
+                if (userIds.length === 1 && userIds[0] === currentUser.uid) {
+                    statusElement.textContent = 'This is your current username';
+                    statusElement.className = 'text-xs mt-1 text-blue-500';
+                } else {
+                    statusElement.textContent = 'Username already taken';
+                    statusElement.className = 'text-xs mt-1 text-red-500';
+                }
+            } else {
+                statusElement.textContent = 'Username available';
+                statusElement.className = 'text-xs mt-1 text-green-500';
+            }
+        }
+
+        // Update profile with website
+        async function updateProfile() {
+            if (!currentUser) return;
+            
+            const name = document.getElementById('editName').value.trim();
+            const bio = document.getElementById('editBio').value.trim();
+            const location = document.getElementById('editLocation').value.trim();
+            const website = document.getElementById('editWebsite').value.trim();
+            
+            // Check if username is available
+            if (name) {
+                const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(name).once('value');
+                if (usersSnapshot.exists()) {
+                    const users = usersSnapshot.val();
+                    const userIds = Object.keys(users);
+                    if (userIds.length > 0 && userIds[0] !== currentUser.uid) {
+                        alert('Username already taken. Please choose a different one.');
+                        return;
+                    }
+                }
+            }
+            
+            // Get current user data
+            const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+            const userData = userSnapshot.val();
+            let photoURL = userData.photoURL;
+            
+            // If no photo exists, generate avatar with new name
+            if (!photoURL || photoURL.startsWith('data:')) {
+                photoURL = generateAvatar(name);
+            }
+            
+            // Update user data
+            const updates = {
+                username: name,
+                bio: bio,
+                location: location,
+                website: website,
+                photoURL: photoURL
+            };
+            
+            database.ref('users/' + currentUser.uid).update(updates).then(() => {
+                closeEditProfile();
+                loadUserProfile();
+                updateTopBar();
+            });
+        }
+
+        // Load user profile with website
+        function loadUserProfile() {
+            if (!currentUser) return;
+            
+            const userRef = database.ref('users/' + currentUser.uid);
+            userRef.once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('profileImage').src = userData.photoURL;
+                    document.getElementById('profileName').textContent = userData.username;
+                    document.getElementById('profileUsername').textContent = '@' + userData.username.toLowerCase().replace(/\s+/g, '');
+                    document.getElementById('profileBio').textContent = userData.bio || 'No bio yet';
+                    document.getElementById('locationText').textContent = userData.location || 'Location not set';
+                    
+                    // Add website link if exists
+                    const locationElement = document.getElementById('profileLocation');
+                    if (userData.website) {
+                        locationElement.innerHTML = `
+                            📍 <span>${userData.location || 'Location not set'}</span><br>
+                            🌐 <a href="${userData.website}" target="_blank" class="text-blue-500 hover:text-blue-700">${userData.website}</a>
+                        `;
+                    } else {
+                        locationElement.innerHTML = `📍 <span id="locationText">${userData.location || 'Location not set'}</span>`;
+                    }
+                    
+                    // Load follower counts
+                    loadFollowerCounts(currentUser.uid);
+                    
+                    if (userData.verified) {
+                        document.getElementById('profileVerified').classList.remove('hidden');
+                    } else {
+                        document.getElementById('profileVerified').classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // Open edit profile with website
+        function openEditProfile() {
+            if (!currentUser) return;
+            
+            const userRef = database.ref('users/' + currentUser.uid);
+            userRef.once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('editName').value = userData.username;
+                    document.getElementById('editBio').value = userData.bio || '';
+                    document.getElementById('editLocation').value = userData.location || '';
+                    document.getElementById('editWebsite').value = userData.website || '';
+                }
+            });
+            
+            document.getElementById('editProfileModal').classList.remove('hidden');
+        }
+
+        // Send message with URL preview
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+            
+            if (!messageText || !currentChatUser) return;
+            
+            const conversationId = [currentUser.uid, currentChatUser].sort().join('_');
+            const messageId = database.ref('messages/' + conversationId).push().key;
+            
+            // Get URL preview if message contains URL
+            const urlPreview = await extractURLPreview(messageText);
+            
+            const messageData = {
+                id: messageId,
+                senderId: currentUser.uid,
+                receiverId: currentChatUser,
+                text: messageText,
+                urlPreview: urlPreview,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            // Save message
+            database.ref('messages/' + conversationId + '/' + messageId).set(messageData);
+            
+            // Update conversation
+            const conversationData = {
+                participants: {
+                    [currentUser.uid]: true,
+                    [currentChatUser]: true
+                },
+                lastMessage: messageText,
+                lastMessageTime: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            database.ref('conversations/' + conversationId).set(conversationData);
+            
+            messageInput.value = '';
+        }
+
+        // Create Message Element with URL preview
+        function createMessageElement(message) {
+            const div = document.createElement('div');
+            const isOwn = message.senderId === currentUser.uid;
+            
+            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} items-end space-x-2`;
+            
+            // URL Preview HTML for messages
+            let urlPreviewHTML = '';
+            if (message.urlPreview) {
+                urlPreviewHTML = `
+                    <div class="border border-gray-200 rounded-lg p-2 mt-2 cursor-pointer hover:bg-gray-50" onclick="openURL('${message.urlPreview.url}')">
+                        ${message.urlPreview.image ? `<img class="w-full h-20 object-cover rounded mb-1" src="${message.urlPreview.image}" alt="Preview">` : ''}
+                        <h5 class="font-medium text-xs text-gray-800">${message.urlPreview.title}</h5>
+                        <p class="text-xs text-gray-600">${message.urlPreview.domain}</p>
+                    </div>
+                `;
+            }
+            
+            if (isOwn) {
+                div.innerHTML = `
+                    <div class="max-w-xs lg:max-w-md">
+                        <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-2xl rounded-br-md shadow-lg">
+                            <p class="text-sm break-words">${message.text}</p>
+                            ${urlPreviewHTML}
+                        </div>
+                        <div class="flex items-center justify-end space-x-1 mt-1">
+                            <p class="text-xs text-gray-500">${formatTimestamp(message.timestamp)}</p>
+                            <span class="text-xs ${message.read ? 'text-blue-500' : 'text-gray-400'}">${message.read ? '✓✓' : '✓'}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
+                        <img class="w-full h-full object-cover" src="${message.senderImage || ''}" alt="User">
+                    </div>
+                    <div class="max-w-xs lg:max-w-md">
+                        <div class="bg-white border border-gray-200 text-gray-800 px-4 py-2 rounded-2xl rounded-bl-md shadow-sm">
+                            <p class="text-sm break-words">${message.text}</p>
+                            ${urlPreviewHTML}
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1 ml-2">${formatTimestamp(message.timestamp)}</p>
+                    </div>
+                `;
+            }
+            
+            return div;
+        }
+
         // Listen for notifications
         if (currentUser) {
             database.ref('notifications/' + currentUser.uid).on('child_added', () => {
@@ -2876,5 +3178,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'964864cc32f05495',t:'MTc1MzQxMjI4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'964882a5a6e4551d',t:'MTc1MzQxMzUxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
