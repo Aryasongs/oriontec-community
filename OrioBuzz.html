@@ -262,7 +262,7 @@
                                 <div class="p-4 border-t border-gray-200 bg-white">
                                     <div class="flex space-x-2">
                                         <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm" oninput="handleTyping()">
-                                        <button onclick="console.log('Send button clicked'); sendMessage();" class="gradient-bg text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
+                                        <button id="sendMessageBtn" class="gradient-bg text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
                                             <span class="hidden sm:inline">Send</span>
                                             <span class="sm:hidden">📤</span>
                                         </button>
@@ -2745,106 +2745,166 @@
             return div;
         }
 
-        // Send Message
-        async function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const messageText = messageInput.value.trim();
+        // Send Message - Completely Fixed
+        function sendMessage() {
+            console.log('🚀 Send message function called');
             
-            if (!messageText || !currentChatUser) {
-                console.log('No message text or chat user');
+            const messageInput = document.getElementById('messageInput');
+            if (!messageInput) {
+                console.error('❌ Message input not found');
                 return;
             }
             
-            console.log('Sending message:', messageText, 'to:', currentChatUser);
+            const messageText = messageInput.value.trim();
+            console.log('📝 Message text:', messageText);
             
+            if (!messageText) {
+                console.log('⚠️ No message text');
+                return;
+            }
+            
+            if (!currentChatUser) {
+                console.log('⚠️ No chat user selected');
+                alert('Please select a user to chat with');
+                return;
+            }
+            
+            if (!currentUser) {
+                console.log('⚠️ No current user');
+                alert('Please login first');
+                return;
+            }
+            
+            console.log('✅ All checks passed, sending message...');
+            
+            // Create conversation ID
             const conversationId = [currentUser.uid, currentChatUser].sort().join('_');
-            const messageId = database.ref('messages/' + conversationId).push().key;
+            console.log('💬 Conversation ID:', conversationId);
             
-            try {
-                // Get current user data
-                const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+            // Get user data first
+            database.ref('users/' + currentUser.uid).once('value').then((userSnapshot) => {
                 const userData = userSnapshot.val();
+                console.log('👤 User data:', userData);
                 
+                if (!userData) {
+                    console.error('❌ No user data found');
+                    return;
+                }
+                
+                // Create message data
                 const messageData = {
-                    id: messageId,
                     senderId: currentUser.uid,
                     receiverId: currentChatUser,
-                    senderName: userData.username,
-                    senderImage: userData.photoURL,
+                    senderName: userData.username || userData.displayName || 'User',
+                    senderImage: userData.photoURL || '',
                     text: messageText,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    timestamp: Date.now(),
                     read: false
                 };
                 
-                console.log('Message data:', messageData);
+                console.log('📤 Sending message data:', messageData);
                 
-                // Save message
-                await database.ref('messages/' + conversationId + '/' + messageId).set(messageData);
-                console.log('Message saved successfully');
+                // Save message to database
+                const messageRef = database.ref('messages/' + conversationId).push();
+                messageRef.set(messageData).then(() => {
+                    console.log('✅ Message saved successfully');
+                    
+                    // Clear input
+                    messageInput.value = '';
+                    
+                    // Update conversation
+                    const conversationData = {
+                        participants: {
+                            [currentUser.uid]: true,
+                            [currentChatUser]: true
+                        },
+                        lastMessage: messageText,
+                        lastMessageTime: Date.now(),
+                        lastMessageSender: currentUser.uid
+                    };
+                    
+                    database.ref('conversations/' + conversationId).set(conversationData).then(() => {
+                        console.log('✅ Conversation updated');
+                        
+                        // Create notification
+                        createNotification(currentChatUser, 'message', `${userData.username || 'Someone'} sent you a message`);
+                        
+                        // Remove typing indicator
+                        database.ref('typing/' + conversationId + '/' + currentUser.uid).remove();
+                        
+                    }).catch((error) => {
+                        console.error('❌ Error updating conversation:', error);
+                    });
+                    
+                }).catch((error) => {
+                    console.error('❌ Error saving message:', error);
+                    alert('Failed to send message: ' + error.message);
+                });
                 
-                // Update conversation
-                const conversationData = {
-                    participants: {
-                        [currentUser.uid]: true,
-                        [currentChatUser]: true
-                    },
-                    lastMessage: messageText,
-                    lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
-                    lastMessageSender: currentUser.uid
-                };
-                
-                await database.ref('conversations/' + conversationId).set(conversationData);
-                console.log('Conversation updated successfully');
-                
-                // Clear input
-                messageInput.value = '';
-                
-                // Remove typing indicator
-                database.ref('typing/' + conversationId + '/' + currentUser.uid).remove();
-                
-                // Create notification for receiver
-                createNotification(currentChatUser, 'message', `${userData.username} sent you a message`);
-                
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('Failed to send message. Please try again.');
-            }
+            }).catch((error) => {
+                console.error('❌ Error getting user data:', error);
+                alert('Failed to get user data: ' + error.message);
+            });
         }
 
-        // Initialize message input listeners
+        // Initialize message input with better event handling
         function initializeMessageInput() {
+            console.log('🔧 Initializing message input...');
+            
             const messageInput = document.getElementById('messageInput');
-            if (messageInput) {
-                // Remove existing listeners to prevent duplicates
-                messageInput.removeEventListener('keypress', handleMessageKeypress);
-                
-                // Add keypress listener
-                messageInput.addEventListener('keypress', handleMessageKeypress);
-                
-                console.log('Message input listeners initialized');
+            const sendBtn = document.getElementById('sendMessageBtn');
+            
+            if (!messageInput) {
+                console.log('⚠️ Message input not found during initialization');
+                return;
             }
-        }
-        
-        // Handle keypress in message input
-        function handleMessageKeypress(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            
+            if (!sendBtn) {
+                console.log('⚠️ Send button not found during initialization');
+                return;
+            }
+            
+            // Remove any existing event listeners by cloning elements
+            const newInput = messageInput.cloneNode(true);
+            const newBtn = sendBtn.cloneNode(true);
+            
+            messageInput.parentNode.replaceChild(newInput, messageInput);
+            sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+            
+            // Add fresh event listeners to input
+            newInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    console.log('⌨️ Enter key pressed - sending message');
+                    sendMessage();
+                }
+            });
+            
+            newInput.addEventListener('input', function() {
+                handleTyping();
+            });
+            
+            // Add click event listener to send button
+            newBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('Enter key pressed, sending message');
+                console.log('🖱️ Send button clicked - sending message');
                 sendMessage();
-            }
+            });
+            
+            console.log('✅ Message input and send button initialized successfully');
         }
         
-        // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initializeMessageInput);
-        
-        // Re-initialize when messages page is shown
+        // Show Messages with proper initialization
         function showMessages() {
+            console.log('📱 Showing messages page...');
             hideAllPages();
             document.getElementById('messagesPage').classList.remove('hidden');
             loadConversations();
             
-            // Initialize message input after a short delay
-            setTimeout(initializeMessageInput, 100);
+            // Initialize message input after DOM is ready
+            setTimeout(() => {
+                initializeMessageInput();
+            }, 200);
         }
 
         // Load Settings
@@ -3539,5 +3599,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9648a38925d054fb',t:'MTc1MzQxNDg1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9648a97bc3c891b8',t:'MTc1MzQxNTEwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
