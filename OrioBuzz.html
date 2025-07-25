@@ -303,53 +303,41 @@
 
                 <!-- Profile Page -->
                 <div id="profilePage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
-                    <!-- Instagram-style Profile Header -->
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-                        <!-- Cover Photo Area -->
-                        <div class="h-32 bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-500 relative">
-                            <div class="absolute inset-0 bg-black bg-opacity-20"></div>
-                        </div>
-                        
-                        <!-- Profile Info -->
-                        <div class="px-4 lg:px-8 pb-6">
+                    <!-- Simple Profile Header -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                        <div class="flex flex-col items-center text-center">
                             <!-- Profile Picture -->
-                            <div class="flex justify-center -mt-16 mb-4">
-                                <img id="profileImage" class="w-32 h-32 rounded-full border-4 border-white shadow-lg" src="" alt="Profile">
-                            </div>
+                            <img id="profileImage" class="w-24 h-24 rounded-full border-4 border-pink-300 mb-4" src="" alt="Profile">
                             
                             <!-- Name and Username -->
-                            <div class="text-center mb-4">
-                                <div class="flex items-center justify-center space-x-2 mb-1">
-                                    <h2 id="profileName" class="text-2xl font-bold text-gray-900"></h2>
-                                    <img id="profileVerified" src="https://community.oriontec.xyz/verify.png" alt="Verified" class="hidden verified-badge">
-                                </div>
-                                <p id="profileUsername" class="text-gray-600 text-lg"></p>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <h2 id="profileName" class="text-xl font-bold text-gray-900"></h2>
+                                <img id="profileVerified" src="https://community.oriontec.xyz/verify.png" alt="Verified" class="hidden verified-badge">
                             </div>
+                            <p id="profileUsername" class="text-gray-600 mb-4"></p>
                             
                             <!-- Stats Row -->
-                            <div class="flex justify-center space-x-8 mb-4">
+                            <div class="flex space-x-8 mb-4">
                                 <div class="text-center">
-                                    <div class="text-xl font-bold text-gray-900" id="postsCount">0</div>
+                                    <div class="text-lg font-bold text-gray-900" id="postsCount">0</div>
                                     <div class="text-sm text-gray-600">Posts</div>
                                 </div>
                                 <div onclick="showFollowersPage('followers')" class="text-center cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors">
-                                    <div class="text-xl font-bold text-gray-900" id="followersCount">0</div>
+                                    <div class="text-lg font-bold text-gray-900" id="followersCount">0</div>
                                     <div class="text-sm text-gray-600">Followers</div>
                                 </div>
                                 <div onclick="showFollowersPage('following')" class="text-center cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors">
-                                    <div class="text-xl font-bold text-gray-900" id="followingCount">0</div>
+                                    <div class="text-lg font-bold text-gray-900" id="followingCount">0</div>
                                     <div class="text-sm text-gray-600">Following</div>
                                 </div>
                             </div>
                             
                             <!-- Bio -->
-                            <div class="text-center mb-4">
-                                <p id="profileBio" class="text-gray-700 mb-2"></p>
-                                <p id="profileLocation" class="text-gray-500 text-sm">📍 <span id="locationText">Location not set</span></p>
-                            </div>
+                            <p id="profileBio" class="text-gray-700 mb-2"></p>
+                            <p id="profileLocation" class="text-gray-500 text-sm mb-4">📍 <span id="locationText">Location not set</span></p>
                             
                             <!-- Action Buttons -->
-                            <div class="flex justify-center space-x-3">
+                            <div class="flex space-x-3">
                                 <button onclick="openEditProfile()" class="gradient-bg text-white px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm font-medium">
                                     Edit Profile
                                 </button>
@@ -638,6 +626,9 @@
                                     <button onclick="startChatWithUser()" class="border border-pink-500 text-pink-500 px-4 lg:px-6 py-2 rounded-full hover:bg-pink-50 transition-colors text-sm lg:text-base">
                                         💬 Message
                                     </button>
+                                    <button onclick="contactUser()" class="border border-gray-300 text-gray-700 px-4 lg:px-6 py-2 rounded-full hover:bg-gray-50 transition-colors text-sm lg:text-base">
+                                        📞 Contact
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -701,112 +692,60 @@
         </div>
     </div>
 
-    <!-- Verification Modal -->
+    <!-- Simple Verification Modal -->
     <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-4 lg:mb-6">
-                <h3 class="text-lg lg:text-xl font-bold flex items-center space-x-2">
-                    <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold flex items-center space-x-2">
+                    <span>✅</span>
                     <span>Get Verified</span>
                 </h3>
                 <button onclick="closeVerificationModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
             </div>
             
-            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-                <div class="flex items-center space-x-2 mb-2">
-                    <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
-                    <h4 class="font-semibold text-yellow-800">Strict Verification Policy</h4>
-                </div>
-                <p class="text-sm text-yellow-700">Only specific users (Gursharn Arya, Anmol Sunda, Dozera, Oriontec) can get verified without meeting all criteria.</p>
-            </div>
-
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-2">Account Type *</label>
-                    <select id="verifyAccountType" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" onchange="toggleVerificationFields()" required>
-                        <option value="">Select Account Type</option>
-                        <option value="individual">Individual</option>
+                    <label class="block text-sm font-medium mb-2">Full Name *</label>
+                    <input type="text" id="verifyName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="Your full name">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Age *</label>
+                    <input type="number" id="verifyAge" min="13" max="100" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="Your age">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Category *</label>
+                    <select id="verifyCategory" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300">
+                        <option value="">Select Category</option>
+                        <option value="creator">Content Creator</option>
                         <option value="business">Business</option>
+                        <option value="public_figure">Public Figure</option>
+                        <option value="artist">Artist</option>
+                        <option value="other">Other</option>
                     </select>
                 </div>
-
-                <div id="individualFields" class="hidden space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Legal Full Name *</label>
-                        <input type="text" id="verifyLegalName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" placeholder="Your legal name as per ID">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Age *</label>
-                        <input type="number" id="verifyAge" min="13" max="100" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Category *</label>
-                        <select id="verifyIndividualCategory" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
-                            <option value="">Select Category</option>
-                            <option value="professional">Professional</option>
-                            <option value="creator">Content Creator</option>
-                            <option value="public_figure">Public Figure</option>
-                            <option value="influencer">Influencer</option>
-                            <option value="artist">Artist</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="businessFields" class="hidden space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Business Legal Name *</label>
-                        <input type="text" id="verifyBusinessName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" placeholder="Registered business name">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Business Registration Number</label>
-                        <input type="text" id="verifyBusinessReg" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" placeholder="Registration/License number">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Business Category *</label>
-                        <select id="verifyBusinessCategory" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
-                            <option value="">Select Category</option>
-                            <option value="company">Company</option>
-                            <option value="startup">Startup</option>
-                            <option value="organization">Organization</option>
-                            <option value="brand">Brand</option>
-                            <option value="media">Media</option>
-                            <option value="government">Government</option>
-                        </select>
-                    </div>
-                </div>
-
+                
                 <div>
-                    <label class="block text-sm font-medium mb-2">Verification Link *</label>
-                    <div class="flex">
-                        <span class="bg-gray-100 px-3 py-3 border border-r-0 border-gray-300 rounded-l-xl text-sm">www.oriontec.xyz/</span>
-                        <input type="text" id="verifyLink" placeholder="your-username" class="flex-1 p-3 border border-gray-300 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" required>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1">Your name/business must appear on this link for verification</p>
+                    <label class="block text-sm font-medium mb-2">Website/Social Link *</label>
+                    <input type="url" id="verifyLink" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="https://yourwebsite.com">
+                    <p class="text-xs text-gray-500 mt-1">Link where your name/brand appears</p>
                 </div>
-
+                
                 <div class="bg-blue-50 p-4 rounded-xl">
-                    <h4 class="font-medium text-blue-800 mb-2">Verification Requirements:</h4>
+                    <h4 class="font-medium text-blue-800 mb-2">Requirements:</h4>
                     <ul class="text-sm text-blue-700 space-y-1">
-                        <li>• Your name/business must appear on the provided link</li>
-                        <li>• Link will be checked within 5 minutes</li>
-                        <li>• You'll receive a notification about the result</li>
-                        <li>• Verification is free and permanent</li>
-                        <li>• False information will result in permanent ban</li>
+                        <li>• Must be 13+ years old</li>
+                        <li>• Provide valid website/social link</li>
+                        <li>• Your name must appear on the link</li>
+                        <li>• Review takes 24-48 hours</li>
                     </ul>
                 </div>
-
-                <div class="bg-red-50 p-4 rounded-xl">
-                    <h4 class="font-medium text-red-800 mb-2">Special Users:</h4>
-                    <p class="text-sm text-red-700">Gursharn Arya, Anmol Sunda, Dozera, and Oriontec get instant verification regardless of criteria.</p>
-                </div>
             </div>
+            
             <div class="flex justify-end mt-6">
-                <button onclick="submitVerification()" class="gradient-bg text-white px-6 lg:px-8 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
-                    Submit for Verification
+                <button onclick="submitVerification()" class="gradient-bg text-white px-6 py-2 rounded-full hover:opacity-90 transition-opacity">
+                    Submit Request
                 </button>
             </div>
         </div>
@@ -1469,23 +1408,7 @@
             return content.length <= 500;
         }
 
-        // Toggle Verification Fields
-        function toggleVerificationFields() {
-            const accountType = document.getElementById('verifyAccountType').value;
-            const individualFields = document.getElementById('individualFields');
-            const businessFields = document.getElementById('businessFields');
-            
-            if (accountType === 'individual') {
-                individualFields.classList.remove('hidden');
-                businessFields.classList.add('hidden');
-            } else if (accountType === 'business') {
-                individualFields.classList.add('hidden');
-                businessFields.classList.remove('hidden');
-            } else {
-                individualFields.classList.add('hidden');
-                businessFields.classList.add('hidden');
-            }
-        }
+        // Simple verification - no complex fields needed
 
         // URL Hash Navigation
         function handleURLHash() {
@@ -3820,27 +3743,29 @@
             const link = document.getElementById('verifyLink').value.trim();
             
             if (!name || !age || !category || !link) {
-                alert('Please fill all required fields');
+                showCustomAlert('Please fill all required fields', 'error');
                 return;
             }
             
             if (age < 13) {
-                alert('You must be at least 13 years old to get verified');
+                showCustomAlert('You must be at least 13 years old to get verified', 'error');
                 return;
             }
             
-            // Special names that get instant verification
-            const instantVerifyNames = ['oriontec', 'dozera', 'gursharn arya', 'orry', 'anmol sunda'];
-            const isInstantVerify = instantVerifyNames.some(specialName => 
-                name.toLowerCase().includes(specialName.toLowerCase())
-            );
+            // Validate URL
+            try {
+                new URL(link);
+            } catch {
+                showCustomAlert('Please enter a valid URL', 'error');
+                return;
+            }
             
             const verificationData = {
                 uid: currentUser.uid,
                 name: name,
                 age: age,
                 category: category,
-                link: 'www.orintec.xyz/' + link,
+                link: link,
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 status: 'pending'
             };
@@ -3849,33 +3774,10 @@
             database.ref('verificationRequests/' + currentUser.uid).set(verificationData);
             
             closeVerificationModal();
+            showCustomAlert('Verification request submitted! We will review it within 24-48 hours.', 'success');
             
-            if (isInstantVerify) {
-                // Instant verification for special names
-                setTimeout(() => {
-                    database.ref('users/' + currentUser.uid).update({ verified: true });
-                    createNotification(currentUser.uid, 'verification', '🎉 Congratulations! Your verification request has been approved. You are now verified!');
-                    database.ref('verificationRequests/' + currentUser.uid).update({ status: 'approved' });
-                }, 2000); // 2 seconds
-            } else {
-                // Regular verification process - simulate link checking
-                setTimeout(() => {
-                    // Simulate checking if username appears on the link
-                    // In real implementation, this would make an actual HTTP request
-                    const linkContainsUsername = Math.random() > 0.7; // 30% success rate for demo
-                    
-                    if (linkContainsUsername) {
-                        database.ref('users/' + currentUser.uid).update({ verified: true });
-                        createNotification(currentUser.uid, 'verification', '🎉 Congratulations! Your verification request has been approved. You are now verified!');
-                        database.ref('verificationRequests/' + currentUser.uid).update({ status: 'approved' });
-                    } else {
-                        createNotification(currentUser.uid, 'verification', '❌ Your verification request has been rejected. Your username was not found on the provided link. Please try again with a valid link.');
-                        database.ref('verificationRequests/' + currentUser.uid).update({ status: 'rejected' });
-                    }
-                }, 300000); // 5 minutes
-            }
-            
-            alert('Verification request submitted! You will receive a notification about the result.');
+            // Create notification for user
+            createNotification(currentUser.uid, 'verification', 'Your verification request has been submitted and is under review.');
         }
 
         // Export Data
@@ -5288,6 +5190,69 @@
             }
         }
 
+        // Custom Alert System
+        function showCustomAlert(message, type = 'info') {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.custom-alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'custom-alert fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg max-w-sm transform transition-all duration-300 translate-x-full';
+            
+            let bgColor, textColor, icon;
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-green-500';
+                    textColor = 'text-white';
+                    icon = '✅';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-500';
+                    textColor = 'text-white';
+                    icon = '❌';
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-500';
+                    textColor = 'text-white';
+                    icon = '⚠️';
+                    break;
+                default:
+                    bgColor = 'bg-blue-500';
+                    textColor = 'text-white';
+                    icon = 'ℹ️';
+            }
+            
+            alertDiv.className += ` ${bgColor} ${textColor}`;
+            alertDiv.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <span class="text-lg">${icon}</span>
+                    <span class="flex-1">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:text-gray-200">
+                        ✕
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Animate in
+            setTimeout(() => {
+                alertDiv.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        if (alertDiv.parentElement) {
+                            alertDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
             if (isCallActive) {
@@ -5295,5 +5260,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96492258647d5a06',t:'MTc1MzQyMDA1MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96493bd7a0df91ec',t:'MTc1MzQyMTA5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
