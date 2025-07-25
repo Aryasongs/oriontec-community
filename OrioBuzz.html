@@ -368,6 +368,20 @@
                     </div>
                 </div>
 
+                <!-- Hashtag Page -->
+                <div id="hashtagPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <button onclick="goBackFromHashtag()" class="text-pink-500 hover:text-pink-700">← Back</button>
+                        <div>
+                            <h2 id="hashtagTitle" class="text-xl lg:text-2xl font-bold gradient-text">#hashtag</h2>
+                            <p id="hashtagCount" class="text-sm text-gray-600">0 posts</p>
+                        </div>
+                    </div>
+                    <div id="hashtagFeed" class="space-y-4 lg:space-y-6">
+                        <!-- Hashtag posts will be loaded here -->
+                    </div>
+                </div>
+
                 <!-- Other User Profile Page -->
                 <div id="otherUserProfile" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
                     <div class="bg-white rounded-2xl shadow-lg p-4 lg:p-8 mb-6">
@@ -688,8 +702,12 @@
             </div>
             <div class="space-y-4">
                 <div>
+                    <label class="block text-sm font-medium mb-2">Display Name</label>
+                    <input type="text" id="editDisplayName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" placeholder="Your display name">
+                </div>
+                <div>
                     <label class="block text-sm font-medium mb-2">Username</label>
-                    <input type="text" id="editName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" onchange="checkUsernameAvailability()">
+                    <input type="text" id="editName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" onchange="checkUsernameAvailability()" placeholder="username (no spaces)">
                     <p id="usernameStatus" class="text-xs mt-1"></p>
                 </div>
                 <div>
@@ -876,6 +894,144 @@
             return randomAdj + randomNoun + randomNum;
         }
 
+        // Extract hashtags from content
+        function extractHashtags(content) {
+            const hashtagRegex = /#(\w+)/g;
+            const hashtags = [];
+            let match;
+            while ((match = hashtagRegex.exec(content)) !== null) {
+                hashtags.push(match[1].toLowerCase());
+            }
+            return [...new Set(hashtags)]; // Remove duplicates
+        }
+
+        // Extract mentions from content
+        function extractMentions(content) {
+            const mentionRegex = /@(\w+)/g;
+            const mentions = [];
+            let match;
+            while ((match = mentionRegex.exec(content)) !== null) {
+                mentions.push(match[1].toLowerCase());
+            }
+            return [...new Set(mentions)]; // Remove duplicates
+        }
+
+        // Process content for display with clickable hashtags and mentions
+        function processContentForDisplay(content) {
+            // Make hashtags clickable (blue color)
+            content = content.replace(/#(\w+)/g, '<span class="text-blue-500 cursor-pointer hover:text-blue-700 font-medium" onclick="showHashtagPage(\'$1\')">#$1</span>');
+            
+            // Make mentions clickable (blue color)
+            content = content.replace(/@(\w+)/g, '<span class="text-blue-500 cursor-pointer hover:text-blue-700 font-medium" onclick="viewUserByUsername(\'$1\')">@$1</span>');
+            
+            return content;
+        }
+
+        // Show hashtag page
+        function showHashtagPage(hashtag) {
+            hideAllPages();
+            document.getElementById('hashtagPage').classList.remove('hidden');
+            document.getElementById('hashtagTitle').textContent = '#' + hashtag;
+            
+            // Load hashtag posts count
+            database.ref('hashtags/' + hashtag.toLowerCase()).once('value').then((snapshot) => {
+                const count = snapshot.val() || 0;
+                document.getElementById('hashtagCount').textContent = count + ' post' + (count !== 1 ? 's' : '');
+            });
+            
+            loadHashtagPosts(hashtag.toLowerCase());
+        }
+
+        // Load hashtag posts
+        function loadHashtagPosts(hashtag) {
+            const hashtagPostsRef = database.ref('hashtagPosts/' + hashtag);
+            hashtagPostsRef.once('value').then((snapshot) => {
+                const hashtagFeed = document.getElementById('hashtagFeed');
+                hashtagFeed.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    hashtagFeed.innerHTML = '<p class="text-gray-500 text-center py-8">No posts found for this hashtag</p>';
+                    return;
+                }
+                
+                const buzzIds = Object.keys(snapshot.val());
+                const buzzPromises = buzzIds.map(buzzId => 
+                    database.ref('buzz/' + buzzId).once('value')
+                );
+                
+                Promise.all(buzzPromises).then((buzzSnapshots) => {
+                    const buzzes = buzzSnapshots
+                        .map(snapshot => snapshot.val())
+                        .filter(buzz => buzz !== null)
+                        .sort((a, b) => b.timestamp - a.timestamp);
+                    
+                    if (buzzes.length === 0) {
+                        hashtagFeed.innerHTML = '<p class="text-gray-500 text-center py-8">No posts found for this hashtag</p>';
+                        return;
+                    }
+                    
+                    buzzes.forEach((buzz) => {
+                        const buzzElement = createBuzzElement(buzz);
+                        hashtagFeed.appendChild(buzzElement);
+                    });
+                });
+            });
+        }
+
+        // View user by username
+        async function viewUserByUsername(username) {
+            const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(username.toLowerCase()).once('value');
+            
+            if (usersSnapshot.exists()) {
+                const users = usersSnapshot.val();
+                const userId = Object.keys(users)[0];
+                viewUserProfile(userId);
+            } else {
+                alert('User not found');
+            }
+        }
+
+        // Go back from hashtag page
+        function goBackFromHashtag() {
+            showHome();
+        }
+
+        // Remove mention from buzz
+        async function removeMention(buzzId) {
+            if (!currentUser) return;
+            
+            if (confirm('Remove your mention from this buzz?')) {
+                const buzzRef = database.ref('buzz/' + buzzId);
+                const buzzSnapshot = await buzzRef.once('value');
+                const buzzData = buzzSnapshot.val();
+                
+                if (buzzData && buzzData.mentions) {
+                    // Remove current user's username from mentions array
+                    const updatedMentions = buzzData.mentions.filter(mention => mention !== currentUser.username);
+                    
+                    // Update content to remove the mention
+                    let updatedContent = buzzData.originalContent || buzzData.content;
+                    const mentionRegex = new RegExp(`@${currentUser.username}\\b`, 'gi');
+                    updatedContent = updatedContent.replace(mentionRegex, '');
+                    
+                    // Process content for display again
+                    const processedContent = processContentForDisplay(updatedContent);
+                    
+                    // Update the buzz
+                    await buzzRef.update({
+                        mentions: updatedMentions,
+                        content: processedContent,
+                        originalContent: updatedContent
+                    });
+                    
+                    // Reload the feed
+                    loadBuzzFeed();
+                    
+                    alert('Your mention has been removed from this buzz');
+                }
+            }
+        }
+
         // Generate colorful avatar with initials
         function generateAvatar(name) {
             const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'];
@@ -908,11 +1064,13 @@
             const userRef = database.ref('users/' + user.uid);
             userRef.once('value').then((snapshot) => {
                 if (!snapshot.exists()) {
-                    const username = user.displayName || generateRandomUsername();
-                    const photoURL = user.photoURL || generateAvatar(username);
+                    const displayName = user.displayName || generateRandomUsername();
+                    const username = (user.displayName || generateRandomUsername()).toLowerCase().replace(/\s+/g, '_');
+                    const photoURL = user.photoURL || generateAvatar(displayName);
                     
                     userRef.set({
                         uid: user.uid,
+                        displayName: displayName,
                         username: username,
                         email: user.email,
                         photoURL: photoURL,
@@ -921,12 +1079,20 @@
                         joinedAt: firebase.database.ServerValue.TIMESTAMP
                     });
                 } else {
-                    // Update existing user if they don't have a photo
+                    // Update existing user if they don't have a photo or display name
                     const userData = snapshot.val();
+                    const updates = {};
+                    
                     if (!userData.photoURL || userData.photoURL === '') {
-                        userRef.update({
-                            photoURL: generateAvatar(userData.username)
-                        });
+                        updates.photoURL = generateAvatar(userData.displayName || userData.username);
+                    }
+                    
+                    if (!userData.displayName) {
+                        updates.displayName = userData.username;
+                    }
+                    
+                    if (Object.keys(updates).length > 0) {
+                        userRef.update(updates);
                     }
                 }
             });
@@ -950,7 +1116,7 @@
                     const userData = snapshot.val();
                     if (userData) {
                         document.getElementById('topBarUserImage').src = userData.photoURL;
-                        document.getElementById('topBarUsername').textContent = userData.username;
+                        document.getElementById('topBarUsername').textContent = userData.displayName || userData.username;
                         document.getElementById('modalUserImage').src = userData.photoURL;
                     }
                 });
@@ -1118,6 +1284,7 @@
             document.getElementById('settingsPage').classList.add('hidden');
             document.getElementById('otherUserProfile').classList.add('hidden');
             document.getElementById('followersPage').classList.add('hidden');
+            document.getElementById('hashtagPage').classList.add('hidden');
         }
 
         // Followers Page Functions
@@ -1277,8 +1444,8 @@
                 const userData = snapshot.val();
                 if (userData) {
                     document.getElementById('profileImage').src = userData.photoURL;
-                    document.getElementById('profileName').textContent = userData.username;
-                    document.getElementById('profileUsername').textContent = '@' + userData.username.toLowerCase().replace(/\s+/g, '');
+                    document.getElementById('profileName').textContent = userData.displayName || userData.username;
+                    document.getElementById('profileUsername').textContent = '@' + userData.username;
                     document.getElementById('profileBio').textContent = userData.bio || 'No bio yet';
                     document.getElementById('locationText').textContent = userData.location || 'Location not set';
                     
@@ -1339,14 +1506,22 @@
             const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
             const userData = userSnapshot.val();
 
+            // Extract hashtags and mentions
+            const hashtags = extractHashtags(content);
+            const mentions = extractMentions(content);
+
             // Create buzz object
             const buzzData = {
                 buzzId: buzzId,
                 uid: currentUser.uid,
                 username: userData.username,
+                displayName: userData.displayName || userData.username,
                 userImage: userData.photoURL,
                 verified: userData.verified || false,
-                content: content,
+                content: processContentForDisplay(content),
+                originalContent: content,
+                hashtags: hashtags,
+                mentions: mentions,
                 imageURL: null,
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 likes: {},
@@ -1355,6 +1530,30 @@
 
             // Save to database
             database.ref('buzz/' + buzzId).set(buzzData).then(() => {
+                // Save hashtags to hashtags collection
+                hashtags.forEach(hashtag => {
+                    const hashtagRef = database.ref('hashtags/' + hashtag);
+                    hashtagRef.transaction((currentCount) => {
+                        return (currentCount || 0) + 1;
+                    });
+                    
+                    // Add buzz to hashtag posts
+                    database.ref('hashtagPosts/' + hashtag + '/' + buzzId).set(true);
+                });
+
+                // Create notifications for mentions
+                mentions.forEach(async (mention) => {
+                    const mentionedUserSnapshot = await database.ref('users').orderByChild('username').equalTo(mention).once('value');
+                    if (mentionedUserSnapshot.exists()) {
+                        const mentionedUsers = mentionedUserSnapshot.val();
+                        Object.keys(mentionedUsers).forEach(userId => {
+                            if (userId !== currentUser.uid) {
+                                createNotification(userId, 'mention', `${userData.displayName || userData.username} mentioned you in a buzz`);
+                            }
+                        });
+                    }
+                });
+
                 closeBuzzModal();
                 loadBuzzFeed();
             });
@@ -1685,11 +1884,20 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center space-x-2 mb-2 flex-wrap">
-                            <span onclick="viewUserProfile('${buzz.uid}')" class="font-bold text-sm lg:text-base truncate cursor-pointer hover:text-pink-500 transition-colors">${buzz.username}</span>
+                            <span onclick="viewUserProfile('${buzz.uid}')" class="font-bold text-sm lg:text-base truncate cursor-pointer hover:text-pink-500 transition-colors">${buzz.displayName || buzz.username}</span>
                             ${buzz.verified ? '<img src="https://community.oriontec.xyz/verify.png" alt="Verified" class="verified-badge flex-shrink-0">' : ''}
+                            <span class="text-gray-500 text-xs lg:text-sm flex-shrink-0">@${buzz.username}</span>
                             <span class="text-gray-500 text-xs lg:text-sm flex-shrink-0">${formatTimestamp(buzz.timestamp)}</span>
                         </div>
                         <p class="text-gray-800 mb-3 text-sm lg:text-base break-words">${buzz.content}</p>
+                        ${buzz.mentions && buzz.mentions.includes(currentUser.username) ? `
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-yellow-800">You were mentioned in this buzz</span>
+                                    <button onclick="removeMention('${buzz.buzzId}')" class="text-xs text-red-600 hover:text-red-800">Remove mention</button>
+                                </div>
+                            </div>
+                        ` : ''}
                         ${buzz.imageURL ? `<img class="w-full max-w-md rounded-xl mb-3" src="${buzz.imageURL}" alt="Buzz image">` : ''}
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-4 lg:space-x-6">
@@ -2042,8 +2250,8 @@
                 const userData = snapshot.val();
                 if (userData) {
                     document.getElementById('otherProfileImage').src = userData.photoURL;
-                    document.getElementById('otherProfileName').textContent = userData.username;
-                    document.getElementById('otherProfileUsername').textContent = '@' + userData.username.toLowerCase().replace(/\s+/g, '');
+                    document.getElementById('otherProfileName').textContent = userData.displayName || userData.username;
+                    document.getElementById('otherProfileUsername').textContent = '@' + userData.username;
                     document.getElementById('otherProfileBio').textContent = userData.bio || 'No bio yet';
                     document.getElementById('otherLocationText').textContent = userData.location || 'Location not set';
                     
@@ -2982,14 +3190,21 @@
         async function updateProfile() {
             if (!currentUser) return;
             
-            const name = document.getElementById('editName').value.trim();
+            const displayName = document.getElementById('editDisplayName').value.trim();
+            const username = document.getElementById('editName').value.trim().toLowerCase().replace(/\s+/g, '');
             const bio = document.getElementById('editBio').value.trim();
             const location = document.getElementById('editLocation').value.trim();
             const website = document.getElementById('editWebsite').value.trim();
             
+            // Validate username format
+            if (username && !/^[a-z0-9_]+$/.test(username)) {
+                alert('Username can only contain lowercase letters, numbers, and underscores');
+                return;
+            }
+            
             // Check if username is available
-            if (name) {
-                const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(name).once('value');
+            if (username) {
+                const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
                 if (usersSnapshot.exists()) {
                     const users = usersSnapshot.val();
                     const userIds = Object.keys(users);
@@ -3005,14 +3220,15 @@
             const userData = userSnapshot.val();
             let photoURL = userData.photoURL;
             
-            // If no photo exists, generate avatar with new name
+            // If no photo exists, generate avatar with new display name
             if (!photoURL || photoURL.startsWith('data:')) {
-                photoURL = generateAvatar(name);
+                photoURL = generateAvatar(displayName || username);
             }
             
             // Update user data
             const updates = {
-                username: name,
+                displayName: displayName,
+                username: username,
                 bio: bio,
                 location: location,
                 website: website,
@@ -3035,8 +3251,8 @@
                 const userData = snapshot.val();
                 if (userData) {
                     document.getElementById('profileImage').src = userData.photoURL;
-                    document.getElementById('profileName').textContent = userData.username;
-                    document.getElementById('profileUsername').textContent = '@' + userData.username.toLowerCase().replace(/\s+/g, '');
+                    document.getElementById('profileName').textContent = userData.displayName || userData.username;
+                    document.getElementById('profileUsername').textContent = '@' + userData.username;
                     document.getElementById('profileBio').textContent = userData.bio || 'No bio yet';
                     document.getElementById('locationText').textContent = userData.location || 'Location not set';
                     
@@ -3071,7 +3287,8 @@
             userRef.once('value').then((snapshot) => {
                 const userData = snapshot.val();
                 if (userData) {
-                    document.getElementById('editName').value = userData.username;
+                    document.getElementById('editDisplayName').value = userData.displayName || '';
+                    document.getElementById('editName').value = userData.username || '';
                     document.getElementById('editBio').value = userData.bio || '';
                     document.getElementById('editLocation').value = userData.location || '';
                     document.getElementById('editWebsite').value = userData.website || '';
@@ -3178,5 +3395,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'964882a5a6e4551d',t:'MTc1MzQxMzUxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96489171b69b8e86',t:'MTc1MzQxNDExNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
