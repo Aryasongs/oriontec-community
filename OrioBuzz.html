@@ -262,7 +262,7 @@
                                 <div class="p-4 border-t border-gray-200 bg-white">
                                     <div class="flex space-x-2">
                                         <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm" oninput="handleTyping()">
-                                        <button onclick="sendMessage()" class="gradient-bg text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
+                                        <button onclick="console.log('Send button clicked'); sendMessage();" class="gradient-bg text-white px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
                                             <span class="hidden sm:inline">Send</span>
                                             <span class="sm:hidden">📤</span>
                                         </button>
@@ -1281,11 +1281,7 @@
             clearNotificationBadge();
         }
 
-        function showMessages() {
-            hideAllPages();
-            document.getElementById('messagesPage').classList.remove('hidden');
-            loadConversations();
-        }
+        // Removed duplicate showMessages function - using the one with message input initialization
 
         function showSettings() {
             hideAllPages();
@@ -2754,29 +2750,37 @@
             const messageInput = document.getElementById('messageInput');
             const messageText = messageInput.value.trim();
             
-            if (!messageText || !currentChatUser) return;
+            if (!messageText || !currentChatUser) {
+                console.log('No message text or chat user');
+                return;
+            }
+            
+            console.log('Sending message:', messageText, 'to:', currentChatUser);
             
             const conversationId = [currentUser.uid, currentChatUser].sort().join('_');
             const messageId = database.ref('messages/' + conversationId).push().key;
             
-            // Get current user data
-            const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
-            const userData = userSnapshot.val();
-            
-            const messageData = {
-                id: messageId,
-                senderId: currentUser.uid,
-                receiverId: currentChatUser,
-                senderName: userData.username,
-                senderImage: userData.photoURL,
-                text: messageText,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                read: false
-            };
-            
             try {
+                // Get current user data
+                const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+                const userData = userSnapshot.val();
+                
+                const messageData = {
+                    id: messageId,
+                    senderId: currentUser.uid,
+                    receiverId: currentChatUser,
+                    senderName: userData.username,
+                    senderImage: userData.photoURL,
+                    text: messageText,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    read: false
+                };
+                
+                console.log('Message data:', messageData);
+                
                 // Save message
                 await database.ref('messages/' + conversationId + '/' + messageId).set(messageData);
+                console.log('Message saved successfully');
                 
                 // Update conversation
                 const conversationData = {
@@ -2790,6 +2794,7 @@
                 };
                 
                 await database.ref('conversations/' + conversationId).set(conversationData);
+                console.log('Conversation updated successfully');
                 
                 // Clear input
                 messageInput.value = '';
@@ -2806,31 +2811,41 @@
             }
         }
 
-        // Handle Enter key in message input
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize message input listeners
+        function initializeMessageInput() {
             const messageInput = document.getElementById('messageInput');
             if (messageInput) {
-                messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
+                // Remove existing listeners to prevent duplicates
+                messageInput.removeEventListener('keypress', handleMessageKeypress);
+                
+                // Add keypress listener
+                messageInput.addEventListener('keypress', handleMessageKeypress);
+                
+                console.log('Message input listeners initialized');
             }
-        });
-
-        // Initialize message input listener when page loads
-        setTimeout(() => {
-            const messageInput = document.getElementById('messageInput');
-            if (messageInput) {
-                messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
+        }
+        
+        // Handle keypress in message input
+        function handleMessageKeypress(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                console.log('Enter key pressed, sending message');
+                sendMessage();
             }
-        }, 1000);
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initializeMessageInput);
+        
+        // Re-initialize when messages page is shown
+        function showMessages() {
+            hideAllPages();
+            document.getElementById('messagesPage').classList.remove('hidden');
+            loadConversations();
+            
+            // Initialize message input after a short delay
+            setTimeout(initializeMessageInput, 100);
+        }
 
         // Load Settings
         function loadSettings() {
@@ -3524,5 +3539,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96489aa6c69259e1',t:'MTc1MzQxNDQ5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9648a38925d054fb',t:'MTc1MzQxNDg1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
