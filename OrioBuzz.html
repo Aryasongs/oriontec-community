@@ -403,8 +403,8 @@
                                     <button id="followBtn" onclick="toggleFollow()" class="gradient-bg text-white px-4 lg:px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
                                         Follow
                                     </button>
-                                    <button onclick="startChat()" class="border border-pink-500 text-pink-500 px-4 lg:px-6 py-2 rounded-full hover:bg-pink-50 transition-colors text-sm lg:text-base">
-                                        Message
+                                    <button onclick="startChatWithUser()" class="border border-pink-500 text-pink-500 px-4 lg:px-6 py-2 rounded-full hover:bg-pink-50 transition-colors text-sm lg:text-base">
+                                        💬 Message
                                     </button>
                                 </div>
                             </div>
@@ -884,14 +884,31 @@
             });
         });
 
-        // Generate random username
-        function generateRandomUsername() {
+        // Generate unique random username
+        async function generateRandomUsername() {
             const adjectives = ['Cool', 'Smart', 'Happy', 'Bright', 'Swift', 'Bold', 'Kind', 'Wise', 'Fun', 'Nice'];
             const nouns = ['User', 'Buzz', 'Star', 'Wave', 'Fire', 'Sky', 'Moon', 'Sun', 'Wind', 'Rock'];
-            const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
-            const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-            const randomNum = Math.floor(Math.random() * 1000);
-            return randomAdj + randomNoun + randomNum;
+            
+            let username;
+            let isUnique = false;
+            let attempts = 0;
+            
+            while (!isUnique && attempts < 10) {
+                const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+                const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+                const randomNum = Math.floor(Math.random() * 10000);
+                username = (randomAdj + randomNoun + randomNum).toLowerCase();
+                
+                // Check if username already exists
+                const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+                if (!usersSnapshot.exists()) {
+                    isUnique = true;
+                } else {
+                    attempts++;
+                }
+            }
+            
+            return username;
         }
 
         // Extract hashtags from content
@@ -1060,42 +1077,42 @@
         }
 
         // Save user to database
-        function saveUserToDatabase(user) {
+        async function saveUserToDatabase(user) {
             const userRef = database.ref('users/' + user.uid);
-            userRef.once('value').then((snapshot) => {
-                if (!snapshot.exists()) {
-                    const displayName = user.displayName || generateRandomUsername();
-                    const username = (user.displayName || generateRandomUsername()).toLowerCase().replace(/\s+/g, '_');
-                    const photoURL = user.photoURL || generateAvatar(displayName);
-                    
-                    userRef.set({
-                        uid: user.uid,
-                        displayName: displayName,
-                        username: username,
-                        email: user.email,
-                        photoURL: photoURL,
-                        bio: '',
-                        verified: false,
-                        joinedAt: firebase.database.ServerValue.TIMESTAMP
-                    });
-                } else {
-                    // Update existing user if they don't have a photo or display name
-                    const userData = snapshot.val();
-                    const updates = {};
-                    
-                    if (!userData.photoURL || userData.photoURL === '') {
-                        updates.photoURL = generateAvatar(userData.displayName || userData.username);
-                    }
-                    
-                    if (!userData.displayName) {
-                        updates.displayName = userData.username;
-                    }
-                    
-                    if (Object.keys(updates).length > 0) {
-                        userRef.update(updates);
-                    }
+            const snapshot = await userRef.once('value');
+            
+            if (!snapshot.exists()) {
+                const displayName = user.displayName || await generateRandomUsername();
+                const username = await generateRandomUsername();
+                const photoURL = user.photoURL || generateAvatar(displayName);
+                
+                await userRef.set({
+                    uid: user.uid,
+                    displayName: displayName,
+                    username: username,
+                    email: user.email,
+                    photoURL: photoURL,
+                    bio: '',
+                    verified: false,
+                    joinedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+            } else {
+                // Update existing user if they don't have a photo or display name
+                const userData = snapshot.val();
+                const updates = {};
+                
+                if (!userData.photoURL || userData.photoURL === '') {
+                    updates.photoURL = generateAvatar(userData.displayName || userData.username);
                 }
-            });
+                
+                if (!userData.displayName) {
+                    updates.displayName = userData.username;
+                }
+                
+                if (Object.keys(updates).length > 0) {
+                    await userRef.update(updates);
+                }
+            }
         }
 
         // Show/Hide Screens
@@ -2416,6 +2433,15 @@
             openChat(currentViewingUser);
         }
 
+        // Start Chat with User
+        function startChatWithUser() {
+            if (!currentViewingUser) return;
+            
+            currentChatUser = currentViewingUser;
+            showMessages();
+            openChat(currentViewingUser);
+        }
+
         // Load Notifications
         function loadNotifications() {
             if (!currentUser) return;
@@ -2551,16 +2577,40 @@
         // Create Conversation Element
         function createConversationElement(conversation, userData, userId) {
             const div = document.createElement('div');
-            div.className = 'flex items-center space-x-3 p-3 hover:bg-gray-100 rounded-xl cursor-pointer';
+            div.className = 'flex items-center space-x-3 p-3 hover:bg-gray-100 rounded-xl cursor-pointer border-b border-gray-100';
             div.onclick = () => openChat(userId);
             
+            const lastMessagePreview = conversation.lastMessage ? 
+                (conversation.lastMessage.length > 30 ? 
+                    conversation.lastMessage.substring(0, 30) + '...' : 
+                    conversation.lastMessage) : 
+                'Start a conversation';
+            
             div.innerHTML = `
-                <img class="w-10 h-10 rounded-full border-2 border-pink-300" src="${userData.photoURL}" alt="User">
-                <div class="flex-1">
-                    <h4 class="font-medium text-sm">${userData.username}</h4>
-                    <p class="text-xs text-gray-500">${conversation.lastMessage || 'Start a conversation'}</p>
+                <div class="relative">
+                    <img class="w-10 h-10 rounded-full border-2 border-pink-300" src="${userData.photoURL}" alt="User">
+                    <div id="conversationOnline-${userId}" class="absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-medium text-sm truncate">${userData.displayName || userData.username}</h4>
+                        <span class="text-xs text-gray-400">${conversation.lastMessageTime ? formatTimestamp(conversation.lastMessageTime) : ''}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate">${lastMessagePreview}</p>
                 </div>
             `;
+            
+            // Update online status
+            getUserOnlineStatus(userId, (status) => {
+                const indicator = document.getElementById('conversationOnline-' + userId);
+                if (indicator) {
+                    if (status && status.online) {
+                        indicator.className = 'absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white';
+                    } else {
+                        indicator.className = 'absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border-2 border-white';
+                    }
+                }
+            });
             
             return div;
         }
@@ -2668,7 +2718,7 @@
             const div = document.createElement('div');
             const isOwn = message.senderId === currentUser.uid;
             
-            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} items-end space-x-2`;
+            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} items-end space-x-2 mb-3`;
             
             if (isOwn) {
                 div.innerHTML = `
@@ -2685,7 +2735,7 @@
             } else {
                 div.innerHTML = `
                     <div class="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
-                        <img class="w-full h-full object-cover" src="${message.senderImage || ''}" alt="User">
+                        <img class="w-full h-full object-cover" src="${message.senderImage || generateAvatar(message.senderName || 'User')}" alt="User">
                     </div>
                     <div class="max-w-xs lg:max-w-md">
                         <div class="bg-white border border-gray-200 text-gray-800 px-4 py-2 rounded-2xl rounded-bl-md shadow-sm">
@@ -2700,7 +2750,7 @@
         }
 
         // Send Message
-        function sendMessage() {
+        async function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             const messageText = messageInput.value.trim();
             
@@ -2709,30 +2759,51 @@
             const conversationId = [currentUser.uid, currentChatUser].sort().join('_');
             const messageId = database.ref('messages/' + conversationId).push().key;
             
+            // Get current user data
+            const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+            const userData = userSnapshot.val();
+            
             const messageData = {
                 id: messageId,
                 senderId: currentUser.uid,
                 receiverId: currentChatUser,
+                senderName: userData.username,
+                senderImage: userData.photoURL,
                 text: messageText,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                read: false
             };
             
-            // Save message
-            database.ref('messages/' + conversationId + '/' + messageId).set(messageData);
-            
-            // Update conversation
-            const conversationData = {
-                participants: {
-                    [currentUser.uid]: true,
-                    [currentChatUser]: true
-                },
-                lastMessage: messageText,
-                lastMessageTime: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            database.ref('conversations/' + conversationId).set(conversationData);
-            
-            messageInput.value = '';
+            try {
+                // Save message
+                await database.ref('messages/' + conversationId + '/' + messageId).set(messageData);
+                
+                // Update conversation
+                const conversationData = {
+                    participants: {
+                        [currentUser.uid]: true,
+                        [currentChatUser]: true
+                    },
+                    lastMessage: messageText,
+                    lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+                    lastMessageSender: currentUser.uid
+                };
+                
+                await database.ref('conversations/' + conversationId).set(conversationData);
+                
+                // Clear input
+                messageInput.value = '';
+                
+                // Remove typing indicator
+                database.ref('typing/' + conversationId + '/' + currentUser.uid).remove();
+                
+                // Create notification for receiver
+                createNotification(currentChatUser, 'message', `${userData.username} sent you a message`);
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            }
         }
 
         // Handle Enter key in message input
@@ -2740,12 +2811,26 @@
             const messageInput = document.getElementById('messageInput');
             if (messageInput) {
                 messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
                         sendMessage();
                     }
                 });
             }
         });
+
+        // Initialize message input listener when page loads
+        setTimeout(() => {
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+            }
+        }, 1000);
 
         // Load Settings
         function loadSettings() {
@@ -3157,11 +3242,30 @@
 
         // Check username availability
         async function checkUsernameAvailability() {
-            const username = document.getElementById('editName').value.trim();
+            const username = document.getElementById('editName').value.trim().toLowerCase();
             const statusElement = document.getElementById('usernameStatus');
             
             if (!username) {
                 statusElement.textContent = '';
+                return;
+            }
+            
+            // Validate username format
+            if (!/^[a-z0-9_]+$/.test(username)) {
+                statusElement.textContent = 'Username can only contain lowercase letters, numbers, and underscores';
+                statusElement.className = 'text-xs mt-1 text-red-500';
+                return;
+            }
+            
+            if (username.length < 3) {
+                statusElement.textContent = 'Username must be at least 3 characters long';
+                statusElement.className = 'text-xs mt-1 text-red-500';
+                return;
+            }
+            
+            if (username.length > 20) {
+                statusElement.textContent = 'Username must be less than 20 characters';
+                statusElement.className = 'text-xs mt-1 text-red-500';
                 return;
             }
             
@@ -3177,11 +3281,11 @@
                     statusElement.textContent = 'This is your current username';
                     statusElement.className = 'text-xs mt-1 text-blue-500';
                 } else {
-                    statusElement.textContent = 'Username already taken';
+                    statusElement.textContent = '❌ Username already taken - try another one';
                     statusElement.className = 'text-xs mt-1 text-red-500';
                 }
             } else {
-                statusElement.textContent = 'Username available';
+                statusElement.textContent = '✅ Username available';
                 statusElement.className = 'text-xs mt-1 text-green-500';
             }
         }
@@ -3196,23 +3300,43 @@
             const location = document.getElementById('editLocation').value.trim();
             const website = document.getElementById('editWebsite').value.trim();
             
+            // Validate required fields
+            if (!username) {
+                alert('Username is required');
+                return;
+            }
+            
             // Validate username format
-            if (username && !/^[a-z0-9_]+$/.test(username)) {
+            if (!/^[a-z0-9_]+$/.test(username)) {
                 alert('Username can only contain lowercase letters, numbers, and underscores');
                 return;
             }
             
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters long');
+                return;
+            }
+            
+            if (username.length > 20) {
+                alert('Username must be less than 20 characters');
+                return;
+            }
+            
             // Check if username is available
-            if (username) {
-                const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
-                if (usersSnapshot.exists()) {
-                    const users = usersSnapshot.val();
-                    const userIds = Object.keys(users);
-                    if (userIds.length > 0 && userIds[0] !== currentUser.uid) {
-                        alert('Username already taken. Please choose a different one.');
-                        return;
-                    }
+            const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+            if (usersSnapshot.exists()) {
+                const users = usersSnapshot.val();
+                const userIds = Object.keys(users);
+                if (userIds.length > 0 && userIds[0] !== currentUser.uid) {
+                    alert('❌ Username already taken. Please choose a different one.');
+                    return;
                 }
+            }
+            
+            // Validate website URL if provided
+            if (website && !website.startsWith('http://') && !website.startsWith('https://')) {
+                alert('Website URL must start with http:// or https://');
+                return;
             }
             
             // Get current user data
@@ -3227,7 +3351,7 @@
             
             // Update user data
             const updates = {
-                displayName: displayName,
+                displayName: displayName || username,
                 username: username,
                 bio: bio,
                 location: location,
@@ -3235,11 +3359,16 @@
                 photoURL: photoURL
             };
             
-            database.ref('users/' + currentUser.uid).update(updates).then(() => {
+            try {
+                await database.ref('users/' + currentUser.uid).update(updates);
                 closeEditProfile();
                 loadUserProfile();
                 updateTopBar();
-            });
+                alert('✅ Profile updated successfully!');
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('❌ Failed to update profile. Please try again.');
+            }
         }
 
         // Load user profile with website
@@ -3395,5 +3524,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96489171b69b8e86',t:'MTc1MzQxNDExNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96489aa6c69259e1',t:'MTc1MzQxNDQ5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
