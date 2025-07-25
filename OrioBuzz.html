@@ -44,6 +44,38 @@
             margin-left: 4px;
             object-fit: contain;
         }
+        .notification-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .notification-item {
+            transition: all 0.3s ease;
+        }
+        .notification-item:hover {
+            background-color: #f3f4f6;
+            transform: translateX(5px);
+        }
+        .onboarding-step {
+            transition: all 0.5s ease;
+        }
+        .interest-tag {
+            transition: all 0.3s ease;
+        }
+        .interest-tag:hover {
+            transform: scale(1.05);
+        }
+        .character-counter {
+            transition: color 0.3s ease;
+        }
+        .character-counter.warning {
+            color: #f59e0b;
+        }
+        .character-counter.danger {
+            color: #ef4444;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -66,6 +98,75 @@
         </div>
     </div>
 
+    <!-- Onboarding Screens -->
+    <!-- Profile Setup -->
+    <div id="profileSetupScreen" class="hidden min-h-screen gradient-bg flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full mx-4">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold gradient-text mb-2">Complete Your Profile</h2>
+                <p class="text-gray-600">Let's set up your OrioBuzz profile</p>
+            </div>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Display Name *</label>
+                    <input type="text" id="onboardingDisplayName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="Your display name">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Username *</label>
+                    <input type="text" id="onboardingUsername" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="username (no spaces)" oninput="checkOnboardingUsername()">
+                    <p id="onboardingUsernameStatus" class="text-xs mt-1"></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Bio</label>
+                    <textarea id="onboardingBio" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300" rows="3" placeholder="Tell us about yourself..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Location</label>
+                    <input type="text" id="onboardingLocation" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="Your location">
+                </div>
+            </div>
+            <button onclick="completeProfileSetup()" class="w-full gradient-bg text-white py-3 rounded-full hover:opacity-90 transition-opacity mt-8">
+                Continue
+            </button>
+        </div>
+    </div>
+
+    <!-- Interest Selection -->
+    <div id="interestSelectionScreen" class="hidden min-h-screen gradient-bg flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full mx-4">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold gradient-text mb-2">What interests you?</h2>
+                <p class="text-gray-600">Select topics you'd like to see in your feed</p>
+            </div>
+            <div id="interestTags" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                <!-- Interest tags will be loaded here -->
+            </div>
+            <div class="text-center">
+                <button onclick="completeInterestSelection()" class="gradient-bg text-white px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Suggestions -->
+    <div id="userSuggestionsScreen" class="hidden min-h-screen gradient-bg flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full mx-4">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold gradient-text mb-2">Follow Interesting People</h2>
+                <p class="text-gray-600">Discover users based on your interests</p>
+            </div>
+            <div id="suggestedUsers" class="space-y-4 mb-8 max-h-96 overflow-y-auto">
+                <!-- Suggested users will be loaded here -->
+            </div>
+            <div class="text-center">
+                <button onclick="completeOnboarding()" class="gradient-bg text-white px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+                    Start Buzzing!
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main App -->
     <div id="mainApp" class="hidden">
         <!-- Top Bar -->
@@ -85,44 +186,59 @@
                 <nav class="space-y-4">
                     <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="showHome()">
                         <div class="flex items-center space-x-3">
-                            <span class="text-xl">🏠</span>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                            </svg>
                             <span class="font-medium">Home</span>
                         </div>
                     </div>
                     <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="showNotifications()">
                         <div class="flex items-center space-x-3 relative">
-                            <span class="text-xl">🔔</span>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+                            </svg>
                             <span class="font-medium">Notifications</span>
-                            <span id="notificationBadgeDesktop" class="hidden absolute -top-1 left-5 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                            <span id="notificationBadgeDesktop" class="hidden absolute -top-1 left-5 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center notification-dot">0</span>
                         </div>
                     </div>
                     <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="showMessages()">
                         <div class="flex items-center space-x-3">
-                            <span class="text-xl">💬</span>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+                                <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
+                            </svg>
                             <span class="font-medium">Messages</span>
                         </div>
                     </div>
                     <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="showProfile()">
                         <div class="flex items-center space-x-3">
-                            <span class="text-xl">👤</span>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                            </svg>
                             <span class="font-medium">Profile</span>
                         </div>
                     </div>
                     <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="showSettings()">
                         <div class="flex items-center space-x-3">
-                            <span class="text-xl">⚙️</span>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                            </svg>
                             <span class="font-medium">Settings</span>
                         </div>
                     </div>
                     <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="openBuzzModal()">
                         <div class="flex items-center space-x-3">
-                            <span class="text-xl">✍️</span>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                            </svg>
                             <span class="font-medium">Create Buzz</span>
                         </div>
                     </div>
                     <div class="sidebar-item p-3 rounded-xl cursor-pointer" onclick="logout()">
                         <div class="flex items-center space-x-3">
-                            <span class="text-xl">🚪</span>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+                            </svg>
                             <span class="font-medium">Logout</span>
                         </div>
                     </div>
@@ -141,24 +257,35 @@
             <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
                 <div class="flex justify-around py-2">
                     <button onclick="showHome()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
-                        <span class="text-xl">🏠</span>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                        </svg>
                         <span class="text-xs">Home</span>
                     </button>
                     <button onclick="showNotifications()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500 relative">
-                        <span class="text-xl">🔔</span>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+                        </svg>
                         <span class="text-xs">Notifications</span>
-                        <span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                        <span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center notification-dot">0</span>
                     </button>
                     <button onclick="showMessages()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
-                        <span class="text-xl">💬</span>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+                            <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
+                        </svg>
                         <span class="text-xs">Messages</span>
                     </button>
                     <button onclick="showProfile()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
-                        <span class="text-xl">👤</span>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                        </svg>
                         <span class="text-xs">Profile</span>
                     </button>
                     <button onclick="openBuzzModal()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
-                        <span class="text-xl">✍️</span>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                        </svg>
                         <span class="text-xs">Create</span>
                     </button>
                 </div>
@@ -340,26 +467,88 @@
                         <div class="bg-white rounded-2xl shadow-lg p-6">
                             <h3 class="text-lg font-bold mb-4">Verification</h3>
                             <div class="space-y-3">
-                                <button onclick="openVerificationModal()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
-                                    ✅ Get Verified
+                                <button onclick="openVerificationModal()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Get Verified</span>
                                 </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold mb-4">Community Guidelines</h3>
+                            <div class="space-y-3 text-sm text-gray-700">
+                                <div class="p-4 bg-blue-50 rounded-xl">
+                                    <h4 class="font-semibold text-blue-800 mb-2">Content Policy</h4>
+                                    <ul class="space-y-1 text-blue-700">
+                                        <li>• No hate speech, harassment, or bullying</li>
+                                        <li>• No explicit sexual content or nudity</li>
+                                        <li>• No spam or misleading information</li>
+                                        <li>• No violence or threats</li>
+                                        <li>• Respect intellectual property rights</li>
+                                        <li>• Maximum 500 characters per buzz (except verified users)</li>
+                                    </ul>
+                                </div>
+                                <div class="p-4 bg-yellow-50 rounded-xl">
+                                    <h4 class="font-semibold text-yellow-800 mb-2">Prohibited Words</h4>
+                                    <p class="text-yellow-700">Posts containing offensive language will be automatically removed and users will receive warnings.</p>
+                                </div>
+                                <div class="p-4 bg-red-50 rounded-xl">
+                                    <h4 class="font-semibold text-red-800 mb-2">Consequences</h4>
+                                    <ul class="space-y-1 text-red-700">
+                                        <li>• First violation: Warning notification</li>
+                                        <li>• Repeated violations: Temporary suspension</li>
+                                        <li>• Severe violations: Permanent ban</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold mb-4">Privacy Policy</h3>
+                            <div class="space-y-3 text-sm text-gray-700">
+                                <div class="p-4 bg-gray-50 rounded-xl">
+                                    <h4 class="font-semibold mb-2">Data Collection</h4>
+                                    <p>We collect information you provide directly, usage data, and device information to improve our services.</p>
+                                </div>
+                                <div class="p-4 bg-gray-50 rounded-xl">
+                                    <h4 class="font-semibold mb-2">Data Usage</h4>
+                                    <p>Your data is used to personalize content, improve features, and ensure platform security.</p>
+                                </div>
+                                <div class="p-4 bg-gray-50 rounded-xl">
+                                    <h4 class="font-semibold mb-2">Data Sharing</h4>
+                                    <p>We don't sell your personal data. Information is only shared as necessary for service operation.</p>
+                                </div>
                             </div>
                         </div>
 
                         <div class="bg-white rounded-2xl shadow-lg p-6">
                             <h3 class="text-lg font-bold mb-4">Account Actions</h3>
                             <div class="space-y-3">
-                                <button onclick="exportData()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
-                                    📥 Export My Data
+                                <button onclick="exportData()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Export My Data</span>
                                 </button>
-                                <button onclick="openAccountSwitcher()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
-                                    🔄 Switch Account
+                                <button onclick="openAccountSwitcher()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
+                                    </svg>
+                                    <span>Switch Account</span>
                                 </button>
-                                <button onclick="logout()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl">
-                                    🚪 Logout
+                                <button onclick="logout()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Logout</span>
                                 </button>
-                                <button onclick="deactivateAccount()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl text-red-600">
-                                    ⚠️ Deactivate Account
+                                <button onclick="deactivateAccount()" class="w-full text-left p-3 hover:bg-gray-50 rounded-xl text-red-600 flex items-center space-x-3">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Deactivate Account</span>
                                 </button>
                             </div>
                         </div>
@@ -458,9 +647,13 @@
             <div class="flex items-start space-x-3 lg:space-x-4 mb-4">
                 <img id="modalUserImage" class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-pink-300" src="" alt="User">
                 <div class="flex-1 relative">
-                    <textarea id="buzzContent" placeholder="What's buzzing? Use #hashtags and @mentions" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" rows="4" oninput="handleBuzzInput()"></textarea>
-                    <div id="hashtagSuggestions" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg max-h-40 overflow-y-auto z-10">
-                        <!-- Hashtag suggestions will appear here -->
+                    <textarea id="buzzContent" placeholder="What's buzzing? Use #hashtags and @mentions" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" rows="4" oninput="handleBuzzInput()" maxlength="500"></textarea>
+                    <div class="flex justify-between items-center mt-2">
+                        <div id="hashtagSuggestions" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg max-h-40 overflow-y-auto z-10">
+                            <!-- Hashtag suggestions will appear here -->
+                        </div>
+                        <div class="flex-1"></div>
+                        <div id="characterCounter" class="text-sm text-gray-500 character-counter">0/500</div>
                     </div>
                 </div>
             </div>
@@ -482,45 +675,103 @@
     <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4 lg:mb-6">
-                <h3 class="text-lg lg:text-xl font-bold">Get Verified ✅</h3>
+                <h3 class="text-lg lg:text-xl font-bold flex items-center space-x-2">
+                    <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Get Verified</span>
+                </h3>
                 <button onclick="closeVerificationModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
             </div>
+            
+            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                <div class="flex items-center space-x-2 mb-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <h4 class="font-semibold text-yellow-800">Strict Verification Policy</h4>
+                </div>
+                <p class="text-sm text-yellow-700">Only specific users (Gursharn Arya, Anmol Sunda, Dozera, Oriontec) can get verified without meeting all criteria.</p>
+            </div>
+
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-2">Full Name *</label>
-                    <input type="text" id="verifyName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Age *</label>
-                    <input type="number" id="verifyAge" min="13" max="100" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Category *</label>
-                    <select id="verifyCategory" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" required>
-                        <option value="">Select Category</option>
-                        <option value="professional">Professional</option>
+                    <label class="block text-sm font-medium mb-2">Account Type *</label>
+                    <select id="verifyAccountType" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" onchange="toggleVerificationFields()" required>
+                        <option value="">Select Account Type</option>
+                        <option value="individual">Individual</option>
                         <option value="business">Business</option>
-                        <option value="creator">Content Creator</option>
-                        <option value="public_figure">Public Figure</option>
-                        <option value="organization">Organization</option>
                     </select>
                 </div>
+
+                <div id="individualFields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Legal Full Name *</label>
+                        <input type="text" id="verifyLegalName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" placeholder="Your legal name as per ID">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Age *</label>
+                        <input type="number" id="verifyAge" min="13" max="100" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Category *</label>
+                        <select id="verifyIndividualCategory" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
+                            <option value="">Select Category</option>
+                            <option value="professional">Professional</option>
+                            <option value="creator">Content Creator</option>
+                            <option value="public_figure">Public Figure</option>
+                            <option value="influencer">Influencer</option>
+                            <option value="artist">Artist</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="businessFields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Business Legal Name *</label>
+                        <input type="text" id="verifyBusinessName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" placeholder="Registered business name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Business Registration Number</label>
+                        <input type="text" id="verifyBusinessReg" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" placeholder="Registration/License number">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Business Category *</label>
+                        <select id="verifyBusinessCategory" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base">
+                            <option value="">Select Category</option>
+                            <option value="company">Company</option>
+                            <option value="startup">Startup</option>
+                            <option value="organization">Organization</option>
+                            <option value="brand">Brand</option>
+                            <option value="media">Media</option>
+                            <option value="government">Government</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium mb-2">Verification Link *</label>
                     <div class="flex">
-                        <span class="bg-gray-100 px-3 py-3 border border-r-0 border-gray-300 rounded-l-xl text-sm">www.orintec.xyz/</span>
+                        <span class="bg-gray-100 px-3 py-3 border border-r-0 border-gray-300 rounded-l-xl text-sm">www.oriontec.xyz/</span>
                         <input type="text" id="verifyLink" placeholder="your-username" class="flex-1 p-3 border border-gray-300 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" required>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">Your username must appear on this link for verification</p>
+                    <p class="text-xs text-gray-500 mt-1">Your name/business must appear on this link for verification</p>
                 </div>
+
                 <div class="bg-blue-50 p-4 rounded-xl">
                     <h4 class="font-medium text-blue-800 mb-2">Verification Requirements:</h4>
                     <ul class="text-sm text-blue-700 space-y-1">
-                        <li>• Your name must appear on the provided link</li>
+                        <li>• Your name/business must appear on the provided link</li>
                         <li>• Link will be checked within 5 minutes</li>
                         <li>• You'll receive a notification about the result</li>
                         <li>• Verification is free and permanent</li>
+                        <li>• False information will result in permanent ban</li>
                     </ul>
+                </div>
+
+                <div class="bg-red-50 p-4 rounded-xl">
+                    <h4 class="font-medium text-red-800 mb-2">Special Users:</h4>
+                    <p class="text-sm text-red-700">Gursharn Arya, Anmol Sunda, Dozera, and Oriontec get instant verification regardless of criteria.</p>
                 </div>
             </div>
             <div class="flex justify-end mt-6">
@@ -847,22 +1098,349 @@
         let currentViewingUser = null;
         let lastPage = 'home';
         let currentFollowersUserId = null;
+        let isNewUser = false;
+        let selectedInterests = [];
+        let bannedWords = ['pussy', 'dick', 'fuck', 'india', 'america', 'bitch', 'asshole', 'shit', 'damn', 'hell', 'bastard'];
+        let specialUsers = ['gursharnarya07', 'dozera', 'oriontec', 'orionbuzz'];
+        let unlimitedUsers = ['gursharnarya07', 'dozera', 'oriontec', 'orionbuzz'];
+        let currentOnboardingStep = 1;
 
         // Authentication State Observer
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
-                saveUserToDatabase(user);
-                showMainApp();
-                loadBuzzFeed();
-                loadVerifiedUsers();
-                updateOnlineStatus(true);
-                handleURLHash();
+                checkUserStatus(user);
             } else {
                 showLoginScreen();
                 updateOnlineStatus(false);
             }
         });
+
+        // Check if user is new or existing
+        async function checkUserStatus(user) {
+            const userRef = database.ref('users/' + user.uid);
+            const snapshot = await userRef.once('value');
+            
+            if (!snapshot.exists()) {
+                isNewUser = true;
+                showProfileSetupScreen();
+            } else {
+                const userData = snapshot.val();
+                if (!userData.onboardingCompleted) {
+                    isNewUser = true;
+                    showInterestSelectionScreen();
+                } else {
+                    isNewUser = false;
+                    showMainApp();
+                    loadBuzzFeed();
+                    loadVerifiedUsers();
+                    updateOnlineStatus(true);
+                    handleURLHash();
+                }
+            }
+        }
+
+        // Show Profile Setup Screen
+        function showProfileSetupScreen() {
+            hideAllScreens();
+            document.getElementById('profileSetupScreen').classList.remove('hidden');
+            
+            // Pre-fill with Google data
+            if (currentUser) {
+                document.getElementById('onboardingDisplayName').value = currentUser.displayName || '';
+            }
+        }
+
+        // Show Interest Selection Screen
+        function showInterestSelectionScreen() {
+            hideAllScreens();
+            document.getElementById('interestSelectionScreen').classList.remove('hidden');
+            loadInterestTags();
+        }
+
+        // Show User Suggestions Screen
+        function showUserSuggestionsScreen() {
+            hideAllScreens();
+            document.getElementById('userSuggestionsScreen').classList.remove('hidden');
+            loadSuggestedUsers();
+        }
+
+        // Hide all screens
+        function hideAllScreens() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('profileSetupScreen').classList.add('hidden');
+            document.getElementById('interestSelectionScreen').classList.add('hidden');
+            document.getElementById('userSuggestionsScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        // Load Interest Tags
+        function loadInterestTags() {
+            const interests = [
+                'Technology', 'Sports', 'Music', 'Movies', 'Food', 'Travel',
+                'Fashion', 'Art', 'Gaming', 'Business', 'Health', 'Education',
+                'Photography', 'Books', 'Science', 'Politics', 'Comedy', 'News'
+            ];
+            
+            const interestTags = document.getElementById('interestTags');
+            interestTags.innerHTML = '';
+            
+            interests.forEach(interest => {
+                const tag = document.createElement('div');
+                tag.className = 'interest-tag p-3 border-2 border-gray-300 rounded-xl text-center cursor-pointer hover:border-pink-500 transition-all';
+                tag.textContent = interest;
+                tag.onclick = () => toggleInterest(interest, tag);
+                interestTags.appendChild(tag);
+            });
+        }
+
+        // Toggle Interest Selection
+        function toggleInterest(interest, element) {
+            if (selectedInterests.includes(interest)) {
+                selectedInterests = selectedInterests.filter(i => i !== interest);
+                element.classList.remove('bg-pink-500', 'text-white', 'border-pink-500');
+                element.classList.add('border-gray-300');
+            } else {
+                selectedInterests.push(interest);
+                element.classList.add('bg-pink-500', 'text-white', 'border-pink-500');
+                element.classList.remove('border-gray-300');
+            }
+        }
+
+        // Load Suggested Users
+        function loadSuggestedUsers() {
+            const suggestedUsers = document.getElementById('suggestedUsers');
+            suggestedUsers.innerHTML = '';
+            
+            // Load users based on interests or popular users
+            database.ref('users').limitToFirst(10).once('value').then((snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const userData = childSnapshot.val();
+                    if (userData.uid !== currentUser.uid) {
+                        const userElement = createSuggestedUserElement(userData);
+                        suggestedUsers.appendChild(userElement);
+                    }
+                });
+            });
+        }
+
+        // Create Suggested User Element
+        function createSuggestedUserElement(userData) {
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-xl shadow-lg p-4 flex items-center space-x-4';
+            
+            div.innerHTML = `
+                <img class="w-12 h-12 rounded-full border-2 border-pink-300" src="${userData.photoURL}" alt="User">
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold">${userData.username}</span>
+                        ${userData.verified ? '<img src="https://community.oriontec.xyz/verify.png" alt="Verified" class="verified-badge">' : ''}
+                    </div>
+                    <p class="text-gray-600 text-sm">${userData.bio || 'OrioBuzz user'}</p>
+                </div>
+                <button onclick="followUserFromSuggestions('${userData.uid}', this)" class="gradient-bg text-white px-4 py-2 rounded-full hover:opacity-90 transition-opacity text-sm">
+                    Follow
+                </button>
+            `;
+            
+            return div;
+        }
+
+        // Follow User from Suggestions
+        function followUserFromSuggestions(userId, button) {
+            const followRef = database.ref('following/' + currentUser.uid + '/' + userId);
+            const followerRef = database.ref('followers/' + userId + '/' + currentUser.uid);
+            
+            followRef.set(true);
+            followerRef.set(true);
+            
+            button.textContent = 'Following';
+            button.classList.remove('gradient-bg');
+            button.classList.add('bg-gray-500');
+            
+            // Create notification
+            database.ref('users/' + currentUser.uid).once('value').then((userSnapshot) => {
+                const userData = userSnapshot.val();
+                createNotification(userId, 'follow', userData.username + ' started following you');
+            });
+        }
+
+        // Complete Profile Setup
+        async function completeProfileSetup() {
+            const displayName = document.getElementById('onboardingDisplayName').value.trim();
+            const username = document.getElementById('onboardingUsername').value.trim().toLowerCase();
+            const bio = document.getElementById('onboardingBio').value.trim();
+            const location = document.getElementById('onboardingLocation').value.trim();
+            
+            if (!displayName || !username) {
+                alert('Display name and username are required');
+                return;
+            }
+            
+            // Check username availability
+            const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+            if (usersSnapshot.exists()) {
+                alert('Username already taken. Please choose a different one.');
+                return;
+            }
+            
+            // Save user data
+            const userData = {
+                uid: currentUser.uid,
+                displayName: displayName,
+                username: username,
+                email: currentUser.email,
+                photoURL: currentUser.photoURL || generateAvatar(displayName),
+                bio: bio,
+                location: location,
+                verified: false,
+                joinedAt: firebase.database.ServerValue.TIMESTAMP,
+                onboardingCompleted: false
+            };
+            
+            await database.ref('users/' + currentUser.uid).set(userData);
+            showInterestSelectionScreen();
+        }
+
+        // Complete Interest Selection
+        async function completeInterestSelection() {
+            if (selectedInterests.length === 0) {
+                alert('Please select at least one interest');
+                return;
+            }
+            
+            // Save interests
+            await database.ref('users/' + currentUser.uid + '/interests').set(selectedInterests);
+            showUserSuggestionsScreen();
+        }
+
+        // Complete Onboarding
+        async function completeOnboarding() {
+            // Auto-follow @oriobuzz
+            const oriobuzzSnapshot = await database.ref('users').orderByChild('username').equalTo('oriobuzz').once('value');
+            if (oriobuzzSnapshot.exists()) {
+                const oriobuzzData = oriobuzzSnapshot.val();
+                const oriobuzzId = Object.keys(oriobuzzData)[0];
+                
+                await database.ref('following/' + currentUser.uid + '/' + oriobuzzId).set(true);
+                await database.ref('followers/' + oriobuzzId + '/' + currentUser.uid).set(true);
+            }
+            
+            // Mark onboarding as completed
+            await database.ref('users/' + currentUser.uid).update({
+                onboardingCompleted: true
+            });
+            
+            // Send welcome message from @oriobuzz
+            await sendWelcomeMessage();
+            
+            // Show main app
+            showMainApp();
+            loadBuzzFeed();
+            loadVerifiedUsers();
+            updateOnlineStatus(true);
+        }
+
+        // Send Welcome Message from @oriobuzz
+        async function sendWelcomeMessage() {
+            const oriobuzzSnapshot = await database.ref('users').orderByChild('username').equalTo('oriobuzz').once('value');
+            if (oriobuzzSnapshot.exists()) {
+                const oriobuzzData = oriobuzzSnapshot.val();
+                const oriobuzzId = Object.keys(oriobuzzData)[0];
+                
+                const conversationId = [currentUser.uid, oriobuzzId].sort().join('_');
+                const messageData = {
+                    senderId: oriobuzzId,
+                    receiverId: currentUser.uid,
+                    senderName: 'oriobuzz',
+                    senderImage: oriobuzzData[oriobuzzId].photoURL,
+                    text: 'Welcome to OrioBuzz! 🎉 Thanks for joining our community. Start exploring and connect with amazing people!',
+                    timestamp: Date.now(),
+                    read: false,
+                    isSystemMessage: true
+                };
+                
+                await database.ref('messages/' + conversationId).push().set(messageData);
+                
+                // Update conversation
+                const conversationData = {
+                    participants: {
+                        [currentUser.uid]: true,
+                        [oriobuzzId]: true
+                    },
+                    lastMessage: messageData.text,
+                    lastMessageTime: Date.now(),
+                    lastMessageSender: oriobuzzId
+                };
+                
+                await database.ref('conversations/' + conversationId).set(conversationData);
+            }
+        }
+
+        // Check Onboarding Username
+        async function checkOnboardingUsername() {
+            const username = document.getElementById('onboardingUsername').value.trim().toLowerCase();
+            const statusElement = document.getElementById('onboardingUsernameStatus');
+            
+            if (!username) {
+                statusElement.textContent = '';
+                return;
+            }
+            
+            if (!/^[a-z0-9_]+$/.test(username)) {
+                statusElement.textContent = 'Username can only contain lowercase letters, numbers, and underscores';
+                statusElement.className = 'text-xs mt-1 text-red-500';
+                return;
+            }
+            
+            if (username.length < 3) {
+                statusElement.textContent = 'Username must be at least 3 characters long';
+                statusElement.className = 'text-xs mt-1 text-red-500';
+                return;
+            }
+            
+            const usersSnapshot = await database.ref('users').orderByChild('username').equalTo(username).once('value');
+            
+            if (usersSnapshot.exists()) {
+                statusElement.textContent = '❌ Username already taken';
+                statusElement.className = 'text-xs mt-1 text-red-500';
+            } else {
+                statusElement.textContent = '✅ Username available';
+                statusElement.className = 'text-xs mt-1 text-green-500';
+            }
+        }
+
+        // Content Moderation
+        function containsBannedWords(content) {
+            const lowerContent = content.toLowerCase();
+            return bannedWords.some(word => lowerContent.includes(word));
+        }
+
+        // Check Character Limit
+        function checkCharacterLimit(content, username) {
+            if (unlimitedUsers.includes(username)) {
+                return true; // No limit for special users
+            }
+            return content.length <= 500;
+        }
+
+        // Toggle Verification Fields
+        function toggleVerificationFields() {
+            const accountType = document.getElementById('verifyAccountType').value;
+            const individualFields = document.getElementById('individualFields');
+            const businessFields = document.getElementById('businessFields');
+            
+            if (accountType === 'individual') {
+                individualFields.classList.remove('hidden');
+                businessFields.classList.add('hidden');
+            } else if (accountType === 'business') {
+                individualFields.classList.add('hidden');
+                businessFields.classList.remove('hidden');
+            } else {
+                individualFields.classList.add('hidden');
+                businessFields.classList.add('hidden');
+            }
+        }
 
         // URL Hash Navigation
         function handleURLHash() {
@@ -3960,14 +4538,24 @@
                     }
                 };
                 
-                // Handle ICE candidates
+                // Handle ICE candidates - FIXED VERSION
                 localPeerConnection.onicecandidate = (event) => {
                     if (event.candidate && currentCallId) {
-                        console.log('🧊 Sending ICE candidate');
-                        sendSignalingData({
+                        console.log("🧊 Sending ICE candidate: ", event.candidate);
+                        
+                        // Save ICE candidate to Firebase for signaling
+                        const candidateData = {
                             type: 'ice-candidate',
-                            candidate: event.candidate
-                        });
+                            candidate: {
+                                candidate: event.candidate.candidate,
+                                sdpMLineIndex: event.candidate.sdpMLineIndex,
+                                sdpMid: event.candidate.sdpMid
+                            }
+                        };
+                        
+                        sendSignalingData(candidateData);
+                    } else if (!event.candidate) {
+                        console.log("🧊 ICE gathering completed");
                     }
                 };
                 
@@ -4446,5 +5034,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9648da4a609a54b0',t:'MTc1MzQxNzEwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9648fdf9a3eb59e2',t:'MTc1MzQxODU2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
