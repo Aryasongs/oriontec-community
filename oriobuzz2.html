@@ -42,9 +42,62 @@
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
+        .online-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 18px;
+            margin: 4px 0;
+        }
+        .typing-dots {
+            display: flex;
+            gap: 2px;
+        }
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            background: #6b7280;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+        .avatar-generator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+        }
+        .coming-soon {
+            opacity: 0.5;
+            cursor: not-allowed !important;
+            pointer-events: none;
+        }
+        .verified-icon {
+            width: 16px;
+            height: 16px;
+            margin-left: 4px;
         }
         @media (max-width: 768px) {
             .desktop-sidebar {
@@ -188,6 +241,18 @@
                                 <span class="text-lg">📋</span>
                                 <span>Community Guidelines</span>
                             </button>
+                            <button id="loginSessionsBtn" class="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-3">
+                                <span class="text-lg">📱</span>
+                                <span>Login Sessions</span>
+                            </button>
+                            <button id="blockedUsersBtn" class="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-3">
+                                <span class="text-lg">🚫</span>
+                                <span>Blocked Users</span>
+                            </button>
+                            <button id="messagesBtn" class="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-3">
+                                <span class="text-lg">💬</span>
+                                <span>Messages</span>
+                            </button>
                             <div class="border-t border-gray-200 mt-2 pt-2">
                                 <button id="mobileLogoutBtn" class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center space-x-3">
                                     <span class="text-lg">🚪</span>
@@ -211,6 +276,11 @@
                     <button id="profileBtn" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 flex items-center space-x-3">
                         <span class="text-xl">👤</span>
                         <span>Profile</span>
+                    </button>
+                    <button id="messagesNavBtn" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 flex items-center space-x-3">
+                        <span class="text-xl">💬</span>
+                        <span>Messages</span>
+                        <div id="messageNotificationBadge" class="hidden ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1">0</div>
                     </button>
                     <button id="createBuzzBtn" class="w-full text-left p-3 rounded-lg instagram-gradient text-white flex items-center space-x-3">
                         <span class="text-xl">✏️</span>
@@ -243,8 +313,8 @@
                                 <div id="quickBuzzCharCount" class="text-xs text-gray-500 mt-1">0/500</div>
                                 <div class="flex justify-between items-center mt-3">
                                     <input type="file" id="quickBuzzImage" accept="image/*" class="hidden">
-                                    <button onclick="document.getElementById('quickBuzzImage').click()" class="text-purple-500 hover:text-purple-600">
-                                        📷 Photo
+                                    <button class="text-gray-400 coming-soon">
+                                        📷 Add Image - Coming Soon
                                     </button>
                                     <button id="quickBuzzPost" class="instagram-gradient text-white px-6 py-2 rounded-full font-medium hover:opacity-90">
                                         Buzz
@@ -262,7 +332,7 @@
                         <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
                             <div class="relative">
                                 <img id="profileImage" class="w-24 h-24 rounded-full" src="" alt="Profile">
-                                <button id="changeProfilePic" class="absolute bottom-0 right-0 bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">
+                                <button class="absolute bottom-0 right-0 bg-gray-400 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm coming-soon" title="Coming Soon - Photo Upload">
                                     ✏️
                                 </button>
                                 <input type="file" id="profileImageInput" accept="image/*" class="hidden">
@@ -360,6 +430,43 @@
                                 </div>
                                 <span class="text-gray-400">→</span>
                             </button>
+                            
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h3 class="font-medium mb-3">Privacy Settings</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-medium">Private Account</div>
+                                            <div class="text-sm text-gray-500">Only followers can see your posts</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="privateAccountToggle" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-medium">Show Online Status</div>
+                                            <div class="text-sm text-gray-500">Let others see when you're online</div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="onlineStatusToggle" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button id="settingsLogoutBtn" class="w-full p-4 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-xl">🚪</span>
+                                    <div class="text-left">
+                                        <div class="font-medium">Logout</div>
+                                        <div class="text-sm text-gray-500">Sign out of your account</div>
+                                    </div>
+                                </div>
+                                <span class="text-gray-400">→</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -392,7 +499,12 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
-                                <textarea id="settingsBio" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3"></textarea>
+                                <textarea id="settingsBio" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3" maxlength="150"></textarea>
+                                <div id="bioCharCount" class="text-xs text-gray-500 mt-1">0/150</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                <input type="text" id="settingsLocation" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Your location">
                             </div>
                             <button id="saveProfileSettings" class="instagram-gradient text-white px-6 py-2 rounded-full">
                                 Save Changes
@@ -474,6 +586,64 @@
                     </div>
                     <div id="hashtagBuzzFeed" class="space-y-4"></div>
                 </div>
+
+                <!-- Messages Page -->
+                <div id="messagesPage" class="hidden max-w-4xl mx-auto p-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 h-[600px] flex">
+                        <!-- Conversations List -->
+                        <div class="w-1/3 border-r border-gray-200">
+                            <div class="p-4 border-b border-gray-200">
+                                <h2 class="text-xl font-bold">Messages</h2>
+                            </div>
+                            <div id="conversationsList" class="overflow-y-auto h-full"></div>
+                        </div>
+                        <!-- Chat Area -->
+                        <div class="flex-1 flex flex-col">
+                            <div id="chatHeader" class="hidden p-4 border-b border-gray-200 flex items-center space-x-3">
+                                <div class="relative">
+                                    <img id="chatUserAvatar" class="w-10 h-10 rounded-full" src="" alt="">
+                                    <div id="chatUserOnline" class="hidden online-indicator"></div>
+                                </div>
+                                <div>
+                                    <div id="chatUserName" class="font-medium"></div>
+                                    <div id="chatUserStatus" class="text-sm text-gray-500">Online</div>
+                                </div>
+                            </div>
+                            <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+                            <div id="typingIndicatorContainer" class="px-4"></div>
+                            <div id="chatInput" class="hidden p-4 border-t border-gray-200">
+                                <div class="flex space-x-2">
+                                    <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 p-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                    <button id="sendMessageBtn" class="instagram-gradient text-white px-6 py-3 rounded-full hover:opacity-90">
+                                        Send
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="noChatSelected" class="flex-1 flex items-center justify-center text-gray-500">
+                                <div class="text-center">
+                                    <div class="text-4xl mb-4">💬</div>
+                                    <p>Select a conversation to start messaging</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Sessions Page -->
+                <div id="loginSessionsPage" class="hidden max-w-2xl mx-auto p-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-2xl font-bold mb-6">Login Sessions</h2>
+                        <div id="sessionsList" class="space-y-4"></div>
+                    </div>
+                </div>
+
+                <!-- Blocked Users Page -->
+                <div id="blockedUsersPage" class="hidden max-w-2xl mx-auto p-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-2xl font-bold mb-6">Blocked Users</h2>
+                        <div id="blockedUsersList" class="space-y-4"></div>
+                    </div>
+                </div>
             </main>
 
             <!-- Right Sidebar (Desktop) -->
@@ -508,15 +678,15 @@
                 <button id="mobileCreateBtn" class="p-3 rounded-lg instagram-gradient text-white">
                     <span class="text-2xl">✏️</span>
                 </button>
+                <div class="relative">
+                    <button id="mobileMessagesBtn" class="p-3 rounded-lg">
+                        <span class="text-2xl">💬</span>
+                        <div id="mobileMessageBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1 min-w-[16px] h-4 flex items-center justify-center">0</div>
+                    </button>
+                </div>
                 <button id="mobileProfileBtn" class="p-3 rounded-lg">
                     <span class="text-2xl">👤</span>
                 </button>
-                <div class="relative">
-                    <button id="mobileNotificationBtn" class="p-3 rounded-lg">
-                        <span class="text-2xl">🔔</span>
-                        <div id="mobileNotificationIndicator" class="notification-dot hidden"></div>
-                    </button>
-                </div>
             </div>
         </nav>
     </div>
@@ -696,6 +866,40 @@
         let currentOtherUser = null;
         let currentHashtag = null;
         let isNewUser = false;
+        let currentChatUser = null;
+        let typingTimeout = null;
+        let onlineUsers = new Set();
+        let blockedUsers = new Set();
+        
+        // Avatar colors for generated avatars
+        const avatarColors = [
+            '#ef4444', '#06b6d4', '#3b82f6', '#10b981', '#f59e0b',
+            '#8b5cf6', '#06d6a0', '#ffd60a', '#c77dff', '#87ceeb'
+        ];
+        
+        // Random username generator
+        const adjectives = ['Cool', 'Super', 'Mega', 'Ultra', 'Epic', 'Awesome', 'Amazing', 'Fantastic', 'Incredible', 'Stellar'];
+        const nouns = ['Star', 'Hero', 'Legend', 'Champion', 'Warrior', 'Phoenix', 'Thunder', 'Lightning', 'Storm', 'Blaze'];
+        
+        function generateRandomUsername() {
+            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            const num = Math.floor(Math.random() * 999) + 1;
+            return `${adj}${noun}${num}`;
+        }
+        
+        function generateAvatar(name, size = 'w-10 h-10') {
+            if (!name) name = 'U';
+            const firstLetter = name.charAt(0).toUpperCase();
+            const colorIndex = name.charCodeAt(0) % avatarColors.length;
+            const color = avatarColors[colorIndex];
+            
+            return `<div class="${size} rounded-full avatar-generator" style="background-color: ${color}">${firstLetter}</div>`;
+        }
+        
+        function getVerifiedIcon() {
+            return '<img src="https://community.oriontec.xyz/verify.png" class="verified-icon inline" alt="Verified">';
+        }
 
         // Content moderation - banned words
         const bannedWords = ['pussy', 'dick', 'fuck india', 'fuck america', 'bitch', 'asshole', 'shit', 'damn'];
@@ -884,17 +1088,56 @@
             const userRef = database.ref('users/' + user.uid);
             userRef.once('value').then((snapshot) => {
                 if (!snapshot.exists()) {
-                    const username = user.displayName.toLowerCase().replace(/\s+/g, '');
+                    const displayName = user.displayName || generateRandomUsername();
+                    const username = displayName.toLowerCase().replace(/\s+/g, '');
+                    const photoURL = user.photoURL || null;
+                    
                     userRef.set({
                         uid: user.uid,
-                        displayName: user.displayName,
+                        displayName: displayName,
                         username: username,
                         email: user.email,
-                        photoURL: user.photoURL,
+                        photoURL: photoURL,
                         bio: '',
+                        location: '',
                         verified: false,
+                        private: false,
+                        showOnlineStatus: true,
                         followers: {},
                         following: {},
+                        blocked: {},
+                        lastSeen: firebase.database.ServerValue.TIMESTAMP,
+                        joinedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    
+                    // Create OrioAI user if it doesn't exist
+                    createOrioAIUser();
+                }
+            });
+        }
+        
+        // Create OrioAI user
+        function createOrioAIUser() {
+            const orioAIRef = database.ref('users').orderByChild('username').equalTo('orioai');
+            orioAIRef.once('value').then((snapshot) => {
+                if (!snapshot.exists()) {
+                    const aiUserId = 'orioai-system-user';
+                    database.ref('users/' + aiUserId).set({
+                        uid: aiUserId,
+                        displayName: 'OrioAI',
+                        username: 'orioai',
+                        email: 'ai@oriobuzz.com',
+                        photoURL: null,
+                        bio: 'AI Assistant for OrioBuzz - Ask me anything!',
+                        location: 'Digital Space',
+                        verified: true,
+                        private: false,
+                        showOnlineStatus: true,
+                        followers: {},
+                        following: {},
+                        blocked: {},
+                        isAI: true,
+                        lastSeen: firebase.database.ServerValue.TIMESTAMP,
                         joinedAt: firebase.database.ServerValue.TIMESTAMP
                     });
                 }
@@ -976,6 +1219,9 @@
             document.getElementById('privacyPolicyPage').classList.add('hidden');
             document.getElementById('communityGuidelinesPage').classList.add('hidden');
             document.getElementById('hashtagPage').classList.add('hidden');
+            document.getElementById('messagesPage').classList.add('hidden');
+            document.getElementById('loginSessionsPage').classList.add('hidden');
+            document.getElementById('blockedUsersPage').classList.add('hidden');
             
             if (page === 'home') {
                 document.getElementById('homeFeed').classList.remove('hidden');
@@ -992,6 +1238,7 @@
                 loadFollowers();
             } else if (page === 'settings') {
                 document.getElementById('settingsPage').classList.remove('hidden');
+                loadSettings();
             } else if (page === 'profileSettings') {
                 document.getElementById('profileSettingsPage').classList.remove('hidden');
                 loadProfileSettings();
@@ -1002,6 +1249,15 @@
             } else if (page === 'hashtag') {
                 document.getElementById('hashtagPage').classList.remove('hidden');
                 loadHashtagPosts(data);
+            } else if (page === 'messages') {
+                document.getElementById('messagesPage').classList.remove('hidden');
+                loadMessages();
+            } else if (page === 'loginSessions') {
+                document.getElementById('loginSessionsPage').classList.remove('hidden');
+                loadLoginSessions();
+            } else if (page === 'blockedUsers') {
+                document.getElementById('blockedUsersPage').classList.remove('hidden');
+                loadBlockedUsers();
             }
             currentPage = page;
         }
@@ -1022,8 +1278,29 @@
         document.getElementById('profileBtn').addEventListener('click', () => showPage('profile'));
         document.getElementById('followersBtn').addEventListener('click', () => showPage('followers'));
         document.getElementById('settingsBtn').addEventListener('click', () => showPage('settings'));
+        document.getElementById('messagesNavBtn').addEventListener('click', () => showPage('messages'));
         document.getElementById('mobileHomeBtn').addEventListener('click', () => showPage('home'));
         document.getElementById('mobileProfileBtn').addEventListener('click', () => showPage('profile'));
+        document.getElementById('mobileMessagesBtn').addEventListener('click', () => showPage('messages'));
+        
+        // Dropdown navigation
+        document.getElementById('loginSessionsBtn').addEventListener('click', () => {
+            document.getElementById('accountDropdown').classList.add('hidden');
+            showPage('loginSessions');
+        });
+        
+        document.getElementById('blockedUsersBtn').addEventListener('click', () => {
+            document.getElementById('accountDropdown').classList.add('hidden');
+            showPage('blockedUsers');
+        });
+        
+        document.getElementById('messagesBtn').addEventListener('click', () => {
+            document.getElementById('accountDropdown').classList.add('hidden');
+            showPage('messages');
+        });
+        
+        // Settings logout
+        document.getElementById('settingsLogoutBtn').addEventListener('click', logout);
 
         // Account dropdown
         document.getElementById('userProfile').addEventListener('click', () => {
@@ -2193,7 +2470,6 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9651f799232e6ed4',t:'MTc1MzUxMjY3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9652149566cc2edc',t:'MTc1MzUxMzg2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
 
