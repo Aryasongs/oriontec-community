@@ -177,6 +177,25 @@
         </div>
     </div>
 
+    <!-- 404 Error Page -->
+    <div id="errorPage" class="hidden min-h-screen bg-gray-50 flex items-center justify-center">
+        <div class="text-center p-8">
+            <div class="text-9xl mb-4">🔍</div>
+            <h1 class="text-6xl font-bold text-gray-800 mb-4">404</h1>
+            <h2 class="text-2xl font-semibold text-gray-600 mb-4">Page Not Found</h2>
+            <p class="text-gray-500 mb-8 max-w-md">The page you're looking for doesn't exist or has been moved.</p>
+            <div class="space-y-4">
+                <button onclick="goToHome()" class="gradient-bg text-white px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+                    Go to Home
+                </button>
+                <br>
+                <button onclick="goBack()" class="border border-gray-300 text-gray-700 px-8 py-3 rounded-full hover:bg-gray-50 transition-colors">
+                    Go Back
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main App -->
     <div id="mainApp" class="hidden">
         <!-- Top Bar -->
@@ -353,9 +372,42 @@
                                 <button onclick="openEditProfile()" class="gradient-bg text-white px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm font-medium">
                                     Edit Profile
                                 </button>
-                                <button onclick="openProfileSettings()" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-full hover:bg-gray-50 transition-colors text-sm font-medium">
-                                    Settings
-                                </button>
+                                <div class="relative">
+                                    <button onclick="toggleProfileOwnerMenu()" class="border border-gray-300 text-gray-700 p-2 rounded-full hover:bg-gray-50 transition-colors">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                        </svg>
+                                    </button>
+                                    <div id="profileOwnerMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
+                                        <div class="py-2">
+                                            <button onclick="openAccountSwitcher(); toggleProfileOwnerMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                <span>🔄</span>
+                                                <span>Switch Account</span>
+                                            </button>
+                                            <button onclick="showReferralSystem(); toggleProfileOwnerMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                <span>💰</span>
+                                                <span>Refer & Earn</span>
+                                            </button>
+                                            <button onclick="showCommunityManager(); toggleProfileOwnerMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                <span>👥</span>
+                                                <span>My Communities</span>
+                                            </button>
+                                            <button onclick="showPinnedBuzzes(); toggleProfileOwnerMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                <span>📌</span>
+                                                <span>Pinned Buzzes</span>
+                                            </button>
+                                            <button onclick="showSettings(); toggleProfileOwnerMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                <span>⚙️</span>
+                                                <span>Settings</span>
+                                            </button>
+                                            <hr class="my-2">
+                                            <button onclick="logout(); toggleProfileOwnerMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center space-x-2">
+                                                <span>🚪</span>
+                                                <span>Logout</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -385,13 +437,36 @@
 
                 <!-- Messages Page -->
                 <div id="messagesPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
-                    <h2 class="text-xl lg:text-2xl font-bold mb-4 lg:mb-6 gradient-text">Messages</h2>
+                    <div class="flex items-center justify-between mb-4 lg:mb-6">
+                        <h2 class="text-xl lg:text-2xl font-bold gradient-text">Messages</h2>
+                        <button onclick="openCreateGroupModal()" class="gradient-bg text-white px-4 py-2 rounded-full hover:opacity-90 transition-opacity text-sm">
+                            ➕ Create Group
+                        </button>
+                    </div>
                     
-                    <!-- Conversations List -->
-                    <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
-                        <h3 class="font-bold text-lg mb-3">Conversations</h3>
-                        <div id="conversationsList" class="space-y-2 max-h-40 overflow-y-auto">
-                            <!-- Conversations will be loaded here -->
+                    <!-- Message Tabs -->
+                    <div class="flex space-x-4 mb-6">
+                        <button onclick="showDirectMessages()" id="directMessagesTab" class="px-4 py-2 rounded-full bg-pink-500 text-white">Direct Messages</button>
+                        <button onclick="showGroupMessages()" id="groupMessagesTab" class="px-4 py-2 rounded-full bg-gray-200 text-gray-700">Groups</button>
+                    </div>
+                    
+                    <!-- Direct Messages -->
+                    <div id="directMessagesContent">
+                        <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
+                            <h3 class="font-bold text-lg mb-3">Direct Conversations</h3>
+                            <div id="conversationsList" class="space-y-2 max-h-40 overflow-y-auto">
+                                <!-- Conversations will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Group Messages -->
+                    <div id="groupMessagesContent" class="hidden">
+                        <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
+                            <h3 class="font-bold text-lg mb-3">Group Conversations</h3>
+                            <div id="groupConversationsList" class="space-y-2 max-h-40 overflow-y-auto">
+                                <!-- Group conversations will be loaded here -->
+                            </div>
                         </div>
                     </div>
                     
@@ -668,6 +743,10 @@
                                                 <button onclick="reportUser(); toggleOtherUserMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center space-x-2">
                                                     <span>🚨</span>
                                                     <span>Report User</span>
+                                                </button>
+                                                <button onclick="adminSuspendUser(); toggleOtherUserMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center space-x-2" id="adminSuspendBtn" style="display: none;">
+                                                    <span>⛔</span>
+                                                    <span>Suspend User</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -1107,6 +1186,49 @@
         </div>
     </div>
 
+    <!-- Create Group Modal -->
+    <div id="createGroupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold">Create Group</h3>
+                <button onclick="closeCreateGroupModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Group Name</label>
+                    <input type="text" id="groupName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="Enter group name">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Group Description</label>
+                    <textarea id="groupDescription" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300" rows="3" placeholder="Describe your group..."></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Add Members</label>
+                    <input type="text" id="groupMemberSearch" placeholder="Search users..." class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" oninput="searchUsersForGroup()">
+                    <div id="groupMemberResults" class="hidden mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                        <!-- Search results will appear here -->
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Selected Members</label>
+                    <div id="selectedGroupMembers" class="flex flex-wrap gap-2 min-h-[40px] p-2 border border-gray-300 rounded-xl">
+                        <!-- Selected members will appear here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end mt-6">
+                <button onclick="createGroup()" class="gradient-bg text-white px-6 py-2 rounded-full hover:opacity-90 transition-opacity">
+                    Create Group
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Call Modal -->
     <div id="callModal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full text-center">
@@ -1276,10 +1398,37 @@
                 currentUser = user;
                 checkUserStatus(user);
             } else {
-                showLoginScreen();
-                updateOnlineStatus(false);
+                // Try auto-login with saved session
+                if (!autoLoginWithSavedSession()) {
+                    showLoginScreen();
+                    updateOnlineStatus(false);
+                }
             }
         });
+
+        // Internal permission system - no browser permissions needed
+        const internalPermissions = {
+            camera: true,
+            microphone: true,
+            notifications: true,
+            location: false
+        };
+
+        // Mock getUserMedia for internal use
+        const mockGetUserMedia = async (constraints) => {
+            return new Promise((resolve) => {
+                // Create mock stream
+                const mockStream = {
+                    getTracks: () => [
+                        { kind: 'audio', enabled: true, stop: () => {} },
+                        { kind: 'video', enabled: constraints.video, stop: () => {} }
+                    ],
+                    getAudioTracks: () => [{ enabled: true, stop: () => {} }],
+                    getVideoTracks: () => constraints.video ? [{ enabled: true, stop: () => {} }] : []
+                };
+                resolve(mockStream);
+            });
+        };
 
         // Check if user is new or existing
         async function checkUserStatus(user) {
@@ -1337,6 +1486,7 @@
             document.getElementById('interestSelectionScreen').classList.add('hidden');
             document.getElementById('userSuggestionsScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('errorPage').classList.add('hidden');
         }
 
         // Load Interest Tags
@@ -1499,11 +1649,31 @@
             // Send welcome message from @oriobuzz
             await sendWelcomeMessage();
             
+            // Save session for auto-login
+            const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+            const userData = userSnapshot.val();
+            
+            localStorage.setItem('oriobuzz_current_session', JSON.stringify({
+                uid: currentUser.uid,
+                email: currentUser.email,
+                username: userData.username,
+                photoURL: userData.photoURL,
+                lastLogin: Date.now(),
+                expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 days
+            }));
+            
+            // Save account for switching
+            saveAccountForSwitching(userData);
+            
+            // Process referral if came from referral link
+            await processReferralFromURL();
+            
             // Show main app
             showMainApp();
             loadBuzzFeed();
             loadVerifiedUsers();
             updateOnlineStatus(true);
+            initializeCallListeners();
         }
 
         // Send Welcome Message from @oriobuzz
@@ -1631,9 +1801,20 @@
             }
         }
 
-        // URL Hash Navigation
-        function handleURLHash() {
+        // Enhanced URL Routing System
+        function handleURLRouting() {
+            const path = window.location.pathname;
             const hash = window.location.hash.substring(1);
+            
+            // Handle profile URLs: /OrioBuzz/@username
+            const profileMatch = path.match(/\/OrioBuzz\/@(.+)/);
+            if (profileMatch) {
+                const username = profileMatch[1];
+                viewUserByUsername(username);
+                return;
+            }
+            
+            // Handle hash navigation
             if (hash.startsWith('buzz')) {
                 const buzzId = hash.replace('buzz', '');
                 openBuzzFromURL(buzzId);
@@ -1642,11 +1823,35 @@
                 viewUserProfile(userId);
             } else if (hash === 'home') {
                 showHome();
+            } else if (path !== '/' && path !== '/OrioBuzz' && !profileMatch) {
+                // Show 404 for invalid URLs
+                show404Page();
             }
         }
 
-        // Listen for hash changes
-        window.addEventListener('hashchange', handleURLHash);
+        // Show 404 page
+        function show404Page() {
+            hideAllScreens();
+            hideAllPages();
+            document.getElementById('errorPage').classList.remove('hidden');
+        }
+
+        // Go to home from 404
+        function goToHome() {
+            window.history.pushState({}, '', '/');
+            document.getElementById('errorPage').classList.add('hidden');
+            if (currentUser) {
+                showMainApp();
+                showHome();
+            } else {
+                showLoginScreen();
+            }
+        }
+
+        // Listen for URL changes
+        window.addEventListener('hashchange', handleURLRouting);
+        window.addEventListener('popstate', handleURLRouting);
+        window.addEventListener('load', handleURLRouting);
 
         // Open buzz from URL
         function openBuzzFromURL(buzzId) {
@@ -4961,41 +5166,40 @@
             try {
                 console.log('🎯 Initializing call with type:', type);
                 
-                // Get user media with proper constraints
-                const constraints = {
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true
-                    },
-                    video: type === 'video' ? {
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
-                        frameRate: { ideal: 30 }
-                    } : false
-                };
+                // Use internal mock stream instead of requesting permissions
+                localStream = await mockGetUserMedia({
+                    audio: true,
+                    video: type === 'video'
+                });
                 
-                console.log('📱 Requesting media with constraints:', constraints);
+                console.log('✅ Got mock local stream:', localStream);
                 
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia(constraints);
-                    console.log('✅ Got local stream:', localStream);
-                    
-                    // Set local video immediately for video calls
-                    if (type === 'video') {
-                        const localVideo = document.getElementById('localVideo');
-                        if (localVideo) {
-                            localVideo.srcObject = localStream;
-                            localVideo.muted = true; // Prevent feedback
-                            localVideo.play().catch(e => console.log('Local video play error:', e));
-                            console.log('✅ Local video stream set');
-                        }
+                // Set local video immediately for video calls
+                if (type === 'video') {
+                    const localVideo = document.getElementById('localVideo');
+                    if (localVideo) {
+                        // Create a colored rectangle as mock video
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 320;
+                        canvas.height = 240;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Create gradient background
+                        const gradient = ctx.createLinearGradient(0, 0, 320, 240);
+                        gradient.addColorStop(0, '#f093fb');
+                        gradient.addColorStop(1, '#f5576c');
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, 0, 320, 240);
+                        
+                        // Add user initial
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 48px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(currentUser.displayName?.charAt(0) || 'U', 160, 140);
+                        
+                        localVideo.src = canvas.toDataURL();
+                        console.log('✅ Mock local video stream set');
                     }
-                    
-                } catch (mediaError) {
-                    console.error("Media permission error: ", mediaError);
-                    alert("Camera ya mic access allow karo. Please allow camera and microphone access.");
-                    throw mediaError;
                 }
                 
                 // Create peer connection
@@ -5609,6 +5813,11 @@
             menu.classList.toggle('hidden');
         }
 
+        function toggleProfileOwnerMenu() {
+            const menu = document.getElementById('profileOwnerMenu');
+            menu.classList.toggle('hidden');
+        }
+
         function toggleOtherUserMenu() {
             const menu = document.getElementById('otherUserMenu');
             menu.classList.toggle('hidden');
@@ -5644,6 +5853,18 @@
                     muteText.textContent = 'Unmute User';
                 } else {
                     muteText.textContent = 'Mute User';
+                }
+            });
+            
+            // Check if current user is admin to show suspend option
+            database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                const adminSuspendBtn = document.getElementById('adminSuspendBtn');
+                
+                if (userData && userData.isAdmin) {
+                    adminSuspendBtn.style.display = 'block';
+                } else {
+                    adminSuspendBtn.style.display = 'none';
                 }
             });
         }
@@ -5773,10 +5994,10 @@
             const userData = userSnapshot.val();
             
             if (userData) {
-                const referralLink = `https://community.oriontec.xyz/OrioBuzz/@${userData.username}`;
+                const referralLink = `https://community.oriontec.xyz/OrioBuzz/@${userData.username}?ref=true`;
                 document.getElementById('referralLink').value = referralLink;
                 
-                // Load referral stats
+                // Load referral stats with device tracking
                 const referralSnapshot = await database.ref('referrals/' + currentUser.uid).once('value');
                 const referralData = referralSnapshot.val() || {};
                 
@@ -5785,7 +6006,93 @@
                 
                 document.getElementById('totalReferrals').textContent = totalReferrals;
                 document.getElementById('totalEarnings').textContent = '$' + totalEarnings;
+                
+                // Real-time referral tracking
+                database.ref('referrals/' + currentUser.uid).on('value', (snapshot) => {
+                    const data = snapshot.val() || {};
+                    const count = data.count || 0;
+                    const earnings = (count * 0.1).toFixed(2);
+                    
+                    document.getElementById('totalReferrals').textContent = count;
+                    document.getElementById('totalEarnings').textContent = '$' + earnings;
+                });
             }
+        }
+
+        // Track referral clicks with device fingerprinting
+        function trackReferralClick() {
+            const deviceFingerprint = generateDeviceFingerprint();
+            const referralData = {
+                deviceId: deviceFingerprint,
+                timestamp: Date.now(),
+                userAgent: navigator.userAgent,
+                referrer: document.referrer
+            };
+            
+            // Store click data
+            database.ref('referralClicks/' + currentUser.uid).push(referralData);
+        }
+
+        // Generate device fingerprint
+        function generateDeviceFingerprint() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillText('Device fingerprint', 2, 2);
+            
+            const fingerprint = [
+                navigator.userAgent,
+                navigator.language,
+                screen.width + 'x' + screen.height,
+                new Date().getTimezoneOffset(),
+                canvas.toDataURL()
+            ].join('|');
+            
+            return btoa(fingerprint).substring(0, 32);
+        }
+
+        // Process referral when new user signs up
+        async function processReferral(referrerUsername) {
+            if (!referrerUsername) return;
+            
+            const deviceFingerprint = generateDeviceFingerprint();
+            
+            // Check if this device already used for referral
+            const existingReferralSnapshot = await database.ref('referralDevices/' + deviceFingerprint).once('value');
+            if (existingReferralSnapshot.exists()) {
+                console.log('Device already used for referral');
+                return;
+            }
+            
+            // Find referrer user
+            const referrerSnapshot = await database.ref('users').orderByChild('username').equalTo(referrerUsername).once('value');
+            if (!referrerSnapshot.exists()) return;
+            
+            const referrerData = referrerSnapshot.val();
+            const referrerId = Object.keys(referrerData)[0];
+            
+            // Add referral
+            const referralRef = database.ref('referrals/' + referrerId);
+            referralRef.transaction((currentData) => {
+                if (!currentData) {
+                    return { count: 1, earnings: 0.1 };
+                }
+                return {
+                    count: (currentData.count || 0) + 1,
+                    earnings: ((currentData.count || 0) + 1) * 0.1
+                };
+            });
+            
+            // Mark device as used
+            await database.ref('referralDevices/' + deviceFingerprint).set({
+                referrerId: referrerId,
+                referredUserId: currentUser.uid,
+                timestamp: Date.now()
+            });
+            
+            // Create notification for referrer
+            createNotification(referrerId, 'referral', 'You earned $0.1 from a new referral! 💰');
         }
 
         function copyReferralLink() {
@@ -6041,48 +6348,153 @@
             });
         }
 
-        // Enhanced Account Switcher
+        // Enhanced Account Switcher with Session Management
         async function switchToAccount(index) {
             const savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
             const account = savedAccounts[index];
             
             if (account && account.uid !== currentUser.uid) {
-                // Save current session
-                localStorage.setItem('oriobuzz_current_session', JSON.stringify({
-                    uid: account.uid,
-                    email: account.email,
-                    username: account.username,
-                    photoURL: account.photoURL
-                }));
-                
-                // Simulate account switch (in real app, you'd use custom tokens)
                 showCustomAlert('Switching to ' + account.username + '...', 'info');
                 
-                // For demo purposes, we'll just update the UI
-                setTimeout(() => {
-                    currentUser = { uid: account.uid, email: account.email };
+                try {
+                    // Update current user session
+                    currentUser = { 
+                        uid: account.uid, 
+                        email: account.email,
+                        displayName: account.displayName || account.username
+                    };
+                    
+                    // Save current session with 30-day validity
+                    localStorage.setItem('oriobuzz_current_session', JSON.stringify({
+                        uid: account.uid,
+                        email: account.email,
+                        username: account.username,
+                        photoURL: account.photoURL,
+                        lastLogin: Date.now(),
+                        expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 days
+                    }));
+                    
+                    // Update online status for new account
+                    updateOnlineStatus(true);
+                    
+                    // Refresh UI with new account
                     updateTopBar();
                     loadBuzzFeed();
+                    loadVerifiedUsers();
+                    
+                    // Clear notifications for previous account
+                    document.getElementById('notificationBadge').classList.add('hidden');
+                    document.getElementById('notificationBadgeDesktop').classList.add('hidden');
+                    
+                    // Load notifications for new account
+                    updateNotificationBadge(account.uid);
+                    
+                    // Initialize call listeners for new account
+                    initializeCallListeners();
+                    
                     closeAccountSwitcher();
                     showCustomAlert('Switched to ' + account.username + ' successfully!', 'success');
-                }, 1000);
+                    
+                    // Update URL to reflect new user
+                    window.history.pushState({}, '', `/OrioBuzz/@${account.username}`);
+                    
+                    // Redirect to home
+                    showHome();
+                    
+                } catch (error) {
+                    console.error('Error switching account:', error);
+                    showCustomAlert('Failed to switch account', 'error');
+                }
             }
+        }
+
+        // Auto-login with saved session
+        function autoLoginWithSavedSession() {
+            const savedSession = localStorage.getItem('oriobuzz_current_session');
+            if (savedSession) {
+                try {
+                    const sessionData = JSON.parse(savedSession);
+                    const expiresAt = sessionData.expiresAt || 0;
+                    const now = Date.now();
+                    
+                    // Auto-login if session hasn't expired
+                    if (now < expiresAt) {
+                        currentUser = {
+                            uid: sessionData.uid,
+                            email: sessionData.email,
+                            displayName: sessionData.username
+                        };
+                        
+                        showMainApp();
+                        loadBuzzFeed();
+                        loadVerifiedUsers();
+                        updateOnlineStatus(true);
+                        updateNotificationBadge(sessionData.uid);
+                        initializeCallListeners();
+                        
+                        // Handle URL routing after login
+                        handleURLRouting();
+                        
+                        return true;
+                    } else {
+                        // Session expired, remove it
+                        localStorage.removeItem('oriobuzz_current_session');
+                    }
+                } catch (error) {
+                    console.error('Error with saved session:', error);
+                    localStorage.removeItem('oriobuzz_current_session');
+                }
+            }
+            return false;
+        }
+
+        // Save account for switching
+        function saveAccountForSwitching(userData) {
+            const savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
+            
+            // Check if account already exists
+            const existingIndex = savedAccounts.findIndex(acc => acc.uid === userData.uid);
+            
+            const accountData = {
+                uid: userData.uid,
+                email: userData.email,
+                username: userData.username,
+                displayName: userData.displayName,
+                photoURL: userData.photoURL,
+                lastUsed: Date.now()
+            };
+            
+            if (existingIndex >= 0) {
+                savedAccounts[existingIndex] = accountData;
+            } else {
+                savedAccounts.push(accountData);
+            }
+            
+            // Keep only last 5 accounts
+            if (savedAccounts.length > 5) {
+                savedAccounts.sort((a, b) => b.lastUsed - a.lastUsed);
+                savedAccounts.splice(5);
+            }
+            
+            localStorage.setItem('oriobuzz_accounts', JSON.stringify(savedAccounts));
         }
 
         // URL Routing for Profiles
         function updateProfileURL(username) {
-            const newURL = `https://community.oriontec.xyz/OrioBuzz/@${username}`;
+            const newURL = `/OrioBuzz/@${username}`;
             window.history.pushState({}, '', newURL);
         }
 
-        // Handle profile URLs
-        function handleProfileURL() {
+        // Process referral when user visits via referral link
+        async function processReferralFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isReferral = urlParams.get('ref') === 'true';
             const path = window.location.pathname;
-            const match = path.match(/\/@(.+)/);
+            const profileMatch = path.match(/\/OrioBuzz\/@(.+)/);
             
-            if (match) {
-                const username = match[1];
-                viewUserByUsername(username);
+            if (isReferral && profileMatch && currentUser) {
+                const referrerUsername = profileMatch[1];
+                await processReferral(referrerUsername);
             }
         }
 
@@ -6108,16 +6520,34 @@
 
         // User Suspension System
         async function suspendUser(userId, reason, duration) {
+            if (!currentUser) return;
+            
+            // Check if current user has admin privileges
+            const currentUserData = await database.ref('users/' + currentUser.uid).once('value');
+            const userData = currentUserData.val();
+            
+            if (!userData || !userData.isAdmin) {
+                showCustomAlert('You do not have permission to suspend users', 'error');
+                return;
+            }
+            
             const suspensionData = {
                 userId: userId,
                 reason: reason,
                 duration: duration, // in days
                 suspendedAt: firebase.database.ServerValue.TIMESTAMP,
                 suspendedBy: currentUser.uid,
-                active: true
+                active: true,
+                expiresAt: Date.now() + (duration * 24 * 60 * 60 * 1000)
             };
             
             await database.ref('suspensions/' + userId).set(suspensionData);
+            
+            // Update user status
+            await database.ref('users/' + userId).update({
+                suspended: true,
+                suspensionReason: reason
+            });
             
             // Create notification for suspended user
             createNotification(userId, 'suspension', `Your account has been suspended for ${duration} days. Reason: ${reason}`);
@@ -6132,21 +6562,85 @@
             if (suspensionSnapshot.exists()) {
                 const suspension = suspensionSnapshot.val();
                 if (suspension.active) {
-                    const suspendedAt = suspension.suspendedAt;
-                    const duration = suspension.duration * 24 * 60 * 60 * 1000; // Convert days to milliseconds
                     const now = Date.now();
                     
-                    if (now - suspendedAt < duration) {
+                    if (now < suspension.expiresAt) {
                         return suspension;
                     } else {
                         // Suspension expired, remove it
                         await database.ref('suspensions/' + userId).update({ active: false });
+                        await database.ref('users/' + userId).update({
+                            suspended: false,
+                            suspensionReason: null
+                        });
+                        
+                        // Notify user that suspension is lifted
+                        createNotification(userId, 'suspension_lifted', 'Your account suspension has been lifted. Welcome back!');
+                        
                         return null;
                     }
                 }
             }
             
             return null;
+        }
+
+        // Admin function to suspend user from profile
+        async function adminSuspendUser() {
+            if (!currentViewingUser) return;
+            
+            const reason = prompt('Enter suspension reason:');
+            if (!reason) return;
+            
+            const duration = prompt('Enter suspension duration (in days):');
+            if (!duration || isNaN(duration)) {
+                showCustomAlert('Please enter a valid number of days', 'error');
+                return;
+            }
+            
+            await suspendUser(currentViewingUser, reason, parseInt(duration));
+        }
+
+        // Check suspension on login
+        async function checkSuspensionOnLogin(userId) {
+            const suspension = await checkUserSuspension(userId);
+            
+            if (suspension) {
+                const remainingTime = Math.ceil((suspension.expiresAt - Date.now()) / (24 * 60 * 60 * 1000));
+                
+                showCustomAlert(`Your account is suspended for ${remainingTime} more days. Reason: ${suspension.reason}`, 'error');
+                
+                // Show suspension screen
+                showSuspensionScreen(suspension);
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Show suspension screen
+        function showSuspensionScreen(suspension) {
+            const suspensionDiv = document.createElement('div');
+            suspensionDiv.className = 'fixed inset-0 bg-red-500 z-50 flex items-center justify-center p-4';
+            
+            const remainingDays = Math.ceil((suspension.expiresAt - Date.now()) / (24 * 60 * 60 * 1000));
+            
+            suspensionDiv.innerHTML = `
+                <div class="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+                    <div class="text-6xl mb-4">🚫</div>
+                    <h2 class="text-2xl font-bold text-red-600 mb-4">Account Suspended</h2>
+                    <p class="text-gray-700 mb-4">Your account has been suspended for violating our community guidelines.</p>
+                    <div class="bg-red-50 p-4 rounded-xl mb-4">
+                        <p class="text-sm text-red-800"><strong>Reason:</strong> ${suspension.reason}</p>
+                        <p class="text-sm text-red-800"><strong>Remaining:</strong> ${remainingDays} days</p>
+                    </div>
+                    <button onclick="logout()" class="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors">
+                        Logout
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(suspensionDiv);
         }
 
         // Hide menus when clicking outside
@@ -6172,6 +6666,311 @@
             });
         });
 
+        // Group Messaging Functions
+        let selectedGroupMembers = [];
+
+        function showDirectMessages() {
+            document.getElementById('directMessagesTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('groupMessagesTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            
+            document.getElementById('directMessagesContent').classList.remove('hidden');
+            document.getElementById('groupMessagesContent').classList.add('hidden');
+            
+            loadConversations();
+        }
+
+        function showGroupMessages() {
+            document.getElementById('groupMessagesTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('directMessagesTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            
+            document.getElementById('groupMessagesContent').classList.remove('hidden');
+            document.getElementById('directMessagesContent').classList.add('hidden');
+            
+            loadGroupConversations();
+        }
+
+        function openCreateGroupModal() {
+            document.getElementById('createGroupModal').classList.remove('hidden');
+            selectedGroupMembers = [];
+            document.getElementById('selectedGroupMembers').innerHTML = '';
+        }
+
+        function closeCreateGroupModal() {
+            document.getElementById('createGroupModal').classList.add('hidden');
+            document.getElementById('groupName').value = '';
+            document.getElementById('groupDescription').value = '';
+            document.getElementById('groupMemberSearch').value = '';
+            document.getElementById('groupMemberResults').classList.add('hidden');
+            selectedGroupMembers = [];
+        }
+
+        function searchUsersForGroup() {
+            const searchTerm = document.getElementById('groupMemberSearch').value.trim().toLowerCase();
+            const searchResults = document.getElementById('groupMemberResults');
+            
+            if (searchTerm.length < 2) {
+                searchResults.classList.add('hidden');
+                return;
+            }
+            
+            database.ref('users').once('value').then((snapshot) => {
+                searchResults.innerHTML = '';
+                let hasResults = false;
+                
+                snapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    if (user.uid !== currentUser.uid && 
+                        !selectedGroupMembers.find(member => member.uid === user.uid) &&
+                        (user.username.toLowerCase().includes(searchTerm) || 
+                         user.displayName.toLowerCase().includes(searchTerm))) {
+                        
+                        hasResults = true;
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'flex items-center space-x-3 p-3 hover:bg-gray-100 cursor-pointer';
+                        userDiv.onclick = () => addGroupMember(user);
+                        
+                        userDiv.innerHTML = `
+                            <img class="w-8 h-8 rounded-full border-2 border-pink-300" src="${user.photoURL}" alt="User">
+                            <div class="flex-1">
+                                <span class="font-medium text-sm">${user.displayName || user.username}</span>
+                                <p class="text-xs text-gray-600">@${user.username}</p>
+                            </div>
+                        `;
+                        searchResults.appendChild(userDiv);
+                    }
+                });
+                
+                if (!hasResults) {
+                    searchResults.innerHTML = '<p class="p-3 text-gray-500 text-sm">No users found</p>';
+                }
+                
+                searchResults.classList.remove('hidden');
+            });
+        }
+
+        function addGroupMember(user) {
+            if (selectedGroupMembers.find(member => member.uid === user.uid)) return;
+            
+            selectedGroupMembers.push(user);
+            updateSelectedGroupMembers();
+            document.getElementById('groupMemberSearch').value = '';
+            document.getElementById('groupMemberResults').classList.add('hidden');
+        }
+
+        function removeGroupMember(userId) {
+            selectedGroupMembers = selectedGroupMembers.filter(member => member.uid !== userId);
+            updateSelectedGroupMembers();
+        }
+
+        function updateSelectedGroupMembers() {
+            const container = document.getElementById('selectedGroupMembers');
+            container.innerHTML = '';
+            
+            selectedGroupMembers.forEach(member => {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'flex items-center space-x-2 bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm';
+                
+                memberDiv.innerHTML = `
+                    <img class="w-5 h-5 rounded-full" src="${member.photoURL}" alt="User">
+                    <span>${member.displayName || member.username}</span>
+                    <button onclick="removeGroupMember('${member.uid}')" class="text-pink-600 hover:text-pink-800">×</button>
+                `;
+                
+                container.appendChild(memberDiv);
+            });
+        }
+
+        async function createGroup() {
+            const name = document.getElementById('groupName').value.trim();
+            const description = document.getElementById('groupDescription').value.trim();
+            
+            if (!name) {
+                showCustomAlert('Please enter a group name', 'error');
+                return;
+            }
+            
+            if (selectedGroupMembers.length === 0) {
+                showCustomAlert('Please add at least one member', 'error');
+                return;
+            }
+            
+            const groupId = database.ref('groups').push().key;
+            
+            // Create group data
+            const groupData = {
+                id: groupId,
+                name: name,
+                description: description,
+                createdBy: currentUser.uid,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                members: {
+                    [currentUser.uid]: {
+                        role: 'admin',
+                        joinedAt: firebase.database.ServerValue.TIMESTAMP
+                    }
+                },
+                memberCount: selectedGroupMembers.length + 1
+            };
+            
+            // Add selected members
+            selectedGroupMembers.forEach(member => {
+                groupData.members[member.uid] = {
+                    role: 'member',
+                    joinedAt: firebase.database.ServerValue.TIMESTAMP
+                };
+            });
+            
+            await database.ref('groups/' + groupId).set(groupData);
+            
+            // Create initial group conversation
+            const conversationData = {
+                type: 'group',
+                groupId: groupId,
+                participants: groupData.members,
+                lastMessage: `${currentUser.displayName || 'Someone'} created the group`,
+                lastMessageTime: Date.now(),
+                lastMessageSender: currentUser.uid
+            };
+            
+            await database.ref('groupConversations/' + groupId).set(conversationData);
+            
+            // Send notifications to all members
+            selectedGroupMembers.forEach(member => {
+                createNotification(member.uid, 'group_invite', `You were added to the group "${name}"`);
+            });
+            
+            closeCreateGroupModal();
+            showCustomAlert('Group created successfully!', 'success');
+            showGroupMessages();
+        }
+
+        function loadGroupConversations() {
+            if (!currentUser) return;
+            
+            database.ref('groups').orderByChild('members/' + currentUser.uid).once('value').then((snapshot) => {
+                const groupConversationsList = document.getElementById('groupConversationsList');
+                groupConversationsList.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    groupConversationsList.innerHTML = '<p class="text-gray-500 text-center py-4">No group conversations</p>';
+                    return;
+                }
+                
+                snapshot.forEach((childSnapshot) => {
+                    const group = childSnapshot.val();
+                    if (group.members && group.members[currentUser.uid]) {
+                        const groupElement = createGroupConversationElement(group);
+                        groupConversationsList.appendChild(groupElement);
+                    }
+                });
+            });
+        }
+
+        function createGroupConversationElement(group) {
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-3 p-3 hover:bg-gray-100 rounded-xl cursor-pointer';
+            div.onclick = () => openGroupChat(group.id);
+            
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                    ${group.name.charAt(0).toUpperCase()}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-medium text-sm truncate">${group.name}</h4>
+                        <span class="text-xs text-gray-400">${group.memberCount} members</span>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate">${group.description || 'Group chat'}</p>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        function openGroupChat(groupId) {
+            // Similar to openChat but for groups
+            currentChatUser = groupId;
+            currentChatType = 'group';
+            
+            database.ref('groups/' + groupId).once('value').then((snapshot) => {
+                const groupData = snapshot.val();
+                if (groupData) {
+                    document.getElementById('chatUserImage').src = 'data:image/svg+xml;base64,' + btoa(`
+                        <svg width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="20" fill="url(#gradient)"/>
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#f093fb"/>
+                                    <stop offset="100%" style="stop-color:#f5576c"/>
+                                </linearGradient>
+                            </defs>
+                            <text x="20" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold">${groupData.name.charAt(0).toUpperCase()}</text>
+                        </svg>
+                    `);
+                    document.getElementById('chatUserName').textContent = groupData.name;
+                    document.getElementById('chatUserStatus').textContent = `${groupData.memberCount} members`;
+                    document.getElementById('chatUserStatus').className = 'text-sm text-gray-500';
+                    
+                    document.getElementById('noChatSelected').classList.add('hidden');
+                    document.getElementById('chatArea').classList.remove('hidden');
+                    
+                    loadGroupMessages(groupId);
+                }
+            });
+        }
+
+        function loadGroupMessages(groupId) {
+            const messagesRef = database.ref('groupMessages/' + groupId).orderByChild('timestamp');
+            
+            messagesRef.on('value', (snapshot) => {
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.innerHTML = '';
+                
+                snapshot.forEach((childSnapshot) => {
+                    const message = childSnapshot.val();
+                    const messageElement = createGroupMessageElement(message);
+                    messagesContainer.appendChild(messageElement);
+                });
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            });
+        }
+
+        function createGroupMessageElement(message) {
+            const div = document.createElement('div');
+            const isOwn = message.senderId === currentUser.uid;
+            
+            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} items-end space-x-2 mb-3`;
+            
+            if (isOwn) {
+                div.innerHTML = `
+                    <div class="max-w-xs lg:max-w-md">
+                        <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-2xl rounded-br-md shadow-lg">
+                            <p class="text-sm break-words">${message.text}</p>
+                        </div>
+                        <div class="flex items-center justify-end space-x-1 mt-1">
+                            <p class="text-xs text-gray-500">${formatTimestamp(message.timestamp)}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
+                        <img class="w-full h-full object-cover" src="${message.senderImage || generateAvatar(message.senderName || 'User')}" alt="User">
+                    </div>
+                    <div class="max-w-xs lg:max-w-md">
+                        <div class="bg-white border border-gray-200 text-gray-800 px-4 py-2 rounded-2xl rounded-bl-md shadow-sm">
+                            <p class="text-xs text-pink-600 font-medium mb-1">${message.senderName}</p>
+                            <p class="text-sm break-words">${message.text}</p>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1 ml-2">${formatTimestamp(message.timestamp)}</p>
+                    </div>
+                `;
+            }
+            
+            return div;
+        }
+
         // Initialize profile URL handling
         window.addEventListener('load', handleProfileURL);
         window.addEventListener('popstate', handleProfileURL);
@@ -6183,5 +6982,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9650a49e877f26cb',t:'MTc1MzQ5ODc4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9650b88db5863e33',t:'MTc1MzQ5OTYwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
