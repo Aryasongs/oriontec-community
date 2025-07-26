@@ -177,24 +177,7 @@
         </div>
     </div>
 
-    <!-- 404 Error Page -->
-    <div id="errorPage" class="hidden min-h-screen bg-gray-50 flex items-center justify-center">
-        <div class="text-center p-8">
-            <div class="text-9xl mb-4">🔍</div>
-            <h1 class="text-6xl font-bold text-gray-800 mb-4">404</h1>
-            <h2 class="text-2xl font-semibold text-gray-600 mb-4">Page Not Found</h2>
-            <p class="text-gray-500 mb-8 max-w-md">The page you're looking for doesn't exist or has been moved.</p>
-            <div class="space-y-4">
-                <button onclick="goToHome()" class="gradient-bg text-white px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
-                    Go to Home
-                </button>
-                <br>
-                <button onclick="goBack()" class="border border-gray-300 text-gray-700 px-8 py-3 rounded-full hover:bg-gray-50 transition-colors">
-                    Go Back
-                </button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Main App -->
     <div id="mainApp" class="hidden">
@@ -626,6 +609,22 @@
                                     <p>We don't sell your personal data. Information is only shared as necessary for service operation.</p>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold mb-4">Login Sessions</h3>
+                            <div id="loginSessions" class="space-y-3 mb-4">
+                                <!-- Login sessions will be loaded here -->
+                            </div>
+                            <button onclick="loadLoginSessions()" class="text-sm text-blue-500 hover:text-blue-700">Refresh Sessions</button>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold mb-4">Blocked Users</h3>
+                            <div id="blockedUsersList" class="space-y-3 mb-4">
+                                <!-- Blocked users will be loaded here -->
+                            </div>
+                            <button onclick="loadBlockedUsers()" class="text-sm text-blue-500 hover:text-blue-700">Refresh Blocked Users</button>
                         </div>
 
                         <div class="bg-white rounded-2xl shadow-lg p-6">
@@ -1186,6 +1185,39 @@
         </div>
     </div>
 
+    <!-- Rebuzz with Comment Modal -->
+    <div id="rebuzzModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-lg w-full">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold">Rebuzz with Comment</h3>
+                <button onclick="closeRebuzzModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Add your comment (optional)</label>
+                    <textarea id="rebuzzComment" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300" rows="3" placeholder="What do you think about this buzz?"></textarea>
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <div class="text-sm text-gray-600 mb-2">Rebuzzing:</div>
+                    <div id="originalBuzzPreview">
+                        <!-- Original buzz preview will be shown here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end mt-6 space-x-3">
+                <button onclick="closeRebuzzModal()" class="px-6 py-2 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitRebuzzWithComment()" class="gradient-bg text-white px-6 py-2 rounded-full hover:opacity-90 transition-opacity">
+                    Rebuzz
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Create Group Modal -->
     <div id="createGroupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full">
@@ -1322,7 +1354,10 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Bio</label>
-                    <textarea id="editBio" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" rows="3"></textarea>
+                    <textarea id="editBio" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" rows="3" maxlength="150" oninput="updateBioCounter()"></textarea>
+                    <div class="flex justify-end mt-1">
+                        <span id="bioCounter" class="text-xs text-gray-500">0/150</span>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Location</label>
@@ -1391,11 +1426,13 @@
         let specialUsers = ['gursharnarya07', 'dozera', 'oriontec', 'orionbuzz'];
         let unlimitedUsers = ['gursharnarya07', 'dozera', 'oriontec', 'orionbuzz'];
         let currentOnboardingStep = 1;
+        let currentRebuzzBuzzId = null;
 
         // Authentication State Observer
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
+                trackLoginSession(); // Track login session
                 checkUserStatus(user);
             } else {
                 // Try auto-login with saved session
@@ -1450,7 +1487,34 @@
                     loadVerifiedUsers();
                     updateOnlineStatus(true);
                     handleURLHash();
+                    
+                    // Create OrioAI account if it doesn't exist
+                    await createOrioAIAccount();
                 }
+            }
+        }
+
+        // Create OrioAI account
+        async function createOrioAIAccount() {
+            const orioAISnapshot = await database.ref('users').orderByChild('username').equalTo('orioai').once('value');
+            
+            if (!orioAISnapshot.exists()) {
+                const orioAIId = 'orioai_' + Date.now();
+                const orioAIData = {
+                    uid: orioAIId,
+                    displayName: 'OrioAI',
+                    username: 'orioai',
+                    email: 'orioai@oriontec.xyz',
+                    photoURL: generateAvatar('OrioAI'),
+                    bio: '🤖 AI Assistant for OrioBuzz - Ask me anything! Mention me with @orioai',
+                    verified: true,
+                    isAI: true,
+                    joinedAt: firebase.database.ServerValue.TIMESTAMP,
+                    onboardingCompleted: true
+                };
+                
+                await database.ref('users/' + orioAIId).set(orioAIData);
+                console.log('OrioAI account created successfully');
             }
         }
 
@@ -1801,20 +1865,10 @@
             }
         }
 
-        // Enhanced URL Routing System
-        function handleURLRouting() {
-            const path = window.location.pathname;
+        // Simple Hash Navigation
+        function handleURLHash() {
             const hash = window.location.hash.substring(1);
             
-            // Handle profile URLs: /OrioBuzz/@username
-            const profileMatch = path.match(/\/OrioBuzz\/@(.+)/);
-            if (profileMatch) {
-                const username = profileMatch[1];
-                viewUserByUsername(username);
-                return;
-            }
-            
-            // Handle hash navigation
             if (hash.startsWith('buzz')) {
                 const buzzId = hash.replace('buzz', '');
                 openBuzzFromURL(buzzId);
@@ -1823,35 +1877,11 @@
                 viewUserProfile(userId);
             } else if (hash === 'home') {
                 showHome();
-            } else if (path !== '/' && path !== '/OrioBuzz' && !profileMatch) {
-                // Show 404 for invalid URLs
-                show404Page();
             }
         }
 
-        // Show 404 page
-        function show404Page() {
-            hideAllScreens();
-            hideAllPages();
-            document.getElementById('errorPage').classList.remove('hidden');
-        }
-
-        // Go to home from 404
-        function goToHome() {
-            window.history.pushState({}, '', '/');
-            document.getElementById('errorPage').classList.add('hidden');
-            if (currentUser) {
-                showMainApp();
-                showHome();
-            } else {
-                showLoginScreen();
-            }
-        }
-
-        // Listen for URL changes
-        window.addEventListener('hashchange', handleURLRouting);
-        window.addEventListener('popstate', handleURLRouting);
-        window.addEventListener('load', handleURLRouting);
+        // Listen for hash changes
+        window.addEventListener('hashchange', handleURLHash);
 
         // Open buzz from URL
         function openBuzzFromURL(buzzId) {
@@ -2613,7 +2643,7 @@
                     database.ref('hashtagPosts/' + hashtag + '/' + buzzId).set(true);
                 });
 
-                // Create notifications for mentions
+                // Create notifications for mentions and handle AI responses
                 mentions.forEach(async (mention) => {
                     const mentionedUserSnapshot = await database.ref('users').orderByChild('username').equalTo(mention).once('value');
                     if (mentionedUserSnapshot.exists()) {
@@ -2621,6 +2651,12 @@
                         Object.keys(mentionedUsers).forEach(userId => {
                             if (userId !== currentUser.uid) {
                                 createNotification(userId, 'mention', `${userData.displayName || userData.username} mentioned you in a buzz`);
+                                
+                                // Check if mentioned user is OrioAI
+                                const mentionedUserData = mentionedUsers[userId];
+                                if (mentionedUserData.username === 'orioai') {
+                                    handleOrioAIMention(buzzId, content, userData);
+                                }
                             }
                         });
                     }
@@ -3111,26 +3147,175 @@
             });
         }
 
-        // Toggle Rebuzz
+        // Toggle Rebuzz - Updated to show modal for comment option
         function toggleRebuzz(buzzId) {
             if (!currentUser) return;
             
             const rebuzzRef = database.ref(`buzz/${buzzId}/rebuzzes/${currentUser.uid}`);
             rebuzzRef.once('value').then((snapshot) => {
                 if (snapshot.exists()) {
+                    // Remove rebuzz
                     rebuzzRef.remove();
                 } else {
-                    rebuzzRef.set(true);
-                    
-                    // Get buzz author and create notification
-                    database.ref(`buzz/${buzzId}`).once('value').then((buzzSnapshot) => {
-                        const buzz = buzzSnapshot.val();
-                        if (buzz && buzz.uid !== currentUser.uid) {
-                            createNotification(buzz.uid, 'rebuzz', currentUser.displayName + ' rebuzzed your post');
-                        }
+                    // Show rebuzz modal for comment option
+                    openRebuzzModal(buzzId);
+                }
+            });
+        }
+
+        // Open Rebuzz Modal
+        function openRebuzzModal(buzzId) {
+            currentRebuzzBuzzId = buzzId;
+            
+            // Load original buzz preview
+            database.ref('buzz/' + buzzId).once('value').then((snapshot) => {
+                const buzz = snapshot.val();
+                if (buzz) {
+                    document.getElementById('originalBuzzPreview').innerHTML = `
+                        <div class="flex items-start space-x-3">
+                            <img class="w-8 h-8 rounded-full" src="${buzz.userImage}" alt="User">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <span class="font-medium text-sm">${buzz.displayName || buzz.username}</span>
+                                    ${buzz.verified ? '<img src="https://community.oriontec.xyz/verify.png" alt="Verified" class="verified-badge">' : ''}
+                                </div>
+                                <p class="text-sm text-gray-800">${buzz.originalContent || buzz.content}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            document.getElementById('rebuzzModal').classList.remove('hidden');
+        }
+
+        // Close Rebuzz Modal
+        function closeRebuzzModal() {
+            document.getElementById('rebuzzModal').classList.add('hidden');
+            document.getElementById('rebuzzComment').value = '';
+            currentRebuzzBuzzId = null;
+        }
+
+        // Submit Rebuzz with Comment
+        async function submitRebuzzWithComment() {
+            if (!currentRebuzzBuzzId) return;
+            
+            const comment = document.getElementById('rebuzzComment').value.trim();
+            
+            // Add rebuzz
+            const rebuzzRef = database.ref(`buzz/${currentRebuzzBuzzId}/rebuzzes/${currentUser.uid}`);
+            await rebuzzRef.set(true);
+            
+            // If there's a comment, create a new buzz with the rebuzz
+            if (comment) {
+                const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+                const userData = userSnapshot.val();
+                
+                const newBuzzId = database.ref('buzz').push().key;
+                const rebuzzData = {
+                    buzzId: newBuzzId,
+                    uid: currentUser.uid,
+                    username: userData.username,
+                    displayName: userData.displayName || userData.username,
+                    userImage: userData.photoURL,
+                    verified: userData.verified || false,
+                    content: processContentForDisplay(comment),
+                    originalContent: comment,
+                    rebuzzedBuzzId: currentRebuzzBuzzId,
+                    isRebuzzWithComment: true,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    likes: {},
+                    rebuzzes: {}
+                };
+                
+                await database.ref('buzz/' + newBuzzId).set(rebuzzData);
+            }
+            
+            // Get buzz author and create notification
+            database.ref(`buzz/${currentRebuzzBuzzId}`).once('value').then((buzzSnapshot) => {
+                const buzz = buzzSnapshot.val();
+                if (buzz && buzz.uid !== currentUser.uid) {
+                    const userSnapshot = database.ref('users/' + currentUser.uid).once('value');
+                    userSnapshot.then((userData) => {
+                        const user = userData.val();
+                        const message = comment ? 
+                            `${user.displayName || user.username} rebuzzed your post with a comment` :
+                            `${user.displayName || user.username} rebuzzed your post`;
+                        createNotification(buzz.uid, 'rebuzz', message);
                     });
                 }
             });
+            
+            closeRebuzzModal();
+        }
+
+        // Handle OrioAI Mentions
+        async function handleOrioAIMention(buzzId, content, userData) {
+            // Get OrioAI user data
+            const orioAISnapshot = await database.ref('users').orderByChild('username').equalTo('orioai').once('value');
+            if (!orioAISnapshot.exists()) return;
+            
+            const orioAIData = orioAISnapshot.val();
+            const orioAIId = Object.keys(orioAIData)[0];
+            const orioAI = orioAIData[orioAIId];
+            
+            // Generate AI response based on content
+            const aiResponse = generateAIResponse(content, userData.username);
+            
+            // Wait 2-5 seconds to simulate thinking
+            setTimeout(async () => {
+                // Create AI comment
+                const commentId = database.ref('buzz/' + buzzId + '/comments').push().key;
+                const commentData = {
+                    commentId: commentId,
+                    uid: orioAIId,
+                    username: 'orioai',
+                    userImage: orioAI.photoURL,
+                    verified: true,
+                    content: aiResponse,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    isAIResponse: true
+                };
+                
+                await database.ref('buzz/' + buzzId + '/comments/' + commentId).set(commentData);
+                
+                // Create notification for original poster
+                createNotification(userData.uid, 'ai_response', '🤖 OrioAI responded to your buzz');
+                
+            }, Math.random() * 3000 + 2000); // 2-5 seconds delay
+        }
+
+        // Generate AI Response
+        function generateAIResponse(content, username) {
+            const responses = [
+                `Hi @${username}! 👋 That's an interesting point you've raised!`,
+                `Hello @${username}! 🤖 I'd be happy to help with that question.`,
+                `Great question @${username}! Here's what I think about it...`,
+                `Thanks for mentioning me @${username}! 💭 Let me share my thoughts.`,
+                `Hi there @${username}! 🌟 That's a fascinating topic to discuss.`,
+                `Hello @${username}! 🚀 I love engaging with the OrioBuzz community!`,
+                `Hey @${username}! 💡 That's a thought-provoking question.`,
+                `Thanks @${username}! 🎯 I'm always here to help and chat.`
+            ];
+            
+            // Simple keyword-based responses
+            const lowerContent = content.toLowerCase();
+            
+            if (lowerContent.includes('hello') || lowerContent.includes('hi')) {
+                return `Hello @${username}! 👋 Nice to meet you on OrioBuzz! How can I help you today?`;
+            } else if (lowerContent.includes('help')) {
+                return `I'm here to help @${username}! 🤖 Feel free to ask me anything about OrioBuzz or general questions.`;
+            } else if (lowerContent.includes('how are you')) {
+                return `I'm doing great @${username}! 😊 Thanks for asking. I'm always excited to chat with the OrioBuzz community!`;
+            } else if (lowerContent.includes('what') && lowerContent.includes('?')) {
+                return `That's a great question @${username}! 🤔 I'd need more context to give you a detailed answer, but I'm happy to help!`;
+            } else if (lowerContent.includes('thank')) {
+                return `You're very welcome @${username}! 😊 I'm always happy to help the OrioBuzz community!`;
+            } else if (lowerContent.includes('oriobuzz')) {
+                return `OrioBuzz is amazing @${username}! 🚀 It's a great platform to connect with people and share ideas. What do you love most about it?`;
+            } else {
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
         }
 
         // Load Verified Users
@@ -3396,69 +3581,107 @@
             loadOtherUserBuzz(userId);
         }
 
-        // Load Other User Profile with conditional display
+        // Load Other User Profile with conditional display and blocking check
         function loadOtherUserProfile(userId) {
-            const userRef = database.ref('users/' + userId);
-            userRef.once('value').then((snapshot) => {
-                const userData = snapshot.val();
-                if (userData) {
-                    document.getElementById('otherProfileImage').src = userData.photoURL;
-                    document.getElementById('otherProfileName').textContent = userData.displayName || userData.username;
-                    document.getElementById('otherProfileUsername').textContent = '@' + userData.username;
-                    document.getElementById('otherProfileBio').textContent = userData.bio || 'No bio yet';
-                    
-                    // Build profile info HTML - only show if data exists
-                    const locationElement = document.getElementById('otherProfileLocation');
-                    let profileInfoHTML = '';
-                    
-                    if (userData.location) {
-                        profileInfoHTML += `📍 ${userData.location}<br>`;
-                    }
-                    
-                    if (userData.website) {
-                        profileInfoHTML += `🌐 <a href="${userData.website}" target="_blank" class="text-blue-500 hover:text-blue-700">${userData.website}</a><br>`;
-                    }
-                    
-                    if (userData.contact) {
-                        const isEmail = userData.contact.includes('@');
-                        const contactIcon = isEmail ? '📧' : '📞';
-                        profileInfoHTML += `${contactIcon} ${userData.contact}<br>`;
-                    }
-                    
-                    // Remove last <br> if exists
-                    profileInfoHTML = profileInfoHTML.replace(/<br>$/, '');
-                    
-                    locationElement.innerHTML = profileInfoHTML || '<span class="text-gray-400">No additional info</span>';
-                    
-                    // Load follower counts
-                    loadFollowerCounts(userId);
-                    
-                    // Check if following
-                    checkFollowStatus(userId);
-                    
-                    // Check online status
-                    getUserOnlineStatus(userId, (status) => {
-                        updateUserOnlineIndicator(userId, status);
-                    });
-                    
-                    if (userData.verified) {
-                        document.getElementById('otherProfileVerified').classList.remove('hidden');
-                    } else {
-                        document.getElementById('otherProfileVerified').classList.add('hidden');
-                    }
-
-                    // Add share profile button
-                    const shareBtn = document.createElement('button');
-                    shareBtn.onclick = () => shareProfile(userId);
-                    shareBtn.className = 'border border-gray-300 text-gray-700 px-4 lg:px-6 py-2 rounded-full hover:bg-gray-50 transition-colors text-sm lg:text-base';
-                    shareBtn.innerHTML = '🔗 Share';
-                    
-                    const buttonContainer = document.querySelector('#otherUserProfile .flex.space-x-3');
-                    if (buttonContainer && !buttonContainer.querySelector('.share-profile-btn')) {
-                        shareBtn.classList.add('share-profile-btn');
-                        buttonContainer.appendChild(shareBtn);
-                    }
+            // First check if user is blocked
+            database.ref('userActions/' + currentUser.uid + '/blocked/' + userId).once('value').then((blockedSnapshot) => {
+                if (blockedSnapshot.exists()) {
+                    // User is blocked, show blocked message
+                    document.getElementById('otherUserProfile').innerHTML = `
+                        <div class="flex items-center justify-center min-h-screen">
+                            <div class="text-center p-8">
+                                <div class="text-6xl mb-4">🚫</div>
+                                <h2 class="text-2xl font-bold text-gray-800 mb-4">User Blocked</h2>
+                                <p class="text-gray-600 mb-6">You have blocked this user. You cannot view their profile.</p>
+                                <button onclick="unblockUser('${userId}'); viewUserProfile('${userId}')" class="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors">
+                                    Unblock User
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    return;
                 }
+                
+                // Check if current user is blocked by this user
+                database.ref('userActions/' + userId + '/blocked/' + currentUser.uid).once('value').then((blockedBySnapshot) => {
+                    if (blockedBySnapshot.exists()) {
+                        // Current user is blocked by this user
+                        document.getElementById('otherUserProfile').innerHTML = `
+                            <div class="flex items-center justify-center min-h-screen">
+                                <div class="text-center p-8">
+                                    <div class="text-6xl mb-4">🚫</div>
+                                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Access Restricted</h2>
+                                    <p class="text-gray-600">This user has blocked you. You cannot view their profile.</p>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    // User is not blocked, load profile normally
+                    const userRef = database.ref('users/' + userId);
+                    userRef.once('value').then((snapshot) => {
+                        const userData = snapshot.val();
+                        if (userData) {
+                            document.getElementById('otherProfileImage').src = userData.photoURL;
+                            document.getElementById('otherProfileName').textContent = userData.displayName || userData.username;
+                            document.getElementById('otherProfileUsername').textContent = '@' + userData.username;
+                            document.getElementById('otherProfileBio').textContent = userData.bio || 'No bio yet';
+                            
+                            // Build profile info HTML - only show if data exists
+                            const locationElement = document.getElementById('otherProfileLocation');
+                            let profileInfoHTML = '';
+                            
+                            if (userData.location) {
+                                profileInfoHTML += `📍 ${userData.location}<br>`;
+                            }
+                            
+                            if (userData.website) {
+                                profileInfoHTML += `🌐 <a href="${userData.website}" target="_blank" class="text-blue-500 hover:text-blue-700">${userData.website}</a><br>`;
+                            }
+                            
+                            if (userData.contact) {
+                                const isEmail = userData.contact.includes('@');
+                                const contactIcon = isEmail ? '📧' : '📞';
+                                profileInfoHTML += `${contactIcon} ${userData.contact}<br>`;
+                            }
+                            
+                            // Remove last <br> if exists
+                            profileInfoHTML = profileInfoHTML.replace(/<br>$/, '');
+                            
+                            locationElement.innerHTML = profileInfoHTML || '<span class="text-gray-400">No additional info</span>';
+                            
+                            // Load follower counts
+                            loadFollowerCounts(userId);
+                            
+                            // Check if following
+                            checkFollowStatus(userId);
+                            
+                            // Check online status
+                            getUserOnlineStatus(userId, (status) => {
+                                updateUserOnlineIndicator(userId, status);
+                            });
+                            
+                            if (userData.verified) {
+                                document.getElementById('otherProfileVerified').classList.remove('hidden');
+                            } else {
+                                document.getElementById('otherProfileVerified').classList.add('hidden');
+                            }
+
+                            // Add share profile button
+                            const shareBtn = document.createElement('button');
+                            shareBtn.onclick = () => shareProfile(userId);
+                            shareBtn.className = 'border border-gray-300 text-gray-700 px-4 lg:px-6 py-2 rounded-full hover:bg-gray-50 transition-colors text-sm lg:text-base';
+                            shareBtn.innerHTML = '🔗 Share';
+                            
+                            const buttonContainer = document.querySelector('#otherUserProfile .flex.space-x-3');
+                            if (buttonContainer && !buttonContainer.querySelector('.share-profile-btn')) {
+                                shareBtn.classList.add('share-profile-btn');
+                                buttonContainer.appendChild(shareBtn);
+                            }
+                        }
+                    });
+                });
             });
         }
 
@@ -4199,6 +4422,10 @@
                     document.getElementById('emailNotifications').checked = userData.emailNotifications || false;
                 }
             });
+            
+            // Load login sessions and blocked users
+            loadLoginSessions();
+            loadBlockedUsers();
         }
 
         // Verification Functions
@@ -4703,6 +4930,12 @@
                 return;
             }
             
+            // Validate bio length
+            if (bio.length > 150) {
+                showCustomAlert('Bio cannot exceed 150 characters', 'error');
+                return;
+            }
+            
             // Validate username format
             if (!/^[a-z0-9_]+$/.test(username)) {
                 showCustomAlert('Username can only contain lowercase letters, numbers, and underscores', 'error');
@@ -4778,6 +5011,173 @@
             } catch (error) {
                 console.error('Error updating profile:', error);
                 showCustomAlert('Failed to update profile. Please try again.', 'error');
+            }
+        }
+
+        // Update bio counter
+        function updateBioCounter() {
+            const bioInput = document.getElementById('editBio');
+            const counter = document.getElementById('bioCounter');
+            if (bioInput && counter) {
+                const length = bioInput.value.length;
+                counter.textContent = `${length}/150`;
+                
+                if (length > 140) {
+                    counter.className = 'text-xs text-red-500';
+                } else if (length > 120) {
+                    counter.className = 'text-xs text-yellow-500';
+                } else {
+                    counter.className = 'text-xs text-gray-500';
+                }
+            }
+        }
+
+        // Track login sessions
+        function trackLoginSession() {
+            if (!currentUser) return;
+            
+            const sessionData = {
+                userId: currentUser.uid,
+                loginTime: firebase.database.ServerValue.TIMESTAMP,
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                location: 'Unknown', // In real app, use geolocation API
+                ipAddress: 'Hidden for privacy',
+                deviceType: /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
+                browser: getBrowserName(),
+                active: true
+            };
+            
+            const sessionId = database.ref('loginSessions/' + currentUser.uid).push().key;
+            database.ref('loginSessions/' + currentUser.uid + '/' + sessionId).set(sessionData);
+            
+            // Update last activity
+            database.ref('loginSessions/' + currentUser.uid + '/' + sessionId + '/lastActivity').set(firebase.database.ServerValue.TIMESTAMP);
+            
+            // Set up periodic activity updates
+            setInterval(() => {
+                if (currentUser) {
+                    database.ref('loginSessions/' + currentUser.uid + '/' + sessionId + '/lastActivity').set(firebase.database.ServerValue.TIMESTAMP);
+                }
+            }, 60000); // Update every minute
+        }
+
+        // Get browser name
+        function getBrowserName() {
+            const userAgent = navigator.userAgent;
+            if (userAgent.includes('Chrome')) return 'Chrome';
+            if (userAgent.includes('Firefox')) return 'Firefox';
+            if (userAgent.includes('Safari')) return 'Safari';
+            if (userAgent.includes('Edge')) return 'Edge';
+            return 'Unknown';
+        }
+
+        // Load login sessions
+        function loadLoginSessions() {
+            if (!currentUser) return;
+            
+            database.ref('loginSessions/' + currentUser.uid).orderByChild('loginTime').once('value').then((snapshot) => {
+                const sessionsContainer = document.getElementById('loginSessions');
+                sessionsContainer.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    sessionsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No login sessions found</p>';
+                    return;
+                }
+                
+                const sessions = [];
+                snapshot.forEach((childSnapshot) => {
+                    sessions.push(childSnapshot.val());
+                });
+                
+                sessions.reverse().slice(0, 10).forEach((session) => {
+                    const sessionElement = createSessionElement(session);
+                    sessionsContainer.appendChild(sessionElement);
+                });
+            });
+        }
+
+        // Create session element
+        function createSessionElement(session) {
+            const div = document.createElement('div');
+            div.className = 'bg-gray-50 rounded-xl p-3 border border-gray-200';
+            
+            const loginTime = new Date(session.loginTime).toLocaleString();
+            const lastActivity = session.lastActivity ? new Date(session.lastActivity).toLocaleString() : 'Unknown';
+            
+            div.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-sm font-medium">${session.deviceType}</span>
+                            <span class="text-xs text-gray-500">${session.browser}</span>
+                            ${session.active ? '<span class="w-2 h-2 bg-green-500 rounded-full"></span>' : '<span class="w-2 h-2 bg-gray-400 rounded-full"></span>'}
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            <div>Login: ${loginTime}</div>
+                            <div>Last Active: ${lastActivity}</div>
+                            <div>Platform: ${session.platform}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Load blocked users
+        function loadBlockedUsers() {
+            if (!currentUser) return;
+            
+            database.ref('userActions/' + currentUser.uid + '/blocked').once('value').then((snapshot) => {
+                const blockedContainer = document.getElementById('blockedUsersList');
+                blockedContainer.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    blockedContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No blocked users</p>';
+                    return;
+                }
+                
+                const blockedUserIds = Object.keys(snapshot.val());
+                blockedUserIds.forEach(userId => {
+                    database.ref('users/' + userId).once('value').then((userSnapshot) => {
+                        const userData = userSnapshot.val();
+                        if (userData) {
+                            const blockedElement = createBlockedUserElement(userData);
+                            blockedContainer.appendChild(blockedElement);
+                        }
+                    });
+                });
+            });
+        }
+
+        // Create blocked user element
+        function createBlockedUserElement(userData) {
+            const div = document.createElement('div');
+            div.className = 'bg-gray-50 rounded-xl p-3 border border-gray-200 flex items-center justify-between';
+            
+            div.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <img class="w-10 h-10 rounded-full border-2 border-gray-300" src="${userData.photoURL}" alt="User">
+                    <div>
+                        <div class="font-medium text-sm">${userData.displayName || userData.username}</div>
+                        <div class="text-xs text-gray-500">@${userData.username}</div>
+                    </div>
+                </div>
+                <button onclick="unblockUser('${userData.uid}')" class="bg-red-500 text-white px-3 py-1 rounded-full text-xs hover:bg-red-600 transition-colors">
+                    Unblock
+                </button>
+            `;
+            
+            return div;
+        }
+
+        // Unblock user
+        async function unblockUser(userId) {
+            if (confirm('Are you sure you want to unblock this user?')) {
+                await database.ref('userActions/' + currentUser.uid + '/blocked/' + userId).remove();
+                showCustomAlert('User unblocked successfully', 'success');
+                loadBlockedUsers();
             }
         }
 
@@ -6982,5 +7382,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9650b88db5863e33',t:'MTc1MzQ5OTYwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9650cfc7f15080b5',t:'MTc1MzUwMDU1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
