@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forbiary - Professional Knowledge Platform</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/default.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Lato, Helvetica, Arial, sans-serif;
+            background: #f6f6f6;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .wiki-header {
+            background: #fff;
+            border-bottom: 1px solid #a2a9b1;
+            padding: 0;
+        }
+        
+        .wiki-nav {
+            background: #f8f9fa;
+            border-bottom: 1px solid #a2a9b1;
+            padding: 8px 0;
+        }
+        
+        .wiki-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .wiki-logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0645ad;
+            text-decoration: none;
+        }
+        
+        .wiki-search {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 20px;
+        }
+        
+        .wiki-search input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #a2a9b1;
+            border-radius: 2px;
+            font-size: 14px;
+        }
+        
+        .wiki-nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .wiki-nav-links a {
+            color: #0645ad;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 2px;
+        }
+        
+        .wiki-nav-links a:hover {
+            background: #eaecf0;
+        }
+        
+        .wiki-content {
+            background: #fff;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #a2a9b1;
+            border-radius: 2px;
+            max-width: 1200px;
+        }
+        
+        .wiki-article {
+            line-height: 1.6;
+            color: #222;
+        }
+        
+        .wiki-article h1 {
+            font-size: 32px;
+            font-weight: normal;
+            border-bottom: 3px solid #a2a9b1;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            color: #000;
+        }
+        
+        .wiki-article h2 {
+            font-size: 24px;
+            font-weight: normal;
+            border-bottom: 1px solid #a2a9b1;
+            padding-bottom: 4px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .wiki-article h3 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        
+        .wiki-infobox {
+            float: right;
+            width: 300px;
+            margin: 0 0 20px 20px;
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            padding: 15px;
+            font-size: 14px;
+        }
+        
+        .wiki-toc {
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            padding: 15px;
+            margin: 20px 0;
+            display: inline-block;
+        }
+        
+        .wiki-edit-btn {
+            background: #0645ad;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        
+        .wiki-edit-btn:hover {
+            background: #0b0080;
+        }
+        
+        .wiki-tabs {
+            border-bottom: 1px solid #a2a9b1;
+            margin-bottom: 20px;
+        }
+        
+        .wiki-tab {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            border-bottom: none;
+            cursor: pointer;
+            margin-right: 2px;
+        }
+        
+        .wiki-tab.active {
+            background: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+        }
+        
+        .wiki-sidebar {
+            width: 200px;
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            padding: 15px;
+            margin-right: 20px;
+            float: left;
+        }
+        
+        .wiki-main-content {
+            margin-left: 240px;
+        }
+        
+        .edit-summary {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #a2a9b1;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .CodeMirror {
+            border: 1px solid #a2a9b1;
+            height: 400px;
+        }
+        
+        .ql-editor {
+            min-height: 400px;
+            border: 1px solid #a2a9b1;
+        }
+        
+        .pending-edit {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .moderator-badge {
+            background: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        
+        .edit-history {
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+            border-top: 1px solid #a2a9b1;
+            padding-top: 15px;
+        }
+        
+        .diff-added {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .diff-removed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Wikipedia-style Header -->
+    <header class="wiki-header">
+        <div class="wiki-container">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0;">
+                <div style="display: flex; align-items: center;">
+                    <a href="#" onclick="showHome()" class="wiki-logo">
+                        <i class="fas fa-book-open" style="margin-right: 8px;"></i>Forbiary
+                    </a>
+                </div>
+                <div class="wiki-search">
+                    <input type="text" id="mainSearchInput" placeholder="Search Forbiary..." onkeypress="if(event.key==='Enter') searchFromHeader()">
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div id="userInfo" style="display:none; align-items: center; gap: 10px;">
+                        <img id="userPhoto" style="width: 32px; height: 32px; border-radius: 50%;" src="" alt="">
+                        <span id="userName" style="font-size: 14px; color: #0645ad;"></span>
+                        <span id="moderatorBadge" class="moderator-badge" style="display:none;">Moderator</span>
+                        <button onclick="signOut()" style="color: #d33; font-size: 14px; background: none; border: none; cursor: pointer;">Sign Out</button>
+                    </div>
+                    <button id="loginBtn" onclick="signInWithGoogle()" style="background: #0645ad; color: white; border: none; padding: 8px 16px; border-radius: 2px; cursor: pointer; font-size: 14px;">
+                        <i class="fab fa-google" style="margin-right: 5px;"></i>Sign In
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Wikipedia-style Navigation -->
+    <nav class="wiki-nav">
+        <div class="wiki-container">
+            <div class="wiki-nav-links">
+                <a href="#" onclick="showHome()">Main Page</a>
+                <a href="#" onclick="showSearch()">Browse Articles</a>
+                <a href="#" onclick="showWrite()" id="writeBtn" style="display:none;">Create Article</a>
+                <a href="#" onclick="showModerate()" id="moderateBtn" style="display:none;">Moderate</a>
+                <a href="#" onclick="showBecomeModerator()" id="becomeModerator">Become Moderator</a>
+                <a href="#" onclick="showPendingEdits()" id="pendingEditsBtn" style="display:none;">Pending Edits</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Home Page -->
+        <div id="homePage">
+            <div class="wiki-content">
+                <div class="wiki-sidebar">
+                    <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #a2a9b1; padding-bottom: 5px;">Navigation</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 8px;"><a href="#" onclick="showHome()" style="color: #0645ad; text-decoration: none; font-size: 14px;">Main page</a></li>
+                        <li style="margin-bottom: 8px;"><a href="#" onclick="showSearch()" style="color: #0645ad; text-decoration: none; font-size: 14px;">Browse articles</a></li>
+                        <li style="margin-bottom: 8px;"><a href="#" onclick="showWrite()" style="color: #0645ad; text-decoration: none; font-size: 14px;">Create article</a></li>
+                        <li style="margin-bottom: 8px;"><a href="#" onclick="showBecomeModerator()" style="color: #0645ad; text-decoration: none; font-size: 14px;">Become moderator</a></li>
+                    </ul>
+                    
+                    <h3 style="font-size: 16px; font-weight: bold; margin: 20px 0 15px 0; border-bottom: 1px solid #a2a9b1; padding-bottom: 5px;">Categories</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 5px;"><a href="#" onclick="filterByCategory('Technology')" style="color: #0645ad; text-decoration: none; font-size: 13px;">Technology</a></li>
+                        <li style="margin-bottom: 5px;"><a href="#" onclick="filterByCategory('Business')" style="color: #0645ad; text-decoration: none; font-size: 13px;">Business</a></li>
+                        <li style="margin-bottom: 5px;"><a href="#" onclick="filterByCategory('Science')" style="color: #0645ad; text-decoration: none; font-size: 13px;">Science</a></li>
+                        <li style="margin-bottom: 5px;"><a href="#" onclick="filterByCategory('History')" style="color: #0645ad; text-decoration: none; font-size: 13px;">History</a></li>
+                        <li style="margin-bottom: 5px;"><a href="#" onclick="filterByCategory('Health')" style="color: #0645ad; text-decoration: none; font-size: 13px;">Health</a></li>
+                        <li style="margin-bottom: 5px;"><a href="#" onclick="filterByCategory('Education')" style="color: #0645ad; text-decoration: none; font-size: 13px;">Education</a></li>
+                    </ul>
+                </div>
+                
+                <div class="wiki-main-content">
+                    <div class="wiki-article">
+                        <h1>Welcome to Forbiary</h1>
+                        <p><strong>Forbiary</strong> is a collaborative knowledge-sharing platform inspired by Wikipedia, where users can create, edit, and moderate articles on various topics. Anyone can contribute and become a moderator to help maintain quality content.</p>
+                        
+                        <div class="wiki-toc">
+                            <strong>Contents</strong>
+                            <ol style="margin: 10px 0 0 20px;">
+                                <li><a href="#getting-started" style="color: #0645ad; text-decoration: none;">Getting Started</a></li>
+                                <li><a href="#recent-articles" style="color: #0645ad; text-decoration: none;">Recent Articles</a></li>
+                                <li><a href="#how-to-contribute" style="color: #0645ad; text-decoration: none;">How to Contribute</a></li>
+                                <li><a href="#moderation" style="color: #0645ad; text-decoration: none;">Moderation System</a></li>
+                            </ol>
+                        </div>
+                        
+                        <h2 id="getting-started">Getting Started</h2>
+                        <p>To start contributing to Forbiary, you need to sign in with your Google account. Once signed in, you can:</p>
+                        <ul>
+                            <li>Create new articles on any topic</li>
+                            <li>Edit existing articles to improve them</li>
+                            <li>Apply to become a moderator</li>
+                            <li>Review and approve edits from other users</li>
+                        </ul>
+                        
+                        <h2 id="recent-articles">Recent Articles</h2>
+                        <div id="recentArticles" style="margin: 20px 0;">
+                            <!-- Recent articles will be loaded here -->
+                        </div>
+                        
+                        <h2 id="how-to-contribute">How to Contribute</h2>
+                        <p>Contributing to Forbiary is easy and open to everyone:</p>
+                        <ol>
+                            <li><strong>Sign in</strong> with your Google account</li>
+                            <li><strong>Create</strong> new articles or <strong>edit</strong> existing ones</li>
+                            <li><strong>Submit</strong> your changes for review</li>
+                            <li><strong>Moderators</strong> will review and approve quality content</li>
+                        </ol>
+                        
+                        <h2 id="moderation">Moderation System</h2>
+                        <p>Forbiary uses a community-driven moderation system where any user can apply to become a moderator. Moderators help maintain quality by reviewing article edits and ensuring content meets our standards.</p>
+                        
+                        <div style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 15px; margin: 20px 0;">
+                            <strong>Quick Actions:</strong><br>
+                            <a href="#" onclick="showSearch()" style="color: #0645ad; margin-right: 15px;">Browse Articles</a>
+                            <a href="#" onclick="showWrite()" style="color: #0645ad; margin-right: 15px;">Create Article</a>
+                            <a href="#" onclick="showBecomeModerator()" style="color: #0645ad;">Become Moderator</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Page -->
+        <div id="searchPage" style="display:none;">
+            <div class="wiki-content">
+                <div class="wiki-article">
+                    <h1>Browse Articles</h1>
+                    <div style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 15px; margin: 20px 0;">
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <input type="text" id="searchInput" placeholder="Search by title, tags, or content..." style="flex: 1; min-width: 300px; padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px;">
+                            <select id="categoryFilter" style="padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px;">
+                                <option value="">All Categories</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Business">Business</option>
+                                <option value="Science">Science</option>
+                                <option value="History">History</option>
+                                <option value="Health">Health</option>
+                                <option value="Education">Education</option>
+                            </select>
+                            <button onclick="searchArticles()" class="wiki-edit-btn">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                    <div id="searchResults">
+                        <!-- Search results will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Become Moderator Page -->
+        <div id="becomeModeratorPage" style="display:none;">
+            <div class="wiki-content">
+                <div class="wiki-article">
+                    <h1>Become a Moderator</h1>
+                    <p>Moderators help maintain the quality of Forbiary by reviewing article edits and ensuring content meets our community standards.</p>
+                    
+                    <h2>Requirements</h2>
+                    <ul>
+                        <li>Active Google account</li>
+                        <li>Understanding of community guidelines</li>
+                        <li>Commitment to fair and unbiased moderation</li>
+                    </ul>
+                    
+                    <h2>Responsibilities</h2>
+                    <ul>
+                        <li>Review pending article edits</li>
+                        <li>Approve or reject changes based on quality</li>
+                        <li>Help maintain community standards</li>
+                        <li>Assist other users when needed</li>
+                    </ul>
+                    
+                    <div id="moderatorApplication" style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 20px; margin: 20px 0;">
+                        <h3>Apply to Become a Moderator</h3>
+                        <p>Click the button below to apply for moderator privileges:</p>
+                        <button onclick="applyForModerator()" class="wiki-edit-btn" style="background: #28a745;">
+                            <i class="fas fa-user-shield"></i> Apply for Moderator
+                        </button>
+                        <div id="applicationStatus" style="margin-top: 15px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Edits Page -->
+        <div id="pendingEditsPage" style="display:none;">
+            <div class="wiki-content">
+                <div class="wiki-article">
+                    <h1>Pending Edits</h1>
+                    <p>Review and approve edits submitted by community members.</p>
+                    <div id="pendingEditsList">
+                        <!-- Pending edits will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Write/Edit Article Page -->
+        <div id="writePage" style="display:none;">
+            <div class="wiki-content">
+                <div class="wiki-article">
+                    <h1 id="writePageTitle">Create New Article</h1>
+                    
+                    <div class="wiki-tabs">
+                        <div class="wiki-tab active" onclick="switchEditMode('visual')" id="visualTab">Visual Editor</div>
+                        <div class="wiki-tab" onclick="switchEditMode('code')" id="codeTab">Source Code</div>
+                    </div>
+                    
+                    <form id="articleForm">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Article Title</label>
+                            <input type="text" id="articleTitle" required style="width: 100%; padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px;" placeholder="Enter article title">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Summary</label>
+                            <textarea id="articleSummary" required rows="3" style="width: 100%; padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px;" placeholder="Brief summary of the article"></textarea>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div>
+                                <label style="display: block; font-weight: bold; margin-bottom: 5px;">Category</label>
+                                <select id="articleCategory" required style="width: 100%; padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px;">
+                                    <option value="">Select Category</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Science">Science</option>
+                                    <option value="History">History</option>
+                                    <option value="Health">Health</option>
+                                    <option value="Education">Education</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: bold; margin-bottom: 5px;">Tags</label>
+                                <input type="text" id="articleTags" style="width: 100%; padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px;" placeholder="Comma-separated tags">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">References</label>
+                            <textarea id="articleReferences" rows="3" style="width: 100%; padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px;" placeholder="URLs, books, or other sources (one per line)"></textarea>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Article Content</label>
+                            <div id="visualEditor" style="display: block;">
+                                <div id="editor"></div>
+                            </div>
+                            <div id="codeEditor" style="display: none;">
+                                <textarea id="codeTextarea" style="width: 100%; height: 400px; font-family: monospace; padding: 10px; border: 1px solid #a2a9b1;"></textarea>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Edit Summary</label>
+                            <input type="text" id="editSummary" class="edit-summary" placeholder="Briefly describe your changes..." style="width: 100%;">
+                        </div>
+
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button type="button" onclick="showHome()" style="padding: 8px 16px; border: 1px solid #a2a9b1; background: #f8f9fa; border-radius: 2px; cursor: pointer;">Cancel</button>
+                            <button type="button" onclick="previewArticle()" style="padding: 8px 16px; border: 1px solid #a2a9b1; background: #f8f9fa; border-radius: 2px; cursor: pointer;">Preview</button>
+                            <button type="submit" class="wiki-edit-btn">
+                                <i class="fas fa-save"></i> <span id="submitButtonText">Submit for Review</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Moderate Page -->
+        <div id="moderatePage" style="display:none;">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-6">Article Moderation</h2>
+                <div id="pendingArticles">
+                    <!-- Pending articles will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Article Reader -->
+        <div id="articleReader" style="display:none;">
+            <div class="wiki-content">
+                <div class="wiki-article">
+                    <div id="articleContent">
+                        <!-- Article content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAl8eI-_8Ew9va0KPV8p4D2hc9WUTGiwuI",
+            authDomain: "auth.oriontec.xyz",
+            databaseURL: "https://chat-d647c-default-rtdb.firebasio.com",
+            projectId: "chat-d647c",
+            storageBucket: "chat-d647c.firebasestorage.app",
+            messagingSenderId: ".",
+            appId: "1:.:web:7248a0983dcf0d45a87418",
+            measurementId: "G-5RFLRYTLCN"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Initialize Quill Editor
+        let quill;
+        
+        // Current user and admin status
+        let currentUser = null;
+        let isAdmin = false;
+        let isModerator = false;
+        let currentEditingArticleId = null;
+        let currentEditMode = 'visual';
+
+        // Admin emails (you can modify this list)
+        const adminEmails = ['admin@forbiary.com', 'moderator@forbiary.com'];
+
+        // Auth state observer
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('writeBtn').style.display = 'inline-block';
+                document.getElementById('userName').textContent = user.displayName;
+                document.getElementById('userPhoto').src = user.photoURL;
+
+                // Check if user is admin or moderator
+                isAdmin = adminEmails.includes(user.email);
+                await checkModeratorStatus();
+                
+                if (isAdmin || isModerator) {
+                    document.getElementById('moderateBtn').style.display = 'inline-block';
+                    document.getElementById('pendingEditsBtn').style.display = 'inline-block';
+                    document.getElementById('moderatorBadge').style.display = 'inline-block';
+                }
+
+                // Initialize editor if on write page
+                if (document.getElementById('writePage').style.display !== 'none') {
+                    initializeEditor();
+                }
+            } else {
+                currentUser = null;
+                isAdmin = false;
+                isModerator = false;
+                document.getElementById('loginBtn').style.display = 'inline-block';
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('writeBtn').style.display = 'none';
+                document.getElementById('moderateBtn').style.display = 'none';
+                document.getElementById('pendingEditsBtn').style.display = 'none';
+                document.getElementById('moderatorBadge').style.display = 'none';
+            }
+        });
+
+        // Sign in with Google
+        async function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                alert('Sign in failed: ' + error.message);
+            }
+        }
+
+        // Sign out
+        async function signOut() {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                alert('Sign out failed: ' + error.message);
+            }
+        }
+
+        // Navigation functions
+        function showHome() {
+            hideAllPages();
+            document.getElementById('homePage').style.display = 'block';
+            loadRecentArticles();
+            window.location.hash = '';
+        }
+
+        function showSearch() {
+            hideAllPages();
+            document.getElementById('searchPage').style.display = 'block';
+            loadAllArticles();
+        }
+
+        function showWrite(articleId = null) {
+            if (!currentUser) {
+                alert('Please sign in to write articles');
+                return;
+            }
+            hideAllPages();
+            document.getElementById('writePage').style.display = 'block';
+            
+            if (articleId) {
+                currentEditingArticleId = articleId;
+                document.getElementById('writePageTitle').textContent = 'Edit Article';
+                document.getElementById('submitButtonText').textContent = 'Submit Edit';
+                loadArticleForEditing(articleId);
+            } else {
+                currentEditingArticleId = null;
+                document.getElementById('writePageTitle').textContent = 'Create New Article';
+                document.getElementById('submitButtonText').textContent = 'Submit for Review';
+                clearForm();
+            }
+            
+            initializeEditor();
+        }
+
+        function showModerate() {
+            if (!currentUser || (!isAdmin && !isModerator)) {
+                alert('Access denied. Moderator privileges required.');
+                return;
+            }
+            hideAllPages();
+            document.getElementById('moderatePage').style.display = 'block';
+            loadPendingArticles();
+        }
+
+        function showBecomeModerator() {
+            hideAllPages();
+            document.getElementById('becomeModeratorPage').style.display = 'block';
+        }
+
+        function showPendingEdits() {
+            if (!currentUser || (!isAdmin && !isModerator)) {
+                alert('Access denied. Moderator privileges required.');
+                return;
+            }
+            hideAllPages();
+            document.getElementById('pendingEditsPage').style.display = 'block';
+            loadPendingEdits();
+        }
+
+        function hideAllPages() {
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('searchPage').style.display = 'none';
+            document.getElementById('writePage').style.display = 'none';
+            document.getElementById('moderatePage').style.display = 'none';
+            document.getElementById('articleReader').style.display = 'none';
+            document.getElementById('becomeModeratorPage').style.display = 'none';
+            document.getElementById('pendingEditsPage').style.display = 'none';
+        }
+
+        // Initialize Quill editor
+        function initializeEditor() {
+            if (quill) return;
+            
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link', 'code-block'],
+                        ['clean']
+                    ]
+                }
+            });
+        }
+
+        // Switch between visual and code editing modes
+        function switchEditMode(mode) {
+            currentEditMode = mode;
+            
+            if (mode === 'visual') {
+                document.getElementById('visualTab').classList.add('active');
+                document.getElementById('codeTab').classList.remove('active');
+                document.getElementById('visualEditor').style.display = 'block';
+                document.getElementById('codeEditor').style.display = 'none';
+                
+                // Sync content from code to visual
+                const codeContent = document.getElementById('codeTextarea').value;
+                if (codeContent && quill) {
+                    quill.root.innerHTML = codeContent;
+                }
+            } else {
+                document.getElementById('visualTab').classList.remove('active');
+                document.getElementById('codeTab').classList.add('active');
+                document.getElementById('visualEditor').style.display = 'none';
+                document.getElementById('codeEditor').style.display = 'block';
+                
+                // Sync content from visual to code
+                if (quill) {
+                    document.getElementById('codeTextarea').value = quill.root.innerHTML;
+                }
+            }
+        }
+
+        // Check if user is a moderator
+        async function checkModeratorStatus() {
+            if (!currentUser) return;
+            
+            try {
+                const doc = await db.collection('moderators').doc(currentUser.uid).get();
+                isModerator = doc.exists && doc.data().status === 'approved';
+            } catch (error) {
+                console.error('Error checking moderator status:', error);
+            }
+        }
+
+        // Apply to become a moderator
+        async function applyForModerator() {
+            if (!currentUser) {
+                alert('Please sign in first');
+                return;
+            }
+
+            try {
+                await db.collection('moderators').doc(currentUser.uid).set({
+                    email: currentUser.email,
+                    name: currentUser.displayName,
+                    appliedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'approved' // Auto-approve for demo purposes
+                });
+
+                isModerator = true;
+                document.getElementById('moderateBtn').style.display = 'inline-block';
+                document.getElementById('pendingEditsBtn').style.display = 'inline-block';
+                document.getElementById('moderatorBadge').style.display = 'inline-block';
+                document.getElementById('applicationStatus').innerHTML = '<div style="color: green;">✓ Application approved! You are now a moderator.</div>';
+            } catch (error) {
+                alert('Error applying for moderator: ' + error.message);
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('articleTitle').value = '';
+            document.getElementById('articleSummary').value = '';
+            document.getElementById('articleCategory').value = '';
+            document.getElementById('articleTags').value = '';
+            document.getElementById('articleReferences').value = '';
+            document.getElementById('editSummary').value = '';
+            if (quill) {
+                quill.setContents([]);
+            }
+            document.getElementById('codeTextarea').value = '';
+        }
+
+        // Load article for editing
+        async function loadArticleForEditing(articleId) {
+            try {
+                const doc = await db.collection('articles').doc(articleId).get();
+                if (!doc.exists) return;
+                
+                const article = doc.data();
+                document.getElementById('articleTitle').value = article.title;
+                document.getElementById('articleSummary').value = article.summary;
+                document.getElementById('articleCategory').value = article.category;
+                document.getElementById('articleTags').value = article.tags.join(', ');
+                document.getElementById('articleReferences').value = article.references.join('\n');
+                
+                if (quill) {
+                    quill.root.innerHTML = article.content;
+                }
+                document.getElementById('codeTextarea').value = article.content;
+            } catch (error) {
+                console.error('Error loading article for editing:', error);
+            }
+        }
+
+        // Preview article
+        function previewArticle() {
+            const title = document.getElementById('articleTitle').value;
+            const summary = document.getElementById('articleSummary').value;
+            const content = currentEditMode === 'visual' ? quill.root.innerHTML : document.getElementById('codeTextarea').value;
+            
+            const previewWindow = window.open('', '_blank');
+            previewWindow.document.write(`
+                <html>
+                <head>
+                    <title>Preview: ${title}</title>
+                    <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                        h1 { border-bottom: 3px solid #a2a9b1; padding-bottom: 8px; }
+                        h2 { border-bottom: 1px solid #a2a9b1; padding-bottom: 4px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>${title}</h1>
+                    <p><strong>Summary:</strong> ${summary}</p>
+                    <hr>
+                    ${content}
+                </body>
+                </html>
+            `);
+        }
+
+        // Search from header
+        function searchFromHeader() {
+            const searchTerm = document.getElementById('mainSearchInput').value;
+            document.getElementById('searchInput').value = searchTerm;
+            showSearch();
+            searchArticles();
+        }
+
+        // Filter by category
+        function filterByCategory(category) {
+            document.getElementById('categoryFilter').value = category;
+            showSearch();
+            searchArticles();
+        }
+
+        // Submit article or edit
+        document.getElementById('articleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                alert('Please sign in to submit articles');
+                return;
+            }
+
+            const title = document.getElementById('articleTitle').value;
+            const summary = document.getElementById('articleSummary').value;
+            const category = document.getElementById('articleCategory').value;
+            const tags = document.getElementById('articleTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
+            const references = document.getElementById('articleReferences').value.split('\n').filter(ref => ref.trim());
+            const editSummary = document.getElementById('editSummary').value;
+            const htmlContent = currentEditMode === 'visual' ? quill.root.innerHTML : document.getElementById('codeTextarea').value;
+
+            try {
+                if (currentEditingArticleId) {
+                    // Submit edit for existing article
+                    await db.collection('edits').add({
+                        articleId: currentEditingArticleId,
+                        title,
+                        summary,
+                        category,
+                        tags,
+                        references,
+                        content: htmlContent,
+                        editSummary,
+                        editor: currentUser.displayName,
+                        editorEmail: currentUser.email,
+                        editorUid: currentUser.uid,
+                        status: 'pending',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdAt: new Date().toISOString()
+                    });
+
+                    alert('Edit submitted successfully! It will be reviewed by moderators.');
+                } else {
+                    // Create new article
+                    await db.collection('articles').add({
+                        title,
+                        summary,
+                        category,
+                        tags,
+                        references,
+                        content: htmlContent,
+                        author: currentUser.displayName,
+                        authorEmail: currentUser.email,
+                        uid: currentUser.uid,
+                        status: 'pending',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdAt: new Date().toISOString(),
+                        editHistory: []
+                    });
+
+                    alert('Article submitted successfully! It will be reviewed by moderators.');
+                }
+
+                clearForm();
+                showHome();
+            } catch (error) {
+                alert('Error submitting: ' + error.message);
+            }
+        });
+
+        // Load recent articles
+        async function loadRecentArticles() {
+            try {
+                const snapshot = await db.collection('articles')
+                    .where('status', '==', 'approved')
+                    .orderBy('timestamp', 'desc')
+                    .limit(6)
+                    .get();
+
+                const container = document.getElementById('recentArticles');
+                container.innerHTML = '';
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color: #666; text-align: center;">No articles published yet.</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const article = doc.data();
+                    const articleLink = createArticleLink(doc.id, article);
+                    container.appendChild(articleLink);
+                });
+            } catch (error) {
+                console.error('Error loading recent articles:', error);
+            }
+        }
+
+        // Create article link for lists
+        function createArticleLink(id, article) {
+            const link = document.createElement('div');
+            link.style.marginBottom = '10px';
+            
+            const date = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'Recently';
+            
+            link.innerHTML = `
+                <div style="border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <a href="#" onclick="openArticle('${id}')" style="color: #0645ad; text-decoration: none; font-weight: bold; font-size: 16px;">${article.title}</a>
+                    <div style="font-size: 14px; color: #666; margin-top: 4px;">
+                        <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 12px; margin-right: 8px;">${article.category}</span>
+                        By ${article.author} • ${date}
+                    </div>
+                    <p style="font-size: 14px; color: #333; margin: 8px 0 0 0; line-height: 1.4;">${article.summary}</p>
+                </div>
+            `;
+            
+            return link;
+        }
+
+        // Load all articles for search
+        async function loadAllArticles() {
+            try {
+                const snapshot = await db.collection('articles')
+                    .where('status', '==', 'approved')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                displaySearchResults(snapshot);
+            } catch (error) {
+                console.error('Error loading articles:', error);
+            }
+        }
+
+        // Search articles
+        async function searchArticles() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+
+            try {
+                let query = db.collection('articles').where('status', '==', 'approved');
+                
+                if (categoryFilter) {
+                    query = query.where('category', '==', categoryFilter);
+                }
+
+                const snapshot = await query.get();
+                
+                let filteredDocs = [];
+                snapshot.forEach(doc => {
+                    const article = doc.data();
+                    const matchesSearch = !searchTerm || 
+                        article.title.toLowerCase().includes(searchTerm) ||
+                        article.summary.toLowerCase().includes(searchTerm) ||
+                        article.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+                    
+                    if (matchesSearch) {
+                        filteredDocs.push({ id: doc.id, data: article });
+                    }
+                });
+
+                displaySearchResults({ docs: filteredDocs });
+            } catch (error) {
+                console.error('Error searching articles:', error);
+            }
+        }
+
+        // Display search results
+        function displaySearchResults(snapshot) {
+            const container = document.getElementById('searchResults');
+            container.innerHTML = '';
+
+            const docs = snapshot.docs || snapshot;
+
+            if (docs.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center;">No articles found.</p>';
+                return;
+            }
+
+            docs.forEach(item => {
+                const doc = item.id ? item : { id: item.id, data: () => item.data };
+                const article = item.data || doc.data();
+                const articleLink = createArticleLink(item.id || doc.id, article);
+                container.appendChild(articleLink);
+            });
+        }
+
+        // Create article card
+        function createArticleCard(id, article) {
+            const card = document.createElement('div');
+            card.className = 'article-card bg-white p-6 rounded-xl shadow-md cursor-pointer';
+            card.onclick = () => openArticle(id);
+
+            const date = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'Recently';
+            const tagsHtml = article.tags.slice(0, 3).map(tag => 
+                `<span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">${tag}</span>`
+            ).join(' ');
+
+            card.innerHTML = `
+                <div class="mb-3">
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">${article.category}</span>
+                </div>
+                <h3 class="text-lg font-semibold mb-2 text-gray-900 line-clamp-2">${article.title}</h3>
+                <p class="text-gray-600 text-sm mb-3 line-clamp-3">${article.summary}</p>
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                    <span>By ${article.author}</span>
+                    <span>${date}</span>
+                </div>
+                <div class="mt-3 space-x-1">
+                    ${tagsHtml}
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Open article
+        async function openArticle(articleId) {
+            try {
+                const doc = await db.collection('articles').doc(articleId).get();
+                
+                if (!doc.exists) {
+                    alert('Article not found');
+                    return;
+                }
+
+                const article = doc.data();
+                
+                if (article.status !== 'approved') {
+                    alert('Article is not available');
+                    return;
+                }
+
+                hideAllPages();
+                document.getElementById('articleReader').style.display = 'block';
+                
+                const date = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'Recently';
+                const tagsHtml = article.tags.map(tag => 
+                    `<span class="inline-block bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full mr-2">${tag}</span>`
+                ).join('');
+
+                const referencesHtml = article.references.length > 0 ? 
+                    `<div class="mt-8 p-6 bg-gray-50 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-3">References</h3>
+                        <ul class="space-y-2">
+                            ${article.references.map(ref => `<li class="text-sm text-gray-600">• ${ref}</li>`).join('')}
+                        </ul>
+                    </div>` : '';
+
+                const editButton = currentUser ? `<button onclick="showWrite('${articleId}')" class="wiki-edit-btn" style="float: right;"><i class="fas fa-edit"></i> Edit</button>` : '';
+                
+                document.getElementById('articleContent').innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        ${editButton}
+                        <span style="background: #f0f0f0; padding: 4px 8px; border-radius: 3px; font-size: 14px;">${article.category}</span>
+                        <h1>${article.title}</h1>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                            By <strong>${article.author}</strong> • ${date}
+                        </div>
+                        <p style="font-size: 16px; color: #333; margin-bottom: 20px; font-style: italic;">${article.summary}</p>
+                        <div style="margin-bottom: 20px;">${tagsHtml}</div>
+                    </div>
+                    
+                    <div style="line-height: 1.6; margin-bottom: 30px;">
+                        ${article.content}
+                    </div>
+                    
+                    ${referencesHtml}
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #a2a9b1;">
+                        <button onclick="showHome()" class="wiki-edit-btn">
+                            <i class="fas fa-arrow-left"></i> Back to Home
+                        </button>
+                        <button onclick="copyArticleLink('${articleId}')" class="wiki-edit-btn" style="margin-left: 10px; background: #f8f9fa; color: #333;">
+                            <i class="fas fa-share"></i> Share Article
+                        </button>
+                        ${currentUser ? `<button onclick="showWrite('${articleId}')" class="wiki-edit-btn" style="margin-left: 10px;"><i class="fas fa-edit"></i> Edit Article</button>` : ''}
+                    </div>
+                `;
+
+                window.location.hash = articleId;
+            } catch (error) {
+                console.error('Error loading article:', error);
+                alert('Error loading article');
+            }
+        }
+
+        // Copy article link
+        function copyArticleLink(articleId) {
+            const link = `${window.location.origin}${window.location.pathname}#${articleId}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Article link copied to clipboard!');
+            });
+        }
+
+        // Load pending articles for moderation
+        async function loadPendingArticles() {
+            if (!isAdmin) return;
+
+            try {
+                const snapshot = await db.collection('articles')
+                    .where('status', '==', 'pending')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                const container = document.getElementById('pendingArticles');
+                container.innerHTML = '';
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-gray-500 text-center">No pending articles.</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const article = doc.data();
+                    const articleCard = createModerationCard(doc.id, article);
+                    container.appendChild(articleCard);
+                });
+            } catch (error) {
+                console.error('Error loading pending articles:', error);
+            }
+        }
+
+        // Create moderation card
+        function createModerationCard(id, article) {
+            const card = document.createElement('div');
+            card.className = 'bg-gray-50 p-6 rounded-xl mb-4';
+
+            const date = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'Recently';
+
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">${article.title}</h3>
+                        <p class="text-gray-600 mb-2">${article.summary}</p>
+                        <div class="text-sm text-gray-500">
+                            <span>By ${article.author} • ${date} • ${article.category}</span>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 ml-4">
+                        <button onclick="approveArticle('${id}')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-check mr-1"></i>Approve
+                        </button>
+                        <button onclick="rejectArticle('${id}')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                            <i class="fas fa-times mr-1"></i>Reject
+                        </button>
+                    </div>
+                </div>
+                <div class="border-t pt-4">
+                    <div class="prose max-w-none text-sm">
+                        ${article.content.substring(0, 500)}${article.content.length > 500 ? '...' : ''}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Approve article
+        async function approveArticle(articleId) {
+            if (!isAdmin) return;
+
+            try {
+                await db.collection('articles').doc(articleId).update({
+                    status: 'approved',
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                alert('Article approved successfully!');
+                loadPendingArticles();
+            } catch (error) {
+                alert('Error approving article: ' + error.message);
+            }
+        }
+
+        // Reject article
+        async function rejectArticle(articleId) {
+            if (!isAdmin && !isModerator) return;
+
+            if (confirm('Are you sure you want to reject this article?')) {
+                try {
+                    await db.collection('articles').doc(articleId).update({
+                        status: 'rejected',
+                        rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    alert('Article rejected.');
+                    loadPendingArticles();
+                } catch (error) {
+                    alert('Error rejecting article: ' + error.message);
+                }
+            }
+        }
+
+        // Load pending edits
+        async function loadPendingEdits() {
+            if (!isAdmin && !isModerator) return;
+
+            try {
+                const snapshot = await db.collection('edits')
+                    .where('status', '==', 'pending')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                const container = document.getElementById('pendingEditsList');
+                container.innerHTML = '';
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color: #666; text-align: center;">No pending edits.</p>';
+                    return;
+                }
+
+                for (const doc of snapshot.docs) {
+                    const edit = doc.data();
+                    const editCard = await createEditCard(doc.id, edit);
+                    container.appendChild(editCard);
+                }
+            } catch (error) {
+                console.error('Error loading pending edits:', error);
+            }
+        }
+
+        // Create edit card
+        async function createEditCard(editId, edit) {
+            const card = document.createElement('div');
+            card.className = 'pending-edit';
+
+            // Get original article
+            let originalArticle = null;
+            try {
+                const articleDoc = await db.collection('articles').doc(edit.articleId).get();
+                originalArticle = articleDoc.exists ? articleDoc.data() : null;
+            } catch (error) {
+                console.error('Error loading original article:', error);
+            }
+
+            const date = edit.timestamp ? new Date(edit.timestamp.toDate()).toLocaleDateString() : 'Recently';
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 15px;">
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 8px 0; font-size: 18px;">${edit.title}</h3>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
+                            Edited by <strong>${edit.editor}</strong> • ${date}
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                            <strong>Edit Summary:</strong> ${edit.editSummary || 'No summary provided'}
+                        </div>
+                        ${originalArticle ? `<div style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                            <strong>Original Article:</strong> <a href="#" onclick="openArticle('${edit.articleId}')" style="color: #0645ad;">${originalArticle.title}</a>
+                        </div>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="approveEdit('${editId}')" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 14px;">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button onclick="rejectEdit('${editId}')" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 14px;">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </div>
+                </div>
+                <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                    <div style="max-height: 200px; overflow-y: auto; font-size: 14px; line-height: 1.4;">
+                        ${edit.content.substring(0, 1000)}${edit.content.length > 1000 ? '...' : ''}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Approve edit
+        async function approveEdit(editId) {
+            if (!isAdmin && !isModerator) return;
+
+            try {
+                const editDoc = await db.collection('edits').doc(editId).get();
+                if (!editDoc.exists) return;
+
+                const edit = editDoc.data();
+
+                // Update the original article
+                await db.collection('articles').doc(edit.articleId).update({
+                    title: edit.title,
+                    summary: edit.summary,
+                    category: edit.category,
+                    tags: edit.tags,
+                    references: edit.references,
+                    content: edit.content,
+                    lastEditedBy: edit.editor,
+                    lastEditedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    editHistory: firebase.firestore.FieldValue.arrayUnion({
+                        editor: edit.editor,
+                        editSummary: edit.editSummary,
+                        timestamp: edit.timestamp
+                    })
+                });
+
+                // Mark edit as approved
+                await db.collection('edits').doc(editId).update({
+                    status: 'approved',
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert('Edit approved successfully!');
+                loadPendingEdits();
+            } catch (error) {
+                alert('Error approving edit: ' + error.message);
+            }
+        }
+
+        // Reject edit
+        async function rejectEdit(editId) {
+            if (!isAdmin && !isModerator) return;
+
+            if (confirm('Are you sure you want to reject this edit?')) {
+                try {
+                    await db.collection('edits').doc(editId).update({
+                        status: 'rejected',
+                        rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    alert('Edit rejected.');
+                    loadPendingEdits();
+                } catch (error) {
+                    alert('Error rejecting edit: ' + error.message);
+                }
+            }
+        }
+
+        // Handle URL hash for direct article links
+        function handleHashChange() {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                openArticle(hash);
+            } else {
+                showHome();
+            }
+        }
+
+        // Initialize app
+        window.addEventListener('hashchange', handleHashChange);
+        window.addEventListener('load', () => {
+            if (window.location.hash) {
+                handleHashChange();
+            } else {
+                showHome();
+            }
+        });
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchArticles();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96546c69172a3a2b',t:'MTc1MzUzODQyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
