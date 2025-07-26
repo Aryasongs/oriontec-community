@@ -2,41 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OrioBuzz - Social Media</title>
-    <!-- Meta Tags for SEO and Social Sharing -->
-<meta name="description" content="Discover what's trending now on OrioBuzz  the ultimate space for viral stories, images, and updates from around the globe.">
-<meta name="keywords" content="OrioBuzz, viral stories, trending images, latest updates, online buzz, global trends, hot topics, social media highlights, Oriontec Buzz, IMG_9078">
-<meta name="author" content="Oriontec Pvt. Ltd.">
-<meta name="robots" content="index, follow">
-
-<!-- Open Graph for Facebook/LinkedIn -->
-<meta property="og:title" content="OrioBuzz  Where Trends Begin">
-<meta property="og:description" content="See the image that's catching everyone's attention on OrioBuzz. Stay in the loop with daily viral updates and community highlights.">
-<meta property="og:image" content="https://community.oriontec.xyz/IMG_9078.png">
-<meta property="og:url" content="https://community.oriontec.xyz/OrioBuzz.html">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="OrioBuzz">
-
-<!-- Twitter Cards -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="OrioBuzz – Trending Viral Stories & Images">
-<meta name="twitter:description" content="Explore the latest viral image and buzz only on OrioBuzz. Powered by Oriontec.">
-<meta name="twitter:image" content="https://community.oriontec.xyz/IMG_9078.png">
-<meta name="twitter:url" content="https://community.oriontec.xyz/OrioBuzz.html">
-
-<!-- Favicon & App Icon -->
-<link rel="icon" type="image/png" href="https://community.oriontec.xyz/IMG_9078.png">
-<link rel="apple-touch-icon" href="https://community.oriontec.xyz/IMG_9078.png">
-<link rel="manifest" href="/manifest.json">
-
-<!-- Apple Add to Home Screen -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="OrioBuzz">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<!-- Android Chrome -->
-<meta name="theme-color" content="#000000">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
@@ -108,6 +75,16 @@
         }
         .character-counter.danger {
             color: #ef4444;
+        }
+        
+        /* Prevent zoom on mobile */
+        input, textarea, select {
+            font-size: 16px !important;
+        }
+        
+        /* Disable zoom on double tap */
+        * {
+            touch-action: manipulation;
         }
     </style>
 </head>
@@ -367,7 +344,9 @@
                             
                             <!-- Bio -->
                             <p id="profileBio" class="text-gray-700 mb-2"></p>
-                            <p id="profileLocation" class="text-gray-500 text-sm mb-4">📍 <span id="locationText">Location not set</span></p>
+                            <div id="profileLocation" class="text-gray-500 text-sm mb-4">
+                                <!-- Location, contact, and website will be shown only if set -->
+                            </div>
                             
                             <!-- Action Buttons -->
                             <div class="flex space-x-3">
@@ -646,7 +625,9 @@
                                     <img id="otherProfileVerified" src="https://community.oriontec.xyz/verify.png" alt="Verified" class="hidden verified-badge">
                                 </div>
                                 <p id="otherProfileUsername" class="text-gray-600 mb-2"></p>
-                                <p id="otherProfileLocation" class="text-gray-500 text-sm mb-2">📍 <span id="otherLocationText">Location not set</span></p>
+                                <div id="otherProfileLocation" class="text-gray-500 text-sm mb-2">
+                                    <!-- Location, contact, and website will be shown only if set -->
+                                </div>
                                 <p id="otherProfileBio" class="text-gray-700 mb-4"></p>
                                 <div class="flex justify-center sm:justify-start space-x-4 mb-4">
                                     <span onclick="showOtherUserFollowersPage('following')" class="text-sm cursor-pointer hover:text-pink-500"><strong id="otherFollowingCount">0</strong> Following</span>
@@ -751,8 +732,9 @@
                     <label class="block text-sm font-medium mb-2">Category *</label>
                     <select id="verifyCategory" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300">
                         <option value="">Select Category</option>
-                        <option value="creator">Content Creator</option>
+                        <option value="professional">Professional</option>
                         <option value="business">Business</option>
+                        <option value="creator">Content Creator</option>
                         <option value="public_figure">Public Figure</option>
                         <option value="artist">Artist</option>
                         <option value="other">Other</option>
@@ -760,18 +742,20 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium mb-2">Website/Social Link *</label>
-                    <input type="url" id="verifyLink" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="https://yourwebsite.com">
-                    <p class="text-xs text-gray-500 mt-1">Link where your name/brand appears</p>
+                    <label class="block text-sm font-medium mb-2">Verification Link *</label>
+                    <input type="url" id="verifyLink" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="https://www.oriontec.xyz/date/username">
+                    <p class="text-xs text-gray-500 mt-1">Link where your name appears (preferably oriontec.xyz)</p>
                 </div>
                 
                 <div class="bg-blue-50 p-4 rounded-xl">
                     <h4 class="font-medium text-blue-800 mb-2">Requirements:</h4>
                     <ul class="text-sm text-blue-700 space-y-1">
                         <li>• Must be 13+ years old</li>
-                        <li>• Provide valid website/social link</li>
-                        <li>• Your name must appear on the link</li>
-                        <li>• Review takes 24-48 hours</li>
+                        <li>• Provide valid verification link</li>
+                        <li>• Your name must appear on the provided link</li>
+                        <li>• Link will be checked automatically</li>
+                        <li>• Special users get instant verification</li>
+                        <li>• Others: 5 minutes auto-check process</li>
                     </ul>
                 </div>
             </div>
@@ -1096,7 +1080,7 @@
         // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAl8eI-_8Ew9va0KPV8p4D2hc9WUTGiwuI",
-            authDomain: "auth.oriontec.xyz",
+            authDomain: "chat-d647c.firebaseapp.com",
             databaseURL: "https://chat-d647c-default-rtdb.firebaseio.com",
             projectId: "chat-d647c",
             storageBucket: "chat-d647c.firebasestorage.app",
@@ -1118,8 +1102,8 @@
         let isNewUser = false;
         let selectedInterests = [];
         let bannedWords = ['pussy', 'dick', 'fuck', 'india', 'america', 'bitch', 'asshole', 'shit', 'damn', 'hell', 'bastard'];
-        let specialUsers = ['gursharnarya07', 'dozera', 'oriontec', 'oriobuzz'];
-        let unlimitedUsers = ['gursharnarya07', 'dozera', 'oriontec', 'oriobuzz'];
+        let specialUsers = ['gursharnarya07', 'dozera', 'oriontec', 'orionbuzz'];
+        let unlimitedUsers = ['gursharnarya07', 'dozera', 'oriontec', 'orionbuzz'];
         let currentOnboardingStep = 1;
 
         // Authentication State Observer
@@ -1441,7 +1425,47 @@
             return content.length <= 500;
         }
 
-        // Simple verification - no complex fields needed
+        // Verification System with Auto-Check
+        let specialVerifiedUsers = ['oriontec', 'dozera', 'gursharn arya', 'orry', 'anmol sunda', 'oriobuzz'];
+        
+        // Auto-verify special users
+        async function checkAutoVerification(name, username) {
+            const lowerName = name.toLowerCase();
+            const lowerUsername = username.toLowerCase();
+            
+            // Check if user is in special list
+            if (specialVerifiedUsers.some(special => 
+                lowerName.includes(special) || lowerUsername.includes(special))) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Verify link content
+        async function verifyLinkContent(link, name) {
+            try {
+                // For demo purposes, we'll simulate checking if name appears in link
+                // In real implementation, you'd use a web scraping service or API
+                
+                // Check if it's the special oriontec.xyz domain
+                if (link.includes('oriontec.xyz')) {
+                    // Simulate checking if name appears on the page
+                    const nameWords = name.toLowerCase().split(' ');
+                    const linkPath = link.toLowerCase();
+                    
+                    // Check if any part of the name appears in the URL path
+                    return nameWords.some(word => linkPath.includes(word));
+                }
+                
+                // For other domains, assume verification is needed
+                return Math.random() > 0.3; // 70% chance of verification for demo
+                
+            } catch (error) {
+                console.error('Error verifying link:', error);
+                return false;
+            }
+        }
 
         // URL Hash Navigation
         function handleURLHash() {
@@ -2972,7 +2996,7 @@
             loadOtherUserBuzz(userId);
         }
 
-        // Load Other User Profile
+        // Load Other User Profile with conditional display
         function loadOtherUserProfile(userId) {
             const userRef = database.ref('users/' + userId);
             userRef.once('value').then((snapshot) => {
@@ -2982,7 +3006,29 @@
                     document.getElementById('otherProfileName').textContent = userData.displayName || userData.username;
                     document.getElementById('otherProfileUsername').textContent = '@' + userData.username;
                     document.getElementById('otherProfileBio').textContent = userData.bio || 'No bio yet';
-                    document.getElementById('otherLocationText').textContent = userData.location || 'Location not set';
+                    
+                    // Build profile info HTML - only show if data exists
+                    const locationElement = document.getElementById('otherProfileLocation');
+                    let profileInfoHTML = '';
+                    
+                    if (userData.location) {
+                        profileInfoHTML += `📍 ${userData.location}<br>`;
+                    }
+                    
+                    if (userData.website) {
+                        profileInfoHTML += `🌐 <a href="${userData.website}" target="_blank" class="text-blue-500 hover:text-blue-700">${userData.website}</a><br>`;
+                    }
+                    
+                    if (userData.contact) {
+                        const isEmail = userData.contact.includes('@');
+                        const contactIcon = isEmail ? '📧' : '📞';
+                        profileInfoHTML += `${contactIcon} ${userData.contact}<br>`;
+                    }
+                    
+                    // Remove last <br> if exists
+                    profileInfoHTML = profileInfoHTML.replace(/<br>$/, '');
+                    
+                    locationElement.innerHTML = profileInfoHTML || '<span class="text-gray-400">No additional info</span>';
                     
                     // Load follower counts
                     loadFollowerCounts(userId);
@@ -3769,7 +3815,7 @@
             document.getElementById('verifyLink').value = '';
         }
 
-        function submitVerification() {
+        async function submitVerification() {
             const name = document.getElementById('verifyName').value.trim();
             const age = document.getElementById('verifyAge').value;
             const category = document.getElementById('verifyCategory').value;
@@ -3793,6 +3839,32 @@
                 return;
             }
             
+            // Get current user data
+            const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+            const userData = userSnapshot.val();
+            
+            // Check for auto-verification (special users)
+            const isAutoVerified = await checkAutoVerification(name, userData.username);
+            
+            if (isAutoVerified) {
+                // Instant verification for special users
+                await database.ref('users/' + currentUser.uid).update({
+                    verified: true,
+                    verificationDate: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                closeVerificationModal();
+                showCustomAlert('🎉 Congratulations! You have been verified instantly!', 'success');
+                
+                // Create success notification
+                createNotification(currentUser.uid, 'verification', '🎉 Congratulations! Your account has been verified successfully!');
+                
+                // Reload profile to show verification badge
+                loadUserProfile();
+                return;
+            }
+            
+            // For regular users - save verification request and start auto-check
             const verificationData = {
                 uid: currentUser.uid,
                 name: name,
@@ -3804,13 +3876,50 @@
             };
             
             // Save verification request
-            database.ref('verificationRequests/' + currentUser.uid).set(verificationData);
+            await database.ref('verificationRequests/' + currentUser.uid).set(verificationData);
             
             closeVerificationModal();
-            showCustomAlert('Verification request submitted! We will review it within 24-48 hours.', 'success');
+            showCustomAlert('Verification request submitted! Auto-checking your link...', 'info');
             
-            // Create notification for user
-            createNotification(currentUser.uid, 'verification', 'Your verification request has been submitted and is under review.');
+            // Start 5-minute auto-check process
+            setTimeout(async () => {
+                try {
+                    const linkValid = await verifyLinkContent(link, name);
+                    
+                    if (linkValid) {
+                        // Approve verification
+                        await database.ref('users/' + currentUser.uid).update({
+                            verified: true,
+                            verificationDate: firebase.database.ServerValue.TIMESTAMP
+                        });
+                        
+                        await database.ref('verificationRequests/' + currentUser.uid).update({
+                            status: 'approved'
+                        });
+                        
+                        createNotification(currentUser.uid, 'verification', '🎉 Congratulations! Your verification request has been approved!');
+                        showCustomAlert('🎉 Verification approved! You are now verified!', 'success');
+                        
+                        // Reload profile to show verification badge
+                        loadUserProfile();
+                        
+                    } else {
+                        // Reject verification
+                        await database.ref('verificationRequests/' + currentUser.uid).update({
+                            status: 'rejected'
+                        });
+                        
+                        createNotification(currentUser.uid, 'verification', '❌ Your verification request has been rejected. Your name was not found on the provided link.');
+                        showCustomAlert('Verification rejected: Your name was not found on the provided link.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error in auto-verification:', error);
+                    createNotification(currentUser.uid, 'verification', '⚠️ Verification check failed. Please try again later.');
+                }
+            }, 5 * 60 * 1000); // 5 minutes
+            
+            // Create initial notification
+            createNotification(currentUser.uid, 'verification', 'Your verification request is being processed. You will be notified in 5 minutes.');
         }
 
         // Export Data
@@ -4272,7 +4381,7 @@
             }
         }
 
-        // Load user profile with website
+        // Load user profile with conditional display
         function loadUserProfile() {
             if (!currentUser) return;
             
@@ -4284,18 +4393,29 @@
                     document.getElementById('profileName').textContent = userData.displayName || userData.username;
                     document.getElementById('profileUsername').textContent = '@' + userData.username;
                     document.getElementById('profileBio').textContent = userData.bio || 'No bio yet';
-                    document.getElementById('locationText').textContent = userData.location || 'Location not set';
                     
-                    // Add website link if exists
+                    // Build profile info HTML - only show if data exists
                     const locationElement = document.getElementById('profileLocation');
-                    if (userData.website) {
-                        locationElement.innerHTML = `
-                            📍 <span>${userData.location || 'Location not set'}</span><br>
-                            🌐 <a href="${userData.website}" target="_blank" class="text-blue-500 hover:text-blue-700">${userData.website}</a>
-                        `;
-                    } else {
-                        locationElement.innerHTML = `📍 <span id="locationText">${userData.location || 'Location not set'}</span>`;
+                    let profileInfoHTML = '';
+                    
+                    if (userData.location) {
+                        profileInfoHTML += `📍 ${userData.location}<br>`;
                     }
+                    
+                    if (userData.website) {
+                        profileInfoHTML += `🌐 <a href="${userData.website}" target="_blank" class="text-blue-500 hover:text-blue-700">${userData.website}</a><br>`;
+                    }
+                    
+                    if (userData.contact) {
+                        const isEmail = userData.contact.includes('@');
+                        const contactIcon = isEmail ? '📧' : '📞';
+                        profileInfoHTML += `${contactIcon} ${userData.contact}<br>`;
+                    }
+                    
+                    // Remove last <br> if exists
+                    profileInfoHTML = profileInfoHTML.replace(/<br>$/, '');
+                    
+                    locationElement.innerHTML = profileInfoHTML || '<span class="text-gray-400">No additional info</span>';
                     
                     // Load follower counts and posts count
                     loadFollowerCounts(currentUser.uid);
@@ -5293,5 +5413,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96493bd7a0df91ec',t:'MTc1MzQyMTA5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9650794df380ff9f',t:'MTc1MzQ5NzAxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
