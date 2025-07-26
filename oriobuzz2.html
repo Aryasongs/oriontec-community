@@ -278,14 +278,14 @@
                 <button id="mobileHomeBtn" class="p-3 rounded-lg">
                     <span class="text-2xl">🏠</span>
                 </button>
-                <button id="mobileProfileBtn" class="p-3 rounded-lg">
-                    <span class="text-2xl">👤</span>
+                <button id="mobileSearchBtn" class="p-3 rounded-lg">
+                    <span class="text-2xl">🔍</span>
                 </button>
                 <button id="mobileCreateBtn" class="p-3 rounded-lg instagram-gradient text-white">
                     <span class="text-2xl">✏️</span>
                 </button>
-                <button id="mobileFollowersBtn" class="p-3 rounded-lg">
-                    <span class="text-2xl">👥</span>
+                <button id="mobileProfileBtn" class="p-3 rounded-lg">
+                    <span class="text-2xl">👤</span>
                 </button>
                 <button id="mobileSettingsBtn" class="p-3 rounded-lg">
                     <span class="text-2xl">⚙️</span>
@@ -348,6 +348,17 @@
                     <button id="saveProfile" class="instagram-gradient text-white px-6 py-2 rounded-full">Save</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Mobile Search Modal -->
+    <div id="mobileSearchModal" class="hidden fixed inset-0 bg-white z-50 md:hidden">
+        <div class="p-4">
+            <div class="flex items-center space-x-3 mb-4">
+                <button id="closeMobileSearch" class="text-gray-500 hover:text-gray-700 text-2xl">&larr;</button>
+                <input type="text" id="mobileSearchInput" placeholder="Search users, hashtags..." class="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+            <div id="mobileSearchResults" class="space-y-2"></div>
         </div>
     </div>
 
@@ -525,8 +536,113 @@
         document.getElementById('settingsBtn').addEventListener('click', () => showPage('settings'));
         document.getElementById('mobileHomeBtn').addEventListener('click', () => showPage('home'));
         document.getElementById('mobileProfileBtn').addEventListener('click', () => showPage('profile'));
-        document.getElementById('mobileFollowersBtn').addEventListener('click', () => showPage('followers'));
         document.getElementById('mobileSettingsBtn').addEventListener('click', () => showPage('settings'));
+        
+        // Mobile search
+        document.getElementById('mobileSearchBtn').addEventListener('click', () => {
+            document.getElementById('mobileSearchModal').classList.remove('hidden');
+            document.getElementById('mobileSearchInput').focus();
+        });
+        
+        document.getElementById('closeMobileSearch').addEventListener('click', () => {
+            document.getElementById('mobileSearchModal').classList.add('hidden');
+            document.getElementById('mobileSearchInput').value = '';
+            document.getElementById('mobileSearchResults').innerHTML = '';
+        });
+        
+        document.getElementById('mobileSearchInput').addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            if (query.length > 0) {
+                performMobileSearch(query);
+            } else {
+                document.getElementById('mobileSearchResults').innerHTML = '';
+            }
+        });
+        
+        function performMobileSearch(query) {
+            const searchResults = document.getElementById('mobileSearchResults');
+            searchResults.innerHTML = '';
+
+            if (query.startsWith('#')) {
+                // Search hashtags
+                const hashtag = query.substring(1);
+                searchResults.innerHTML = `
+                    <div class="p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="showHashtagPage('${hashtag}'); document.getElementById('mobileSearchModal').classList.add('hidden');">
+                        <div class="font-medium text-blue-500">#${hashtag}</div>
+                        <div class="text-sm text-gray-500">Search for posts with this hashtag</div>
+                    </div>
+                `;
+            } else if (query.startsWith('@')) {
+                // Search users by username
+                const username = query.substring(1).toLowerCase();
+                database.ref('users').once('value').then((snapshot) => {
+                    searchResults.innerHTML = '';
+                    let found = false;
+                    snapshot.forEach((childSnapshot) => {
+                        const user = childSnapshot.val();
+                        if (user.username && user.username.toLowerCase().includes(username)) {
+                            found = true;
+                            const userDiv = document.createElement('div');
+                            userDiv.className = 'p-3 hover:bg-gray-50 rounded-lg cursor-pointer';
+                            userDiv.onclick = () => {
+                                showUserProfile(user.uid);
+                                document.getElementById('mobileSearchModal').classList.add('hidden');
+                            };
+                            userDiv.innerHTML = `
+                                <div class="flex items-center space-x-3">
+                                    <img class="w-10 h-10 rounded-full" src="${user.photoURL}" alt="${user.displayName}">
+                                    <div>
+                                        <div class="flex items-center space-x-1">
+                                            <span class="font-medium">${user.displayName}</span>
+                                            ${user.verified ? '<span class="text-blue-500">✓</span>' : ''}
+                                        </div>
+                                        <div class="text-sm text-gray-500">@${user.username}</div>
+                                    </div>
+                                </div>
+                            `;
+                            searchResults.appendChild(userDiv);
+                        }
+                    });
+                    if (!found) {
+                        searchResults.innerHTML = '<div class="p-3 text-gray-500">No users found</div>';
+                    }
+                });
+            } else {
+                // Search users by display name
+                database.ref('users').once('value').then((snapshot) => {
+                    searchResults.innerHTML = '';
+                    let found = false;
+                    snapshot.forEach((childSnapshot) => {
+                        const user = childSnapshot.val();
+                        if (user.displayName && user.displayName.toLowerCase().includes(query.toLowerCase())) {
+                            found = true;
+                            const userDiv = document.createElement('div');
+                            userDiv.className = 'p-3 hover:bg-gray-50 rounded-lg cursor-pointer';
+                            userDiv.onclick = () => {
+                                showUserProfile(user.uid);
+                                document.getElementById('mobileSearchModal').classList.add('hidden');
+                            };
+                            userDiv.innerHTML = `
+                                <div class="flex items-center space-x-3">
+                                    <img class="w-10 h-10 rounded-full" src="${user.photoURL}" alt="${user.displayName}">
+                                    <div>
+                                        <div class="flex items-center space-x-1">
+                                            <span class="font-medium">${user.displayName}</span>
+                                            ${user.verified ? '<span class="text-blue-500">✓</span>' : ''}
+                                        </div>
+                                        <div class="text-sm text-gray-500">@${user.username || 'username'}</div>
+                                    </div>
+                                </div>
+                            `;
+                            searchResults.appendChild(userDiv);
+                        }
+                    });
+                    if (!found) {
+                        searchResults.innerHTML = '<div class="p-3 text-gray-500">No users found</div>';
+                    }
+                });
+            }
+        }
 
         // Create buzz modal
         document.getElementById('createBuzzBtn').addEventListener('click', () => {
@@ -1262,5 +1378,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9651d6e306bdff9a',t:'MTc1MzUxMTMzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9651e104a0eaffa1',t:'MTc1MzUxMTc0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
