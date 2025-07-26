@@ -925,6 +925,141 @@
         </div>
     </div>
 
+    <!-- Referral System Modal -->
+    <div id="referralModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold flex items-center space-x-2">
+                    <span>💰</span>
+                    <span>Refer & Earn</span>
+                </h3>
+                <button onclick="closeReferralModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            
+            <div class="text-center mb-6">
+                <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white p-4 rounded-xl mb-4">
+                    <h4 class="text-lg font-bold">Earn $0.1 per referral!</h4>
+                    <p class="text-sm opacity-90">Share your link and earn money</p>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-xl mb-4">
+                    <p class="text-sm text-gray-600 mb-2">Your Referral Link:</p>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="referralLink" class="flex-1 p-2 border border-gray-300 rounded-lg text-sm" readonly>
+                        <button onclick="copyReferralLink()" class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600">Copy</button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-blue-50 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="totalReferrals">0</div>
+                        <div class="text-sm text-gray-600">Total Referrals</div>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-green-600" id="totalEarnings">$0.00</div>
+                        <div class="text-sm text-gray-600">Total Earnings</div>
+                    </div>
+                </div>
+                
+                <div class="text-xs text-gray-500 mb-4">
+                    <p>• Each referral must be from a different device</p>
+                    <p>• Earnings are updated in real-time</p>
+                    <p>• Minimum withdrawal: $10</p>
+                </div>
+                
+                <button onclick="withdrawEarnings()" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors">
+                    Withdraw Earnings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Manager Modal -->
+    <div id="communityModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold flex items-center space-x-2">
+                    <span>👥</span>
+                    <span>Community Manager</span>
+                </h3>
+                <button onclick="closeCommunityModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            
+            <div class="flex space-x-4 mb-6">
+                <button onclick="showMyCommunities()" id="myCommunitiesTab" class="px-4 py-2 rounded-full bg-pink-500 text-white">My Communities</button>
+                <button onclick="showCreateCommunity()" id="createCommunityTab" class="px-4 py-2 rounded-full bg-gray-200 text-gray-700">Create Community</button>
+                <button onclick="showJoinCommunity()" id="joinCommunityTab" class="px-4 py-2 rounded-full bg-gray-200 text-gray-700">Join Community</button>
+            </div>
+            
+            <!-- My Communities -->
+            <div id="myCommunitiesContent" class="space-y-4">
+                <div id="userCommunities">
+                    <!-- User's communities will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Create Community -->
+            <div id="createCommunityContent" class="hidden space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Community Name</label>
+                    <input type="text" id="communityName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="Enter community name">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Description</label>
+                    <textarea id="communityDescription" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300" rows="3" placeholder="Describe your community..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Category</label>
+                    <select id="communityCategory" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300">
+                        <option value="">Select Category</option>
+                        <option value="technology">Technology</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="music">Music</option>
+                        <option value="sports">Sports</option>
+                        <option value="education">Education</option>
+                        <option value="business">Business</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="communityPrivate" class="rounded">
+                    <label for="communityPrivate" class="text-sm">Private Community (Invite only)</label>
+                </div>
+                <button onclick="createCommunity()" class="w-full gradient-bg text-white py-3 rounded-full hover:opacity-90 transition-opacity">
+                    Create Community
+                </button>
+            </div>
+            
+            <!-- Join Community -->
+            <div id="joinCommunityContent" class="hidden space-y-4">
+                <div>
+                    <input type="text" id="communitySearch" placeholder="Search communities..." class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" oninput="searchCommunities()">
+                </div>
+                <div id="availableCommunities" class="space-y-3 max-h-60 overflow-y-auto">
+                    <!-- Available communities will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pinned Buzzes Modal -->
+    <div id="pinnedBuzzesModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold flex items-center space-x-2">
+                    <span>📌</span>
+                    <span>Pinned Buzzes</span>
+                </h3>
+                <button onclick="closePinnedBuzzesModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            
+            <div id="pinnedBuzzesContent" class="space-y-4">
+                <!-- Pinned buzzes will be loaded here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Account Switcher Modal -->
     <div id="accountSwitcherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
@@ -5406,6 +5541,581 @@
             }, 5000);
         }
 
+        // ===== NEW FEATURES IMPLEMENTATION =====
+
+        // Profile Menu Functions
+        function toggleProfileMenu() {
+            const menu = document.getElementById('profileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function toggleOtherUserMenu() {
+            const menu = document.getElementById('otherUserMenu');
+            menu.classList.toggle('hidden');
+            
+            // Update menu options based on current status
+            updateOtherUserMenuOptions();
+        }
+
+        function updateOtherUserMenuOptions() {
+            if (!currentViewingUser) return;
+            
+            // Check if user is blocked, restricted, or muted
+            database.ref('userActions/' + currentUser.uid).once('value').then((snapshot) => {
+                const actions = snapshot.val() || {};
+                
+                const blockText = document.getElementById('blockText');
+                const restrictText = document.getElementById('restrictText');
+                const muteText = document.getElementById('muteText');
+                
+                if (actions.blocked && actions.blocked[currentViewingUser]) {
+                    blockText.textContent = 'Unblock User';
+                } else {
+                    blockText.textContent = 'Block User';
+                }
+                
+                if (actions.restricted && actions.restricted[currentViewingUser]) {
+                    restrictText.textContent = 'Unrestrict User';
+                } else {
+                    restrictText.textContent = 'Restrict User';
+                }
+                
+                if (actions.muted && actions.muted[currentViewingUser]) {
+                    muteText.textContent = 'Unmute User';
+                } else {
+                    muteText.textContent = 'Mute User';
+                }
+            });
+        }
+
+        // User Action Functions
+        async function blockUser() {
+            if (!currentViewingUser) return;
+            
+            const userActionsRef = database.ref('userActions/' + currentUser.uid + '/blocked/' + currentViewingUser);
+            const snapshot = await userActionsRef.once('value');
+            
+            if (snapshot.exists()) {
+                // Unblock
+                await userActionsRef.remove();
+                showCustomAlert('User unblocked successfully', 'success');
+            } else {
+                // Block
+                await userActionsRef.set(true);
+                // Also unfollow if following
+                await database.ref('following/' + currentUser.uid + '/' + currentViewingUser).remove();
+                await database.ref('followers/' + currentViewingUser + '/' + currentUser.uid).remove();
+                showCustomAlert('User blocked successfully', 'success');
+            }
+        }
+
+        async function restrictUser() {
+            if (!currentViewingUser) return;
+            
+            const userActionsRef = database.ref('userActions/' + currentUser.uid + '/restricted/' + currentViewingUser);
+            const snapshot = await userActionsRef.once('value');
+            
+            if (snapshot.exists()) {
+                // Unrestrict
+                await userActionsRef.remove();
+                showCustomAlert('User unrestricted successfully', 'success');
+            } else {
+                // Restrict
+                await userActionsRef.set(true);
+                showCustomAlert('User restricted successfully', 'success');
+            }
+        }
+
+        async function muteUser() {
+            if (!currentViewingUser) return;
+            
+            const userActionsRef = database.ref('userActions/' + currentUser.uid + '/muted/' + currentViewingUser);
+            const snapshot = await userActionsRef.once('value');
+            
+            if (snapshot.exists()) {
+                // Unmute
+                await userActionsRef.remove();
+                showCustomAlert('User unmuted successfully', 'success');
+            } else {
+                // Mute
+                await userActionsRef.set(true);
+                showCustomAlert('User muted successfully', 'success');
+            }
+        }
+
+        async function reportUser() {
+            if (!currentViewingUser) return;
+            
+            const reason = prompt('Why are you reporting this user?');
+            if (!reason) return;
+            
+            const reportId = database.ref('userReports').push().key;
+            const reportData = {
+                reportId: reportId,
+                reportedUserId: currentViewingUser,
+                reporterId: currentUser.uid,
+                reason: reason,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                status: 'pending'
+            };
+            
+            await database.ref('userReports/' + reportId).set(reportData);
+            showCustomAlert('User reported successfully', 'success');
+        }
+
+        // Buzz Menu Functions
+        function toggleBuzzMenu(buzzId) {
+            const menu = document.getElementById('buzzMenu-' + buzzId);
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        async function pinBuzz(buzzId) {
+            if (!currentUser) return;
+            
+            const pinnedRef = database.ref('pinnedBuzzes/' + currentUser.uid + '/' + buzzId);
+            const snapshot = await pinnedRef.once('value');
+            
+            if (snapshot.exists()) {
+                // Unpin
+                await pinnedRef.remove();
+                showCustomAlert('Buzz unpinned', 'success');
+            } else {
+                // Pin (limit to 3 pinned buzzes)
+                const allPinnedSnapshot = await database.ref('pinnedBuzzes/' + currentUser.uid).once('value');
+                const pinnedCount = allPinnedSnapshot.exists() ? Object.keys(allPinnedSnapshot.val()).length : 0;
+                
+                if (pinnedCount >= 3) {
+                    showCustomAlert('You can only pin up to 3 buzzes', 'warning');
+                    return;
+                }
+                
+                await pinnedRef.set(true);
+                showCustomAlert('Buzz pinned successfully', 'success');
+            }
+        }
+
+        // Referral System Functions
+        function showReferralSystem() {
+            document.getElementById('referralModal').classList.remove('hidden');
+            loadReferralData();
+        }
+
+        function closeReferralModal() {
+            document.getElementById('referralModal').classList.add('hidden');
+        }
+
+        async function loadReferralData() {
+            if (!currentUser) return;
+            
+            const userSnapshot = await database.ref('users/' + currentUser.uid).once('value');
+            const userData = userSnapshot.val();
+            
+            if (userData) {
+                const referralLink = `https://community.oriontec.xyz/OrioBuzz/@${userData.username}`;
+                document.getElementById('referralLink').value = referralLink;
+                
+                // Load referral stats
+                const referralSnapshot = await database.ref('referrals/' + currentUser.uid).once('value');
+                const referralData = referralSnapshot.val() || {};
+                
+                const totalReferrals = referralData.count || 0;
+                const totalEarnings = (totalReferrals * 0.1).toFixed(2);
+                
+                document.getElementById('totalReferrals').textContent = totalReferrals;
+                document.getElementById('totalEarnings').textContent = '$' + totalEarnings;
+            }
+        }
+
+        function copyReferralLink() {
+            const linkInput = document.getElementById('referralLink');
+            linkInput.select();
+            document.execCommand('copy');
+            showCustomAlert('Referral link copied to clipboard!', 'success');
+        }
+
+        async function withdrawEarnings() {
+            const totalEarnings = parseFloat(document.getElementById('totalEarnings').textContent.replace('$', ''));
+            
+            if (totalEarnings < 10) {
+                showCustomAlert('Minimum withdrawal amount is $10', 'warning');
+                return;
+            }
+            
+            // In a real app, this would integrate with a payment system
+            showCustomAlert('Withdrawal request submitted! You will receive payment within 24 hours.', 'success');
+        }
+
+        // Community Functions
+        function showCommunityManager() {
+            document.getElementById('communityModal').classList.remove('hidden');
+            showMyCommunities();
+        }
+
+        function closeCommunityModal() {
+            document.getElementById('communityModal').classList.add('hidden');
+        }
+
+        function showMyCommunities() {
+            document.getElementById('myCommunitiesTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('createCommunityTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            document.getElementById('joinCommunityTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            
+            document.getElementById('myCommunitiesContent').classList.remove('hidden');
+            document.getElementById('createCommunityContent').classList.add('hidden');
+            document.getElementById('joinCommunityContent').classList.add('hidden');
+            
+            loadUserCommunities();
+        }
+
+        function showCreateCommunity() {
+            document.getElementById('createCommunityTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('myCommunitiesTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            document.getElementById('joinCommunityTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            
+            document.getElementById('createCommunityContent').classList.remove('hidden');
+            document.getElementById('myCommunitiesContent').classList.add('hidden');
+            document.getElementById('joinCommunityContent').classList.add('hidden');
+        }
+
+        function showJoinCommunity() {
+            document.getElementById('joinCommunityTab').className = 'px-4 py-2 rounded-full bg-pink-500 text-white';
+            document.getElementById('myCommunitiesTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            document.getElementById('createCommunityTab').className = 'px-4 py-2 rounded-full bg-gray-200 text-gray-700';
+            
+            document.getElementById('joinCommunityContent').classList.remove('hidden');
+            document.getElementById('myCommunitiesContent').classList.add('hidden');
+            document.getElementById('createCommunityContent').classList.add('hidden');
+            
+            loadAvailableCommunities();
+        }
+
+        async function createCommunity() {
+            const name = document.getElementById('communityName').value.trim();
+            const description = document.getElementById('communityDescription').value.trim();
+            const category = document.getElementById('communityCategory').value;
+            const isPrivate = document.getElementById('communityPrivate').checked;
+            
+            if (!name || !description || !category) {
+                showCustomAlert('Please fill all required fields', 'error');
+                return;
+            }
+            
+            const communityId = database.ref('communities').push().key;
+            const communityData = {
+                id: communityId,
+                name: name,
+                description: description,
+                category: category,
+                private: isPrivate,
+                creatorId: currentUser.uid,
+                members: {
+                    [currentUser.uid]: {
+                        role: 'admin',
+                        joinedAt: firebase.database.ServerValue.TIMESTAMP
+                    }
+                },
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                memberCount: 1
+            };
+            
+            await database.ref('communities/' + communityId).set(communityData);
+            
+            // Clear form
+            document.getElementById('communityName').value = '';
+            document.getElementById('communityDescription').value = '';
+            document.getElementById('communityCategory').value = '';
+            document.getElementById('communityPrivate').checked = false;
+            
+            showCustomAlert('Community created successfully!', 'success');
+            showMyCommunities();
+        }
+
+        function loadUserCommunities() {
+            if (!currentUser) return;
+            
+            database.ref('communities').orderByChild('members/' + currentUser.uid).once('value').then((snapshot) => {
+                const userCommunities = document.getElementById('userCommunities');
+                userCommunities.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    userCommunities.innerHTML = '<p class="text-gray-500 text-center py-8">You haven\'t joined any communities yet</p>';
+                    return;
+                }
+                
+                snapshot.forEach((childSnapshot) => {
+                    const community = childSnapshot.val();
+                    if (community.members && community.members[currentUser.uid]) {
+                        const communityElement = createCommunityElement(community, true);
+                        userCommunities.appendChild(communityElement);
+                    }
+                });
+            });
+        }
+
+        function loadAvailableCommunities() {
+            database.ref('communities').orderByChild('private').equalTo(false).once('value').then((snapshot) => {
+                const availableCommunities = document.getElementById('availableCommunities');
+                availableCommunities.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    availableCommunities.innerHTML = '<p class="text-gray-500 text-center py-8">No public communities available</p>';
+                    return;
+                }
+                
+                snapshot.forEach((childSnapshot) => {
+                    const community = childSnapshot.val();
+                    if (!community.members || !community.members[currentUser.uid]) {
+                        const communityElement = createCommunityElement(community, false);
+                        availableCommunities.appendChild(communityElement);
+                    }
+                });
+            });
+        }
+
+        function createCommunityElement(community, isMember) {
+            const div = document.createElement('div');
+            div.className = 'bg-gray-50 rounded-xl p-4 border border-gray-200';
+            
+            const memberRole = isMember && community.members[currentUser.uid] ? community.members[currentUser.uid].role : null;
+            
+            div.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-lg">${community.name}</h4>
+                        <p class="text-gray-600 text-sm mb-2">${community.description}</p>
+                        <div class="flex items-center space-x-4 text-xs text-gray-500">
+                            <span>📂 ${community.category}</span>
+                            <span>👥 ${community.memberCount || 0} members</span>
+                            ${community.private ? '<span>🔒 Private</span>' : '<span>🌐 Public</span>'}
+                            ${memberRole ? `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">${memberRole}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex flex-col space-y-2">
+                        ${isMember ? `
+                            <button onclick="viewCommunity('${community.id}')" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600">
+                                View
+                            </button>
+                            ${memberRole !== 'admin' ? `
+                                <button onclick="leaveCommunity('${community.id}')" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-600">
+                                    Leave
+                                </button>
+                            ` : ''}
+                        ` : `
+                            <button onclick="joinCommunity('${community.id}')" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600">
+                                Join
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        async function joinCommunity(communityId) {
+            const memberData = {
+                role: 'member',
+                joinedAt: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            await database.ref('communities/' + communityId + '/members/' + currentUser.uid).set(memberData);
+            
+            // Update member count
+            database.ref('communities/' + communityId + '/memberCount').transaction((count) => {
+                return (count || 0) + 1;
+            });
+            
+            showCustomAlert('Joined community successfully!', 'success');
+            loadAvailableCommunities();
+        }
+
+        async function leaveCommunity(communityId) {
+            if (confirm('Are you sure you want to leave this community?')) {
+                await database.ref('communities/' + communityId + '/members/' + currentUser.uid).remove();
+                
+                // Update member count
+                database.ref('communities/' + communityId + '/memberCount').transaction((count) => {
+                    return Math.max(0, (count || 1) - 1);
+                });
+                
+                showCustomAlert('Left community successfully', 'success');
+                loadUserCommunities();
+            }
+        }
+
+        // Pinned Buzzes Functions
+        function showPinnedBuzzes() {
+            document.getElementById('pinnedBuzzesModal').classList.remove('hidden');
+            loadPinnedBuzzes();
+        }
+
+        function closePinnedBuzzesModal() {
+            document.getElementById('pinnedBuzzesModal').classList.add('hidden');
+        }
+
+        function loadPinnedBuzzes() {
+            if (!currentUser) return;
+            
+            database.ref('pinnedBuzzes/' + currentUser.uid).once('value').then((snapshot) => {
+                const pinnedBuzzesContent = document.getElementById('pinnedBuzzesContent');
+                pinnedBuzzesContent.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    pinnedBuzzesContent.innerHTML = '<p class="text-gray-500 text-center py-8">No pinned buzzes yet</p>';
+                    return;
+                }
+                
+                const buzzIds = Object.keys(snapshot.val());
+                buzzIds.forEach(buzzId => {
+                    database.ref('buzz/' + buzzId).once('value').then((buzzSnapshot) => {
+                        const buzz = buzzSnapshot.val();
+                        if (buzz) {
+                            const buzzElement = createBuzzElement(buzz);
+                            buzzElement.classList.add('border-l-4', 'border-yellow-500');
+                            pinnedBuzzesContent.appendChild(buzzElement);
+                        }
+                    });
+                });
+            });
+        }
+
+        // Enhanced Account Switcher
+        async function switchToAccount(index) {
+            const savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
+            const account = savedAccounts[index];
+            
+            if (account && account.uid !== currentUser.uid) {
+                // Save current session
+                localStorage.setItem('oriobuzz_current_session', JSON.stringify({
+                    uid: account.uid,
+                    email: account.email,
+                    username: account.username,
+                    photoURL: account.photoURL
+                }));
+                
+                // Simulate account switch (in real app, you'd use custom tokens)
+                showCustomAlert('Switching to ' + account.username + '...', 'info');
+                
+                // For demo purposes, we'll just update the UI
+                setTimeout(() => {
+                    currentUser = { uid: account.uid, email: account.email };
+                    updateTopBar();
+                    loadBuzzFeed();
+                    closeAccountSwitcher();
+                    showCustomAlert('Switched to ' + account.username + ' successfully!', 'success');
+                }, 1000);
+            }
+        }
+
+        // URL Routing for Profiles
+        function updateProfileURL(username) {
+            const newURL = `https://community.oriontec.xyz/OrioBuzz/@${username}`;
+            window.history.pushState({}, '', newURL);
+        }
+
+        // Handle profile URLs
+        function handleProfileURL() {
+            const path = window.location.pathname;
+            const match = path.match(/\/@(.+)/);
+            
+            if (match) {
+                const username = match[1];
+                viewUserByUsername(username);
+            }
+        }
+
+        // Enhanced Feed Algorithm
+        async function applyEnhancedFeedAlgorithm(buzzes) {
+            if (!currentUser) return buzzes.reverse();
+            
+            // Get user actions (blocked, muted users)
+            const userActionsSnapshot = await database.ref('userActions/' + currentUser.uid).once('value');
+            const userActions = userActionsSnapshot.val() || {};
+            
+            const blockedUsers = userActions.blocked ? Object.keys(userActions.blocked) : [];
+            const mutedUsers = userActions.muted ? Object.keys(userActions.muted) : [];
+            
+            // Filter out blocked and muted users
+            const filteredBuzzes = buzzes.filter(buzz => {
+                return !blockedUsers.includes(buzz.uid) && !mutedUsers.includes(buzz.uid);
+            });
+            
+            // Apply existing smart algorithm
+            return await applySmartFeedAlgorithm(filteredBuzzes);
+        }
+
+        // User Suspension System
+        async function suspendUser(userId, reason, duration) {
+            const suspensionData = {
+                userId: userId,
+                reason: reason,
+                duration: duration, // in days
+                suspendedAt: firebase.database.ServerValue.TIMESTAMP,
+                suspendedBy: currentUser.uid,
+                active: true
+            };
+            
+            await database.ref('suspensions/' + userId).set(suspensionData);
+            
+            // Create notification for suspended user
+            createNotification(userId, 'suspension', `Your account has been suspended for ${duration} days. Reason: ${reason}`);
+            
+            showCustomAlert('User suspended successfully', 'success');
+        }
+
+        // Check if user is suspended
+        async function checkUserSuspension(userId) {
+            const suspensionSnapshot = await database.ref('suspensions/' + userId).once('value');
+            
+            if (suspensionSnapshot.exists()) {
+                const suspension = suspensionSnapshot.val();
+                if (suspension.active) {
+                    const suspendedAt = suspension.suspendedAt;
+                    const duration = suspension.duration * 24 * 60 * 60 * 1000; // Convert days to milliseconds
+                    const now = Date.now();
+                    
+                    if (now - suspendedAt < duration) {
+                        return suspension;
+                    } else {
+                        // Suspension expired, remove it
+                        await database.ref('suspensions/' + userId).update({ active: false });
+                        return null;
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        // Hide menus when clicking outside
+        document.addEventListener('click', (e) => {
+            // Hide profile menu
+            const profileMenu = document.getElementById('profileMenu');
+            if (profileMenu && !e.target.closest('.relative')) {
+                profileMenu.classList.add('hidden');
+            }
+            
+            // Hide other user menu
+            const otherUserMenu = document.getElementById('otherUserMenu');
+            if (otherUserMenu && !e.target.closest('.relative')) {
+                otherUserMenu.classList.add('hidden');
+            }
+            
+            // Hide buzz menus
+            const buzzMenus = document.querySelectorAll('[id^="buzzMenu-"]');
+            buzzMenus.forEach(menu => {
+                if (!e.target.closest('.relative')) {
+                    menu.classList.add('hidden');
+                }
+            });
+        });
+
+        // Initialize profile URL handling
+        window.addEventListener('load', handleProfileURL);
+        window.addEventListener('popstate', handleProfileURL);
+
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
             if (isCallActive) {
@@ -5413,5 +6123,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9650794df380ff9f',t:'MTc1MzQ5NzAxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965094e104a23d42',t:'MTc1MzQ5ODE0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
