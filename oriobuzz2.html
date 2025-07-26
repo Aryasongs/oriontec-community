@@ -32,6 +32,20 @@
             right: 0;
             z-index: 50;
         }
+        .notification-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
         @media (max-width: 768px) {
             .desktop-sidebar {
                 display: none;
@@ -67,6 +81,69 @@
         </div>
     </div>
 
+    <!-- Onboarding Screen -->
+    <div id="onboardingScreen" class="hidden min-h-screen bg-gradient-to-br from-purple-600 to-blue-600">
+        <!-- Welcome Step -->
+        <div id="welcomeStep" class="min-h-screen flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
+                <div class="text-6xl mb-4">🎉</div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Welcome to OrioBuzz!</h2>
+                <p class="text-gray-600 mb-8">Let's set up your profile and get you connected with amazing people</p>
+                <button id="startOnboarding" class="w-full instagram-gradient text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition">
+                    Get Started
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Setup Step -->
+        <div id="profileSetupStep" class="hidden min-h-screen flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Set Up Your Profile</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Display Name *</label>
+                        <input type="text" id="onboardingDisplayName" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Your display name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+                        <input type="text" id="onboardingUsername" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="username (lowercase only)">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                        <textarea id="onboardingBio" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3" placeholder="Tell us about yourself..."></textarea>
+                    </div>
+                    <button id="continueToInterests" class="w-full instagram-gradient text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition">
+                        Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interests Step -->
+        <div id="interestsStep" class="hidden min-h-screen flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">What are you interested in?</h2>
+                <p class="text-gray-600 text-center mb-6">Select topics you'd like to see in your feed</p>
+                <div id="interestGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8"></div>
+                <button id="continueToSuggestions" class="w-full instagram-gradient text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition">
+                    Continue
+                </button>
+            </div>
+        </div>
+
+        <!-- User Suggestions Step -->
+        <div id="suggestionsStep" class="hidden min-h-screen flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Follow Some Users</h2>
+                <p class="text-gray-600 text-center mb-6">Here are some users you might like to follow</p>
+                <div id="suggestedUsers" class="space-y-3 mb-8 max-h-80 overflow-y-auto"></div>
+                <button id="finishOnboarding" class="w-full instagram-gradient text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition">
+                    Start Buzzing!
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main App -->
     <div id="mainApp" class="hidden">
         <!-- Top Bar -->
@@ -74,9 +151,50 @@
             <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
                 <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">OrioBuzz</h1>
                 <div class="flex items-center space-x-4">
-                    <div id="userProfile" class="flex items-center space-x-2 cursor-pointer">
-                        <img id="userAvatar" class="w-8 h-8 rounded-full" src="" alt="User">
-                        <span id="userName" class="hidden md:block font-medium"></span>
+                    <!-- Notification Bell -->
+                    <div class="relative">
+                        <button id="notificationBell" class="p-2 text-gray-600 hover:text-gray-800 relative">
+                            <span class="text-xl">🔔</span>
+                            <div id="notificationIndicator" class="notification-dot hidden"></div>
+                        </button>
+                    </div>
+                    <!-- User Profile Dropdown -->
+                    <div class="relative">
+                        <div id="userProfile" class="flex items-center space-x-2 cursor-pointer">
+                            <img id="userAvatar" class="w-8 h-8 rounded-full" src="" alt="User">
+                            <span id="userName" class="hidden md:block font-medium"></span>
+                            <span class="text-gray-400">▼</span>
+                        </div>
+                        <!-- Account Dropdown -->
+                        <div id="accountDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                            <div class="px-4 py-3 border-b border-gray-200">
+                                <div class="flex items-center space-x-3">
+                                    <img id="dropdownAvatar" class="w-10 h-10 rounded-full" src="" alt="User">
+                                    <div>
+                                        <div id="dropdownName" class="font-medium text-gray-800"></div>
+                                        <div id="dropdownUsername" class="text-sm text-gray-500"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="profileSettingsBtn" class="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-3">
+                                <span class="text-lg">⚙️</span>
+                                <span>Profile Settings</span>
+                            </button>
+                            <button id="privacyPolicyBtn" class="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-3">
+                                <span class="text-lg">🔒</span>
+                                <span>Privacy Policy</span>
+                            </button>
+                            <button id="communityGuidelinesBtn" class="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-3">
+                                <span class="text-lg">📋</span>
+                                <span>Community Guidelines</span>
+                            </button>
+                            <div class="border-t border-gray-200 mt-2 pt-2">
+                                <button id="mobileLogoutBtn" class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center space-x-3">
+                                    <span class="text-lg">🚪</span>
+                                    <span>Logout</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -122,6 +240,7 @@
                             <img id="quickBuzzAvatar" class="w-12 h-12 rounded-full" src="" alt="You">
                             <div class="flex-1">
                                 <textarea id="quickBuzzText" placeholder="What's buzzing?" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3"></textarea>
+                                <div id="quickBuzzCharCount" class="text-xs text-gray-500 mt-1">0/500</div>
                                 <div class="flex justify-between items-center mt-3">
                                     <input type="file" id="quickBuzzImage" accept="image/*" class="hidden">
                                     <button onclick="document.getElementById('quickBuzzImage').click()" class="text-purple-500 hover:text-purple-600">
@@ -156,11 +275,11 @@
                                 <p id="profileUsername" class="text-gray-500 mb-2">@username</p>
                                 <p id="profileBio" class="text-gray-600 mb-4"></p>
                                 <div class="flex justify-center md:justify-start space-x-6 mb-4">
-                                    <div class="text-center">
+                                    <div class="text-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                                         <div id="followersCount" class="font-bold text-lg">0</div>
                                         <div class="text-gray-500 text-sm">Followers</div>
                                     </div>
-                                    <div class="text-center">
+                                    <div class="text-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                                         <div id="followingCount" class="font-bold text-lg">0</div>
                                         <div class="text-gray-500 text-sm">Following</div>
                                     </div>
@@ -192,11 +311,11 @@
                                 <p id="otherUserUsername" class="text-gray-500 mb-2">@username</p>
                                 <p id="otherUserBio" class="text-gray-600 mb-4"></p>
                                 <div class="flex justify-center md:justify-start space-x-6 mb-4">
-                                    <div class="text-center">
+                                    <div class="text-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                                         <div id="otherUserFollowersCount" class="font-bold text-lg">0</div>
                                         <div class="text-gray-500 text-sm">Followers</div>
                                     </div>
-                                    <div class="text-center">
+                                    <div class="text-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                                         <div id="otherUserFollowingCount" class="font-bold text-lg">0</div>
                                         <div class="text-gray-500 text-sm">Following</div>
                                     </div>
@@ -245,6 +364,108 @@
                     </div>
                 </div>
 
+                <!-- Profile Settings Page -->
+                <div id="profileSettingsPage" class="hidden max-w-2xl mx-auto p-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                        <h2 class="text-2xl font-bold mb-6">Profile Settings</h2>
+                        <div class="space-y-6">
+                            <div class="flex items-center space-x-4">
+                                <div class="relative">
+                                    <img id="settingsProfileImage" class="w-20 h-20 rounded-full" src="" alt="Profile">
+                                    <button id="changeProfilePicSettings" class="absolute bottom-0 right-0 bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                                        ✏️
+                                    </button>
+                                    <input type="file" id="settingsProfileImageInput" accept="image/*" class="hidden">
+                                </div>
+                                <div>
+                                    <h3 class="font-medium">Profile Photo</h3>
+                                    <p class="text-sm text-gray-500">Click the edit button to change your photo</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                                <input type="text" id="settingsDisplayName" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                <input type="text" id="settingsUsername" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="username (lowercase only)">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                                <textarea id="settingsBio" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3"></textarea>
+                            </div>
+                            <button id="saveProfileSettings" class="instagram-gradient text-white px-6 py-2 rounded-full">
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Policy Page -->
+                <div id="privacyPolicyPage" class="hidden max-w-2xl mx-auto p-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-2xl font-bold mb-6">Privacy Policy</h2>
+                        <div class="prose max-w-none text-gray-700 space-y-4">
+                            <h3 class="text-lg font-semibold">Information We Collect</h3>
+                            <p>We collect information you provide directly to us, such as when you create an account, post content, or contact us for support.</p>
+                            
+                            <h3 class="text-lg font-semibold">How We Use Your Information</h3>
+                            <p>We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.</p>
+                            
+                            <h3 class="text-lg font-semibold">Information Sharing</h3>
+                            <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy.</p>
+                            
+                            <h3 class="text-lg font-semibold">Data Security</h3>
+                            <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+                            
+                            <h3 class="text-lg font-semibold">Your Rights</h3>
+                            <p>You have the right to access, update, or delete your personal information. You can do this through your account settings or by contacting us.</p>
+                            
+                            <h3 class="text-lg font-semibold">Contact Us</h3>
+                            <p>If you have any questions about this Privacy Policy, please contact us at privacy@oriobuzz.com</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Community Guidelines Page -->
+                <div id="communityGuidelinesPage" class="hidden max-w-2xl mx-auto p-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-2xl font-bold mb-6">Community Guidelines</h2>
+                        <div class="prose max-w-none text-gray-700 space-y-4">
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                                <h3 class="text-lg font-semibold text-red-800 mb-2">⚠️ Strict Content Policy</h3>
+                                <p class="text-red-700">Posts containing inappropriate language, hate speech, or offensive content will be automatically removed and users will receive warnings.</p>
+                            </div>
+                            
+                            <h3 class="text-lg font-semibold">Respect Others</h3>
+                            <p>Treat all users with respect and kindness. Harassment, bullying, or discriminatory behavior is strictly prohibited.</p>
+                            
+                            <h3 class="text-lg font-semibold">No Hate Speech</h3>
+                            <p>Content that promotes hatred or violence against individuals or groups based on race, religion, gender, nationality, or other characteristics is not allowed.</p>
+                            
+                            <h3 class="text-lg font-semibold">Appropriate Content</h3>
+                            <p>Keep content appropriate for all audiences. Explicit, violent, or disturbing content is prohibited.</p>
+                            
+                            <h3 class="text-lg font-semibold">No Spam or Fake Accounts</h3>
+                            <p>Don't create fake accounts or engage in spam behavior. Each person should have only one account.</p>
+                            
+                            <h3 class="text-lg font-semibold">Intellectual Property</h3>
+                            <p>Respect others' intellectual property rights. Don't post content that infringes on copyrights or trademarks.</p>
+                            
+                            <h3 class="text-lg font-semibold">Character Limits</h3>
+                            <p>Regular users are limited to 500 characters per post to encourage concise, meaningful content.</p>
+                            
+                            <h3 class="text-lg font-semibold">Consequences</h3>
+                            <p>Violations may result in content removal, warnings, temporary suspensions, or permanent account termination.</p>
+                            
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                                <h3 class="text-lg font-semibold text-blue-800 mb-2">📞 Report Issues</h3>
+                                <p class="text-blue-700">If you encounter content that violates these guidelines, please report it to our moderation team at report@oriobuzz.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Hashtag Page -->
                 <div id="hashtagPage" class="hidden max-w-2xl mx-auto p-4">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
@@ -262,7 +483,10 @@
                     <div id="searchResults" class="hidden mt-3 max-h-60 overflow-y-auto space-y-2"></div>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
-                    <h3 class="font-bold text-lg mb-4">Notifications</h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg">Notifications</h3>
+                        <div id="notificationIndicatorSidebar" class="notification-dot hidden"></div>
+                    </div>
                     <div id="notifications" class="space-y-3 max-h-40 overflow-y-auto"></div>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -287,9 +511,12 @@
                 <button id="mobileProfileBtn" class="p-3 rounded-lg">
                     <span class="text-2xl">👤</span>
                 </button>
-                <button id="mobileSettingsBtn" class="p-3 rounded-lg">
-                    <span class="text-2xl">⚙️</span>
-                </button>
+                <div class="relative">
+                    <button id="mobileNotificationBtn" class="p-3 rounded-lg">
+                        <span class="text-2xl">🔔</span>
+                        <div id="mobileNotificationIndicator" class="notification-dot hidden"></div>
+                    </button>
+                </div>
             </div>
         </nav>
     </div>
@@ -305,6 +532,7 @@
                 <img id="modalUserAvatar" class="w-12 h-12 rounded-full" src="" alt="You">
                 <div class="flex-1">
                     <textarea id="buzzContent" placeholder="What's buzzing?" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4"></textarea>
+                    <div id="buzzCharCount" class="text-xs text-gray-500 mt-1">0/500</div>
                     <div class="flex justify-between items-center mt-4">
                         <input type="file" id="buzzImageInput" accept="image/*" class="hidden">
                         <button onclick="document.getElementById('buzzImageInput').click()" class="text-purple-500 hover:text-purple-600">
@@ -362,34 +590,80 @@
         </div>
     </div>
 
+    <!-- Mobile Notifications Modal -->
+    <div id="mobileNotificationsModal" class="hidden fixed inset-0 bg-white z-50 md:hidden">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-4">
+                <button id="closeMobileNotifications" class="text-gray-500 hover:text-gray-700 text-2xl">&larr;</button>
+                <h2 class="text-xl font-bold">Notifications</h2>
+                <div></div>
+            </div>
+            <div id="mobileNotifications" class="space-y-3"></div>
+        </div>
+    </div>
+
     <!-- Verification Modal -->
     <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-md w-full p-6">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold">Get Verified</h3>
                 <button id="closeVerificationModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                    <input type="text" id="verificationName" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Age</label>
-                    <input type="number" id="verificationAge" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select id="verificationCategory" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option value="">Select Category</option>
-                        <option value="professional">Professional</option>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Account Type *</label>
+                    <select id="accountType" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="">Select Account Type</option>
+                        <option value="individual">Individual</option>
                         <option value="business">Business</option>
-                        <option value="other">Other</option>
                     </select>
                 </div>
+                <div id="individualFields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Legal Full Name *</label>
+                        <input type="text" id="verificationName" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter your legal full name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Age *</label>
+                        <input type="number" id="verificationAge" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" min="13" max="120">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Profession/Field *</label>
+                        <input type="text" id="verificationProfession" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g., Software Developer, Artist, Student">
+                    </div>
+                </div>
+                <div id="businessFields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Legal Business Name *</label>
+                        <input type="text" id="businessName" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter legal business name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Business Registration Number *</label>
+                        <input type="text" id="businessRegNumber" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Business registration/license number">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Business Category *</label>
+                        <select id="businessCategory" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="">Select Category</option>
+                            <option value="technology">Technology</option>
+                            <option value="retail">Retail</option>
+                            <option value="services">Services</option>
+                            <option value="media">Media & Entertainment</option>
+                            <option value="education">Education</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Website/Portfolio Link</label>
-                    <input type="url" id="verificationLink" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="https://www.orintec.xyz/yourname">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Official Website/Portfolio Link *</label>
+                    <input type="url" id="verificationLink" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="https://www.oriontec.xyz/yourname">
+                    <p class="text-xs text-gray-500 mt-1">Your username must appear in this link for verification</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason for Verification *</label>
+                    <textarea id="verificationReason" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3" placeholder="Explain why you need verification (minimum 50 characters)"></textarea>
+                    <div id="reasonCharCount" class="text-xs text-gray-500 mt-1">0/50 minimum</div>
                 </div>
                 <div class="flex justify-end space-x-3">
                     <button id="cancelVerification" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
@@ -407,8 +681,8 @@
             databaseURL: "https://chat-d647c-default-rtdb.firebaseio.com",
             projectId: "chat-d647c",
             storageBucket: "chat-d647c.firebasestorage.app",
-            messagingSenderId: ". ",
-            appId: "1:. :web:7248a0983dcf0d45a87418"
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:7248a0983dcf0d45a87418"
         };
 
         // Initialize Firebase
@@ -421,6 +695,32 @@
         let currentPage = 'home';
         let currentOtherUser = null;
         let currentHashtag = null;
+        let isNewUser = false;
+
+        // Content moderation - banned words
+        const bannedWords = ['pussy', 'dick', 'fuck india', 'fuck america', 'bitch', 'asshole', 'shit', 'damn'];
+        
+        // Special users with unlimited character limit
+        const specialUsers = ['gursharnarya07', 'dozera', 'oriontec', 'orionbuzz'];
+        
+        // Auto-verified users
+        const autoVerifiedUsers = ['Gursharn Arya', 'Anmol Sunda', 'Dozera', 'Oriontec'];
+        
+        // Interest topics for onboarding
+        const interestTopics = [
+            { id: 'technology', name: 'Technology', emoji: '💻' },
+            { id: 'sports', name: 'Sports', emoji: '⚽' },
+            { id: 'music', name: 'Music', emoji: '🎵' },
+            { id: 'art', name: 'Art', emoji: '🎨' },
+            { id: 'food', name: 'Food', emoji: '🍕' },
+            { id: 'travel', name: 'Travel', emoji: '✈️' },
+            { id: 'gaming', name: 'Gaming', emoji: '🎮' },
+            { id: 'movies', name: 'Movies', emoji: '🎬' },
+            { id: 'books', name: 'Books', emoji: '📚' },
+            { id: 'fitness', name: 'Fitness', emoji: '💪' },
+            { id: 'fashion', name: 'Fashion', emoji: '👗' },
+            { id: 'photography', name: 'Photography', emoji: '📸' }
+        ];
 
         // Authentication
         const googleProvider = new firebase.auth.GoogleAuthProvider();
@@ -428,12 +728,156 @@
         document.getElementById('googleSignIn').addEventListener('click', () => {
             auth.signInWithPopup(googleProvider).then((result) => {
                 currentUser = result.user;
-                saveUserToDatabase(currentUser);
-                showMainApp();
+                checkIfNewUser(currentUser);
             }).catch((error) => {
                 console.error('Sign in error:', error);
             });
         });
+
+        // Check if user is new
+        function checkIfNewUser(user) {
+            database.ref('users/' + user.uid).once('value').then((snapshot) => {
+                if (!snapshot.exists()) {
+                    isNewUser = true;
+                    saveUserToDatabase(user);
+                    showOnboarding();
+                } else {
+                    isNewUser = false;
+                    currentUser = user;
+                    showMainApp();
+                }
+            });
+        }
+
+        // Show onboarding
+        function showOnboarding() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('onboardingScreen').classList.remove('hidden');
+            setupOnboardingListeners();
+        }
+
+        // Setup onboarding listeners
+        function setupOnboardingListeners() {
+            document.getElementById('startOnboarding').addEventListener('click', () => {
+                document.getElementById('welcomeStep').classList.add('hidden');
+                document.getElementById('profileSetupStep').classList.remove('hidden');
+                document.getElementById('onboardingDisplayName').value = currentUser.displayName;
+                document.getElementById('onboardingUsername').value = currentUser.displayName.toLowerCase().replace(/\s+/g, '');
+            });
+
+            document.getElementById('continueToInterests').addEventListener('click', () => {
+                const displayName = document.getElementById('onboardingDisplayName').value.trim();
+                const username = document.getElementById('onboardingUsername').value.trim().toLowerCase();
+                const bio = document.getElementById('onboardingBio').value.trim();
+
+                if (!displayName || !username) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+
+                // Update user data
+                database.ref('users/' + currentUser.uid).update({
+                    displayName: displayName,
+                    username: username,
+                    bio: bio
+                });
+
+                document.getElementById('profileSetupStep').classList.add('hidden');
+                document.getElementById('interestsStep').classList.remove('hidden');
+                loadInterestTopics();
+            });
+
+            document.getElementById('continueToSuggestions').addEventListener('click', () => {
+                const selectedInterests = Array.from(document.querySelectorAll('.interest-topic.selected')).map(el => el.dataset.interest);
+                
+                // Save interests
+                database.ref('users/' + currentUser.uid + '/interests').set(selectedInterests.reduce((obj, interest) => {
+                    obj[interest] = true;
+                    return obj;
+                }, {}));
+
+                document.getElementById('interestsStep').classList.add('hidden');
+                document.getElementById('suggestionsStep').classList.remove('hidden');
+                loadSuggestedUsers();
+            });
+
+            document.getElementById('finishOnboarding').addEventListener('click', () => {
+                // Auto-follow @oriobuzz
+                database.ref('users').orderByChild('username').equalTo('oriobuzz').once('value').then((snapshot) => {
+                    snapshot.forEach((childSnapshot) => {
+                        const oriobuzzUser = childSnapshot.val();
+                        database.ref('users/' + currentUser.uid + '/following/' + oriobuzzUser.uid).set(true);
+                        database.ref('users/' + oriobuzzUser.uid + '/followers/' + currentUser.uid).set(true);
+                    });
+                });
+
+                document.getElementById('onboardingScreen').classList.add('hidden');
+                showMainApp();
+            });
+        }
+
+        // Load interest topics
+        function loadInterestTopics() {
+            const interestGrid = document.getElementById('interestGrid');
+            interestGrid.innerHTML = '';
+
+            interestTopics.forEach(topic => {
+                const topicDiv = document.createElement('div');
+                topicDiv.className = 'interest-topic p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 text-center transition-colors';
+                topicDiv.dataset.interest = topic.id;
+                topicDiv.innerHTML = `
+                    <div class="text-2xl mb-1">${topic.emoji}</div>
+                    <div class="text-sm font-medium">${topic.name}</div>
+                `;
+                topicDiv.addEventListener('click', () => {
+                    topicDiv.classList.toggle('selected');
+                    topicDiv.classList.toggle('bg-purple-100');
+                    topicDiv.classList.toggle('border-purple-500');
+                });
+                interestGrid.appendChild(topicDiv);
+            });
+        }
+
+        // Load suggested users
+        function loadSuggestedUsers() {
+            const suggestedUsersDiv = document.getElementById('suggestedUsers');
+            suggestedUsersDiv.innerHTML = '';
+
+            database.ref('users').limitToFirst(10).once('value').then((snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    if (user.uid !== currentUser.uid) {
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'flex items-center justify-between p-3 border border-gray-200 rounded-lg';
+                        userDiv.innerHTML = `
+                            <div class="flex items-center space-x-3">
+                                <img class="w-10 h-10 rounded-full" src="${user.photoURL}" alt="${user.displayName}">
+                                <div>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="font-medium">${user.displayName}</span>
+                                        ${user.verified ? '<span class="text-blue-500">✓</span>' : ''}
+                                    </div>
+                                    <div class="text-sm text-gray-500">@${user.username}</div>
+                                </div>
+                            </div>
+                            <button class="follow-suggestion-btn border border-purple-500 text-purple-500 px-4 py-1 rounded-full text-sm hover:bg-purple-50" data-user-id="${user.uid}">
+                                Follow
+                            </button>
+                        `;
+                        
+                        const followBtn = userDiv.querySelector('.follow-suggestion-btn');
+                        followBtn.addEventListener('click', () => {
+                            database.ref('users/' + currentUser.uid + '/following/' + user.uid).set(true);
+                            database.ref('users/' + user.uid + '/followers/' + currentUser.uid).set(true);
+                            followBtn.textContent = 'Following';
+                            followBtn.className = 'bg-gray-200 text-gray-700 px-4 py-1 rounded-full text-sm';
+                        });
+                        
+                        suggestedUsersDiv.appendChild(userDiv);
+                    }
+                });
+            });
+        }
 
         // Save user to database
         function saveUserToDatabase(user) {
@@ -460,10 +904,12 @@
         // Show main app
         function showMainApp() {
             document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('onboardingScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             updateUserProfile();
             loadHomeFeed();
             loadVerifiedUsers();
+            loadNotifications();
         }
 
         // Update user profile display
@@ -478,16 +924,37 @@
                 database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
                     const userData = snapshot.val();
                     if (userData) {
+                        // Update dropdown
+                        document.getElementById('dropdownAvatar').src = userData.photoURL;
+                        document.getElementById('dropdownName').textContent = userData.displayName;
+                        document.getElementById('dropdownUsername').textContent = '@' + (userData.username || 'username');
+                        
+                        // Update profile page
                         document.getElementById('profileImage').src = userData.photoURL;
                         document.getElementById('profileDisplayName').textContent = userData.displayName;
                         document.getElementById('profileUsername').textContent = '@' + (userData.username || 'username');
                         document.getElementById('profileBio').textContent = userData.bio || 'No bio yet';
                         
-                        // Update follower counts
+                        // Update follower counts with clickable functionality
                         const followersCount = userData.followers ? Object.keys(userData.followers).length : 0;
                         const followingCount = userData.following ? Object.keys(userData.following).length : 0;
-                        document.getElementById('followersCount').textContent = followersCount;
-                        document.getElementById('followingCount').textContent = followingCount;
+                        
+                        const followersCountEl = document.getElementById('followersCount');
+                        const followingCountEl = document.getElementById('followingCount');
+                        
+                        followersCountEl.textContent = followersCount;
+                        followingCountEl.textContent = followingCount;
+                        
+                        // Make follower counts clickable
+                        followersCountEl.parentElement.onclick = () => {
+                            showPage('followers');
+                            document.getElementById('followersTab').click();
+                        };
+                        
+                        followingCountEl.parentElement.onclick = () => {
+                            showPage('followers');
+                            document.getElementById('followingTab').click();
+                        };
                         
                         if (userData.verified) {
                             document.getElementById('verifiedBadge').classList.remove('hidden');
@@ -505,6 +972,9 @@
             document.getElementById('otherUserProfile').classList.add('hidden');
             document.getElementById('followersPage').classList.add('hidden');
             document.getElementById('settingsPage').classList.add('hidden');
+            document.getElementById('profileSettingsPage').classList.add('hidden');
+            document.getElementById('privacyPolicyPage').classList.add('hidden');
+            document.getElementById('communityGuidelinesPage').classList.add('hidden');
             document.getElementById('hashtagPage').classList.add('hidden');
             
             if (page === 'home') {
@@ -522,11 +992,29 @@
                 loadFollowers();
             } else if (page === 'settings') {
                 document.getElementById('settingsPage').classList.remove('hidden');
+            } else if (page === 'profileSettings') {
+                document.getElementById('profileSettingsPage').classList.remove('hidden');
+                loadProfileSettings();
+            } else if (page === 'privacyPolicy') {
+                document.getElementById('privacyPolicyPage').classList.remove('hidden');
+            } else if (page === 'communityGuidelines') {
+                document.getElementById('communityGuidelinesPage').classList.remove('hidden');
             } else if (page === 'hashtag') {
                 document.getElementById('hashtagPage').classList.remove('hidden');
                 loadHashtagPosts(data);
             }
             currentPage = page;
+        }
+
+        // Load profile settings
+        function loadProfileSettings() {
+            database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                document.getElementById('settingsProfileImage').src = userData.photoURL;
+                document.getElementById('settingsDisplayName').value = userData.displayName || '';
+                document.getElementById('settingsUsername').value = userData.username || '';
+                document.getElementById('settingsBio').value = userData.bio || '';
+            });
         }
 
         // Event listeners for navigation
@@ -536,7 +1024,130 @@
         document.getElementById('settingsBtn').addEventListener('click', () => showPage('settings'));
         document.getElementById('mobileHomeBtn').addEventListener('click', () => showPage('home'));
         document.getElementById('mobileProfileBtn').addEventListener('click', () => showPage('profile'));
-        document.getElementById('mobileSettingsBtn').addEventListener('click', () => showPage('settings'));
+
+        // Account dropdown
+        document.getElementById('userProfile').addEventListener('click', () => {
+            const dropdown = document.getElementById('accountDropdown');
+            dropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('accountDropdown');
+            const userProfile = document.getElementById('userProfile');
+            if (!userProfile.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Dropdown menu items
+        document.getElementById('profileSettingsBtn').addEventListener('click', () => {
+            document.getElementById('accountDropdown').classList.add('hidden');
+            showPage('profileSettings');
+        });
+
+        document.getElementById('privacyPolicyBtn').addEventListener('click', () => {
+            document.getElementById('accountDropdown').classList.add('hidden');
+            showPage('privacyPolicy');
+        });
+
+        document.getElementById('communityGuidelinesBtn').addEventListener('click', () => {
+            document.getElementById('accountDropdown').classList.add('hidden');
+            showPage('communityGuidelines');
+        });
+
+        // Profile settings functionality
+        document.getElementById('changeProfilePicSettings').addEventListener('click', () => {
+            document.getElementById('settingsProfileImageInput').click();
+        });
+
+        document.getElementById('settingsProfileImageInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const storageRef = storage.ref('profile-images/' + currentUser.uid);
+                storageRef.put(file).then((snapshot) => {
+                    snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        database.ref('users/' + currentUser.uid).update({
+                            photoURL: downloadURL
+                        });
+                        currentUser.photoURL = downloadURL;
+                        document.getElementById('settingsProfileImage').src = downloadURL;
+                        updateUserProfile();
+                    });
+                });
+            }
+        });
+
+        document.getElementById('saveProfileSettings').addEventListener('click', () => {
+            const displayName = document.getElementById('settingsDisplayName').value.trim();
+            const username = document.getElementById('settingsUsername').value.trim().toLowerCase();
+            const bio = document.getElementById('settingsBio').value.trim();
+            
+            if (!displayName || !username) {
+                alert('Display name and username are required');
+                return;
+            }
+            
+            database.ref('users/' + currentUser.uid).update({
+                displayName: displayName,
+                username: username,
+                bio: bio
+            }).then(() => {
+                alert('Profile updated successfully!');
+                updateUserProfile();
+            });
+        });
+
+        // Character count for buzz creation
+        document.getElementById('quickBuzzText').addEventListener('input', (e) => {
+            const count = e.target.value.length;
+            document.getElementById('quickBuzzCharCount').textContent = `${count}/500`;
+            if (count > 500) {
+                document.getElementById('quickBuzzCharCount').classList.add('text-red-500');
+            } else {
+                document.getElementById('quickBuzzCharCount').classList.remove('text-red-500');
+            }
+        });
+
+        document.getElementById('buzzContent').addEventListener('input', (e) => {
+            const count = e.target.value.length;
+            document.getElementById('buzzCharCount').textContent = `${count}/500`;
+            if (count > 500) {
+                document.getElementById('buzzCharCount').classList.add('text-red-500');
+            } else {
+                document.getElementById('buzzCharCount').classList.remove('text-red-500');
+            }
+        });
+
+        // Character count for verification reason
+        document.getElementById('verificationReason').addEventListener('input', (e) => {
+            const count = e.target.value.length;
+            document.getElementById('reasonCharCount').textContent = `${count}/50 minimum`;
+            if (count >= 50) {
+                document.getElementById('reasonCharCount').classList.add('text-green-500');
+                document.getElementById('reasonCharCount').classList.remove('text-red-500');
+            } else {
+                document.getElementById('reasonCharCount').classList.add('text-red-500');
+                document.getElementById('reasonCharCount').classList.remove('text-green-500');
+            }
+        });
+
+        // Verification form account type handler
+        document.getElementById('accountType').addEventListener('change', (e) => {
+            const individualFields = document.getElementById('individualFields');
+            const businessFields = document.getElementById('businessFields');
+            
+            if (e.target.value === 'individual') {
+                individualFields.classList.remove('hidden');
+                businessFields.classList.add('hidden');
+            } else if (e.target.value === 'business') {
+                businessFields.classList.remove('hidden');
+                individualFields.classList.add('hidden');
+            } else {
+                individualFields.classList.add('hidden');
+                businessFields.classList.add('hidden');
+            }
+        });
         
         // Mobile search
         document.getElementById('mobileSearchBtn').addEventListener('click', () => {
@@ -558,6 +1169,53 @@
                 document.getElementById('mobileSearchResults').innerHTML = '';
             }
         });
+
+        // Mobile notifications
+        document.getElementById('mobileNotificationBtn').addEventListener('click', () => {
+            document.getElementById('mobileNotificationsModal').classList.remove('hidden');
+            loadMobileNotifications();
+        });
+
+        document.getElementById('closeMobileNotifications').addEventListener('click', () => {
+            document.getElementById('mobileNotificationsModal').classList.add('hidden');
+        });
+
+        function loadMobileNotifications() {
+            database.ref('notifications/' + currentUser.uid).orderByChild('timestamp').limitToLast(20).once('value').then((snapshot) => {
+                const mobileNotifications = document.getElementById('mobileNotifications');
+                mobileNotifications.innerHTML = '';
+                
+                const notifications = [];
+                snapshot.forEach((childSnapshot) => {
+                    const notification = { ...childSnapshot.val(), id: childSnapshot.key };
+                    notifications.push(notification);
+                });
+                
+                notifications.reverse().forEach((notification) => {
+                    const notifDiv = document.createElement('div');
+                    notifDiv.className = `notification-item p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${notification.read ? 'bg-white' : 'bg-blue-50'}`;
+                    
+                    let clickAction = '';
+                    if (notification.type === 'like' || notification.type === 'rebuzz') {
+                        clickAction = `onclick="goToBuzzFromNotification('${notification.buzzId}', '${notification.id}')"`;
+                    } else if (notification.type === 'follow') {
+                        clickAction = `onclick="goToProfileFromNotification('${notification.fromUserId}', '${notification.id}')"`;
+                    } else if (notification.type === 'content_warning') {
+                        clickAction = `onclick="showCommunityGuidelines('${notification.id}')"`;
+                    }
+                    
+                    notifDiv.innerHTML = `
+                        <div class="text-sm" ${clickAction}>${notification.message}</div>
+                        <div class="text-xs text-gray-500 mt-1">${formatTimestamp(notification.timestamp)}</div>
+                    `;
+                    mobileNotifications.appendChild(notifDiv);
+                });
+                
+                if (notifications.length === 0) {
+                    mobileNotifications.innerHTML = '<p class="text-gray-500 text-center py-8">No notifications</p>';
+                }
+            });
+        }
         
         function performMobileSearch(query) {
             const searchResults = document.getElementById('mobileSearchResults');
@@ -567,7 +1225,7 @@
                 // Search hashtags
                 const hashtag = query.substring(1);
                 searchResults.innerHTML = `
-                    <div class="p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="showHashtagPage('${hashtag}'); document.getElementById('mobileSearchModal').classList.add('hidden');">
+                    <div class="p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="showPage('hashtag', '${hashtag}'); document.getElementById('mobileSearchModal').classList.add('hidden');">
                         <div class="font-medium text-blue-500">#${hashtag}</div>
                         <div class="text-sm text-gray-500">Search for posts with this hashtag</div>
                     </div>
@@ -585,7 +1243,7 @@
                             const userDiv = document.createElement('div');
                             userDiv.className = 'p-3 hover:bg-gray-50 rounded-lg cursor-pointer';
                             userDiv.onclick = () => {
-                                showUserProfile(user.uid);
+                                showPage('otherProfile', user.uid);
                                 document.getElementById('mobileSearchModal').classList.add('hidden');
                             };
                             userDiv.innerHTML = `
@@ -619,7 +1277,7 @@
                             const userDiv = document.createElement('div');
                             userDiv.className = 'p-3 hover:bg-gray-50 rounded-lg cursor-pointer';
                             userDiv.onclick = () => {
-                                showUserProfile(user.uid);
+                                showPage('otherProfile', user.uid);
                                 document.getElementById('mobileSearchModal').classList.add('hidden');
                             };
                             userDiv.innerHTML = `
@@ -659,41 +1317,66 @@
         document.getElementById('postBuzzBtn').addEventListener('click', postBuzz);
         document.getElementById('quickBuzzPost').addEventListener('click', quickPostBuzz);
 
+        // Content moderation
+        function moderateContent(content) {
+            const lowerContent = content.toLowerCase();
+            return bannedWords.some(word => lowerContent.includes(word));
+        }
+
         function postBuzz() {
             const content = document.getElementById('buzzContent').value.trim();
             const imageFile = document.getElementById('buzzImageInput').files[0];
             
             if (!content && !imageFile) return;
-            
-            const buzzId = database.ref().child('buzz').push().key;
-            const buzzData = {
-                buzzId: buzzId,
-                uid: currentUser.uid,
-                username: currentUser.displayName,
-                userImage: currentUser.photoURL,
-                content: content,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                likes: {},
-                rebuzzes: {}
-            };
-            
-            if (imageFile) {
-                const storageRef = storage.ref('buzz-images/' + buzzId);
-                storageRef.put(imageFile).then((snapshot) => {
-                    snapshot.ref.getDownloadURL().then((downloadURL) => {
-                        buzzData.imageURL = downloadURL;
-                        database.ref('buzz/' + buzzId).set(buzzData);
-                        document.getElementById('createBuzzModal').classList.add('hidden');
-                        document.getElementById('buzzContent').value = '';
-                        document.getElementById('buzzImageInput').value = '';
-                        document.getElementById('imagePreview').classList.add('hidden');
+
+            // Check character limit
+            database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                const isSpecialUser = specialUsers.includes(userData.username);
+                
+                if (!isSpecialUser && content.length > 500) {
+                    alert('Post exceeds 500 character limit!');
+                    return;
+                }
+
+                // Check for banned content
+                if (moderateContent(content)) {
+                    sendNotification(currentUser.uid, '⚠️ Warning: Your post contained inappropriate content and was automatically deleted. Please review our Community Guidelines.', 'content_warning');
+                    document.getElementById('createBuzzModal').classList.add('hidden');
+                    document.getElementById('buzzContent').value = '';
+                    return;
+                }
+                
+                const buzzId = database.ref().child('buzz').push().key;
+                const buzzData = {
+                    buzzId: buzzId,
+                    uid: currentUser.uid,
+                    username: userData.displayName,
+                    userImage: userData.photoURL,
+                    content: content,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    likes: {},
+                    rebuzzes: {}
+                };
+                
+                if (imageFile) {
+                    const storageRef = storage.ref('buzz-images/' + buzzId);
+                    storageRef.put(imageFile).then((snapshot) => {
+                        snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            buzzData.imageURL = downloadURL;
+                            database.ref('buzz/' + buzzId).set(buzzData);
+                            document.getElementById('createBuzzModal').classList.add('hidden');
+                            document.getElementById('buzzContent').value = '';
+                            document.getElementById('buzzImageInput').value = '';
+                            document.getElementById('imagePreview').classList.add('hidden');
+                        });
                     });
-                });
-            } else {
-                database.ref('buzz/' + buzzId).set(buzzData);
-                document.getElementById('createBuzzModal').classList.add('hidden');
-                document.getElementById('buzzContent').value = '';
-            }
+                } else {
+                    database.ref('buzz/' + buzzId).set(buzzData);
+                    document.getElementById('createBuzzModal').classList.add('hidden');
+                    document.getElementById('buzzContent').value = '';
+                }
+            });
         }
 
         function quickPostBuzz() {
@@ -701,33 +1384,51 @@
             const imageFile = document.getElementById('quickBuzzImage').files[0];
             
             if (!content && !imageFile) return;
-            
-            const buzzId = database.ref().child('buzz').push().key;
-            const buzzData = {
-                buzzId: buzzId,
-                uid: currentUser.uid,
-                username: currentUser.displayName,
-                userImage: currentUser.photoURL,
-                content: content,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                likes: {},
-                rebuzzes: {}
-            };
-            
-            if (imageFile) {
-                const storageRef = storage.ref('buzz-images/' + buzzId);
-                storageRef.put(imageFile).then((snapshot) => {
-                    snapshot.ref.getDownloadURL().then((downloadURL) => {
-                        buzzData.imageURL = downloadURL;
-                        database.ref('buzz/' + buzzId).set(buzzData);
-                        document.getElementById('quickBuzzText').value = '';
-                        document.getElementById('quickBuzzImage').value = '';
+
+            // Check character limit
+            database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                const isSpecialUser = specialUsers.includes(userData.username);
+                
+                if (!isSpecialUser && content.length > 500) {
+                    alert('Post exceeds 500 character limit!');
+                    return;
+                }
+
+                // Check for banned content
+                if (moderateContent(content)) {
+                    sendNotification(currentUser.uid, '⚠️ Warning: Your post contained inappropriate content and was automatically deleted. Please review our Community Guidelines.', 'content_warning');
+                    document.getElementById('quickBuzzText').value = '';
+                    return;
+                }
+                
+                const buzzId = database.ref().child('buzz').push().key;
+                const buzzData = {
+                    buzzId: buzzId,
+                    uid: currentUser.uid,
+                    username: currentUser.displayName,
+                    userImage: currentUser.photoURL,
+                    content: content,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    likes: {},
+                    rebuzzes: {}
+                };
+                
+                if (imageFile) {
+                    const storageRef = storage.ref('buzz-images/' + buzzId);
+                    storageRef.put(imageFile).then((snapshot) => {
+                        snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            buzzData.imageURL = downloadURL;
+                            database.ref('buzz/' + buzzId).set(buzzData);
+                            document.getElementById('quickBuzzText').value = '';
+                            document.getElementById('quickBuzzImage').value = '';
+                        });
                     });
-                });
-            } else {
-                database.ref('buzz/' + buzzId).set(buzzData);
-                document.getElementById('quickBuzzText').value = '';
-            }
+                } else {
+                    database.ref('buzz/' + buzzId).set(buzzData);
+                    document.getElementById('quickBuzzText').value = '';
+                }
+            });
         }
 
         // Load home feed
@@ -891,8 +1592,8 @@
             const likeBtn = buzzDiv.querySelector('.like-btn');
             const rebuzzBtn = buzzDiv.querySelector('.rebuzz-btn');
             
-            likeBtn.addEventListener('click', () => toggleLike(buzz.buzzId));
-            rebuzzBtn.addEventListener('click', () => toggleRebuzz(buzz.buzzId));
+            likeBtn.addEventListener('click', () => toggleLike(buzz.buzzId, buzz.uid));
+            rebuzzBtn.addEventListener('click', () => toggleRebuzz(buzz.buzzId, buzz.uid));
             
             return buzzDiv;
         }
@@ -915,25 +1616,33 @@
         }
 
         // Toggle like
-        function toggleLike(buzzId) {
+        function toggleLike(buzzId, buzzAuthorId) {
             const likeRef = database.ref(`buzz/${buzzId}/likes/${currentUser.uid}`);
             likeRef.once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     likeRef.remove();
                 } else {
                     likeRef.set(true);
+                    // Send notification to buzz author
+                    if (buzzAuthorId !== currentUser.uid) {
+                        sendNotification(buzzAuthorId, `${currentUser.displayName} liked your post`, 'like', buzzId);
+                    }
                 }
             });
         }
 
         // Toggle rebuzz
-        function toggleRebuzz(buzzId) {
+        function toggleRebuzz(buzzId, buzzAuthorId) {
             const rebuzzRef = database.ref(`buzz/${buzzId}/rebuzzes/${currentUser.uid}`);
             rebuzzRef.once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     rebuzzRef.remove();
                 } else {
                     rebuzzRef.set(true);
+                    // Send notification to buzz author
+                    if (buzzAuthorId !== currentUser.uid) {
+                        sendNotification(buzzAuthorId, `${currentUser.displayName} rebuzzed your post`, 'rebuzz', buzzId);
+                    }
                 }
             });
         }
@@ -960,6 +1669,7 @@
                     const user = childSnapshot.val();
                     const userDiv = document.createElement('div');
                     userDiv.className = 'flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer';
+                    userDiv.onclick = () => showPage('otherProfile', user.uid);
                     userDiv.innerHTML = `
                         <img class="w-10 h-10 rounded-full" src="${user.photoURL}" alt="${user.displayName}">
                         <div class="flex-1">
@@ -988,8 +1698,23 @@
                     
                     const followersCount = userData.followers ? Object.keys(userData.followers).length : 0;
                     const followingCount = userData.following ? Object.keys(userData.following).length : 0;
-                    document.getElementById('otherUserFollowersCount').textContent = followersCount;
-                    document.getElementById('otherUserFollowingCount').textContent = followingCount;
+                    
+                    const otherFollowersCountEl = document.getElementById('otherUserFollowersCount');
+                    const otherFollowingCountEl = document.getElementById('otherUserFollowingCount');
+                    
+                    otherFollowersCountEl.textContent = followersCount;
+                    otherFollowingCountEl.textContent = followingCount;
+                    
+                    // Make follower counts clickable for other users too
+                    otherFollowersCountEl.parentElement.onclick = () => {
+                        // Show followers list for this user (could implement a modal or separate page)
+                        alert(`${userData.displayName} has ${followersCount} followers`);
+                    };
+                    
+                    otherFollowingCountEl.parentElement.onclick = () => {
+                        // Show following list for this user
+                        alert(`${userData.displayName} is following ${followingCount} users`);
+                    };
                     
                     if (userData.verified) {
                         document.getElementById('otherUserVerifiedBadge').classList.remove('hidden');
@@ -1043,16 +1768,13 @@
                     // Unfollow
                     followingRef.remove();
                     followerRef.remove();
-                    
-                    // Send notification
-                    sendNotification(currentOtherUser, `${currentUser.displayName} unfollowed you`, 'unfollow');
                 } else {
                     // Follow
                     followingRef.set(true);
                     followerRef.set(true);
                     
                     // Send notification
-                    sendNotification(currentOtherUser, `${currentUser.displayName} started following you`, 'follow');
+                    sendNotification(currentOtherUser, `${currentUser.displayName} started following you`, 'follow', null, currentUser.uid);
                 }
                 loadOtherUserProfile(currentOtherUser);
             });
@@ -1176,14 +1898,19 @@
         }
 
         // Notifications
-        function sendNotification(userId, message, type) {
+        function sendNotification(userId, message, type, buzzId = null, fromUserId = null) {
             const notificationRef = database.ref('notifications/' + userId).push();
-            notificationRef.set({
+            const notificationData = {
                 message: message,
                 type: type,
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 read: false
-            });
+            };
+            
+            if (buzzId) notificationData.buzzId = buzzId;
+            if (fromUserId) notificationData.fromUserId = fromUserId;
+            
+            notificationRef.set(notificationData);
         }
 
         function loadNotifications() {
@@ -1192,15 +1919,46 @@
                 notificationsDiv.innerHTML = '';
                 
                 const notifications = [];
+                let unreadCount = 0;
+                
                 snapshot.forEach((childSnapshot) => {
-                    notifications.push(childSnapshot.val());
+                    const notification = { ...childSnapshot.val(), id: childSnapshot.key };
+                    notifications.push(notification);
+                    if (!notification.read) unreadCount++;
+                });
+                
+                // Update notification indicators
+                const indicators = [
+                    document.getElementById('notificationIndicator'),
+                    document.getElementById('notificationIndicatorSidebar'),
+                    document.getElementById('mobileNotificationIndicator')
+                ];
+                
+                indicators.forEach(indicator => {
+                    if (indicator) {
+                        if (unreadCount > 0) {
+                            indicator.classList.remove('hidden');
+                        } else {
+                            indicator.classList.add('hidden');
+                        }
+                    }
                 });
                 
                 notifications.reverse().forEach((notification) => {
                     const notifDiv = document.createElement('div');
-                    notifDiv.className = `p-3 rounded-lg ${notification.read ? 'bg-gray-50' : 'bg-blue-50'}`;
+                    notifDiv.className = `notification-item p-3 rounded-lg cursor-pointer hover:bg-gray-100 ${notification.read ? 'bg-gray-50' : 'bg-blue-50'}`;
+                    
+                    let clickAction = '';
+                    if (notification.type === 'like' || notification.type === 'rebuzz') {
+                        clickAction = `onclick="goToBuzzFromNotification('${notification.buzzId}', '${notification.id}')"`;
+                    } else if (notification.type === 'follow') {
+                        clickAction = `onclick="goToProfileFromNotification('${notification.fromUserId}', '${notification.id}')"`;
+                    } else if (notification.type === 'content_warning') {
+                        clickAction = `onclick="showCommunityGuidelinesFromNotification('${notification.id}')"`;
+                    }
+                    
                     notifDiv.innerHTML = `
-                        <div class="text-sm">${notification.message}</div>
+                        <div class="text-sm" ${clickAction}>${notification.message}</div>
                         <div class="text-xs text-gray-500 mt-1">${formatTimestamp(notification.timestamp)}</div>
                     `;
                     notificationsDiv.appendChild(notifDiv);
@@ -1210,6 +1968,27 @@
                     notificationsDiv.innerHTML = '<p class="text-gray-500 text-sm">No notifications</p>';
                 }
             });
+        }
+
+        // Notification click handlers
+        function goToBuzzFromNotification(buzzId, notificationId) {
+            markNotificationAsRead(notificationId);
+            showPage('home');
+            // Scroll to specific buzz (simplified - would need more complex implementation)
+        }
+
+        function goToProfileFromNotification(userId, notificationId) {
+            markNotificationAsRead(notificationId);
+            showPage('otherProfile', userId);
+        }
+
+        function showCommunityGuidelinesFromNotification(notificationId) {
+            markNotificationAsRead(notificationId);
+            showPage('communityGuidelines');
+        }
+
+        function markNotificationAsRead(notificationId) {
+            database.ref('notifications/' + currentUser.uid + '/' + notificationId).update({ read: true });
         }
 
         // Profile editing
@@ -1311,72 +2090,110 @@
         });
 
         document.getElementById('submitVerification').addEventListener('click', () => {
-            const name = document.getElementById('verificationName').value.trim();
-            const age = document.getElementById('verificationAge').value;
-            const category = document.getElementById('verificationCategory').value;
+            const accountType = document.getElementById('accountType').value;
             const link = document.getElementById('verificationLink').value.trim();
+            const reason = document.getElementById('verificationReason').value.trim();
             
-            if (!name || !age || !category || !link) {
-                alert('Please fill all fields');
+            if (!accountType || !link || !reason) {
+                alert('Please fill all required fields');
                 return;
             }
             
-            // Check if link contains username
-            const username = currentUser.displayName.toLowerCase().replace(/\s+/g, '');
-            const linkContainsUsername = link.toLowerCase().includes(username) || 
-                                       link.toLowerCase().includes(currentUser.displayName.toLowerCase());
+            if (reason.length < 50) {
+                alert('Reason must be at least 50 characters long');
+                return;
+            }
             
-            const verificationRequest = {
+            let verificationData = {
                 uid: currentUser.uid,
-                name: name,
-                age: age,
-                category: category,
+                accountType: accountType,
                 link: link,
+                reason: reason,
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 status: 'pending'
             };
             
-            // Save verification request
-            database.ref('verificationRequests/' + currentUser.uid).set(verificationRequest);
-            
-            // Check for auto-approval names
-            const autoApproveNames = ['oriontec', 'dozera', 'gursharn arya', 'orry', 'anmol sunda'];
-            const isAutoApprove = autoApproveNames.some(approvedName => 
-                name.toLowerCase().includes(approvedName)
-            );
-            
-            if (isAutoApprove) {
-                // Auto approve within 2 minutes
-                setTimeout(() => {
-                    database.ref('users/' + currentUser.uid).update({ verified: true });
-                    sendNotification(currentUser.uid, 'Congratulations! Your verification request has been approved. You now have a verified badge!', 'verification_approved');
-                    updateUserProfile();
-                }, 2 * 60 * 1000); // 2 minutes
-            } else if (!linkContainsUsername) {
-                // Reject after 5 minutes if username not in link
-                setTimeout(() => {
-                    sendNotification(currentUser.uid, 'Your verification request has been rejected. Please ensure your username appears in the provided link.', 'verification_rejected');
-                }, 5 * 60 * 1000); // 5 minutes
-            } else {
-                // Regular verification process (manual review)
-                sendNotification(currentUser.uid, 'Your verification request has been submitted and is under review. You will be notified once processed.', 'verification_submitted');
+            if (accountType === 'individual') {
+                const name = document.getElementById('verificationName').value.trim();
+                const age = document.getElementById('verificationAge').value;
+                const profession = document.getElementById('verificationProfession').value.trim();
+                
+                if (!name || !age || !profession) {
+                    alert('Please fill all individual fields');
+                    return;
+                }
+                
+                verificationData.name = name;
+                verificationData.age = age;
+                verificationData.profession = profession;
+            } else if (accountType === 'business') {
+                const businessName = document.getElementById('businessName').value.trim();
+                const regNumber = document.getElementById('businessRegNumber').value.trim();
+                const category = document.getElementById('businessCategory').value;
+                
+                if (!businessName || !regNumber || !category) {
+                    alert('Please fill all business fields');
+                    return;
+                }
+                
+                verificationData.businessName = businessName;
+                verificationData.regNumber = regNumber;
+                verificationData.category = category;
             }
             
-            document.getElementById('verificationModal').classList.add('hidden');
-            alert('Verification request submitted successfully!');
+            // Get current user data
+            database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                const username = userData.username || '';
+                
+                // Check if link contains username
+                const linkContainsUsername = link.toLowerCase().includes(username.toLowerCase()) || 
+                                           link.toLowerCase().includes(userData.displayName.toLowerCase());
+                
+                // Save verification request
+                database.ref('verificationRequests/' + currentUser.uid).set(verificationData);
+                
+                // Check for auto-approval names
+                const nameToCheck = accountType === 'individual' ? verificationData.name : verificationData.businessName;
+                const isAutoApprove = autoVerifiedUsers.some(approvedName => 
+                    nameToCheck.toLowerCase().includes(approvedName.toLowerCase())
+                );
+                
+                if (isAutoApprove && linkContainsUsername) {
+                    // Auto approve within 2 minutes
+                    setTimeout(() => {
+                        database.ref('users/' + currentUser.uid).update({ verified: true });
+                        sendNotification(currentUser.uid, '✅ Congratulations! Your verification request has been approved. You now have a verified badge!', 'verification_approved');
+                        updateUserProfile();
+                    }, 2 * 60 * 1000); // 2 minutes
+                } else if (!linkContainsUsername) {
+                    // Reject after 5 minutes if username not in link
+                    setTimeout(() => {
+                        sendNotification(currentUser.uid, '❌ Your verification request has been rejected. Please ensure your username appears in the provided link.', 'verification_rejected');
+                    }, 5 * 60 * 1000); // 5 minutes
+                } else {
+                    // Regular verification process (manual review)
+                    sendNotification(currentUser.uid, '📋 Your verification request has been submitted and is under review. You will be notified once processed.', 'verification_submitted');
+                }
+                
+                document.getElementById('verificationModal').classList.add('hidden');
+                alert('Verification request submitted successfully!');
+            });
         });
 
         // Check auth state
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
-                showMainApp();
-                loadNotifications();
+                checkIfNewUser(user);
             } else {
                 document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('onboardingScreen').classList.add('hidden');
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9651e104a0eaffa1',t:'MTc1MzUxMTc0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9651f799232e6ed4',t:'MTc1MzUxMjY3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
+
