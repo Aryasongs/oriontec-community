@@ -95,9 +95,25 @@
             pointer-events: none;
         }
         .verified-icon {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             margin-left: 4px;
+            vertical-align: middle;
+            display: inline-block;
+        }
+        .verified-icon-small {
+            width: 14px;
+            height: 14px;
+            margin-left: 2px;
+            vertical-align: middle;
+            display: inline-block;
+        }
+        .verified-icon-large {
+            width: 22px;
+            height: 22px;
+            margin-left: 6px;
+            vertical-align: middle;
+            display: inline-block;
         }
         @media (max-width: 768px) {
             .desktop-sidebar {
@@ -328,75 +344,171 @@
 
                 <!-- Profile Page -->
                 <div id="profilePage" class="hidden max-w-2xl mx-auto p-4">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-                        <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+                    <!-- Cover Photo -->
+                    <div class="bg-gradient-to-r from-blue-400 to-purple-500 h-48 rounded-t-xl relative">
+                        <button class="absolute top-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm coming-soon">
+                            📷 Edit cover photo
+                        </button>
+                    </div>
+                    
+                    <!-- Profile Info -->
+                    <div class="bg-white rounded-b-xl shadow-sm border border-gray-200 p-6 relative">
+                        <!-- Profile Picture -->
+                        <div class="absolute -top-16 left-6">
                             <div class="relative">
-                                <img id="profileImage" class="w-24 h-24 rounded-full" src="" alt="Profile">
-                                <button class="absolute bottom-0 right-0 bg-gray-400 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm coming-soon" title="Coming Soon - Photo Upload">
-                                    ✏️
+                                <img id="profileImage" class="w-32 h-32 rounded-full border-4 border-white bg-white" src="" alt="Profile">
+                                <button class="absolute bottom-2 right-2 bg-gray-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm coming-soon" title="Coming Soon - Photo Upload">
+                                    📷
                                 </button>
                                 <input type="file" id="profileImageInput" accept="image/*" class="hidden">
                             </div>
-                            <div class="flex-1 text-center md:text-left">
-                                <div class="flex items-center justify-center md:justify-start space-x-2 mb-2">
-                                    <h2 id="profileDisplayName" class="text-2xl font-bold"></h2>
-                                    <span id="verifiedBadge" class="hidden text-blue-500">✓</span>
+                        </div>
+                        
+                        <!-- Profile Actions -->
+                        <div class="flex justify-end mb-4">
+                            <button id="editProfileBtn" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-50">
+                                Edit profile
+                            </button>
+                        </div>
+                        
+                        <!-- Profile Details -->
+                        <div class="mt-4">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <h1 id="profileDisplayName" class="text-2xl font-bold text-gray-900"></h1>
+                                <span id="verifiedBadge" class="hidden"></span>
+                            </div>
+                            <p id="profileUsername" class="text-gray-500 mb-3">@username</p>
+                            <p id="profileBio" class="text-gray-900 mb-3"></p>
+                            <div id="profileLocation" class="hidden flex items-center text-gray-500 mb-3">
+                                <span class="mr-2">📍</span>
+                                <span id="profileLocationText"></span>
+                            </div>
+                            <div class="flex items-center text-gray-500 mb-4">
+                                <span class="mr-2">📅</span>
+                                <span>Joined <span id="profileJoinDate"></span></span>
+                            </div>
+                            
+                            <!-- Follow Stats -->
+                            <div class="flex space-x-6">
+                                <div class="cursor-pointer hover:underline">
+                                    <span id="followingCount" class="font-bold text-gray-900">0</span>
+                                    <span class="text-gray-500 ml-1">Following</span>
                                 </div>
-                                <p id="profileUsername" class="text-gray-500 mb-2">@username</p>
-                                <p id="profileBio" class="text-gray-600 mb-4"></p>
-                                <div class="flex justify-center md:justify-start space-x-6 mb-4">
-                                    <div class="text-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-                                        <div id="followersCount" class="font-bold text-lg">0</div>
-                                        <div class="text-gray-500 text-sm">Followers</div>
-                                    </div>
-                                    <div class="text-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-                                        <div id="followingCount" class="font-bold text-lg">0</div>
-                                        <div class="text-gray-500 text-sm">Following</div>
-                                    </div>
-                                </div>
-                                <div class="flex justify-center md:justify-start space-x-3">
-                                    <button id="editProfileBtn" class="instagram-gradient text-white px-6 py-2 rounded-full">
-                                        Edit Profile
-                                    </button>
-                                    <button id="followBtn" class="hidden border border-purple-500 text-purple-500 px-6 py-2 rounded-full hover:bg-purple-50">
-                                        Follow
-                                    </button>
+                                <div class="cursor-pointer hover:underline">
+                                    <span id="followersCount" class="font-bold text-gray-900">0</span>
+                                    <span class="text-gray-500 ml-1">Followers</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div id="userBuzzFeed" class="space-y-4"></div>
+                    
+                    <!-- Profile Tabs -->
+                    <div class="bg-white border-b border-gray-200 mt-4">
+                        <div class="flex">
+                            <button id="postsTab" class="px-6 py-4 border-b-2 border-blue-500 text-blue-500 font-medium">
+                                Posts
+                            </button>
+                            <button id="repliesTab" class="px-6 py-4 text-gray-500 hover:text-gray-700">
+                                Replies
+                            </button>
+                            <button id="mediaTab" class="px-6 py-4 text-gray-500 hover:text-gray-700">
+                                Media
+                            </button>
+                            <button id="likesTab" class="px-6 py-4 text-gray-500 hover:text-gray-700">
+                                Likes
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="userBuzzFeed" class="space-y-4 mt-4"></div>
                 </div>
 
                 <!-- Other User Profile Page -->
                 <div id="otherUserProfile" class="hidden max-w-2xl mx-auto p-4">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-                        <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-                            <img id="otherUserImage" class="w-24 h-24 rounded-full" src="" alt="Profile">
-                            <div class="flex-1 text-center md:text-left">
-                                <div class="flex items-center justify-center md:justify-start space-x-2 mb-2">
-                                    <h2 id="otherUserDisplayName" class="text-2xl font-bold"></h2>
-                                    <span id="otherUserVerifiedBadge" class="hidden text-blue-500">✓</span>
-                                </div>
-                                <p id="otherUserUsername" class="text-gray-500 mb-2">@username</p>
-                                <p id="otherUserBio" class="text-gray-600 mb-4"></p>
-                                <div class="flex justify-center md:justify-start space-x-6 mb-4">
-                                    <div class="text-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-                                        <div id="otherUserFollowersCount" class="font-bold text-lg">0</div>
-                                        <div class="text-gray-500 text-sm">Followers</div>
-                                    </div>
-                                    <div class="text-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-                                        <div id="otherUserFollowingCount" class="font-bold text-lg">0</div>
-                                        <div class="text-gray-500 text-sm">Following</div>
-                                    </div>
-                                </div>
-                                <button id="otherUserFollowBtn" class="border border-purple-500 text-purple-500 px-6 py-2 rounded-full hover:bg-purple-50">
-                                    Follow
+                    <!-- Cover Photo -->
+                    <div class="bg-gradient-to-r from-purple-400 to-pink-500 h-48 rounded-t-xl relative">
+                    </div>
+                    
+                    <!-- Profile Info -->
+                    <div class="bg-white rounded-b-xl shadow-sm border border-gray-200 p-6 relative">
+                        <!-- Profile Picture -->
+                        <div class="absolute -top-16 left-6">
+                            <img id="otherUserImage" class="w-32 h-32 rounded-full border-4 border-white bg-white" src="" alt="Profile">
+                        </div>
+                        
+                        <!-- Profile Actions -->
+                        <div class="flex justify-end space-x-3 mb-4">
+                            <button id="otherUserMessageBtn" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-50 flex items-center space-x-2">
+                                <span>💬</span>
+                                <span>Message</span>
+                            </button>
+                            <button id="otherUserFollowBtn" class="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800">
+                                Follow
+                            </button>
+                            <div class="relative">
+                                <button id="otherUserMoreBtn" class="border border-gray-300 text-gray-700 p-2 rounded-full hover:bg-gray-50">
+                                    <span>⋯</span>
                                 </button>
+                                <div id="otherUserMoreMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                    <button id="blockUserBtn" class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center space-x-2">
+                                        <span>🚫</span>
+                                        <span>Block User</span>
+                                    </button>
+                                    <button id="reportUserBtn" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center space-x-2">
+                                        <span>⚠️</span>
+                                        <span>Report User</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Profile Details -->
+                        <div class="mt-4">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <h1 id="otherUserDisplayName" class="text-2xl font-bold text-gray-900"></h1>
+                                <span id="otherUserVerifiedBadge" class="hidden"></span>
+                            </div>
+                            <p id="otherUserUsername" class="text-gray-500 mb-3">@username</p>
+                            <p id="otherUserBio" class="text-gray-900 mb-3"></p>
+                            <div id="otherUserLocation" class="hidden flex items-center text-gray-500 mb-3">
+                                <span class="mr-2">📍</span>
+                                <span id="otherUserLocationText"></span>
+                            </div>
+                            <div class="flex items-center text-gray-500 mb-4">
+                                <span class="mr-2">📅</span>
+                                <span>Joined <span id="otherUserJoinDate"></span></span>
+                            </div>
+                            
+                            <!-- Follow Stats -->
+                            <div class="flex space-x-6">
+                                <div class="cursor-pointer hover:underline">
+                                    <span id="otherUserFollowingCount" class="font-bold text-gray-900">0</span>
+                                    <span class="text-gray-500 ml-1">Following</span>
+                                </div>
+                                <div class="cursor-pointer hover:underline">
+                                    <span id="otherUserFollowersCount" class="font-bold text-gray-900">0</span>
+                                    <span class="text-gray-500 ml-1">Followers</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div id="otherUserBuzzFeed" class="space-y-4"></div>
+                    
+                    <!-- Profile Tabs -->
+                    <div class="bg-white border-b border-gray-200 mt-4">
+                        <div class="flex">
+                            <button id="otherUserPostsTab" class="px-6 py-4 border-b-2 border-blue-500 text-blue-500 font-medium">
+                                Posts
+                            </button>
+                            <button id="otherUserRepliesTab" class="px-6 py-4 text-gray-500 hover:text-gray-700">
+                                Replies
+                            </button>
+                            <button id="otherUserMediaTab" class="px-6 py-4 text-gray-500 hover:text-gray-700">
+                                Media
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="otherUserBuzzFeed" class="space-y-4 mt-4"></div>
                 </div>
 
                 <!-- Followers Page -->
@@ -897,8 +1009,10 @@
             return `<div class="${size} rounded-full avatar-generator" style="background-color: ${color}">${firstLetter}</div>`;
         }
         
-        function getVerifiedIcon() {
-            return '<img src="https://community.oriontec.xyz/verify.png" class="verified-icon inline" alt="Verified">';
+        function getVerifiedIcon(size = 'normal') {
+            const sizeClass = size === 'small' ? 'verified-icon-small' : 
+                             size === 'large' ? 'verified-icon-large' : 'verified-icon';
+            return `<img src="https://community.oriontec.xyz/verify.png" class="${sizeClass}" alt="Verified">`;
         }
 
         // Content moderation - banned words
@@ -1837,40 +1951,99 @@
             // Parse hashtags and mentions
             const parsedContent = parseContentForHashtagsAndMentions(buzz.content);
             
+            // Get user data to check verification status
+            let verifiedIcon = '';
+            database.ref('users/' + buzz.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (userData && userData.verified) {
+                    const nameElement = buzzDiv.querySelector('.user-name');
+                    if (nameElement) {
+                        nameElement.innerHTML = `${buzz.username} ${getVerifiedIcon('small')}`;
+                    }
+                }
+            });
+            
             buzzDiv.innerHTML = `
                 <div class="flex space-x-3">
                     <img class="w-12 h-12 rounded-full cursor-pointer" src="${buzz.userImage}" alt="${buzz.username}" onclick="showPage('otherProfile', '${buzz.uid}')">
                     <div class="flex-1">
                         <div class="flex items-center space-x-2">
-                            <h4 class="font-bold cursor-pointer hover:underline" onclick="showPage('otherProfile', '${buzz.uid}')">${buzz.username}</h4>
+                            <h4 class="user-name font-bold cursor-pointer hover:underline" onclick="showPage('otherProfile', '${buzz.uid}')">${buzz.username}</h4>
+                            <span class="text-gray-500 text-sm">@${buzz.username.toLowerCase().replace(/\s+/g, '')}</span>
+                            <span class="text-gray-500 text-sm">·</span>
                             <span class="text-gray-500 text-sm">${formatTimestamp(buzz.timestamp)}</span>
+                            <div class="relative ml-auto">
+                                <button class="buzz-more-btn text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100" data-buzz-id="${buzz.buzzId}" data-buzz-uid="${buzz.uid}">
+                                    <span>⋯</span>
+                                </button>
+                                <div class="buzz-more-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                    ${buzz.uid === currentUser.uid ? `
+                                        <button class="delete-buzz-btn w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center space-x-2" data-buzz-id="${buzz.buzzId}">
+                                            <span>🗑️</span>
+                                            <span>Delete</span>
+                                        </button>
+                                    ` : `
+                                        <button class="report-buzz-btn w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center space-x-2" data-buzz-id="${buzz.buzzId}">
+                                            <span>⚠️</span>
+                                            <span>Report</span>
+                                        </button>
+                                    `}
+                                </div>
+                            </div>
                         </div>
                         <p class="mt-2 text-gray-800">${parsedContent}</p>
-                        ${buzz.imageURL ? `<img class="mt-3 rounded-lg max-w-full h-64 object-cover" src="${buzz.imageURL}" alt="Buzz image">` : ''}
-                        <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                            <button class="like-btn flex items-center space-x-2 text-gray-500 hover:text-red-500 ${isLiked ? 'text-red-500' : ''}" data-buzz-id="${buzz.buzzId}">
-                                <span class="text-lg">❤️</span>
-                                <span class="like-count">${likesCount}</span>
+                        ${buzz.imageURL ? `<img class="mt-3 rounded-lg max-w-full h-64 object-cover cursor-pointer" src="${buzz.imageURL}" alt="Buzz image" onclick="openImageModal('${buzz.imageURL}')">` : ''}
+                        <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 max-w-md">
+                            <button class="reply-btn flex items-center space-x-2 text-gray-500 hover:text-blue-500 p-2 rounded-full hover:bg-blue-50" data-buzz-id="${buzz.buzzId}">
+                                <span class="text-lg">💬</span>
+                                <span class="reply-count">0</span>
                             </button>
-                            <button class="rebuzz-btn flex items-center space-x-2 text-gray-500 hover:text-green-500 ${isRebuzzed ? 'text-green-500' : ''}" data-buzz-id="${buzz.buzzId}">
+                            <button class="rebuzz-btn flex items-center space-x-2 text-gray-500 hover:text-green-500 p-2 rounded-full hover:bg-green-50 ${isRebuzzed ? 'text-green-500' : ''}" data-buzz-id="${buzz.buzzId}">
                                 <span class="text-lg">🔁</span>
                                 <span class="rebuzz-count">${rebuzzesCount}</span>
                             </button>
-                            <button class="flex items-center space-x-2 text-gray-500 hover:text-blue-500">
-                                <span class="text-lg">💬</span>
-                                <span>0</span>
+                            <button class="like-btn flex items-center space-x-2 text-gray-500 hover:text-red-500 p-2 rounded-full hover:bg-red-50 ${isLiked ? 'text-red-500' : ''}" data-buzz-id="${buzz.buzzId}">
+                                <span class="text-lg">❤️</span>
+                                <span class="like-count">${likesCount}</span>
+                            </button>
+                            <button class="share-btn flex items-center space-x-2 text-gray-500 hover:text-blue-500 p-2 rounded-full hover:bg-blue-50" data-buzz-id="${buzz.buzzId}">
+                                <span class="text-lg">📤</span>
                             </button>
                         </div>
                     </div>
                 </div>
             `;
             
-            // Add event listeners for like and rebuzz
+            // Add event listeners
             const likeBtn = buzzDiv.querySelector('.like-btn');
             const rebuzzBtn = buzzDiv.querySelector('.rebuzz-btn');
+            const replyBtn = buzzDiv.querySelector('.reply-btn');
+            const shareBtn = buzzDiv.querySelector('.share-btn');
+            const moreBtn = buzzDiv.querySelector('.buzz-more-btn');
             
             likeBtn.addEventListener('click', () => toggleLike(buzz.buzzId, buzz.uid));
             rebuzzBtn.addEventListener('click', () => toggleRebuzz(buzz.buzzId, buzz.uid));
+            replyBtn.addEventListener('click', () => openReplyModal(buzz));
+            shareBtn.addEventListener('click', () => shareBuzz(buzz));
+            
+            // More menu functionality
+            moreBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const menu = buzzDiv.querySelector('.buzz-more-menu');
+                menu.classList.toggle('hidden');
+            });
+            
+            // Delete buzz functionality
+            const deleteBtn = buzzDiv.querySelector('.delete-buzz-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => deleteBuzz(buzz.buzzId));
+            }
+            
+            // Report buzz functionality
+            const reportBtn = buzzDiv.querySelector('.report-buzz-btn');
+            if (reportBtn) {
+                reportBtn.addEventListener('click', () => reportBuzz(buzz.buzzId));
+            }
             
             return buzzDiv;
         }
@@ -2458,6 +2631,287 @@
             });
         });
 
+        // Additional social media functions
+        function openReplyModal(buzz) {
+            // Create reply modal (simplified implementation)
+            alert(`Reply to ${buzz.username}'s post: "${buzz.content.substring(0, 50)}..."`);
+        }
+        
+        function shareBuzz(buzz) {
+            if (navigator.share) {
+                navigator.share({
+                    title: `${buzz.username} on OrioBuzz`,
+                    text: buzz.content,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback - copy to clipboard
+                navigator.clipboard.writeText(`Check out this post by ${buzz.username} on OrioBuzz: "${buzz.content}"`);
+                alert('Post link copied to clipboard!');
+            }
+        }
+        
+        function deleteBuzz(buzzId) {
+            if (confirm('Are you sure you want to delete this post?')) {
+                database.ref('buzz/' + buzzId).remove().then(() => {
+                    alert('Post deleted successfully!');
+                    loadHomeFeed();
+                });
+            }
+        }
+        
+        function reportBuzz(buzzId) {
+            const reason = prompt('Why are you reporting this post?');
+            if (reason) {
+                database.ref('reports').push({
+                    buzzId: buzzId,
+                    reportedBy: currentUser.uid,
+                    reason: reason,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                alert('Post reported successfully. Our team will review it.');
+            }
+        }
+        
+        function openImageModal(imageUrl) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="relative max-w-4xl max-h-full">
+                    <img src="${imageUrl}" class="max-w-full max-h-full object-contain">
+                    <button class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        
+        // Block user functionality
+        function blockUser(userId) {
+            if (confirm('Are you sure you want to block this user?')) {
+                database.ref('users/' + currentUser.uid + '/blocked/' + userId).set(true);
+                database.ref('users/' + userId + '/blockedBy/' + currentUser.uid).set(true);
+                
+                // Remove from following/followers
+                database.ref('users/' + currentUser.uid + '/following/' + userId).remove();
+                database.ref('users/' + userId + '/followers/' + currentUser.uid).remove();
+                database.ref('users/' + userId + '/following/' + currentUser.uid).remove();
+                database.ref('users/' + currentUser.uid + '/followers/' + userId).remove();
+                
+                alert('User blocked successfully!');
+                showPage('home');
+            }
+        }
+        
+        // Load blocked users
+        function loadBlockedUsers() {
+            database.ref('users/' + currentUser.uid + '/blocked').once('value').then((snapshot) => {
+                const blockedUsersList = document.getElementById('blockedUsersList');
+                blockedUsersList.innerHTML = '';
+                
+                if (snapshot.exists()) {
+                    const blockedIds = Object.keys(snapshot.val());
+                    blockedIds.forEach(blockedId => {
+                        database.ref('users/' + blockedId).once('value').then((userSnapshot) => {
+                            const user = userSnapshot.val();
+                            if (user) {
+                                const userDiv = document.createElement('div');
+                                userDiv.className = 'flex items-center justify-between p-4 border border-gray-200 rounded-lg';
+                                userDiv.innerHTML = `
+                                    <div class="flex items-center space-x-3">
+                                        <img class="w-12 h-12 rounded-full" src="${user.photoURL}" alt="${user.displayName}">
+                                        <div>
+                                            <div class="flex items-center space-x-1">
+                                                <span class="font-medium">${user.displayName}</span>
+                                                ${user.verified ? getVerifiedIcon('small') : ''}
+                                            </div>
+                                            <div class="text-sm text-gray-500">@${user.username}</div>
+                                        </div>
+                                    </div>
+                                    <button class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600" onclick="unblockUser('${user.uid}')">
+                                        Unblock
+                                    </button>
+                                `;
+                                blockedUsersList.appendChild(userDiv);
+                            }
+                        });
+                    });
+                } else {
+                    blockedUsersList.innerHTML = '<p class="text-gray-500 text-center py-8">No blocked users</p>';
+                }
+            });
+        }
+        
+        function unblockUser(userId) {
+            database.ref('users/' + currentUser.uid + '/blocked/' + userId).remove();
+            database.ref('users/' + userId + '/blockedBy/' + currentUser.uid).remove();
+            loadBlockedUsers();
+            alert('User unblocked successfully!');
+        }
+        
+        // Load login sessions
+        function loadLoginSessions() {
+            const sessionsList = document.getElementById('sessionsList');
+            sessionsList.innerHTML = '';
+            
+            // Simulate login sessions data
+            const sessions = [
+                {
+                    device: 'Chrome on Windows',
+                    location: 'New York, USA',
+                    lastActive: new Date().toLocaleString(),
+                    current: true
+                },
+                {
+                    device: 'Safari on iPhone',
+                    location: 'Los Angeles, USA',
+                    lastActive: new Date(Date.now() - 3600000).toLocaleString(),
+                    current: false
+                }
+            ];
+            
+            sessions.forEach(session => {
+                const sessionDiv = document.createElement('div');
+                sessionDiv.className = 'p-4 border border-gray-200 rounded-lg';
+                sessionDiv.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-medium">${session.device}</span>
+                                ${session.current ? '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Current</span>' : ''}
+                            </div>
+                            <div class="text-sm text-gray-500">${session.location}</div>
+                            <div class="text-sm text-gray-500">Last active: ${session.lastActive}</div>
+                        </div>
+                        ${!session.current ? '<button class="text-red-500 hover:text-red-700 text-sm">End session</button>' : ''}
+                    </div>
+                `;
+                sessionsList.appendChild(sessionDiv);
+            });
+        }
+        
+        // Update user profile with verification and location
+        function updateUserProfile() {
+            if (currentUser) {
+                document.getElementById('userAvatar').src = currentUser.photoURL;
+                document.getElementById('userName').textContent = currentUser.displayName;
+                document.getElementById('quickBuzzAvatar').src = currentUser.photoURL;
+                document.getElementById('modalUserAvatar').src = currentUser.photoURL;
+                
+                // Load user data from database
+                database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                    const userData = snapshot.val();
+                    if (userData) {
+                        // Update dropdown with verification
+                        document.getElementById('dropdownAvatar').src = userData.photoURL;
+                        document.getElementById('dropdownName').innerHTML = userData.displayName + (userData.verified ? ' ' + getVerifiedIcon('small') : '');
+                        document.getElementById('dropdownUsername').textContent = '@' + (userData.username || 'username');
+                        
+                        // Update profile page with new layout
+                        document.getElementById('profileImage').src = userData.photoURL;
+                        document.getElementById('profileDisplayName').textContent = userData.displayName;
+                        document.getElementById('profileUsername').textContent = '@' + (userData.username || 'username');
+                        document.getElementById('profileBio').textContent = userData.bio || 'No bio yet';
+                        
+                        // Show location if available
+                        if (userData.location) {
+                            document.getElementById('profileLocation').classList.remove('hidden');
+                            document.getElementById('profileLocationText').textContent = userData.location;
+                        }
+                        
+                        // Show join date
+                        if (userData.joinedAt) {
+                            const joinDate = new Date(userData.joinedAt).toLocaleDateString('en-US', { 
+                                month: 'long', 
+                                year: 'numeric' 
+                            });
+                            document.getElementById('profileJoinDate').textContent = joinDate;
+                        }
+                        
+                        // Update follower counts with clickable functionality
+                        const followersCount = userData.followers ? Object.keys(userData.followers).length : 0;
+                        const followingCount = userData.following ? Object.keys(userData.following).length : 0;
+                        
+                        const followersCountEl = document.getElementById('followersCount');
+                        const followingCountEl = document.getElementById('followingCount');
+                        
+                        followersCountEl.textContent = followersCount;
+                        followingCountEl.textContent = followingCount;
+                        
+                        // Make follower counts clickable
+                        followersCountEl.parentElement.onclick = () => {
+                            showPage('followers');
+                            document.getElementById('followersTab').click();
+                        };
+                        
+                        followingCountEl.parentElement.onclick = () => {
+                            showPage('followers');
+                            document.getElementById('followingTab').click();
+                        };
+                        
+                        if (userData.verified) {
+                            document.getElementById('verifiedBadge').innerHTML = getVerifiedIcon('normal');
+                            document.getElementById('verifiedBadge').classList.remove('hidden');
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Add event listeners for new functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Other user profile message button
+            document.getElementById('otherUserMessageBtn').addEventListener('click', () => {
+                if (currentOtherUser) {
+                    showPage('messages');
+                    startConversation(currentOtherUser);
+                }
+            });
+            
+            // Other user more menu
+            document.getElementById('otherUserMoreBtn').addEventListener('click', () => {
+                document.getElementById('otherUserMoreMenu').classList.toggle('hidden');
+            });
+            
+            // Block user button
+            document.getElementById('blockUserBtn').addEventListener('click', () => {
+                if (currentOtherUser) {
+                    blockUser(currentOtherUser);
+                }
+            });
+            
+            // Report user button
+            document.getElementById('reportUserBtn').addEventListener('click', () => {
+                const reason = prompt('Why are you reporting this user?');
+                if (reason) {
+                    database.ref('userReports').push({
+                        reportedUserId: currentOtherUser,
+                        reportedBy: currentUser.uid,
+                        reason: reason,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    alert('User reported successfully. Our team will review it.');
+                }
+            });
+        });
+        
+        function startConversation(userId) {
+            currentChatUser = userId;
+            loadMessages();
+            // Auto-select the conversation
+            setTimeout(() => {
+                const conversationElement = document.querySelector(`[data-user-id="${userId}"]`);
+                if (conversationElement) {
+                    conversationElement.click();
+                }
+            }, 500);
+        }
+        
         // Check auth state
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -2470,6 +2924,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9652149566cc2edc',t:'MTc1MzUxMzg2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96522604b3685957',t:'MTc1MzUxNDU3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
