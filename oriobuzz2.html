@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrioBuzz - Social Media</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .instagram-gradient {
+            background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+        }
+        .purple-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .buzz-card {
+            transition: all 0.3s ease;
+        }
+        .buzz-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .mobile-nav {
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+        }
+        @media (max-width: 768px) {
+            .desktop-sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-bottom: 80px;
+            }
+        }
+        @media (min-width: 769px) {
+            .mobile-nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center instagram-gradient">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">OrioBuzz</h1>
+                <p class="text-gray-600 mt-2">Connect with the world</p>
+            </div>
+            <button id="googleSignIn" class="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition duration-300 flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span>Continue with Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <!-- Top Bar -->
+        <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">OrioBuzz</h1>
+                <div class="flex items-center space-x-4">
+                    <div id="userProfile" class="flex items-center space-x-2 cursor-pointer">
+                        <img id="userAvatar" class="w-8 h-8 rounded-full" src="" alt="User">
+                        <span id="userName" class="hidden md:block font-medium"></span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-6xl mx-auto flex">
+            <!-- Left Sidebar (Desktop) -->
+            <aside class="desktop-sidebar w-64 p-4 sticky top-20 h-screen">
+                <nav class="space-y-2">
+                    <button id="homeBtn" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 flex items-center space-x-3 font-medium">
+                        <span class="text-xl">🏠</span>
+                        <span>Home</span>
+                    </button>
+                    <button id="profileBtn" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 flex items-center space-x-3">
+                        <span class="text-xl">👤</span>
+                        <span>Profile</span>
+                    </button>
+                    <button id="createBuzzBtn" class="w-full text-left p-3 rounded-lg instagram-gradient text-white flex items-center space-x-3">
+                        <span class="text-xl">✏️</span>
+                        <span>Create Buzz</span>
+                    </button>
+                    <button id="logoutBtn" class="w-full text-left p-3 rounded-lg hover:bg-red-50 text-red-600 flex items-center space-x-3">
+                        <span class="text-xl">🚪</span>
+                        <span>Logout</span>
+                    </button>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 main-content">
+                <!-- Home Feed -->
+                <div id="homeFeed" class="max-w-2xl mx-auto p-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                        <div class="flex space-x-3">
+                            <img id="quickBuzzAvatar" class="w-12 h-12 rounded-full" src="" alt="You">
+                            <div class="flex-1">
+                                <textarea id="quickBuzzText" placeholder="What's buzzing?" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3"></textarea>
+                                <div class="flex justify-between items-center mt-3">
+                                    <input type="file" id="quickBuzzImage" accept="image/*" class="hidden">
+                                    <button onclick="document.getElementById('quickBuzzImage').click()" class="text-purple-500 hover:text-purple-600">
+                                        📷 Photo
+                                    </button>
+                                    <button id="quickBuzzPost" class="instagram-gradient text-white px-6 py-2 rounded-full font-medium hover:opacity-90">
+                                        Buzz
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="buzzFeed" class="space-y-4"></div>
+                </div>
+
+                <!-- Profile Page -->
+                <div id="profilePage" class="hidden max-w-2xl mx-auto p-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                        <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+                            <div class="relative">
+                                <img id="profileImage" class="w-24 h-24 rounded-full" src="" alt="Profile">
+                                <button id="changeProfilePic" class="absolute bottom-0 right-0 bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">
+                                    ✏️
+                                </button>
+                                <input type="file" id="profileImageInput" accept="image/*" class="hidden">
+                            </div>
+                            <div class="flex-1 text-center md:text-left">
+                                <div class="flex items-center justify-center md:justify-start space-x-2 mb-2">
+                                    <h2 id="profileDisplayName" class="text-2xl font-bold"></h2>
+                                    <span id="verifiedBadge" class="hidden text-blue-500">✓</span>
+                                </div>
+                                <p id="profileBio" class="text-gray-600 mb-4"></p>
+                                <button id="editProfileBtn" class="instagram-gradient text-white px-6 py-2 rounded-full">
+                                    Edit Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="userBuzzFeed" class="space-y-4"></div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar (Desktop) -->
+            <aside class="desktop-sidebar w-80 p-4">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+                    <input type="text" placeholder="Search OrioBuzz" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                    <h3 class="font-bold text-lg mb-4">Verified Users</h3>
+                    <div id="verifiedUsers" class="space-y-3"></div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <nav class="mobile-nav fixed bg-white border-t border-gray-200 p-2">
+            <div class="flex justify-around">
+                <button id="mobileHomeBtn" class="p-3 rounded-lg">
+                    <span class="text-2xl">🏠</span>
+                </button>
+                <button id="mobileProfileBtn" class="p-3 rounded-lg">
+                    <span class="text-2xl">👤</span>
+                </button>
+                <button id="mobileCreateBtn" class="p-3 rounded-lg instagram-gradient text-white">
+                    <span class="text-2xl">✏️</span>
+                </button>
+                <button id="mobileLogoutBtn" class="p-3 rounded-lg">
+                    <span class="text-2xl">🚪</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Create Buzz Modal -->
+    <div id="createBuzzModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-lg w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Create Buzz</h3>
+                <button id="closeBuzzModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="flex space-x-3">
+                <img id="modalUserAvatar" class="w-12 h-12 rounded-full" src="" alt="You">
+                <div class="flex-1">
+                    <textarea id="buzzContent" placeholder="What's buzzing?" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4"></textarea>
+                    <div class="flex justify-between items-center mt-4">
+                        <input type="file" id="buzzImageInput" accept="image/*" class="hidden">
+                        <button onclick="document.getElementById('buzzImageInput').click()" class="text-purple-500 hover:text-purple-600">
+                            📷 Add Photo
+                        </button>
+                        <button id="postBuzzBtn" class="instagram-gradient text-white px-6 py-2 rounded-full font-medium hover:opacity-90">
+                            Post Buzz
+                        </button>
+                    </div>
+                    <div id="imagePreview" class="hidden mt-3">
+                        <img id="previewImage" class="max-w-full h-48 object-cover rounded-lg">
+                        <button id="removeImage" class="mt-2 text-red-500 text-sm">Remove Image</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Edit Profile</h3>
+                <button id="closeEditModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                    <input type="text" id="editDisplayName" class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                    <textarea id="editBio" class="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button id="cancelEdit" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                    <button id="saveProfile" class="instagram-gradient text-white px-6 py-2 rounded-full">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAl8eI-_8Ew9va0KPV8p4D2hc9WUTGiwuI",
+            authDomain: "chat-d647c.firebaseapp.com",
+            databaseURL: "https://chat-d647c-default-rtdb.firebaseio.com",
+            projectId: "chat-d647c",
+            storageBucket: "chat-d647c.firebasestorage.app",
+            messagingSenderId: ". ",
+            appId: "1:. :web:7248a0983dcf0d45a87418"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        let currentUser = null;
+        let currentPage = 'home';
+
+        // Authentication
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        document.getElementById('googleSignIn').addEventListener('click', () => {
+            auth.signInWithPopup(googleProvider).then((result) => {
+                currentUser = result.user;
+                saveUserToDatabase(currentUser);
+                showMainApp();
+            }).catch((error) => {
+                console.error('Sign in error:', error);
+            });
+        });
+
+        // Save user to database
+        function saveUserToDatabase(user) {
+            const userRef = database.ref('users/' + user.uid);
+            userRef.once('value').then((snapshot) => {
+                if (!snapshot.exists()) {
+                    userRef.set({
+                        uid: user.uid,
+                        displayName: user.displayName,
+                        email: user.email,
+                        photoURL: user.photoURL,
+                        bio: '',
+                        verified: false,
+                        joinedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                }
+            });
+        }
+
+        // Show main app
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            updateUserProfile();
+            loadHomeFeed();
+            loadVerifiedUsers();
+        }
+
+        // Update user profile display
+        function updateUserProfile() {
+            if (currentUser) {
+                document.getElementById('userAvatar').src = currentUser.photoURL;
+                document.getElementById('userName').textContent = currentUser.displayName;
+                document.getElementById('quickBuzzAvatar').src = currentUser.photoURL;
+                document.getElementById('modalUserAvatar').src = currentUser.photoURL;
+                
+                // Load user data from database
+                database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                    const userData = snapshot.val();
+                    if (userData) {
+                        document.getElementById('profileImage').src = userData.photoURL;
+                        document.getElementById('profileDisplayName').textContent = userData.displayName;
+                        document.getElementById('profileBio').textContent = userData.bio || 'No bio yet';
+                        
+                        if (userData.verified) {
+                            document.getElementById('verifiedBadge').classList.remove('hidden');
+                        }
+                    }
+                });
+            }
+        }
+
+        // Navigation
+        function showPage(page) {
+            document.getElementById('homeFeed').classList.add('hidden');
+            document.getElementById('profilePage').classList.add('hidden');
+            
+            if (page === 'home') {
+                document.getElementById('homeFeed').classList.remove('hidden');
+                loadHomeFeed();
+            } else if (page === 'profile') {
+                document.getElementById('profilePage').classList.remove('hidden');
+                loadUserBuzzes();
+            }
+            currentPage = page;
+        }
+
+        // Event listeners for navigation
+        document.getElementById('homeBtn').addEventListener('click', () => showPage('home'));
+        document.getElementById('profileBtn').addEventListener('click', () => showPage('profile'));
+        document.getElementById('mobileHomeBtn').addEventListener('click', () => showPage('home'));
+        document.getElementById('mobileProfileBtn').addEventListener('click', () => showPage('profile'));
+
+        // Create buzz modal
+        document.getElementById('createBuzzBtn').addEventListener('click', () => {
+            document.getElementById('createBuzzModal').classList.remove('hidden');
+        });
+        document.getElementById('mobileCreateBtn').addEventListener('click', () => {
+            document.getElementById('createBuzzModal').classList.remove('hidden');
+        });
+        document.getElementById('closeBuzzModal').addEventListener('click', () => {
+            document.getElementById('createBuzzModal').classList.add('hidden');
+        });
+
+        // Post buzz functionality
+        document.getElementById('postBuzzBtn').addEventListener('click', postBuzz);
+        document.getElementById('quickBuzzPost').addEventListener('click', quickPostBuzz);
+
+        function postBuzz() {
+            const content = document.getElementById('buzzContent').value.trim();
+            const imageFile = document.getElementById('buzzImageInput').files[0];
+            
+            if (!content && !imageFile) return;
+            
+            const buzzId = database.ref().child('buzz').push().key;
+            const buzzData = {
+                buzzId: buzzId,
+                uid: currentUser.uid,
+                username: currentUser.displayName,
+                userImage: currentUser.photoURL,
+                content: content,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                likes: {},
+                rebuzzes: {}
+            };
+            
+            if (imageFile) {
+                const storageRef = storage.ref('buzz-images/' + buzzId);
+                storageRef.put(imageFile).then((snapshot) => {
+                    snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        buzzData.imageURL = downloadURL;
+                        database.ref('buzz/' + buzzId).set(buzzData);
+                        document.getElementById('createBuzzModal').classList.add('hidden');
+                        document.getElementById('buzzContent').value = '';
+                        document.getElementById('buzzImageInput').value = '';
+                        document.getElementById('imagePreview').classList.add('hidden');
+                    });
+                });
+            } else {
+                database.ref('buzz/' + buzzId).set(buzzData);
+                document.getElementById('createBuzzModal').classList.add('hidden');
+                document.getElementById('buzzContent').value = '';
+            }
+        }
+
+        function quickPostBuzz() {
+            const content = document.getElementById('quickBuzzText').value.trim();
+            const imageFile = document.getElementById('quickBuzzImage').files[0];
+            
+            if (!content && !imageFile) return;
+            
+            const buzzId = database.ref().child('buzz').push().key;
+            const buzzData = {
+                buzzId: buzzId,
+                uid: currentUser.uid,
+                username: currentUser.displayName,
+                userImage: currentUser.photoURL,
+                content: content,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                likes: {},
+                rebuzzes: {}
+            };
+            
+            if (imageFile) {
+                const storageRef = storage.ref('buzz-images/' + buzzId);
+                storageRef.put(imageFile).then((snapshot) => {
+                    snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        buzzData.imageURL = downloadURL;
+                        database.ref('buzz/' + buzzId).set(buzzData);
+                        document.getElementById('quickBuzzText').value = '';
+                        document.getElementById('quickBuzzImage').value = '';
+                    });
+                });
+            } else {
+                database.ref('buzz/' + buzzId).set(buzzData);
+                document.getElementById('quickBuzzText').value = '';
+            }
+        }
+
+        // Load home feed
+        function loadHomeFeed() {
+            const feedRef = database.ref('buzz').orderByChild('timestamp');
+            feedRef.on('value', (snapshot) => {
+                const buzzFeed = document.getElementById('buzzFeed');
+                buzzFeed.innerHTML = '';
+                
+                const buzzes = [];
+                snapshot.forEach((childSnapshot) => {
+                    buzzes.push(childSnapshot.val());
+                });
+                
+                buzzes.reverse().forEach((buzz) => {
+                    const buzzElement = createBuzzElement(buzz);
+                    buzzFeed.appendChild(buzzElement);
+                });
+            });
+        }
+
+        // Load user buzzes
+        function loadUserBuzzes() {
+            const userBuzzRef = database.ref('buzz').orderByChild('uid').equalTo(currentUser.uid);
+            userBuzzRef.on('value', (snapshot) => {
+                const userBuzzFeed = document.getElementById('userBuzzFeed');
+                userBuzzFeed.innerHTML = '';
+                
+                const buzzes = [];
+                snapshot.forEach((childSnapshot) => {
+                    buzzes.push(childSnapshot.val());
+                });
+                
+                buzzes.reverse().forEach((buzz) => {
+                    const buzzElement = createBuzzElement(buzz);
+                    userBuzzFeed.appendChild(buzzElement);
+                });
+            });
+        }
+
+        // Create buzz element
+        function createBuzzElement(buzz) {
+            const buzzDiv = document.createElement('div');
+            buzzDiv.className = 'buzz-card bg-white rounded-xl shadow-sm border border-gray-200 p-4';
+            
+            const likesCount = buzz.likes ? Object.keys(buzz.likes).length : 0;
+            const rebuzzesCount = buzz.rebuzzes ? Object.keys(buzz.rebuzzes).length : 0;
+            const isLiked = buzz.likes && buzz.likes[currentUser.uid];
+            const isRebuzzed = buzz.rebuzzes && buzz.rebuzzes[currentUser.uid];
+            
+            buzzDiv.innerHTML = `
+                <div class="flex space-x-3">
+                    <img class="w-12 h-12 rounded-full" src="${buzz.userImage}" alt="${buzz.username}">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2">
+                            <h4 class="font-bold">${buzz.username}</h4>
+                            <span class="text-gray-500 text-sm">${formatTimestamp(buzz.timestamp)}</span>
+                        </div>
+                        <p class="mt-2 text-gray-800">${buzz.content}</p>
+                        ${buzz.imageURL ? `<img class="mt-3 rounded-lg max-w-full h-64 object-cover" src="${buzz.imageURL}" alt="Buzz image">` : ''}
+                        <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                            <button class="like-btn flex items-center space-x-2 text-gray-500 hover:text-red-500 ${isLiked ? 'text-red-500' : ''}" data-buzz-id="${buzz.buzzId}">
+                                <span class="text-lg">❤️</span>
+                                <span class="like-count">${likesCount}</span>
+                            </button>
+                            <button class="rebuzz-btn flex items-center space-x-2 text-gray-500 hover:text-green-500 ${isRebuzzed ? 'text-green-500' : ''}" data-buzz-id="${buzz.buzzId}">
+                                <span class="text-lg">🔁</span>
+                                <span class="rebuzz-count">${rebuzzesCount}</span>
+                            </button>
+                            <button class="flex items-center space-x-2 text-gray-500 hover:text-blue-500">
+                                <span class="text-lg">💬</span>
+                                <span>0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listeners for like and rebuzz
+            const likeBtn = buzzDiv.querySelector('.like-btn');
+            const rebuzzBtn = buzzDiv.querySelector('.rebuzz-btn');
+            
+            likeBtn.addEventListener('click', () => toggleLike(buzz.buzzId));
+            rebuzzBtn.addEventListener('click', () => toggleRebuzz(buzz.buzzId));
+            
+            return buzzDiv;
+        }
+
+        // Toggle like
+        function toggleLike(buzzId) {
+            const likeRef = database.ref(`buzz/${buzzId}/likes/${currentUser.uid}`);
+            likeRef.once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    likeRef.remove();
+                } else {
+                    likeRef.set(true);
+                }
+            });
+        }
+
+        // Toggle rebuzz
+        function toggleRebuzz(buzzId) {
+            const rebuzzRef = database.ref(`buzz/${buzzId}/rebuzzes/${currentUser.uid}`);
+            rebuzzRef.once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    rebuzzRef.remove();
+                } else {
+                    rebuzzRef.set(true);
+                }
+            });
+        }
+
+        // Format timestamp
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
+            return Math.floor(diff / 86400000) + 'd';
+        }
+
+        // Load verified users
+        function loadVerifiedUsers() {
+            database.ref('users').orderByChild('verified').equalTo(true).on('value', (snapshot) => {
+                const verifiedUsersDiv = document.getElementById('verifiedUsers');
+                verifiedUsersDiv.innerHTML = '';
+                
+                snapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer';
+                    userDiv.innerHTML = `
+                        <img class="w-10 h-10 rounded-full" src="${user.photoURL}" alt="${user.displayName}">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-1">
+                                <span class="font-medium">${user.displayName}</span>
+                                <span class="text-blue-500">✓</span>
+                            </div>
+                            <p class="text-sm text-gray-500">${user.bio || 'Verified user'}</p>
+                        </div>
+                    `;
+                    verifiedUsersDiv.appendChild(userDiv);
+                });
+            });
+        }
+
+        // Profile editing
+        document.getElementById('editProfileBtn').addEventListener('click', () => {
+            document.getElementById('editProfileModal').classList.remove('hidden');
+            database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                document.getElementById('editDisplayName').value = userData.displayName || '';
+                document.getElementById('editBio').value = userData.bio || '';
+            });
+        });
+
+        document.getElementById('closeEditModal').addEventListener('click', () => {
+            document.getElementById('editProfileModal').classList.add('hidden');
+        });
+
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            document.getElementById('editProfileModal').classList.add('hidden');
+        });
+
+        document.getElementById('saveProfile').addEventListener('click', () => {
+            const displayName = document.getElementById('editDisplayName').value.trim();
+            const bio = document.getElementById('editBio').value.trim();
+            
+            database.ref('users/' + currentUser.uid).update({
+                displayName: displayName,
+                bio: bio
+            }).then(() => {
+                document.getElementById('editProfileModal').classList.add('hidden');
+                updateUserProfile();
+            });
+        });
+
+        // Profile picture change
+        document.getElementById('changeProfilePic').addEventListener('click', () => {
+            document.getElementById('profileImageInput').click();
+        });
+
+        document.getElementById('profileImageInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const storageRef = storage.ref('profile-images/' + currentUser.uid);
+                storageRef.put(file).then((snapshot) => {
+                    snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        database.ref('users/' + currentUser.uid).update({
+                            photoURL: downloadURL
+                        });
+                        currentUser.photoURL = downloadURL;
+                        updateUserProfile();
+                    });
+                });
+            }
+        });
+
+        // Image preview for buzz creation
+        document.getElementById('buzzImageInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('removeImage').addEventListener('click', () => {
+            document.getElementById('buzzImageInput').value = '';
+            document.getElementById('imagePreview').classList.add('hidden');
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('mobileLogoutBtn').addEventListener('click', logout);
+
+        function logout() {
+            auth.signOut().then(() => {
+                currentUser = null;
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+            });
+        }
+
+        // Check auth state
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                showMainApp();
+            } else {
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9651cc7df27031e1',t:'MTc1MzUxMDkwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
