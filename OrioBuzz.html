@@ -633,16 +633,45 @@
                                     <span onclick="showOtherUserFollowersPage('following')" class="text-sm cursor-pointer hover:text-pink-500"><strong id="otherFollowingCount">0</strong> Following</span>
                                     <span onclick="showOtherUserFollowersPage('followers')" class="text-sm cursor-pointer hover:text-pink-500"><strong id="otherFollowersCount">0</strong> Followers</span>
                                 </div>
-                                <div class="flex justify-center sm:justify-start space-x-3">
+                                <div class="flex justify-center sm:justify-start items-center space-x-3">
                                     <button id="followBtn" onclick="toggleFollow()" class="gradient-bg text-white px-4 lg:px-6 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
                                         Follow
                                     </button>
                                     <button onclick="startChatWithUser()" class="border border-pink-500 text-pink-500 px-4 lg:px-6 py-2 rounded-full hover:bg-pink-50 transition-colors text-sm lg:text-base">
                                         💬 Message
                                     </button>
-                                    <button onclick="contactUser()" class="border border-gray-300 text-gray-700 px-4 lg:px-6 py-2 rounded-full hover:bg-gray-50 transition-colors text-sm lg:text-base">
-                                        📞 Contact
-                                    </button>
+                                    <div class="relative">
+                                        <button onclick="toggleOtherUserMenu()" class="border border-gray-300 text-gray-700 p-2 rounded-full hover:bg-gray-50 transition-colors">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                            </svg>
+                                        </button>
+                                        <div id="otherUserMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
+                                            <div class="py-2">
+                                                <button onclick="blockUser(); toggleOtherUserMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                    <span>🚫</span>
+                                                    <span id="blockText">Block User</span>
+                                                </button>
+                                                <button onclick="restrictUser(); toggleOtherUserMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                    <span>⚠️</span>
+                                                    <span id="restrictText">Restrict User</span>
+                                                </button>
+                                                <button onclick="muteUser(); toggleOtherUserMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                    <span>🔇</span>
+                                                    <span id="muteText">Mute User</span>
+                                                </button>
+                                                <button onclick="contactUser(); toggleOtherUserMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                    <span>📞</span>
+                                                    <span>Contact</span>
+                                                </button>
+                                                <hr class="my-2">
+                                                <button onclick="reportUser(); toggleOtherUserMenu()" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center space-x-2">
+                                                    <span>🚨</span>
+                                                    <span>Report User</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2769,17 +2798,23 @@
                         ${buzz.imageURL ? `<img class="w-full max-w-md rounded-xl mb-3" src="${buzz.imageURL}" alt="Buzz image">` : ''}
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-4 lg:space-x-6">
-                                <button onclick="toggleLike('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 ${isLiked ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors text-sm lg:text-base">
-                                    <span>${isLiked ? '❤️' : '🤍'}</span>
-                                    <span id="likes-${buzz.buzzId}">${likesCount}</span>
+                                <button onclick="toggleLike('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 ${isLiked ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 hover:bg-red-50 transition-all duration-200 p-2 rounded-full text-sm lg:text-base group">
+                                    <svg class="w-5 h-5 ${isLiked ? 'fill-red-500' : 'fill-gray-500'} group-hover:fill-red-500 transition-colors" viewBox="0 0 24 24">
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                    <span id="likes-${buzz.buzzId}" class="group-hover:text-red-500 transition-colors">${likesCount}</span>
                                 </button>
-                                <button onclick="toggleRebuzz('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 ${isRebuzzed ? 'text-green-500' : 'text-gray-500'} hover:text-green-500 transition-colors text-sm lg:text-base">
-                                    <span>🔁</span>
-                                    <span id="rebuzzes-${buzz.buzzId}">${rebuzzesCount}</span>
+                                <button onclick="toggleRebuzz('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 ${isRebuzzed ? 'text-green-500' : 'text-gray-500'} hover:text-green-500 hover:bg-green-50 transition-all duration-200 p-2 rounded-full text-sm lg:text-base group">
+                                    <svg class="w-5 h-5 ${isRebuzzed ? 'fill-green-500' : 'fill-gray-500'} group-hover:fill-green-500 transition-colors" viewBox="0 0 24 24">
+                                        <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.061 0s-.293.768 0 1.061l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767.002-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.061l-3.5-3.5c-.293-.294-.768-.294-1.061 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.294 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"/>
+                                    </svg>
+                                    <span id="rebuzzes-${buzz.buzzId}" class="group-hover:text-green-500 transition-colors">${rebuzzesCount}</span>
                                 </button>
-                                <button onclick="openCommentModal('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-blue-500 transition-colors text-sm lg:text-base">
-                                    <span>💬</span>
-                                    <span id="comments-${buzz.buzzId}">${buzz.comments ? Object.keys(buzz.comments).length : 0}</span>
+                                <button onclick="openCommentModal('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 p-2 rounded-full text-sm lg:text-base group">
+                                    <svg class="w-5 h-5 fill-gray-500 group-hover:fill-blue-500 transition-colors" viewBox="0 0 24 24">
+                                        <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"/>
+                                    </svg>
+                                    <span id="comments-${buzz.buzzId}" class="group-hover:text-blue-500 transition-colors">${buzz.comments ? Object.keys(buzz.comments).length : 0}</span>
                                 </button>
                                 <button onclick="shareBuzz('${buzz.buzzId}')" class="flex items-center space-x-1 lg:space-x-2 text-gray-500 hover:text-purple-500 transition-colors text-sm lg:text-base">
                                     <span>🔗</span>
@@ -2790,7 +2825,32 @@
                                     <span class="hidden sm:inline">Report</span>
                                 </button>
                             </div>
-                            ${buzz.uid === currentUser.uid ? `<button onclick="deleteBuzz('${buzz.buzzId}')" class="text-red-500 hover:text-red-700 transition-colors text-sm lg:text-base">🗑️</button>` : ''}
+                            <div class="relative">
+                                <button onclick="toggleBuzzMenu('${buzz.buzzId}')" class="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                    </svg>
+                                </button>
+                                <div id="buzzMenu-${buzz.buzzId}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
+                                    <div class="py-2">
+                                        ${buzz.uid === currentUser.uid ? `
+                                            <button onclick="pinBuzz('${buzz.buzzId}'); toggleBuzzMenu('${buzz.buzzId}')" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2">
+                                                <span>📌</span>
+                                                <span>Pin Buzz</span>
+                                            </button>
+                                            <button onclick="deleteBuzz('${buzz.buzzId}'); toggleBuzzMenu('${buzz.buzzId}')" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center space-x-2">
+                                                <span>🗑️</span>
+                                                <span>Delete</span>
+                                            </button>
+                                        ` : `
+                                            <button onclick="openReportModal('${buzz.buzzId}'); toggleBuzzMenu('${buzz.buzzId}')" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center space-x-2">
+                                                <span>🚨</span>
+                                                <span>Report</span>
+                                            </button>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -6123,5 +6183,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965094e104a23d42',t:'MTc1MzQ5ODE0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9650a49e877f26cb',t:'MTc1MzQ5ODc4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
