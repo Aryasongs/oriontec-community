@@ -4,6 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forbiary - Professional Knowledge Platform</title>
+    <meta name="description" content="Forbiary is a collaborative knowledge-sharing platform where users can create, edit, and moderate articles on various topics with Wikipedia-style functionality.">
+    <meta name="keywords" content="knowledge sharing, wiki, articles, collaboration, education, research">
+    <link rel="canonical" href="https://forbiary.com/">
+    
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="Forbiary - Professional Knowledge Platform">
+    <meta property="og:description" content="Collaborative knowledge-sharing platform with Wikipedia-style functionality">
+    <meta property="og:url" content="https://forbiary.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://forbiary.com/og-image.jpg">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Forbiary - Professional Knowledge Platform">
+    <meta name="twitter:description" content="Collaborative knowledge-sharing platform with Wikipedia-style functionality">
+    <meta name="twitter:image" content="https://forbiary.com/og-image.jpg">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Forbiary",
+        "description": "Collaborative knowledge-sharing platform",
+        "url": "https://forbiary.com/",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://forbiary.com/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -382,6 +415,39 @@
             min-width: 120px;
         }
 
+        .internal-link {
+            color: #0645ad;
+            text-decoration: none;
+            border-bottom: 1px dotted #0645ad;
+        }
+
+        .internal-link:hover {
+            background: #f0f8ff;
+        }
+
+        .related-articles {
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #0645ad;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Mobile Styles */
         @media (max-width: 768px) {
             .wiki-container {
@@ -649,7 +715,6 @@
                 background: white;
             }
         }
-    </style>
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -1009,10 +1074,12 @@
 
         <!-- Moderate Page -->
         <div id="moderatePage" style="display:none;">
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-6">Article Moderation</h2>
-                <div id="pendingArticles">
-                    <!-- Pending articles will be loaded here -->
+            <div class="wiki-content">
+                <div class="wiki-article">
+                    <h1>Article Moderation</h1>
+                    <div id="pendingArticles">
+                        <!-- Pending articles will be loaded here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -1056,6 +1123,10 @@
         let isModerator = false;
         let currentEditingArticleId = null;
         let currentEditMode = 'visual';
+        
+        // SEO and metadata management
+        let siteArticles = new Map(); // Cache for internal linking
+        let relatedArticles = new Map(); // Related articles cache
 
         // Admin emails (you can modify this list)
         const adminEmails = ['admin@forbiary.com', 'moderator@forbiary.com'];
@@ -1101,7 +1172,7 @@
 
                 // Initialize editor if on write page
                 if (document.getElementById('writePage').style.display !== 'none') {
-                    initializeEditor();
+                    setTimeout(() => initializeEditor(), 100);
                 }
             } else {
                 currentUser = null;
@@ -1138,6 +1209,7 @@
             hideAllPages();
             document.getElementById('homePage').style.display = 'block';
             loadRecentArticles();
+            updatePageMetadata('Forbiary - Professional Knowledge Platform', 'Collaborative knowledge-sharing platform where users can create, edit, and moderate articles on various topics with Wikipedia-style functionality.');
             window.location.hash = '';
         }
 
@@ -1145,6 +1217,7 @@
             hideAllPages();
             document.getElementById('searchPage').style.display = 'block';
             loadAllArticles();
+            updatePageMetadata('Browse Articles - Forbiary', 'Search and browse all articles on Forbiary knowledge platform.');
         }
 
         async function showWrite(articleId = null) {
@@ -1167,7 +1240,13 @@
                 currentEditingArticleId = articleId;
                 document.getElementById('writePageTitle').textContent = 'Edit Article';
                 document.getElementById('submitButtonText').textContent = 'Submit Edit';
-                loadArticleForEditing(articleId);
+                updatePageMetadata('Edit Article - Forbiary', 'Edit an existing article on Forbiary knowledge platform.');
+                
+                // Initialize editor first, then load content
+                setTimeout(() => {
+                    initializeEditor();
+                    setTimeout(() => loadArticleForEditing(articleId), 300);
+                }, 100);
             } else {
                 if (!currentUser) {
                     alert('Please sign in to create articles');
@@ -1176,10 +1255,10 @@
                 currentEditingArticleId = null;
                 document.getElementById('writePageTitle').textContent = 'Create New Article';
                 document.getElementById('submitButtonText').textContent = 'Submit for Review';
+                updatePageMetadata('Create Article - Forbiary', 'Create a new article on Forbiary knowledge platform.');
                 clearForm();
+                setTimeout(() => initializeEditor(), 100);
             }
-            
-            initializeEditor();
         }
 
         function showModerate() {
@@ -1190,17 +1269,20 @@
             hideAllPages();
             document.getElementById('moderatePage').style.display = 'block';
             loadPendingArticles();
+            updatePageMetadata('Moderate Articles - Forbiary', 'Review and moderate pending articles on Forbiary.');
         }
 
         function showBecomeModerator() {
             hideAllPages();
             document.getElementById('becomeModeratorPage').style.display = 'block';
+            updatePageMetadata('Become Moderator - Forbiary', 'Apply to become a moderator on Forbiary knowledge platform.');
         }
 
         function showCategories() {
             hideAllPages();
             document.getElementById('categoriesPage').style.display = 'block';
             loadCategoryCounts();
+            updatePageMetadata('Categories - Forbiary', 'Browse articles by category on Forbiary knowledge platform.');
         }
 
         function showPendingEdits() {
@@ -1211,6 +1293,7 @@
             hideAllPages();
             document.getElementById('pendingEditsPage').style.display = 'block';
             loadPendingEdits();
+            updatePageMetadata('Pending Edits - Forbiary', 'Review pending edits on Forbiary knowledge platform.');
         }
 
         function hideAllPages() {
@@ -1224,22 +1307,47 @@
             document.getElementById('pendingEditsPage').style.display = 'none';
         }
 
-        // Initialize Quill editor
+        // Initialize Quill editor with enhanced toolbar
         function initializeEditor() {
-            if (quill) return;
+            if (quill) {
+                quill.setContents([]);
+                return;
+            }
             
-            quill = new Quill('#editor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link', 'code-block'],
-                        ['clean']
-                    ]
+            // Wait for DOM to be ready
+            setTimeout(() => {
+                const editorElement = document.getElementById('editor');
+                if (editorElement) {
+                    quill = new Quill('#editor', {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                                [{ 'font': [] }],
+                                [{ 'size': ['small', false, 'large', 'huge'] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'script': 'sub'}, { 'script': 'super' }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                                [{ 'direction': 'rtl' }],
+                                [{ 'align': [] }],
+                                ['link', 'image', 'video'],
+                                ['blockquote', 'code-block'],
+                                ['clean']
+                            ]
+                        },
+                        placeholder: 'Write your article content here...'
+                    });
+
+                    // Add internal linking functionality
+                    quill.on('text-change', function(delta, oldDelta, source) {
+                        if (source === 'user') {
+                            detectInternalLinks();
+                        }
+                    });
                 }
-            });
+            }, 100);
         }
 
         // Switch between visual and code editing modes
@@ -1306,7 +1414,6 @@
 
                 isModerator = true;
                 document.getElementById('moderatorSection').style.display = 'block';
-                document.getElementById('moderatorBadge').style.display = 'inline-block';
                 document.getElementById('moderatorBadgeMobile').style.display = 'inline-block';
                 document.getElementById('applicationStatus').innerHTML = '<div style="color: green;">✓ You are now a moderator! You can now moderate articles and lock/unlock them.</div>';
             } catch (error) {
@@ -1335,18 +1442,19 @@
                 if (!doc.exists) return;
                 
                 const article = doc.data();
-                document.getElementById('articleTitle').value = article.title;
-                document.getElementById('articleSummary').value = article.summary;
-                document.getElementById('articleCategory').value = article.category;
-                document.getElementById('articleTags').value = article.tags.join(', ');
-                document.getElementById('articleReferences').value = article.references.join('\n');
+                document.getElementById('articleTitle').value = article.title || '';
+                document.getElementById('articleSummary').value = article.summary || '';
+                document.getElementById('articleCategory').value = article.category || '';
+                document.getElementById('articleTags').value = (article.tags || []).join(', ');
+                document.getElementById('articleReferences').value = (article.references || []).join('\n');
                 
-                if (quill) {
-                    quill.root.innerHTML = article.content;
+                if (quill && quill.root) {
+                    quill.root.innerHTML = article.content || '';
                 }
-                document.getElementById('codeTextarea').value = article.content;
+                document.getElementById('codeTextarea').value = article.content || '';
             } catch (error) {
                 console.error('Error loading article for editing:', error);
+                alert('Error loading article for editing');
             }
         }
 
@@ -1439,27 +1547,183 @@
             }
         }
 
+        // Update page metadata for SEO
+        function updatePageMetadata(title, description, keywords = '', canonicalUrl = '') {
+            // Update title
+            document.title = title;
+            
+            // Update meta description
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc) {
+                metaDesc.setAttribute('content', description);
+            }
+            
+            // Update keywords if provided
+            if (keywords) {
+                let metaKeywords = document.querySelector('meta[name="keywords"]');
+                if (!metaKeywords) {
+                    metaKeywords = document.createElement('meta');
+                    metaKeywords.setAttribute('name', 'keywords');
+                    document.head.appendChild(metaKeywords);
+                }
+                metaKeywords.setAttribute('content', keywords);
+            }
+            
+            // Update canonical URL
+            let canonical = document.querySelector('link[rel="canonical"]');
+            if (canonical) {
+                canonical.setAttribute('href', canonicalUrl || window.location.href);
+            }
+            
+            // Update Open Graph tags
+            updateOpenGraphTags(title, description, canonicalUrl || window.location.href);
+        }
+
+        // Update Open Graph tags
+        function updateOpenGraphTags(title, description, url) {
+            const ogTags = [
+                { property: 'og:title', content: title },
+                { property: 'og:description', content: description },
+                { property: 'og:url', content: url },
+                { property: 'og:type', content: 'article' }
+            ];
+            
+            ogTags.forEach(tag => {
+                let ogTag = document.querySelector(`meta[property="${tag.property}"]`);
+                if (ogTag) {
+                    ogTag.setAttribute('content', tag.content);
+                }
+            });
+        }
+
+        // Generate structured data for article
+        function generateArticleStructuredData(article, articleId) {
+            const structuredData = {
+                "@context": "https://schema.org",
+                "@type": "Article",
+                "headline": article.title,
+                "description": article.summary,
+                "author": {
+                    "@type": "Person",
+                    "name": article.author
+                },
+                "datePublished": article.timestamp ? article.timestamp.toDate().toISOString() : new Date().toISOString(),
+                "dateModified": article.lastEditedAt ? article.lastEditedAt.toDate().toISOString() : article.timestamp ? article.timestamp.toDate().toISOString() : new Date().toISOString(),
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Forbiary",
+                    "url": "https://forbiary.com"
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": `https://forbiary.com/#${articleId}`
+                },
+                "articleSection": article.category,
+                "keywords": article.tags.join(', '),
+                "url": `https://forbiary.com/#${articleId}`
+            };
+            
+            // Remove existing structured data
+            const existingScript = document.querySelector('script[type="application/ld+json"][data-article]');
+            if (existingScript) {
+                existingScript.remove();
+            }
+            
+            // Add new structured data
+            const script = document.createElement('script');
+            script.type = 'application/ld+json';
+            script.setAttribute('data-article', 'true');
+            script.textContent = JSON.stringify(structuredData);
+            document.head.appendChild(script);
+        }
+
+        // Detect and create internal links
+        function detectInternalLinks() {
+            if (!quill) return;
+            
+            const text = quill.getText();
+            const words = text.split(/\s+/);
+            
+            // Simple internal linking - look for article titles in text
+            siteArticles.forEach((articleData, articleId) => {
+                const title = articleData.title.toLowerCase();
+                words.forEach((word, index) => {
+                    if (word.toLowerCase().includes(title) && word.length > 3) {
+                        // This is a simplified version - in a real implementation,
+                        // you'd want more sophisticated text processing
+                    }
+                });
+            });
+        }
+
+        // Load articles for internal linking cache
+        async function loadArticlesForLinking() {
+            try {
+                const snapshot = await db.collection('articles')
+                    .where('status', '==', 'approved')
+                    .get();
+                
+                siteArticles.clear();
+                snapshot.forEach(doc => {
+                    siteArticles.set(doc.id, doc.data());
+                });
+            } catch (error) {
+                console.error('Error loading articles for linking:', error);
+            }
+        }
+
         // Submit article or edit
         document.getElementById('articleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const userIP = await getUserIP();
-            const isBanned = await checkIPBan(userIP);
-            
-            if (isBanned) {
-                alert('Your IP address has been banned for submitting false information. Ban will expire in 5 months.');
-                return;
-            }
-
-            const title = document.getElementById('articleTitle').value;
-            const summary = document.getElementById('articleSummary').value;
-            const category = document.getElementById('articleCategory').value;
-            const tags = document.getElementById('articleTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
-            const references = document.getElementById('articleReferences').value.split('\n').filter(ref => ref.trim());
-            const editSummary = document.getElementById('editSummary').value;
-            const htmlContent = currentEditMode === 'visual' ? quill.root.innerHTML : document.getElementById('codeTextarea').value;
+            // Show loading state
+            const submitBtn = document.querySelector('#articleForm button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            submitBtn.disabled = true;
 
             try {
+                const userIP = await getUserIP();
+                const isBanned = await checkIPBan(userIP);
+                
+                if (isBanned) {
+                    alert('Your IP address has been banned for submitting false information. Ban will expire in 5 months.');
+                    return;
+                }
+
+                const title = document.getElementById('articleTitle').value.trim();
+                const summary = document.getElementById('articleSummary').value.trim();
+                const category = document.getElementById('articleCategory').value;
+                const tags = document.getElementById('articleTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
+                const references = document.getElementById('articleReferences').value.split('\n').filter(ref => ref.trim());
+                const editSummary = document.getElementById('editSummary').value.trim();
+                
+                // Get content based on current edit mode
+                let htmlContent = '';
+                if (currentEditMode === 'visual' && quill) {
+                    htmlContent = quill.root.innerHTML;
+                } else {
+                    htmlContent = document.getElementById('codeTextarea').value;
+                }
+
+                // Validate required fields
+                if (!title) {
+                    alert('Please enter an article title');
+                    return;
+                }
+                if (!summary) {
+                    alert('Please enter an article summary');
+                    return;
+                }
+                if (!category) {
+                    alert('Please select a category');
+                    return;
+                }
+                if (!htmlContent || htmlContent.trim() === '<p><br></p>' || htmlContent.trim() === '') {
+                    alert('Please enter article content');
+                    return;
+                }
+
                 if (currentEditingArticleId) {
                     // Submit edit for existing article
                     await db.collection('edits').add({
@@ -1470,7 +1734,7 @@
                         tags,
                         references,
                         content: htmlContent,
-                        editSummary,
+                        editSummary: editSummary || 'No summary provided',
                         editor: currentUser ? currentUser.displayName : 'Anonymous',
                         editorEmail: currentUser ? currentUser.email : 'anonymous@forbiary.com',
                         editorUid: currentUser ? currentUser.uid : 'anonymous',
@@ -1502,7 +1766,8 @@
                         status: 'pending',
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         createdAt: new Date().toISOString(),
-                        editHistory: []
+                        editHistory: [],
+                        locked: false
                     });
 
                     alert('Article submitted successfully! It will be reviewed by moderators.');
@@ -1511,7 +1776,12 @@
                 clearForm();
                 showHome();
             } catch (error) {
+                console.error('Submission error:', error);
                 alert('Error submitting: ' + error.message);
+            } finally {
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         });
 
@@ -1630,35 +1900,6 @@
             });
         }
 
-        // Create article card
-        function createArticleCard(id, article) {
-            const card = document.createElement('div');
-            card.className = 'article-card bg-white p-6 rounded-xl shadow-md cursor-pointer';
-            card.onclick = () => openArticle(id);
-
-            const date = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'Recently';
-            const tagsHtml = article.tags.slice(0, 3).map(tag => 
-                `<span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">${tag}</span>`
-            ).join(' ');
-
-            card.innerHTML = `
-                <div class="mb-3">
-                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">${article.category}</span>
-                </div>
-                <h3 class="text-lg font-semibold mb-2 text-gray-900 line-clamp-2">${article.title}</h3>
-                <p class="text-gray-600 text-sm mb-3 line-clamp-3">${article.summary}</p>
-                <div class="flex items-center justify-between text-xs text-gray-500">
-                    <span>By ${article.author}</span>
-                    <span>${date}</span>
-                </div>
-                <div class="mt-3 space-x-1">
-                    ${tagsHtml}
-                </div>
-            `;
-
-            return card;
-        }
-
         // Open article
         async function openArticle(articleId) {
             try {
@@ -1678,6 +1919,18 @@
 
                 hideAllPages();
                 document.getElementById('articleReader').style.display = 'block';
+                
+                // Update SEO metadata for article
+                const canonicalUrl = `https://forbiary.com/#${articleId}`;
+                updatePageMetadata(
+                    `${article.title} - Forbiary`,
+                    article.summary,
+                    article.tags.join(', '),
+                    canonicalUrl
+                );
+                
+                // Generate structured data
+                generateArticleStructuredData(article, articleId);
                 
                 const date = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'Recently';
                 const tagsHtml = article.tags.map(tag => 
@@ -1713,6 +1966,9 @@
                             ).join('')}
                         </div>
                     </div>` : '';
+
+                // Generate related articles
+                const relatedArticlesHtml = await generateRelatedArticles(article, articleId);
                 
                 document.getElementById('articleContent').innerHTML = `
                     <div style="margin-bottom: 20px;">
@@ -1733,6 +1989,7 @@
                         ${article.content}
                     </div>
                     
+                    ${relatedArticlesHtml}
                     ${editHistoryHtml}
                     ${referencesHtml}
                     
@@ -1752,6 +2009,61 @@
             } catch (error) {
                 console.error('Error loading article:', error);
                 alert('Error loading article');
+            }
+        }
+
+        // Generate related articles
+        async function generateRelatedArticles(currentArticle, currentArticleId) {
+            try {
+                const snapshot = await db.collection('articles')
+                    .where('status', '==', 'approved')
+                    .where('category', '==', currentArticle.category)
+                    .limit(10)
+                    .get();
+
+                let relatedArticles = [];
+                snapshot.forEach(doc => {
+                    if (doc.id !== currentArticleId) {
+                        const article = doc.data();
+                        // Calculate relevance based on shared tags
+                        const sharedTags = currentArticle.tags.filter(tag => 
+                            article.tags.some(articleTag => articleTag.toLowerCase() === tag.toLowerCase())
+                        );
+                        
+                        if (sharedTags.length > 0 || article.category === currentArticle.category) {
+                            relatedArticles.push({
+                                id: doc.id,
+                                ...article,
+                                relevance: sharedTags.length
+                            });
+                        }
+                    }
+                });
+
+                // Sort by relevance and take top 5
+                relatedArticles.sort((a, b) => b.relevance - a.relevance);
+                relatedArticles = relatedArticles.slice(0, 5);
+
+                if (relatedArticles.length === 0) {
+                    return '';
+                }
+
+                const relatedHtml = relatedArticles.map(article => 
+                    `<div style="margin-bottom: 8px;">
+                        <a href="#" onclick="openArticle('${article.id}')" class="internal-link" style="font-size: 14px;">${article.title}</a>
+                        <div style="font-size: 12px; color: #666;">${article.summary.substring(0, 100)}...</div>
+                    </div>`
+                ).join('');
+
+                return `
+                    <div class="related-articles">
+                        <h3 style="margin: 0 0 15px 0; font-size: 16px;">Related Articles</h3>
+                        ${relatedHtml}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error generating related articles:', error);
+                return '';
             }
         }
 
@@ -1811,7 +2123,7 @@
 
         // Load pending articles for moderation
         async function loadPendingArticles() {
-            if (!isAdmin) return;
+            if (!isAdmin && !isModerator) return;
 
             try {
                 const snapshot = await db.collection('articles')
@@ -1823,7 +2135,7 @@
                 container.innerHTML = '';
 
                 if (snapshot.empty) {
-                    container.innerHTML = '<p class="text-gray-500 text-center">No pending articles.</p>';
+                    container.innerHTML = '<p style="color: #666; text-align: center;">No pending articles.</p>';
                     return;
                 }
 
@@ -1840,31 +2152,31 @@
         // Create moderation card
         function createModerationCard(id, article) {
             const card = document.createElement('div');
-            card.className = 'bg-gray-50 p-6 rounded-xl mb-4';
+            card.style.cssText = 'background: #f8f9fa; border: 1px solid #a2a9b1; padding: 20px; border-radius: 4px; margin-bottom: 20px;';
 
             const date = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'Recently';
 
             card.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex-1">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">${article.title}</h3>
-                        <p class="text-gray-600 mb-2">${article.summary}</p>
-                        <div class="text-sm text-gray-500">
-                            <span>By ${article.author} • ${date} • ${article.category}</span>
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #333;">${article.title}</h3>
+                        <p style="margin: 0 0 8px 0; color: #666; line-height: 1.4;">${article.summary}</p>
+                        <div style="font-size: 14px; color: #666;">
+                            <span>By <strong>${article.author}</strong> • ${date} • ${article.category}</span>
                         </div>
                     </div>
-                    <div class="flex space-x-2 ml-4">
-                        <button onclick="approveArticle('${id}')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                            <i class="fas fa-check mr-1"></i>Approve
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button onclick="approveArticle('${id}')" class="wiki-edit-btn" style="background: #28a745;">
+                            <i class="fas fa-check"></i> Approve
                         </button>
-                        <button onclick="rejectArticle('${id}')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
-                            <i class="fas fa-times mr-1"></i>Reject
+                        <button onclick="rejectArticle('${id}')" class="wiki-edit-btn" style="background: #dc3545;">
+                            <i class="fas fa-times"></i> Reject
                         </button>
                     </div>
                 </div>
-                <div class="border-t pt-4">
-                    <div class="prose max-w-none text-sm">
-                        ${article.content.substring(0, 500)}${article.content.length > 500 ? '...' : ''}
+                <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                    <div style="max-height: 200px; overflow-y: auto; font-size: 14px; line-height: 1.4;">
+                        ${article.content.substring(0, 1000)}${article.content.length > 1000 ? '...' : ''}
                     </div>
                 </div>
             `;
@@ -1874,12 +2186,13 @@
 
         // Approve article
         async function approveArticle(articleId) {
-            if (!isAdmin) return;
+            if (!isAdmin && !isModerator) return;
 
             try {
                 await db.collection('articles').doc(articleId).update({
                     status: 'approved',
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    approvedBy: currentUser.displayName
                 });
                 
                 alert('Article approved successfully!');
@@ -1897,7 +2210,8 @@
                 try {
                     await db.collection('articles').doc(articleId).update({
                         status: 'rejected',
-                        rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        rejectedBy: currentUser.displayName
                     });
                     
                     alert('Article rejected.');
@@ -1981,8 +2295,8 @@
             const date = edit.timestamp ? new Date(edit.timestamp.toDate()).toLocaleDateString() : 'Recently';
 
             card.innerHTML = `
-                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 15px;">
-                    <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+                    <div style="flex: 1; min-width: 300px;">
                         <h3 style="margin: 0 0 8px 0; font-size: 18px;">${edit.title}</h3>
                         <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
                             Edited by <strong>${edit.editor}</strong> • ${date}
@@ -1996,13 +2310,13 @@
                         </div>` : ''}
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button onclick="approveEdit('${editId}')" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 14px;">
+                        <button onclick="approveEdit('${editId}')" class="wiki-edit-btn" style="background: #28a745;">
                             <i class="fas fa-check"></i> Approve
                         </button>
-                        <button onclick="rejectEdit('${editId}')" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 14px;">
+                        <button onclick="rejectEdit('${editId}')" class="wiki-edit-btn" style="background: #dc3545;">
                             <i class="fas fa-times"></i> Reject
                         </button>
-                        ${edit.editorIP && edit.editorIP !== 'unknown' ? `<button onclick="banIP('${edit.editorIP}', 'False information in edit')" style="background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 14px;">
+                        ${edit.editorIP && edit.editorIP !== 'unknown' ? `<button onclick="banIP('${edit.editorIP}', 'False information in edit')" class="wiki-edit-btn" style="background: #6c757d;">
                             <i class="fas fa-ban"></i> Ban IP
                         </button>` : ''}
                     </div>
@@ -2047,7 +2361,8 @@
                 // Mark edit as approved
                 await db.collection('edits').doc(editId).update({
                     status: 'approved',
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    approvedBy: currentUser.displayName
                 });
 
                 alert('Edit approved successfully!');
@@ -2065,7 +2380,8 @@
                 try {
                     await db.collection('edits').doc(editId).update({
                         status: 'rejected',
-                        rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        rejectedBy: currentUser.displayName
                     });
 
                     alert('Edit rejected.');
@@ -2089,6 +2405,9 @@
         // Initialize app
         window.addEventListener('hashchange', handleHashChange);
         window.addEventListener('load', () => {
+            // Load articles for internal linking
+            loadArticlesForLinking();
+            
             if (window.location.hash) {
                 handleHashChange();
             } else {
@@ -2103,5 +2422,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965485ef45bbff73',t:'MTc1MzUzOTQ3NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9654a789f5b84460',t:'MTc1MzU0MDg1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
