@@ -290,7 +290,7 @@
         }
 
         .mobile-menu {
-            display: none;
+            display: block;
             background: #0645ad;
             color: white;
             border: none;
@@ -666,15 +666,7 @@
                     <input type="text" id="mainSearchInput" placeholder="Search Forbiary..." onkeypress="if(event.key==='Enter') searchFromHeader()">
                 </div>
                 <div class="header-right">
-                    <div id="userInfo" class="user-info" style="display:none;">
-                        <img id="userPhoto" style="width: 32px; height: 32px; border-radius: 50%;" src="" alt="">
-                        <span id="userName" style="font-size: 14px; color: #0645ad;"></span>
-                        <span id="moderatorBadge" class="moderator-badge" style="display:none;">Moderator</span>
-                        <button onclick="signOut()" style="color: #d33; font-size: 14px; background: none; border: none; cursor: pointer;">Sign Out</button>
-                    </div>
-                    <button id="loginBtn" onclick="signInWithGoogle()" style="background: #0645ad; color: white; border: none; padding: 8px 16px; border-radius: 2px; cursor: pointer; font-size: 14px;">
-                        <i class="fab fa-google" style="margin-right: 5px;"></i>Sign In
-                    </button>
+                    <!-- User info moved to mobile menu -->
                 </div>
             </div>
         </div>
@@ -686,24 +678,30 @@
             <button class="mobile-menu" onclick="toggleMobileMenu()">
                 <i class="fas fa-bars"></i> Menu
             </button>
-            <div class="wiki-nav-links">
-                <a href="#" onclick="showHome()">Main page</a>
-                <a href="#" onclick="showSearch()">Browse articles</a>
-                <a href="#" onclick="showWrite()" id="writeBtn" style="display:none;">Create article</a>
-                <a href="#" onclick="showBecomeModerator()" id="becomeModerator">Become moderator</a>
-                <a href="#" onclick="showCategories()">Categories</a>
-                <a href="#" onclick="showModerate()" id="moderateBtn" style="display:none;">Moderate</a>
-                <a href="#" onclick="showPendingEdits()" id="pendingEditsBtn" style="display:none;">Pending Edits</a>
-            </div>
             <div class="nav-dropdown" id="mobileNavDropdown">
                 <div class="wiki-nav-links">
                     <a href="#" onclick="showHome(); closeMobileMenu()">Main page</a>
                     <a href="#" onclick="showSearch(); closeMobileMenu()">Browse articles</a>
-                    <a href="#" onclick="showWrite(); closeMobileMenu()" id="writeBtnMobile" style="display:none;">Create article</a>
-                    <a href="#" onclick="showBecomeModerator(); closeMobileMenu()" id="becomeModeratorMobile">Become moderator</a>
+                    <a href="#" onclick="showWrite(); closeMobileMenu()">Create article</a>
+                    <a href="#" onclick="showBecomeModerator(); closeMobileMenu()">Become moderator</a>
                     <a href="#" onclick="showCategories(); closeMobileMenu()">Categories</a>
-                    <a href="#" onclick="showModerate(); closeMobileMenu()" id="moderateBtnMobile" style="display:none;">Moderate</a>
-                    <a href="#" onclick="showPendingEdits(); closeMobileMenu()" id="pendingEditsBtnMobile" style="display:none;">Pending Edits</a>
+                    <div style="border-top: 1px solid #ddd; margin: 10px 0; padding-top: 10px;" id="moderatorSection" style="display:none;">
+                        <a href="#" onclick="showModerate(); closeMobileMenu()" style="color: #28a745;">Moderate Articles</a>
+                        <a href="#" onclick="showPendingEdits(); closeMobileMenu()" style="color: #28a745;">Pending Edits</a>
+                    </div>
+                    <div style="border-top: 1px solid #ddd; margin: 10px 0; padding-top: 10px;">
+                        <div id="userInfoMobile" style="display:none; padding: 8px 15px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <img id="userPhotoMobile" style="width: 24px; height: 24px; border-radius: 50%;" src="" alt="">
+                                <span id="userNameMobile" style="font-size: 14px; color: #0645ad;"></span>
+                                <span id="moderatorBadgeMobile" class="moderator-badge" style="display:none;">Moderator</span>
+                            </div>
+                            <button onclick="signOut(); closeMobileMenu()" style="color: #d33; font-size: 14px; background: none; border: none; cursor: pointer; padding: 4px 0;">Sign Out</button>
+                        </div>
+                        <a href="#" onclick="signInWithGoogle(); closeMobileMenu()" id="loginBtnMobile">
+                            <i class="fab fa-google" style="margin-right: 5px;"></i>Sign In
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -837,9 +835,13 @@
                     
                     <div id="moderatorApplication" style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 20px; margin: 20px 0;">
                         <h3>Apply to Become a Moderator</h3>
-                        <p>Click the button below to apply for moderator privileges:</p>
+                        <p>Fill out the form below to become a moderator instantly:</p>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Why do you want to become a moderator?</label>
+                            <textarea id="moderatorReason" rows="4" style="width: 100%; padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px;" placeholder="Explain why you want to help moderate content on Forbiary..."></textarea>
+                        </div>
                         <button onclick="applyForModerator()" class="wiki-edit-btn" style="background: #28a745;">
-                            <i class="fas fa-user-shield"></i> Apply for Moderator
+                            <i class="fas fa-user-shield"></i> Become Moderator
                         </button>
                         <div id="applicationStatus" style="margin-top: 15px;"></div>
                     </div>
@@ -1083,23 +1085,18 @@
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('userInfo').style.display = 'flex';
-                document.getElementById('writeBtn').style.display = 'inline-block';
-                document.getElementById('writeBtnMobile').style.display = 'block';
-                document.getElementById('userName').textContent = user.displayName;
-                document.getElementById('userPhoto').src = user.photoURL;
+                document.getElementById('loginBtnMobile').style.display = 'none';
+                document.getElementById('userInfoMobile').style.display = 'block';
+                document.getElementById('userNameMobile').textContent = user.displayName;
+                document.getElementById('userPhotoMobile').src = user.photoURL;
 
                 // Check if user is admin or moderator
                 isAdmin = adminEmails.includes(user.email);
                 await checkModeratorStatus();
                 
                 if (isAdmin || isModerator) {
-                    document.getElementById('moderateBtn').style.display = 'inline-block';
-                    document.getElementById('moderateBtnMobile').style.display = 'block';
-                    document.getElementById('pendingEditsBtn').style.display = 'inline-block';
-                    document.getElementById('pendingEditsBtnMobile').style.display = 'block';
-                    document.getElementById('moderatorBadge').style.display = 'inline-block';
+                    document.getElementById('moderatorSection').style.display = 'block';
+                    document.getElementById('moderatorBadgeMobile').style.display = 'inline-block';
                 }
 
                 // Initialize editor if on write page
@@ -1110,15 +1107,10 @@
                 currentUser = null;
                 isAdmin = false;
                 isModerator = false;
-                document.getElementById('loginBtn').style.display = 'inline-block';
-                document.getElementById('userInfo').style.display = 'none';
-                document.getElementById('writeBtn').style.display = 'none';
-                document.getElementById('writeBtnMobile').style.display = 'none';
-                document.getElementById('moderateBtn').style.display = 'none';
-                document.getElementById('moderateBtnMobile').style.display = 'none';
-                document.getElementById('pendingEditsBtn').style.display = 'none';
-                document.getElementById('pendingEditsBtnMobile').style.display = 'none';
-                document.getElementById('moderatorBadge').style.display = 'none';
+                document.getElementById('loginBtnMobile').style.display = 'block';
+                document.getElementById('userInfoMobile').style.display = 'none';
+                document.getElementById('moderatorSection').style.display = 'none';
+                document.getElementById('moderatorBadgeMobile').style.display = 'none';
             }
         });
 
@@ -1155,20 +1147,32 @@
             loadAllArticles();
         }
 
-        function showWrite(articleId = null) {
-            if (!currentUser) {
-                alert('Please sign in to write articles');
-                return;
-            }
+        async function showWrite(articleId = null) {
             hideAllPages();
             document.getElementById('writePage').style.display = 'block';
             
             if (articleId) {
+                // Check if article is locked
+                try {
+                    const doc = await db.collection('articles').doc(articleId).get();
+                    if (doc.exists && doc.data().locked) {
+                        alert('This article is locked and cannot be edited.');
+                        showHome();
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error checking article lock status:', error);
+                }
+
                 currentEditingArticleId = articleId;
                 document.getElementById('writePageTitle').textContent = 'Edit Article';
                 document.getElementById('submitButtonText').textContent = 'Submit Edit';
                 loadArticleForEditing(articleId);
             } else {
+                if (!currentUser) {
+                    alert('Please sign in to create articles');
+                    return;
+                }
                 currentEditingArticleId = null;
                 document.getElementById('writePageTitle').textContent = 'Create New Article';
                 document.getElementById('submitButtonText').textContent = 'Submit for Review';
@@ -1285,19 +1289,26 @@
                 return;
             }
 
+            const reason = document.getElementById('moderatorReason').value;
+            if (!reason.trim()) {
+                alert('Please provide a reason for becoming a moderator');
+                return;
+            }
+
             try {
                 await db.collection('moderators').doc(currentUser.uid).set({
                     email: currentUser.email,
                     name: currentUser.displayName,
+                    reason: reason,
                     appliedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    status: 'approved' // Auto-approve for demo purposes
+                    status: 'approved' // Auto-approve as requested
                 });
 
                 isModerator = true;
-                document.getElementById('moderateBtn').style.display = 'inline-block';
-                document.getElementById('pendingEditsBtn').style.display = 'inline-block';
+                document.getElementById('moderatorSection').style.display = 'block';
                 document.getElementById('moderatorBadge').style.display = 'inline-block';
-                document.getElementById('applicationStatus').innerHTML = '<div style="color: green;">✓ Application approved! You are now a moderator.</div>';
+                document.getElementById('moderatorBadgeMobile').style.display = 'inline-block';
+                document.getElementById('applicationStatus').innerHTML = '<div style="color: green;">✓ You are now a moderator! You can now moderate articles and lock/unlock them.</div>';
             } catch (error) {
                 alert('Error applying for moderator: ' + error.message);
             }
@@ -1381,12 +1392,62 @@
             searchArticles();
         }
 
+        // Get user IP address (simplified for demo)
+        async function getUserIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                return 'unknown';
+            }
+        }
+
+        // Check if IP is banned
+        async function checkIPBan(ip) {
+            try {
+                const doc = await db.collection('bannedIPs').doc(ip).get();
+                if (doc.exists) {
+                    const banData = doc.data();
+                    const banExpiry = banData.expiresAt.toDate();
+                    return new Date() < banExpiry;
+                }
+                return false;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        // Ban IP address
+        async function banIP(ip, reason = 'False information') {
+            if (!isAdmin && !isModerator) return;
+            
+            const expiryDate = new Date();
+            expiryDate.setMonth(expiryDate.getMonth() + 5); // 5 months ban
+            
+            try {
+                await db.collection('bannedIPs').doc(ip).set({
+                    reason: reason,
+                    bannedBy: currentUser.displayName,
+                    bannedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    expiresAt: firebase.firestore.Timestamp.fromDate(expiryDate)
+                });
+                
+                alert(`IP ${ip} has been banned for 5 months.`);
+            } catch (error) {
+                console.error('Error banning IP:', error);
+            }
+        }
+
         // Submit article or edit
         document.getElementById('articleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            if (!currentUser) {
-                alert('Please sign in to submit articles');
+            const userIP = await getUserIP();
+            const isBanned = await checkIPBan(userIP);
+            
+            if (isBanned) {
+                alert('Your IP address has been banned for submitting false information. Ban will expire in 5 months.');
                 return;
             }
 
@@ -1410,9 +1471,10 @@
                         references,
                         content: htmlContent,
                         editSummary,
-                        editor: currentUser.displayName,
-                        editorEmail: currentUser.email,
-                        editorUid: currentUser.uid,
+                        editor: currentUser ? currentUser.displayName : 'Anonymous',
+                        editorEmail: currentUser ? currentUser.email : 'anonymous@forbiary.com',
+                        editorUid: currentUser ? currentUser.uid : 'anonymous',
+                        editorIP: userIP,
                         status: 'pending',
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         createdAt: new Date().toISOString()
@@ -1420,6 +1482,11 @@
 
                     alert('Edit submitted successfully! It will be reviewed by moderators.');
                 } else {
+                    if (!currentUser) {
+                        alert('Please sign in to create articles');
+                        return;
+                    }
+                    
                     // Create new article
                     await db.collection('articles').add({
                         title,
@@ -1431,6 +1498,7 @@
                         author: currentUser.displayName,
                         authorEmail: currentUser.email,
                         uid: currentUser.uid,
+                        authorIP: userIP,
                         status: 'pending',
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         createdAt: new Date().toISOString(),
@@ -1624,13 +1692,34 @@
                         </ul>
                     </div>` : '';
 
-                const editButton = currentUser ? `<button onclick="showWrite('${articleId}')" class="wiki-edit-btn" style="float: right;"><i class="fas fa-edit"></i> Edit</button>` : '';
+                const isLocked = article.locked || false;
+                const editButton = !isLocked ? `<button onclick="showWrite('${articleId}')" class="wiki-edit-btn" style="float: right;"><i class="fas fa-edit"></i> Edit</button>` : 
+                    `<span style="float: right; background: #dc3545; color: white; padding: 8px 16px; border-radius: 2px; font-size: 14px;"><i class="fas fa-lock"></i> Locked</span>`;
+                
+                const lockButton = (isAdmin || isModerator) ? 
+                    `<button onclick="${isLocked ? 'unlockArticle' : 'lockArticle'}('${articleId}')" class="wiki-edit-btn" style="background: ${isLocked ? '#28a745' : '#dc3545'};">
+                        <i class="fas fa-${isLocked ? 'unlock' : 'lock'}"></i> ${isLocked ? 'Unlock' : 'Lock'} Article
+                    </button>` : '';
+
+                const editHistoryHtml = article.editHistory && article.editHistory.length > 0 ? 
+                    `<div style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 16px;">Edit History</h3>
+                        <div style="max-height: 200px; overflow-y: auto;">
+                            ${article.editHistory.slice(-10).reverse().map(edit => 
+                                `<div style="padding: 5px 0; border-bottom: 1px solid #eee; font-size: 14px;">
+                                    <strong>${edit.editor}</strong> - ${edit.editSummary || 'No summary'} 
+                                    <span style="color: #666;">(${edit.timestamp ? new Date(edit.timestamp.toDate()).toLocaleDateString() : 'Recently'})</span>
+                                </div>`
+                            ).join('')}
+                        </div>
+                    </div>` : '';
                 
                 document.getElementById('articleContent').innerHTML = `
                     <div style="margin-bottom: 20px;">
                         ${editButton}
                         <div class="article-meta">
                             <span style="background: #f0f0f0; padding: 4px 8px; border-radius: 3px; font-size: 14px;">${article.category}</span>
+                            ${isLocked ? '<span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 3px; font-size: 14px; margin-left: 8px;"><i class="fas fa-lock"></i> Locked</span>' : ''}
                         </div>
                         <h1>${article.title}</h1>
                         <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
@@ -1644,6 +1733,7 @@
                         ${article.content}
                     </div>
                     
+                    ${editHistoryHtml}
                     ${referencesHtml}
                     
                     <div class="edit-actions" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #a2a9b1;">
@@ -1653,7 +1743,8 @@
                         <button onclick="copyArticleLink('${articleId}')" class="wiki-edit-btn" style="background: #f8f9fa; color: #333;">
                             <i class="fas fa-share"></i> Share Article
                         </button>
-                        ${currentUser ? `<button onclick="showWrite('${articleId}')" class="wiki-edit-btn"><i class="fas fa-edit"></i> Edit Article</button>` : ''}
+                        ${!isLocked ? `<button onclick="showWrite('${articleId}')" class="wiki-edit-btn"><i class="fas fa-edit"></i> Edit Article</button>` : ''}
+                        ${lockButton}
                     </div>
                 `;
 
@@ -1670,6 +1761,52 @@
             navigator.clipboard.writeText(link).then(() => {
                 alert('Article link copied to clipboard!');
             });
+        }
+
+        // Lock article
+        async function lockArticle(articleId) {
+            if (!isAdmin && !isModerator) {
+                alert('Only moderators can lock articles');
+                return;
+            }
+
+            if (confirm('Are you sure you want to lock this article? This will prevent all users from editing it.')) {
+                try {
+                    await db.collection('articles').doc(articleId).update({
+                        locked: true,
+                        lockedBy: currentUser.displayName,
+                        lockedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    alert('Article locked successfully!');
+                    openArticle(articleId); // Refresh the article view
+                } catch (error) {
+                    alert('Error locking article: ' + error.message);
+                }
+            }
+        }
+
+        // Unlock article
+        async function unlockArticle(articleId) {
+            if (!isAdmin && !isModerator) {
+                alert('Only moderators can unlock articles');
+                return;
+            }
+
+            if (confirm('Are you sure you want to unlock this article? This will allow users to edit it again.')) {
+                try {
+                    await db.collection('articles').doc(articleId).update({
+                        locked: false,
+                        unlockedBy: currentUser.displayName,
+                        unlockedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    alert('Article unlocked successfully!');
+                    openArticle(articleId); // Refresh the article view
+                } catch (error) {
+                    alert('Error unlocking article: ' + error.message);
+                }
+            }
         }
 
         // Load pending articles for moderation
@@ -1849,6 +1986,7 @@
                         <h3 style="margin: 0 0 8px 0; font-size: 18px;">${edit.title}</h3>
                         <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
                             Edited by <strong>${edit.editor}</strong> • ${date}
+                            ${edit.editorIP ? ` • IP: ${edit.editorIP}` : ''}
                         </div>
                         <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
                             <strong>Edit Summary:</strong> ${edit.editSummary || 'No summary provided'}
@@ -1857,13 +1995,16 @@
                             <strong>Original Article:</strong> <a href="#" onclick="openArticle('${edit.articleId}')" style="color: #0645ad;">${originalArticle.title}</a>
                         </div>` : ''}
                     </div>
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                         <button onclick="approveEdit('${editId}')" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 14px;">
                             <i class="fas fa-check"></i> Approve
                         </button>
                         <button onclick="rejectEdit('${editId}')" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 14px;">
                             <i class="fas fa-times"></i> Reject
                         </button>
+                        ${edit.editorIP && edit.editorIP !== 'unknown' ? `<button onclick="banIP('${edit.editorIP}', 'False information in edit')" style="background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 14px;">
+                            <i class="fas fa-ban"></i> Ban IP
+                        </button>` : ''}
                     </div>
                 </div>
                 <div style="border-top: 1px solid #ddd; padding-top: 15px;">
@@ -1962,5 +2103,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9654787dd1911b98',t:'MTc1MzUzODkyMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965485ef45bbff73',t:'MTc1MzUzOTQ3NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
