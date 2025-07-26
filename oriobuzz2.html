@@ -122,10 +122,39 @@
             .main-content {
                 margin-bottom: 80px;
             }
+            .profile-cover {
+                height: 120px !important;
+            }
+            .profile-picture {
+                width: 80px !important;
+                height: 80px !important;
+            }
+            .profile-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .profile-actions button {
+                width: 100%;
+                text-align: center;
+            }
         }
         @media (min-width: 769px) {
             .mobile-nav {
                 display: none;
+            }
+        }
+        @media (max-width: 480px) {
+            .profile-cover {
+                height: 100px !important;
+            }
+            .profile-picture {
+                width: 60px !important;
+                height: 60px !important;
+            }
+            .profile-stats {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
             }
         }
     </style>
@@ -345,18 +374,18 @@
                 <!-- Profile Page -->
                 <div id="profilePage" class="hidden max-w-2xl mx-auto p-4">
                     <!-- Cover Photo -->
-                    <div class="bg-gradient-to-r from-blue-400 to-purple-500 h-48 rounded-t-xl relative">
+                    <div class="profile-cover bg-gradient-to-r from-blue-400 to-purple-500 h-48 rounded-t-xl relative">
                         <button class="absolute top-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm coming-soon">
                             📷 Edit cover photo
                         </button>
                     </div>
                     
                     <!-- Profile Info -->
-                    <div class="bg-white rounded-b-xl shadow-sm border border-gray-200 p-6 relative">
+                    <div class="bg-white rounded-b-xl shadow-sm border border-gray-200 p-4 md:p-6 relative">
                         <!-- Profile Picture -->
-                        <div class="absolute -top-16 left-6">
+                        <div class="absolute -top-16 left-4 md:left-6">
                             <div class="relative">
-                                <img id="profileImage" class="w-32 h-32 rounded-full border-4 border-white bg-white" src="" alt="Profile">
+                                <img id="profileImage" class="profile-picture w-32 h-32 rounded-full border-4 border-white bg-white" src="" alt="Profile">
                                 <button class="absolute bottom-2 right-2 bg-gray-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm coming-soon" title="Coming Soon - Photo Upload">
                                     📷
                                 </button>
@@ -365,7 +394,7 @@
                         </div>
                         
                         <!-- Profile Actions -->
-                        <div class="flex justify-end mb-4">
+                        <div class="profile-actions flex justify-end mb-4">
                             <button id="editProfileBtn" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-50">
                                 Edit profile
                             </button>
@@ -389,7 +418,7 @@
                             </div>
                             
                             <!-- Follow Stats -->
-                            <div class="flex space-x-6">
+                            <div class="profile-stats flex space-x-6">
                                 <div class="cursor-pointer hover:underline">
                                     <span id="followingCount" class="font-bold text-gray-900">0</span>
                                     <span class="text-gray-500 ml-1">Following</span>
@@ -426,23 +455,23 @@
                 <!-- Other User Profile Page -->
                 <div id="otherUserProfile" class="hidden max-w-2xl mx-auto p-4">
                     <!-- Cover Photo -->
-                    <div class="bg-gradient-to-r from-purple-400 to-pink-500 h-48 rounded-t-xl relative">
+                    <div class="profile-cover bg-gradient-to-r from-purple-400 to-pink-500 h-48 rounded-t-xl relative">
                     </div>
                     
                     <!-- Profile Info -->
-                    <div class="bg-white rounded-b-xl shadow-sm border border-gray-200 p-6 relative">
+                    <div class="bg-white rounded-b-xl shadow-sm border border-gray-200 p-4 md:p-6 relative">
                         <!-- Profile Picture -->
-                        <div class="absolute -top-16 left-6">
-                            <img id="otherUserImage" class="w-32 h-32 rounded-full border-4 border-white bg-white" src="" alt="Profile">
+                        <div class="absolute -top-16 left-4 md:left-6">
+                            <img id="otherUserImage" class="profile-picture w-32 h-32 rounded-full border-4 border-white bg-white" src="" alt="Profile">
                         </div>
                         
                         <!-- Profile Actions -->
-                        <div class="flex justify-end space-x-3 mb-4">
-                            <button id="otherUserMessageBtn" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-50 flex items-center space-x-2">
+                        <div class="profile-actions flex justify-end space-x-2 md:space-x-3 mb-4">
+                            <button id="otherUserMessageBtn" class="border border-gray-300 text-gray-700 px-4 md:px-6 py-2 rounded-full font-medium hover:bg-gray-50 flex items-center space-x-2">
                                 <span>💬</span>
-                                <span>Message</span>
+                                <span class="hidden sm:inline">Message</span>
                             </button>
-                            <button id="otherUserFollowBtn" class="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800">
+                            <button id="otherUserFollowBtn" class="bg-black text-white px-4 md:px-6 py-2 rounded-full font-medium hover:bg-gray-800">
                                 Follow
                             </button>
                             <div class="relative">
@@ -480,7 +509,7 @@
                             </div>
                             
                             <!-- Follow Stats -->
-                            <div class="flex space-x-6">
+                            <div class="profile-stats flex space-x-6">
                                 <div class="cursor-pointer hover:underline">
                                     <span id="otherUserFollowingCount" class="font-bold text-gray-900">0</span>
                                     <span class="text-gray-500 ml-1">Following</span>
@@ -2029,8 +2058,22 @@
             // More menu functionality
             moreBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                // Close all other menus first
+                document.querySelectorAll('.buzz-more-menu').forEach(menu => {
+                    if (menu !== buzzDiv.querySelector('.buzz-more-menu')) {
+                        menu.classList.add('hidden');
+                    }
+                });
                 const menu = buzzDiv.querySelector('.buzz-more-menu');
                 menu.classList.toggle('hidden');
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!moreBtn.contains(e.target)) {
+                    const menu = buzzDiv.querySelector('.buzz-more-menu');
+                    menu.classList.add('hidden');
+                }
             });
             
             // Delete buzz functionality
@@ -2863,8 +2906,122 @@
             }
         }
         
+        // Show other user followers list
+        function showOtherUserFollowersList(userId, type) {
+            document.getElementById('followersListModal').classList.remove('hidden');
+            
+            if (type === 'followers') {
+                document.getElementById('followersModalTab').className = 'flex-1 py-3 px-4 text-center border-b-2 border-purple-500 text-purple-500 font-medium';
+                document.getElementById('followingModalTab').className = 'flex-1 py-3 px-4 text-center text-gray-500 hover:text-gray-700';
+                document.getElementById('followersModalContent').classList.remove('hidden');
+                document.getElementById('followingModalContent').classList.add('hidden');
+                loadOtherUserFollowers(userId);
+            } else {
+                document.getElementById('followingModalTab').className = 'flex-1 py-3 px-4 text-center border-b-2 border-purple-500 text-purple-500 font-medium';
+                document.getElementById('followersModalTab').className = 'flex-1 py-3 px-4 text-center text-gray-500 hover:text-gray-700';
+                document.getElementById('followingModalContent').classList.remove('hidden');
+                document.getElementById('followersModalContent').classList.add('hidden');
+                loadOtherUserFollowing(userId);
+            }
+        }
+
+        function loadOtherUserFollowers(userId) {
+            database.ref('users/' + userId + '/followers').once('value').then((snapshot) => {
+                const followersModalContent = document.getElementById('followersModalContent');
+                followersModalContent.innerHTML = '';
+                
+                if (snapshot.exists()) {
+                    const followerIds = Object.keys(snapshot.val());
+                    followerIds.forEach(followerId => {
+                        database.ref('users/' + followerId).once('value').then((userSnapshot) => {
+                            const user = userSnapshot.val();
+                            if (user) {
+                                const userDiv = createModalUserItem(user);
+                                followersModalContent.appendChild(userDiv);
+                            }
+                        });
+                    });
+                } else {
+                    followersModalContent.innerHTML = '<p class="text-gray-500 text-center py-8">No followers yet</p>';
+                }
+            });
+        }
+
+        function loadOtherUserFollowing(userId) {
+            database.ref('users/' + userId + '/following').once('value').then((snapshot) => {
+                const followingModalContent = document.getElementById('followingModalContent');
+                followingModalContent.innerHTML = '';
+                
+                if (snapshot.exists()) {
+                    const followingIds = Object.keys(snapshot.val());
+                    followingIds.forEach(followingId => {
+                        database.ref('users/' + followingId).once('value').then((userSnapshot) => {
+                            const user = userSnapshot.val();
+                            if (user) {
+                                const userDiv = createModalUserItem(user);
+                                followingModalContent.appendChild(userDiv);
+                            }
+                        });
+                    });
+                } else {
+                    followingModalContent.innerHTML = '<p class="text-gray-500 text-center py-8">Not following anyone yet</p>';
+                }
+            });
+        }
+
+        function createModalUserItem(user) {
+            const userDiv = document.createElement('div');
+            userDiv.className = 'flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg';
+            userDiv.innerHTML = `
+                <div class="flex items-center space-x-3 cursor-pointer flex-1" onclick="showPage('otherProfile', '${user.uid}'); document.getElementById('followersListModal').classList.add('hidden');">
+                    <img class="w-10 h-10 rounded-full" src="${user.photoURL}" alt="${user.displayName}">
+                    <div>
+                        <div class="flex items-center space-x-1">
+                            <span class="font-medium">${user.displayName}</span>
+                            ${user.verified ? getVerifiedIcon('small') : ''}
+                        </div>
+                        <div class="text-sm text-gray-500">@${user.username}</div>
+                    </div>
+                </div>
+                <button class="message-user-btn bg-purple-500 text-white px-4 py-1 rounded-full text-sm hover:bg-purple-600" data-user-id="${user.uid}">
+                    Message
+                </button>
+            `;
+            
+            // Add message button functionality
+            const messageBtn = userDiv.querySelector('.message-user-btn');
+            messageBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('followersListModal').classList.add('hidden');
+                showPage('messages');
+                startConversation(user.uid);
+            });
+            
+            return userDiv;
+        }
+
         // Add event listeners for new functionality
         document.addEventListener('DOMContentLoaded', () => {
+            // Followers modal close
+            document.getElementById('closeFollowersModal').addEventListener('click', () => {
+                document.getElementById('followersListModal').classList.add('hidden');
+            });
+            
+            // Followers modal tabs
+            document.getElementById('followersModalTab').addEventListener('click', () => {
+                document.getElementById('followersModalTab').className = 'flex-1 py-3 px-4 text-center border-b-2 border-purple-500 text-purple-500 font-medium';
+                document.getElementById('followingModalTab').className = 'flex-1 py-3 px-4 text-center text-gray-500 hover:text-gray-700';
+                document.getElementById('followersModalContent').classList.remove('hidden');
+                document.getElementById('followingModalContent').classList.add('hidden');
+            });
+            
+            document.getElementById('followingModalTab').addEventListener('click', () => {
+                document.getElementById('followingModalTab').className = 'flex-1 py-3 px-4 text-center border-b-2 border-purple-500 text-purple-500 font-medium';
+                document.getElementById('followersModalTab').className = 'flex-1 py-3 px-4 text-center text-gray-500 hover:text-gray-700';
+                document.getElementById('followingModalContent').classList.remove('hidden');
+                document.getElementById('followersModalContent').classList.add('hidden');
+            });
+            
             // Other user profile message button
             document.getElementById('otherUserMessageBtn').addEventListener('click', () => {
                 if (currentOtherUser) {
@@ -2874,8 +3031,18 @@
             });
             
             // Other user more menu
-            document.getElementById('otherUserMoreBtn').addEventListener('click', () => {
+            document.getElementById('otherUserMoreBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
                 document.getElementById('otherUserMoreMenu').classList.toggle('hidden');
+            });
+            
+            // Close more menu when clicking outside
+            document.addEventListener('click', (e) => {
+                const moreMenu = document.getElementById('otherUserMoreMenu');
+                const moreBtn = document.getElementById('otherUserMoreBtn');
+                if (!moreBtn.contains(e.target) && !moreMenu.contains(e.target)) {
+                    moreMenu.classList.add('hidden');
+                }
             });
             
             // Block user button
@@ -2924,5 +3091,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96522604b3685957',t:'MTc1MzUxNDU3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9652310453e28571',t:'MTc1MzUxNTAyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
