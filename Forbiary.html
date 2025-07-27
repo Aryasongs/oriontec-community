@@ -1118,8 +1118,30 @@
             <div class="wiki-content">
                 <div class="wiki-article">
                     <h1>Article Moderation</h1>
-                    <div id="pendingArticles">
-                        <!-- Pending articles will be loaded here -->
+                    <p>Review recent articles and suggest improvements or deletions if content is inappropriate or false.</p>
+                    
+                    <div class="wiki-tabs">
+                        <div class="wiki-tab active" onclick="switchModeratorTab('recent')" id="recentTab">Recent Articles</div>
+                        <div class="wiki-tab" onclick="switchModeratorTab('notifications')" id="notificationsTab">Notifications <span id="notificationBadge" style="background: #dc3545; color: white; border-radius: 50%; padding: 2px 6px; font-size: 12px; margin-left: 5px; display: none;"></span></div>
+                        <div class="wiki-tab" onclick="switchModeratorTab('suggestions')" id="suggestionsTab">My Suggestions</div>
+                    </div>
+                    
+                    <div id="recentArticlesTab" style="display: block;">
+                        <div id="recentArticlesList">
+                            <!-- Recent articles will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div id="notificationsTab" style="display: none;">
+                        <div id="moderatorNotifications">
+                            <!-- Notifications will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div id="suggestionsTab" style="display: none;">
+                        <div id="moderatorSuggestions">
+                            <!-- Moderator suggestions will be loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1519,8 +1541,8 @@
             }
             hideAllPages();
             document.getElementById('moderatePage').style.display = 'block';
-            loadPendingArticles();
-            updatePageMetadata('Moderate Articles - Forbiary', 'Review and moderate pending articles on Forbiary.');
+            loadRecentArticlesForModerators();
+            updatePageMetadata('Moderate Articles - Forbiary', 'Review and moderate recent articles on Forbiary.');
         }
 
         function showBecomeModerator() {
@@ -1625,6 +1647,34 @@
                 if (text) {
                     quill.insertText(range.index, `[[${text}]]`, 'user');
                 }
+            }
+        }
+
+        // Switch moderator tabs
+        function switchModeratorTab(tab) {
+            // Hide all tabs
+            document.getElementById('recentArticlesTab').style.display = 'none';
+            document.getElementById('notificationsTab').style.display = 'none';
+            document.getElementById('suggestionsTab').style.display = 'none';
+            
+            // Remove active class from all tabs
+            document.getElementById('recentTab').classList.remove('active');
+            document.getElementById('notificationsTab').classList.remove('active');
+            document.getElementById('suggestionsTab').classList.remove('active');
+            
+            // Show selected tab and mark as active
+            if (tab === 'recent') {
+                document.getElementById('recentArticlesTab').style.display = 'block';
+                document.getElementById('recentTab').classList.add('active');
+                loadRecentArticlesForModerators();
+            } else if (tab === 'notifications') {
+                document.getElementById('notificationsTab').style.display = 'block';
+                document.getElementById('notificationsTab').classList.add('active');
+                loadModeratorNotifications();
+            } else if (tab === 'suggestions') {
+                document.getElementById('suggestionsTab').style.display = 'block';
+                document.getElementById('suggestionsTab').classList.add('active');
+                loadModeratorSuggestions();
             }
         }
 
@@ -1874,6 +1924,78 @@
             });
         }
 
+        // Generate SEO keywords automatically
+        function generateSEOKeywords(title, summary, content, tags) {
+            const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'a', 'an'];
+            
+            // Extract text from HTML content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            const textContent = tempDiv.textContent || tempDiv.innerText || '';
+            
+            // Combine all text sources
+            const allText = `${title} ${summary} ${textContent}`.toLowerCase();
+            
+            // Extract meaningful words
+            const words = allText.match(/\b[a-zA-Z]{3,}\b/g) || [];
+            const wordFreq = {};
+            
+            words.forEach(word => {
+                if (!commonWords.includes(word)) {
+                    wordFreq[word] = (wordFreq[word] || 0) + 1;
+                }
+            });
+            
+            // Sort by frequency and get top keywords
+            const sortedWords = Object.entries(wordFreq)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 15)
+                .map(([word]) => word);
+            
+            // Combine with user tags
+            const allKeywords = [...new Set([...tags, ...sortedWords])];
+            
+            return allKeywords.slice(0, 20).join(', ');
+        }
+
+        // Generate SEO description
+        function generateSEODescription(summary, content) {
+            if (summary && summary.length > 50) {
+                return summary.length > 160 ? summary.substring(0, 157) + '...' : summary;
+            }
+            
+            // Extract from content if summary is too short
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            const textContent = tempDiv.textContent || tempDiv.innerText || '';
+            
+            const sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 20);
+            if (sentences.length > 0) {
+                const description = sentences[0].trim();
+                return description.length > 160 ? description.substring(0, 157) + '...' : description;
+            }
+            
+            return summary || 'Read this article on Forbiary knowledge platform.';
+        }
+
+        // Notify moderators about new article
+        async function notifyModeratorsNewArticle(articleId, articleData) {
+            try {
+                await db.collection('moderatorNotifications').add({
+                    type: 'new_article',
+                    articleId: articleId,
+                    articleTitle: articleData.title,
+                    author: articleData.author,
+                    category: articleData.category,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    read: false,
+                    message: `New article "${articleData.title}" published by ${articleData.author}`
+                });
+            } catch (error) {
+                console.error('Error notifying moderators:', error);
+            }
+        }
+
         // Generate structured data for article
         function generateArticleStructuredData(article, articleId) {
             const structuredData = {
@@ -2029,8 +2151,12 @@
                         return;
                     }
                     
-                    // Create new article
-                    await db.collection('articles').add({
+                    // Generate SEO metadata automatically
+                    const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags);
+                    const seoDescription = generateSEODescription(summary, htmlContent);
+                    
+                    // Create new article - Published immediately like Wikipedia
+                    const articleRef = await db.collection('articles').add({
                         title,
                         summary,
                         category,
@@ -2041,14 +2167,29 @@
                         authorEmail: currentUser.email,
                         uid: currentUser.uid,
                         authorIP: userIP,
-                        status: 'pending',
+                        status: 'approved', // Published immediately
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         createdAt: new Date().toISOString(),
                         editHistory: [],
-                        locked: false
+                        locked: false,
+                        // SEO Metadata
+                        seoKeywords: seoKeywords,
+                        seoDescription: seoDescription,
+                        seoTitle: `${title} - Forbiary`,
+                        canonicalUrl: `https://forbiary.com/#${articleRef.id}`,
+                        viewCount: 0,
+                        lastViewed: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    alert('Article submitted successfully! It will be reviewed by moderators.');
+                    // Notify moderators about new article
+                    await notifyModeratorsNewArticle(articleRef.id, {
+                        title,
+                        author: currentUser.displayName,
+                        category,
+                        timestamp: new Date()
+                    });
+
+                    alert('Article published successfully! It is now live on Forbiary.');
                 }
 
                 clearForm();
@@ -2195,15 +2336,25 @@
                     return;
                 }
 
+                // Update view count
+                try {
+                    await db.collection('articles').doc(articleId).update({
+                        viewCount: firebase.firestore.FieldValue.increment(1),
+                        lastViewed: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } catch (error) {
+                    console.error('Error updating view count:', error);
+                }
+
                 hideAllPages();
                 document.getElementById('articleReader').style.display = 'block';
                 
                 // Update SEO metadata for article
                 const canonicalUrl = `https://forbiary.com/#${articleId}`;
                 updatePageMetadata(
-                    `${article.title} - Forbiary`,
-                    article.summary,
-                    article.tags.join(', '),
+                    article.seoTitle || `${article.title} - Forbiary`,
+                    article.seoDescription || article.summary,
+                    article.seoKeywords || article.tags.join(', '),
                     canonicalUrl
                 );
                 
@@ -2399,32 +2550,215 @@
             }
         }
 
-        // Load pending articles for moderation
-        async function loadPendingArticles() {
+        // Load recent articles for moderators
+        async function loadRecentArticlesForModerators() {
             if (!isAdmin && !isModerator) return;
 
             try {
                 const snapshot = await db.collection('articles')
-                    .where('status', '==', 'pending')
+                    .where('status', '==', 'approved')
                     .orderBy('timestamp', 'desc')
+                    .limit(20)
                     .get();
 
-                const container = document.getElementById('pendingArticles');
+                const container = document.getElementById('recentArticlesList');
                 container.innerHTML = '';
 
                 if (snapshot.empty) {
-                    container.innerHTML = '<p style="color: #666; text-align: center;">No pending articles.</p>';
+                    container.innerHTML = '<p style="color: #666; text-align: center;">No recent articles.</p>';
                     return;
                 }
 
                 snapshot.forEach(doc => {
                     const article = doc.data();
-                    const articleCard = createModerationCard(doc.id, article);
+                    const articleCard = createModeratorReviewCard(doc.id, article);
                     container.appendChild(articleCard);
                 });
             } catch (error) {
-                console.error('Error loading pending articles:', error);
+                console.error('Error loading recent articles:', error);
             }
+        }
+
+        // Load moderator notifications
+        async function loadModeratorNotifications() {
+            if (!isAdmin && !isModerator) return;
+
+            try {
+                const snapshot = await db.collection('moderatorNotifications')
+                    .orderBy('timestamp', 'desc')
+                    .limit(50)
+                    .get();
+
+                const container = document.getElementById('moderatorNotifications');
+                container.innerHTML = '';
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color: #666; text-align: center;">No notifications.</p>';
+                    return;
+                }
+
+                let unreadCount = 0;
+                snapshot.forEach(doc => {
+                    const notification = doc.data();
+                    if (!notification.read) unreadCount++;
+                    
+                    const notificationCard = createNotificationCard(doc.id, notification);
+                    container.appendChild(notificationCard);
+                });
+
+                // Update notification badge
+                const badge = document.getElementById('notificationBadge');
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        // Load moderator suggestions
+        async function loadModeratorSuggestions() {
+            if (!currentUser || (!isAdmin && !isModerator)) return;
+
+            try {
+                const snapshot = await db.collection('moderatorSuggestions')
+                    .where('moderatorId', '==', currentUser.uid)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                const container = document.getElementById('moderatorSuggestions');
+                container.innerHTML = '';
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color: #666; text-align: center;">You haven\'t made any suggestions yet.</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const suggestion = doc.data();
+                    const suggestionCard = createSuggestionCard(doc.id, suggestion);
+                    container.appendChild(suggestionCard);
+                });
+            } catch (error) {
+                console.error('Error loading suggestions:', error);
+            }
+        }
+
+        // Create moderator review card for recent articles
+        function createModeratorReviewCard(id, article) {
+            const card = document.createElement('div');
+            card.style.cssText = 'background: #f8f9fa; border: 1px solid #a2a9b1; padding: 20px; border-radius: 4px; margin-bottom: 20px;';
+
+            const date = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'Recently';
+            const timeAgo = article.timestamp ? getTimeAgo(article.timestamp.toDate()) : 'Recently';
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #333;">
+                            <a href="#" onclick="openArticle('${id}')" style="color: #0645ad; text-decoration: none;">${article.title}</a>
+                        </h3>
+                        <p style="margin: 0 0 8px 0; color: #666; line-height: 1.4;">${article.summary}</p>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                            <span>By <strong>${article.author}</strong> • ${timeAgo} • ${article.category}</span>
+                            ${article.viewCount ? ` • ${article.viewCount} views` : ''}
+                        </div>
+                        <div style="font-size: 12px; color: #999;">
+                            <strong>SEO Keywords:</strong> ${article.seoKeywords || 'Auto-generated'}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button onclick="suggestImprovement('${id}')" class="wiki-edit-btn" style="background: #17a2b8;">
+                            <i class="fas fa-lightbulb"></i> Suggest
+                        </button>
+                        <button onclick="deleteArticle('${id}')" class="wiki-edit-btn" style="background: #dc3545;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                        <button onclick="openArticle('${id}')" class="wiki-edit-btn" style="background: #6c757d;">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Create notification card
+        function createNotificationCard(id, notification) {
+            const card = document.createElement('div');
+            const isUnread = !notification.read;
+            card.style.cssText = `background: ${isUnread ? '#fff3cd' : '#f8f9fa'}; border: 1px solid ${isUnread ? '#ffeaa7' : '#a2a9b1'}; padding: 15px; border-radius: 4px; margin-bottom: 15px;`;
+
+            const date = notification.timestamp ? new Date(notification.timestamp.toDate()).toLocaleDateString() : 'Recently';
+            const timeAgo = notification.timestamp ? getTimeAgo(notification.timestamp.toDate()) : 'Recently';
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 16px; color: #333; margin-bottom: 5px;">
+                            ${isUnread ? '<strong>' : ''}${notification.message}${isUnread ? '</strong>' : ''}
+                        </div>
+                        <div style="font-size: 14px; color: #666;">
+                            ${timeAgo} • ${notification.type === 'new_article' ? 'New Article' : 'Notification'}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        ${notification.articleId ? `<button onclick="openArticle('${notification.articleId}')" class="wiki-edit-btn" style="background: #6c757d; font-size: 12px; padding: 4px 8px;">View</button>` : ''}
+                        ${isUnread ? `<button onclick="markNotificationRead('${id}')" class="wiki-edit-btn" style="background: #28a745; font-size: 12px; padding: 4px 8px;">Mark Read</button>` : ''}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Create suggestion card
+        function createSuggestionCard(id, suggestion) {
+            const card = document.createElement('div');
+            card.style.cssText = 'background: #f8f9fa; border: 1px solid #a2a9b1; padding: 15px; border-radius: 4px; margin-bottom: 15px;';
+
+            const date = suggestion.timestamp ? new Date(suggestion.timestamp.toDate()).toLocaleDateString() : 'Recently';
+            const timeAgo = suggestion.timestamp ? getTimeAgo(suggestion.timestamp.toDate()) : 'Recently';
+
+            const statusColor = suggestion.status === 'implemented' ? '#28a745' : 
+                               suggestion.status === 'rejected' ? '#dc3545' : '#ffc107';
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 16px; color: #333; margin-bottom: 5px;">
+                            <strong>${suggestion.type === 'improvement' ? 'Improvement' : 'Deletion'} Suggestion</strong>
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
+                            Article: <a href="#" onclick="openArticle('${suggestion.articleId}')" style="color: #0645ad;">${suggestion.articleTitle}</a>
+                        </div>
+                        <div style="font-size: 14px; color: #333; margin-bottom: 8px;">
+                            ${suggestion.suggestion}
+                        </div>
+                        <div style="font-size: 12px; color: #666;">
+                            ${timeAgo} • Status: <span style="color: ${statusColor}; font-weight: bold;">${suggestion.status.toUpperCase()}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Get time ago helper
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+            if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+            return date.toLocaleDateString();
         }
 
         // Create moderation card
@@ -2672,6 +3006,83 @@
             }
         }
 
+        // Suggest improvement for article
+        async function suggestImprovement(articleId) {
+            if (!currentUser || (!isAdmin && !isModerator)) return;
+
+            const suggestion = prompt('Enter your suggestion for improving this article:');
+            if (!suggestion || !suggestion.trim()) return;
+
+            try {
+                const articleDoc = await db.collection('articles').doc(articleId).get();
+                const article = articleDoc.data();
+
+                await db.collection('moderatorSuggestions').add({
+                    articleId: articleId,
+                    articleTitle: article.title,
+                    moderatorId: currentUser.uid,
+                    moderatorName: currentUser.displayName,
+                    type: 'improvement',
+                    suggestion: suggestion.trim(),
+                    status: 'pending',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert('Suggestion submitted successfully!');
+            } catch (error) {
+                alert('Error submitting suggestion: ' + error.message);
+            }
+        }
+
+        // Delete article
+        async function deleteArticle(articleId) {
+            if (!currentUser || (!isAdmin && !isModerator)) return;
+
+            const reason = prompt('Enter reason for deleting this article (required):');
+            if (!reason || !reason.trim()) return;
+
+            if (confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
+                try {
+                    const articleDoc = await db.collection('articles').doc(articleId).get();
+                    const article = articleDoc.data();
+
+                    // Log the deletion
+                    await db.collection('moderatorSuggestions').add({
+                        articleId: articleId,
+                        articleTitle: article.title,
+                        moderatorId: currentUser.uid,
+                        moderatorName: currentUser.displayName,
+                        type: 'deletion',
+                        suggestion: reason.trim(),
+                        status: 'implemented',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    // Delete the article
+                    await db.collection('articles').doc(articleId).delete();
+
+                    alert('Article deleted successfully!');
+                    loadRecentArticlesForModerators();
+                } catch (error) {
+                    alert('Error deleting article: ' + error.message);
+                }
+            }
+        }
+
+        // Mark notification as read
+        async function markNotificationRead(notificationId) {
+            try {
+                await db.collection('moderatorNotifications').doc(notificationId).update({
+                    read: true,
+                    readAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                loadModeratorNotifications();
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
         // Handle URL hash for direct article links
         function handleHashChange() {
             const hash = window.location.hash.substring(1);
@@ -2697,7 +3108,11 @@
                     uid: "demo-tech-user",
                     status: "approved",
                     locked: false,
-                    editHistory: []
+                    editHistory: [],
+                    seoKeywords: "artificial intelligence, AI, machine learning, neural networks, technology, future, automation, healthcare, autonomous vehicles",
+                    seoDescription: "Exploring the transformative impact of AI on modern society and future possibilities including healthcare, autonomous vehicles, and more.",
+                    seoTitle: "Artificial Intelligence Revolution - Forbiary",
+                    viewCount: 42
                 },
                 {
                     title: "Climate Change Solutions",
@@ -2711,7 +3126,11 @@
                     uid: "demo-climate-user",
                     status: "approved",
                     locked: false,
-                    editHistory: []
+                    editHistory: [],
+                    seoKeywords: "climate change, environment, sustainability, renewable energy, solar power, wind energy, carbon capture, green technology, global warming",
+                    seoDescription: "Comprehensive overview of innovative approaches to combat climate change including renewable energy solutions and carbon capture technologies.",
+                    seoTitle: "Climate Change Solutions - Forbiary",
+                    viewCount: 28
                 },
                 {
                     title: "Digital Marketing Strategies",
@@ -2725,7 +3144,11 @@
                     uid: "demo-marketing-user",
                     status: "approved",
                     locked: false,
-                    editHistory: []
+                    editHistory: [],
+                    seoKeywords: "digital marketing, SEO, social media marketing, content marketing, email marketing, PPC, business strategy, online marketing, customer engagement",
+                    seoDescription: "Essential digital marketing techniques for modern businesses including SEO, social media, content marketing, and customer engagement strategies.",
+                    seoTitle: "Digital Marketing Strategies - Forbiary",
+                    viewCount: 35
                 }
             ];
 
@@ -2772,5 +3195,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a1a8074615514',t:'MTc1MzU5Nzk4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a2592a487aa12',t:'MTc1MzU5ODQ0MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
