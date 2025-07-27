@@ -1213,20 +1213,31 @@
 
                         <div style="margin-bottom: 20px;">
                             <label style="display: block; font-weight: bold; margin-bottom: 5px;">Featured Image</label>
-                            <div style="background: #f8f9fa; border: 2px dashed #a2a9b1; padding: 30px; text-align: center; border-radius: 8px; position: relative;">
-                                <i class="fas fa-image" style="font-size: 48px; color: #6c757d; margin-bottom: 15px;"></i>
-                                <div style="margin-bottom: 10px;">
-                                    <span style="background: #ffc107; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">COMING SOON</span>
+                            <div style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 20px; border-radius: 8px;">
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-weight: normal; margin-bottom: 5px; font-size: 14px;">Image URL:</label>
+                                    <input type="url" id="imageUrl" style="width: 100%; padding: 8px; border: 1px solid #a2a9b1; border-radius: 4px; font-size: 14px;" placeholder="Enter image URL (e.g., https://example.com/image.jpg)">
                                 </div>
-                                <p style="margin: 0; color: #666; font-size: 14px;">Image upload feature will be available soon</p>
-                                <p style="margin: 5px 0 0 0; color: #999; font-size: 12px;">For now, images can be manually added via Firebase</p>
-                                <input type="file" id="articleImage" accept="image/*" style="position: absolute; opacity: 0; pointer-events: none;" disabled>
+                                <div id="imagePreview" style="display: none; text-align: center; margin-top: 15px;">
+                                    <img id="previewImg" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="Image preview">
+                                    <div style="margin-top: 10px;">
+                                        <button type="button" onclick="removeImage()" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                            <i class="fas fa-times"></i> Remove Image
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                                    <i class="fas fa-info-circle"></i> Supported formats: JPG, PNG, GIF, WebP. Image should be publicly accessible.
+                                </div>
                             </div>
                         </div>
 
                         <div style="margin-bottom: 20px;">
                             <label style="display: block; font-weight: bold; margin-bottom: 5px;">References</label>
                             <textarea id="articleReferences" rows="3" style="width: 100%; padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px;" placeholder="URLs, books, or other sources (one per line)"></textarea>
+                            <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                                <i class="fas fa-info-circle"></i> References will be automatically numbered like Wikipedia [1], [2], [3]...
+                            </div>
                         </div>
 
                         <div style="margin-bottom: 20px;">
@@ -1791,6 +1802,7 @@
                 // Initialize editor first, then load content
                 setTimeout(() => {
                     initializeEditor();
+                    setupImagePreview();
                     setTimeout(() => loadArticleForEditing(articleId), 300);
                 }, 100);
             } else {
@@ -1807,7 +1819,10 @@
                 document.getElementById('submitButtonText').textContent = 'Submit for Review';
                 updatePageMetadata('Create Article - Forbiary', 'Create a new article on Forbiary knowledge platform.');
                 clearForm();
-                setTimeout(() => initializeEditor(), 100);
+                setTimeout(() => {
+                    initializeEditor();
+                    setupImagePreview();
+                }, 100);
             }
         }
 
@@ -1867,6 +1882,43 @@
             document.getElementById('categoriesPage').style.display = 'none';
             document.getElementById('pendingEditsPage').style.display = 'none';
             document.getElementById('profilePage').style.display = 'none';
+        }
+
+        // Image URL preview functionality
+        function setupImagePreview() {
+            const imageUrlInput = document.getElementById('imageUrl');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (imageUrlInput) {
+                imageUrlInput.addEventListener('input', function() {
+                    const url = this.value.trim();
+                    if (url && isValidImageUrl(url)) {
+                        previewImg.src = url;
+                        previewImg.onload = function() {
+                            imagePreview.style.display = 'block';
+                        };
+                        previewImg.onerror = function() {
+                            imagePreview.style.display = 'none';
+                            showNotification('Invalid image URL or image cannot be loaded', 'warning');
+                        };
+                    } else {
+                        imagePreview.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        // Validate image URL
+        function isValidImageUrl(url) {
+            const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
+            return url.match(/^https?:\/\/.+/) && (imageExtensions.test(url) || url.includes('imgur.com') || url.includes('cloudinary.com') || url.includes('unsplash.com'));
+        }
+
+        // Remove image
+        function removeImage() {
+            document.getElementById('imageUrl').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
         }
 
         // Initialize Quill editor with enhanced toolbar
@@ -2057,6 +2109,7 @@
                 const referencesElement = document.getElementById('articleReferences');
                 const editSummaryElement = document.getElementById('editSummary');
                 const codeTextareaElement = document.getElementById('codeTextarea');
+                const imageUrlElement = document.getElementById('imageUrl');
 
                 if (titleElement) titleElement.value = '';
                 if (summaryElement) summaryElement.value = '';
@@ -2065,6 +2118,10 @@
                 if (referencesElement) referencesElement.value = '';
                 if (editSummaryElement) editSummaryElement.value = '';
                 if (codeTextareaElement) codeTextareaElement.value = '';
+                if (imageUrlElement) {
+                    imageUrlElement.value = '';
+                    document.getElementById('imagePreview').style.display = 'none';
+                }
                 
                 if (quill && quill.setContents) {
                     try {
@@ -2096,6 +2153,7 @@
                 const tagsElement = document.getElementById('articleTags');
                 const referencesElement = document.getElementById('articleReferences');
                 const codeTextareaElement = document.getElementById('codeTextarea');
+                const imageUrlElement = document.getElementById('imageUrl');
 
                 if (titleElement) titleElement.value = article.title || '';
                 if (summaryElement) summaryElement.value = article.summary || '';
@@ -2103,6 +2161,15 @@
                 if (tagsElement) tagsElement.value = (article.tags || []).join(', ');
                 if (referencesElement) referencesElement.value = (article.references || []).join('\n');
                 if (codeTextareaElement) codeTextareaElement.value = article.content || '';
+                if (imageUrlElement && article.featuredImage) {
+                    imageUrlElement.value = article.featuredImage;
+                    const previewImg = document.getElementById('previewImg');
+                    const imagePreview = document.getElementById('imagePreview');
+                    if (previewImg && imagePreview) {
+                        previewImg.src = article.featuredImage;
+                        imagePreview.style.display = 'block';
+                    }
+                }
                 
                 // Safely populate Quill editor
                 if (quill && quill.root) {
@@ -2742,6 +2809,7 @@
                 const referencesElement = document.getElementById('articleReferences');
                 const editSummaryElement = document.getElementById('editSummary');
                 const codeTextareaElement = document.getElementById('codeTextarea');
+                const imageUrlElement = document.getElementById('imageUrl');
 
                 if (!titleElement || !summaryElement || !categoryElement || !tagsElement || 
                     !referencesElement || !editSummaryElement || !codeTextareaElement) {
@@ -2755,6 +2823,7 @@
                 const tagsValue = tagsElement.value ? tagsElement.value.trim() : '';
                 const referencesValue = referencesElement.value ? referencesElement.value.trim() : '';
                 const editSummary = editSummaryElement.value ? editSummaryElement.value.trim() : '';
+                const featuredImage = imageUrlElement ? imageUrlElement.value.trim() : '';
 
                 // Process tags and references with validation
                 const tags = tagsValue ? tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag && tag.length > 0) : [];
@@ -2829,7 +2898,7 @@
                 const realtimeTimestamp = currentTime.getTime();
 
                 if (currentEditingArticleId) {
-                    // Update existing article directly
+                    // Update existing article with enhanced edit tracking
                     const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags, category);
                     const seoDescription = generateSEODescription(summary, htmlContent, title, category);
                     
@@ -2838,7 +2907,7 @@
                     tempDiv.innerHTML = htmlContent;
                     const wordCount = (tempDiv.textContent || tempDiv.innerText || '').split(/\s+/).filter(word => word.length > 0).length;
                     
-                    // Get original article for edit history
+                    // Get original article for edit history and change detection
                     let originalArticle = {};
                     try {
                         const originalDoc = await db.collection('articles').doc(currentEditingArticleId).get();
@@ -2847,35 +2916,74 @@
                         console.warn('Could not load original article for edit history:', error);
                     }
                     
-                    // Prepare edit history entry with safe timestamp
+                    // Check if title has changed - if so, send for review
+                    const titleChanged = originalArticle.title && originalArticle.title !== title;
+                    
+                    // Prepare edit history entry with detailed change tracking
                     const editHistoryEntry = {
                         editor: currentUser.displayName,
+                        editorUid: currentUser.uid,
                         editSummary: editSummary || 'No summary provided',
                         timestamp: firestoreTimestamp,
                         previousTitle: originalArticle.title || '',
-                        previousSummary: originalArticle.summary || ''
+                        previousSummary: originalArticle.summary || '',
+                        titleChanged: titleChanged,
+                        changesDetected: {
+                            title: titleChanged,
+                            summary: originalArticle.summary !== summary,
+                            content: originalArticle.content !== htmlContent,
+                            category: originalArticle.category !== category,
+                            tags: JSON.stringify(originalArticle.tags || []) !== JSON.stringify(tags),
+                            references: JSON.stringify(originalArticle.references || []) !== JSON.stringify(references),
+                            featuredImage: (originalArticle.featuredImage || '') !== featuredImage
+                        }
                     };
 
                     const updatedArticleData = {
-                        title,
                         summary,
                         category,
                         tags,
                         references,
                         content: htmlContent,
+                        featuredImage: featuredImage || null,
                         editSummary: editSummary || 'No summary provided',
                         lastEditedBy: currentUser.displayName,
+                        lastEditedByUid: currentUser.uid,
                         authorIP: userIP,
                         wordCount,
                         // Enhanced SEO Metadata
                         seoKeywords,
                         seoDescription,
-                        seoTitle: `${title} - Forbiary Knowledge Platform`,
+                        seoTitle: `${titleChanged ? originalArticle.title : title} - Forbiary Knowledge Platform`,
                         canonicalUrl: `https://forbiary.com/#${currentEditingArticleId}`,
                         // Additional metadata for better SEO
                         readingTime: Math.ceil(wordCount / 200), // Average reading speed
                         lastOptimized: new Date().toISOString()
                     };
+
+                    // If title changed, create pending edit for moderator review
+                    if (titleChanged) {
+                        try {
+                            await db.collection('pendingTitleChanges').add({
+                                articleId: currentEditingArticleId,
+                                originalTitle: originalArticle.title,
+                                newTitle: title,
+                                editorUid: currentUser.uid,
+                                editorName: currentUser.displayName,
+                                editSummary: editSummary || 'Title change',
+                                timestamp: firestoreTimestamp,
+                                status: 'pending'
+                            });
+                            
+                            showNotification('📝 Article updated! Title change sent for moderator review.', 'info');
+                        } catch (error) {
+                            console.warn('Could not create pending title change:', error);
+                        }
+                    } else {
+                        // Include title in update if it hasn't changed
+                        updatedArticleData.title = title;
+                        updatedArticleData.seoTitle = `${title} - Forbiary Knowledge Platform`;
+                    }
 
                     // Update article in Firestore with serverTimestamp for update operations
                     try {
@@ -2906,7 +3014,9 @@
                         console.warn('Could not save to Realtime Database:', realtimeError);
                     }
 
-                    showNotification('🎉 Article updated successfully! Your changes are now live.', 'success');
+                    if (!titleChanged) {
+                        showNotification('🎉 Article updated successfully! Your changes are now live.', 'success');
+                    }
                 } else {
                     // Create new article with comprehensive SEO
                     const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags, category);
@@ -2925,6 +3035,7 @@
                         tags,
                         references,
                         content: htmlContent,
+                        featuredImage: featuredImage || null,
                         editSummary: editSummary || 'No summary provided',
                         author: currentUser.displayName,
                         authorEmail: currentUser.email,
@@ -2945,10 +3056,12 @@
                         ogTitle: title,
                         ogDescription: seoDescription,
                         ogType: 'article',
+                        ogImage: featuredImage || 'https://community.oriontec.xyz/IMG_9197.png',
                         // Twitter Card metadata
                         twitterCard: 'summary_large_image',
                         twitterTitle: title,
                         twitterDescription: seoDescription,
+                        twitterImage: featuredImage || 'https://community.oriontec.xyz/IMG_9197.png',
                         // Additional SEO fields
                         metaRobots: 'index, follow',
                         lastOptimized: currentTime.toISOString(),
@@ -3357,15 +3470,24 @@
 
                 const featuredImageHtml = article.featuredImage ? 
                     `<div style="margin: 20px 0; text-align: center;">
-                        <img src="${article.featuredImage}" alt="${article.title}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
+                        <img src="${article.featuredImage}" alt="Featured image for ${article.title}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;" onerror="this.style.display='none'">
+                        <div style="font-size: 12px; color: #666; margin-top: 8px; font-style: italic;">Featured Image</div>
                     </div>` : '';
 
                 const referencesHtml = article.references.length > 0 ? 
-                    `<div class="mt-8 p-6 bg-gray-50 rounded-lg">
-                        <h3 class="text-lg font-semibold mb-3">References</h3>
-                        <ul class="space-y-2">
-                            ${article.references.map(ref => `<li class="text-sm text-gray-600">• ${ref}</li>`).join('')}
-                        </ul>
+                    `<div style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333; border-bottom: 1px solid #a2a9b1; padding-bottom: 8px;">
+                            <i class="fas fa-book" style="margin-right: 8px; color: #0645ad;"></i>References
+                        </h3>
+                        <ol style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                            ${article.references.map((ref, index) => {
+                                const isUrl = ref.match(/^https?:\/\/.+/);
+                                const refContent = isUrl ? 
+                                    `<a href="${ref}" target="_blank" rel="noopener noreferrer" style="color: #0645ad; text-decoration: none;">${ref}</a>` : 
+                                    ref;
+                                return `<li style="margin-bottom: 8px; font-size: 14px; color: #333;">${refContent}</li>`;
+                            }).join('')}
+                        </ol>
                     </div>` : '';
 
                 const isLocked = article.locked || false;
@@ -4245,7 +4367,7 @@
             }
         }
 
-        // Calculate detailed user statistics and points
+        // Calculate detailed user statistics and points with content change tracking
         function calculateDetailedStats(articlesData, editsData) {
             // Initialize counters
             let totalArticles = 0;
@@ -4253,6 +4375,8 @@
             let rejectedArticles = 0;
             let pendingArticles = 0;
             let totalViews = 0;
+            let contentAdditions = 0;
+            let contentRemovals = 0;
 
             // Process articles
             articlesData.forEach(article => {
@@ -4264,6 +4388,25 @@
                     rejectedArticles++;
                 } else if (article.status === 'pending') {
                     pendingArticles++;
+                }
+
+                // Track content changes from edit history
+                if (article.editHistory && article.editHistory.length > 0) {
+                    article.editHistory.forEach(edit => {
+                        if (edit.changesDetected) {
+                            if (edit.changesDetected.content) {
+                                // Simple heuristic: if content length increased, it's an addition
+                                const currentLength = article.content ? article.content.length : 0;
+                                const previousLength = edit.previousContent ? edit.previousContent.length : 0;
+                                
+                                if (currentLength > previousLength) {
+                                    contentAdditions++;
+                                } else if (currentLength < previousLength) {
+                                    contentRemovals++;
+                                }
+                            }
+                        }
+                    });
                 }
             });
 
@@ -4285,7 +4428,7 @@
                 }
             });
 
-            // Calculate points with detailed breakdown
+            // Calculate points with detailed breakdown including content change penalties
             const articlePoints = {
                 approved: approvedArticles * 15,    // +15 for each approved article
                 rejected: rejectedArticles * -8,    // -8 for each rejected article
@@ -4296,6 +4439,12 @@
                 approved: approvedEdits * 8,        // +8 for each approved edit
                 rejected: rejectedEdits * -3,       // -3 for each rejected edit
                 pending: pendingEdits * 1           // +1 for each pending edit
+            };
+
+            // Content change penalties
+            const contentChangePoints = {
+                removals: contentRemovals * -2,     // -2 points for each content removal
+                additions: contentAdditions * 1     // +1 point for each content addition
             };
 
             // Bonus points for high engagement
@@ -4309,6 +4458,8 @@
                 editPoints.approved + 
                 editPoints.rejected + 
                 editPoints.pending +
+                contentChangePoints.removals +
+                contentChangePoints.additions +
                 viewBonus + 
                 contributionBonus;
 
@@ -4322,9 +4473,12 @@
                 rejectedEdits,
                 pendingEdits,
                 totalViews,
+                contentAdditions,
+                contentRemovals,
                 totalPoints,
                 articlePoints,
                 editPoints,
+                contentChangePoints,
                 viewBonus,
                 contributionBonus,
                 // Additional metrics
@@ -4676,5 +4830,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965b090b54f42e32',t:'MTc1MzYwNzc1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965b3a9650484049',t:'MTc1MzYwOTc4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
