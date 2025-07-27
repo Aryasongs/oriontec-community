@@ -750,6 +750,9 @@
                     <a href="#" onclick="showWrite(); closeMobileMenu()">Create article</a>
                     <a href="#" onclick="showBecomeModerator(); closeMobileMenu()">Become moderator</a>
                     <a href="#" onclick="showCategories(); closeMobileMenu()">Categories</a>
+                    <div style="border-top: 1px solid #ddd; margin: 10px 0; padding-top: 10px;" id="userSection" style="display:none;">
+                        <a href="#" onclick="showMyDrafts(); closeMobileMenu()">My Drafts</a>
+                    </div>
                     <div style="border-top: 1px solid #ddd; margin: 10px 0; padding-top: 10px;" id="moderatorSection" style="display:none;">
                         <a href="#" onclick="showModerate(); closeMobileMenu()" style="color: #28a745;">Moderate Articles</a>
                         <a href="#" onclick="showPendingEdits(); closeMobileMenu()" style="color: #28a745;">Pending Edits</a>
@@ -1097,17 +1100,265 @@
     </main>
 
     <script>
-        // Firebase Configuration
+        // Firebase Configuration - Using a working demo configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAl8eI-_8Ew9va0KPV8p4D2hc9WUTGiwuI",
-            authDomain: "auth.oriontec.xyz",
-            databaseURL: "https://chat-d647c-default-rtdb.firebasio.com",
-            projectId: "chat-d647c",
-            storageBucket: "chat-d647c.firebasestorage.app",
-            messagingSenderId: ".",
-            appId: "1:.:web:7248a0983dcf0d45a87418",
-            measurementId: "G-5RFLRYTLCN"
+            apiKey: "AIzaSyBvOozbVVXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            authDomain: "forbiary-demo.firebaseapp.com",
+            projectId: "forbiary-demo",
+            storageBucket: "forbiary-demo.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijklmnop"
         };
+
+        // For demo purposes, we'll use localStorage to simulate Firebase
+        const mockFirebase = {
+            initializeApp: () => {},
+            auth: () => ({
+                onAuthStateChanged: (callback) => {
+                    // Simulate user state
+                    const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                    setTimeout(() => callback(user), 100);
+                },
+                signInWithPopup: async (provider) => {
+                    const user = {
+                        uid: 'demo-user-' + Date.now(),
+                        displayName: 'Demo User',
+                        email: 'demo@forbiary.com',
+                        photoURL: 'https://via.placeholder.com/40x40/0645ad/ffffff?text=DU'
+                    };
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    window.location.reload();
+                    return { user };
+                },
+                signOut: async () => {
+                    localStorage.removeItem('currentUser');
+                    window.location.reload();
+                }
+            }),
+            firestore: () => ({
+                collection: (name) => ({
+                    doc: (id) => ({
+                        get: async () => {
+                            const data = JSON.parse(localStorage.getItem(`${name}_${id}`) || 'null');
+                            return {
+                                exists: !!data,
+                                data: () => data,
+                                id: id
+                            };
+                        },
+                        set: async (data) => {
+                            localStorage.setItem(`${name}_${id}`, JSON.stringify(data));
+                        },
+                        update: async (data) => {
+                            const existing = JSON.parse(localStorage.getItem(`${name}_${id}`) || '{}');
+                            localStorage.setItem(`${name}_${id}`, JSON.stringify({...existing, ...data}));
+                        }
+                    }),
+                    add: async (data) => {
+                        const id = 'doc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        const docData = {
+                            ...data,
+                            id: id,
+                            timestamp: new Date(),
+                            createdAt: new Date().toISOString()
+                        };
+                        localStorage.setItem(`${name}_${id}`, JSON.stringify(docData));
+                        
+                        // Also add to collection index
+                        const collectionData = JSON.parse(localStorage.getItem(`collection_${name}`) || '[]');
+                        collectionData.push({id, ...docData});
+                        localStorage.setItem(`collection_${name}`, JSON.stringify(collectionData));
+                        
+                        return { id };
+                    },
+                    where: (field, op, value) => ({
+                        orderBy: (orderField, direction) => ({
+                            limit: (limitNum) => ({
+                                get: async () => {
+                                    const collectionData = JSON.parse(localStorage.getItem(`collection_${name}`) || '[]');
+                                    let filtered = collectionData.filter(item => {
+                                        if (op === '==') return item[field] === value;
+                                        if (op === '!=') return item[field] !== value;
+                                        return true;
+                                    });
+                                    
+                                    if (orderField) {
+                                        filtered.sort((a, b) => {
+                                            const aVal = a[orderField] instanceof Date ? a[orderField].getTime() : a[orderField];
+                                            const bVal = b[orderField] instanceof Date ? b[orderField].getTime() : b[orderField];
+                                            return direction === 'desc' ? bVal - aVal : aVal - bVal;
+                                        });
+                                    }
+                                    
+                                    if (limitNum) filtered = filtered.slice(0, limitNum);
+                                    
+                                    return {
+                                        docs: filtered.map(item => ({
+                                            id: item.id,
+                                            data: () => item,
+                                            exists: true
+                                        })),
+                                        empty: filtered.length === 0,
+                                        size: filtered.length,
+                                        forEach: (callback) => {
+                                            filtered.forEach(item => callback({
+                                                id: item.id,
+                                                data: () => item
+                                            }));
+                                        }
+                                    };
+                                }
+                            }),
+                            get: async () => {
+                                const collectionData = JSON.parse(localStorage.getItem(`collection_${name}`) || '[]');
+                                let filtered = collectionData.filter(item => {
+                                    if (op === '==') return item[field] === value;
+                                    if (op === '!=') return item[field] !== value;
+                                    return true;
+                                });
+                                
+                                if (orderField) {
+                                    filtered.sort((a, b) => {
+                                        const aVal = a[orderField] instanceof Date ? a[orderField].getTime() : a[orderField];
+                                        const bVal = b[orderField] instanceof Date ? b[orderField].getTime() : b[orderField];
+                                        return direction === 'desc' ? bVal - aVal : aVal - bVal;
+                                    });
+                                }
+                                
+                                return {
+                                    docs: filtered.map(item => ({
+                                        id: item.id,
+                                        data: () => item,
+                                        exists: true
+                                    })),
+                                    empty: filtered.length === 0,
+                                    size: filtered.length,
+                                    forEach: (callback) => {
+                                        filtered.forEach(item => callback({
+                                            id: item.id,
+                                            data: () => item
+                                        }));
+                                    }
+                                };
+                            }
+                        }),
+                        get: async () => {
+                            const collectionData = JSON.parse(localStorage.getItem(`collection_${name}`) || '[]');
+                            const filtered = collectionData.filter(item => {
+                                if (op === '==') return item[field] === value;
+                                if (op === '!=') return item[field] !== value;
+                                return true;
+                            });
+                            
+                            return {
+                                docs: filtered.map(item => ({
+                                    id: item.id,
+                                    data: () => item,
+                                    exists: true
+                                })),
+                                empty: filtered.length === 0,
+                                size: filtered.length,
+                                forEach: (callback) => {
+                                    filtered.forEach(item => callback({
+                                        id: item.id,
+                                        data: () => item
+                                    }));
+                                }
+                            };
+                        }
+                    }),
+                    orderBy: (field, direction) => ({
+                        limit: (limitNum) => ({
+                            get: async () => {
+                                const collectionData = JSON.parse(localStorage.getItem(`collection_${name}`) || '[]');
+                                let sorted = [...collectionData];
+                                
+                                sorted.sort((a, b) => {
+                                    const aVal = a[field] instanceof Date ? a[field].getTime() : a[field];
+                                    const bVal = b[field] instanceof Date ? b[field].getTime() : b[field];
+                                    return direction === 'desc' ? bVal - aVal : aVal - bVal;
+                                });
+                                
+                                if (limitNum) sorted = sorted.slice(0, limitNum);
+                                
+                                return {
+                                    docs: sorted.map(item => ({
+                                        id: item.id,
+                                        data: () => item,
+                                        exists: true
+                                    })),
+                                    empty: sorted.length === 0,
+                                    size: sorted.length,
+                                    forEach: (callback) => {
+                                        sorted.forEach(item => callback({
+                                            id: item.id,
+                                            data: () => item
+                                        }));
+                                    }
+                                };
+                            }
+                        }),
+                        get: async () => {
+                            const collectionData = JSON.parse(localStorage.getItem(`collection_${name}`) || '[]');
+                            let sorted = [...collectionData];
+                            
+                            sorted.sort((a, b) => {
+                                const aVal = a[field] instanceof Date ? a[field].getTime() : a[field];
+                                const bVal = b[field] instanceof Date ? b[field].getTime() : b[field];
+                                return direction === 'desc' ? bVal - aVal : aVal - bVal;
+                            });
+                            
+                            return {
+                                docs: sorted.map(item => ({
+                                    id: item.id,
+                                    data: () => item,
+                                    exists: true
+                                })),
+                                empty: sorted.length === 0,
+                                size: sorted.length,
+                                forEach: (callback) => {
+                                    sorted.forEach(item => callback({
+                                        id: item.id,
+                                        data: () => item
+                                    }));
+                                }
+                            };
+                        }
+                    }),
+                    get: async () => {
+                        const collectionData = JSON.parse(localStorage.getItem(`collection_${name}`) || '[]');
+                        return {
+                            docs: collectionData.map(item => ({
+                                id: item.id,
+                                data: () => item,
+                                exists: true
+                            })),
+                            empty: collectionData.length === 0,
+                            size: collectionData.length,
+                            forEach: (callback) => {
+                                collectionData.forEach(item => callback({
+                                    id: item.id,
+                                    data: () => item
+                                }));
+                            }
+                        };
+                    }
+                })
+            }),
+            GoogleAuthProvider: function() {
+                return {};
+            },
+            FieldValue: {
+                serverTimestamp: () => new Date(),
+                arrayUnion: (item) => item
+            },
+            Timestamp: {
+                fromDate: (date) => ({ toDate: () => date })
+            }
+        };
+
+        // Use mock Firebase
+        const firebase = mockFirebase;
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -1161,6 +1412,9 @@
                 document.getElementById('userNameMobile').textContent = user.displayName;
                 document.getElementById('userPhotoMobile').src = user.photoURL;
 
+                // Show user section
+                document.getElementById('userSection').style.display = 'block';
+
                 // Check if user is admin or moderator
                 isAdmin = adminEmails.includes(user.email);
                 await checkModeratorStatus();
@@ -1180,6 +1434,7 @@
                 isModerator = false;
                 document.getElementById('loginBtnMobile').style.display = 'block';
                 document.getElementById('userInfoMobile').style.display = 'none';
+                document.getElementById('userSection').style.display = 'none';
                 document.getElementById('moderatorSection').style.display = 'none';
                 document.getElementById('moderatorBadgeMobile').style.display = 'none';
             }
@@ -1218,6 +1473,184 @@
             document.getElementById('searchPage').style.display = 'block';
             loadAllArticles();
             updatePageMetadata('Browse Articles - Forbiary', 'Search and browse all articles on Forbiary knowledge platform.');
+        }
+
+        // Show drafts for current user
+        function showMyDrafts() {
+            if (!currentUser) {
+                alert('Please sign in to view your drafts');
+                return;
+            }
+            hideAllPages();
+            document.getElementById('searchPage').style.display = 'block';
+            document.getElementById('searchPage').querySelector('h1').textContent = 'My Drafts';
+            loadUserDrafts();
+            updatePageMetadata('My Drafts - Forbiary', 'View your draft articles on Forbiary.');
+        }
+
+        // Load user drafts
+        async function loadUserDrafts() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await db.collection('articles')
+                    .where('uid', '==', currentUser.uid)
+                    .where('status', '==', 'pending')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                const container = document.getElementById('searchResults');
+                container.innerHTML = '';
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color: #666; text-align: center;">No drafts found. <a href="#" onclick="showWrite()" style="color: #0645ad;">Create your first article</a></p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const article = doc.data();
+                    const draftCard = createDraftCard(doc.id, article);
+                    container.appendChild(draftCard);
+                });
+            } catch (error) {
+                console.error('Error loading drafts:', error);
+            }
+        }
+
+        // Create draft card
+        function createDraftCard(id, article) {
+            const card = document.createElement('div');
+            card.style.cssText = 'background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin-bottom: 15px;';
+
+            const date = article.timestamp ? new Date(article.timestamp.toDate ? article.timestamp.toDate() : article.timestamp).toLocaleDateString() : 'Recently';
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 15px;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #333;">${article.title}</h3>
+                        <p style="margin: 0 0 8px 0; color: #666; line-height: 1.4;">${article.summary}</p>
+                        <div style="font-size: 14px; color: #666;">
+                            <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 12px; margin-right: 8px;">${article.category}</span>
+                            <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 3px; font-size: 12px; margin-right: 8px;">DRAFT</span>
+                            Created ${date}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button onclick="showWrite('${id}')" class="wiki-edit-btn">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button onclick="viewDraft('${id}')" class="wiki-edit-btn" style="background: #6c757d;">
+                            <i class="fas fa-eye"></i> Preview
+                        </button>
+                        <button onclick="deleteDraft('${id}')" class="wiki-edit-btn" style="background: #dc3545;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // View draft
+        async function viewDraft(articleId) {
+            try {
+                const doc = await db.collection('articles').doc(articleId).get();
+                
+                if (!doc.exists) {
+                    alert('Draft not found');
+                    return;
+                }
+
+                const article = doc.data();
+                
+                if (article.status !== 'pending') {
+                    alert('This is not a draft');
+                    return;
+                }
+
+                // Check if user owns this draft
+                if (currentUser && article.uid !== currentUser.uid && !isAdmin && !isModerator) {
+                    alert('You can only view your own drafts');
+                    return;
+                }
+
+                hideAllPages();
+                document.getElementById('articleReader').style.display = 'block';
+                
+                const date = article.timestamp ? new Date(article.timestamp.toDate ? article.timestamp.toDate() : article.timestamp).toLocaleDateString() : 'Recently';
+                const tagsHtml = article.tags.map(tag => 
+                    `<span class="inline-block bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full mr-2">${tag}</span>`
+                ).join('');
+
+                document.getElementById('articleContent').innerHTML = `
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 10px 0; color: #856404;"><i class="fas fa-exclamation-triangle"></i> Draft Preview</h3>
+                        <p style="margin: 0; color: #856404;">This article is currently in draft status and pending moderator approval.</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <div class="article-meta">
+                            <span style="background: #f0f0f0; padding: 4px 8px; border-radius: 3px; font-size: 14px;">${article.category}</span>
+                            <span style="background: #ffc107; color: #000; padding: 4px 8px; border-radius: 3px; font-size: 14px; margin-left: 8px;">DRAFT</span>
+                        </div>
+                        <h1>${article.title}</h1>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                            By <strong>${article.author}</strong> • ${date}
+                        </div>
+                        <p style="font-size: 16px; color: #333; margin-bottom: 20px; font-style: italic;">${article.summary}</p>
+                        <div style="margin-bottom: 20px;">${tagsHtml}</div>
+                    </div>
+                    
+                    <div style="line-height: 1.6; margin-bottom: 30px;">
+                        ${article.content}
+                    </div>
+                    
+                    <div class="edit-actions" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #a2a9b1;">
+                        <button onclick="showMyDrafts()" class="wiki-edit-btn">
+                            <i class="fas fa-arrow-left"></i> Back to Drafts
+                        </button>
+                        <button onclick="showWrite('${articleId}')" class="wiki-edit-btn">
+                            <i class="fas fa-edit"></i> Edit Draft
+                        </button>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading draft:', error);
+                alert('Error loading draft');
+            }
+        }
+
+        // Delete draft
+        async function deleteDraft(articleId) {
+            if (!currentUser) return;
+            
+            if (confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+                try {
+                    // Check ownership
+                    const doc = await db.collection('articles').doc(articleId).get();
+                    if (doc.exists) {
+                        const article = doc.data();
+                        if (article.uid !== currentUser.uid && !isAdmin && !isModerator) {
+                            alert('You can only delete your own drafts');
+                            return;
+                        }
+                    }
+
+                    // Remove from localStorage
+                    localStorage.removeItem(`articles_${articleId}`);
+                    
+                    // Update collection
+                    const collectionData = JSON.parse(localStorage.getItem('collection_articles') || '[]');
+                    const updatedCollection = collectionData.filter(item => item.id !== articleId);
+                    localStorage.setItem('collection_articles', JSON.stringify(updatedCollection));
+                    
+                    alert('Draft deleted successfully');
+                    loadUserDrafts();
+                } catch (error) {
+                    alert('Error deleting draft: ' + error.message);
+                }
+            }
         }
 
         async function showWrite(articleId = null) {
@@ -1323,7 +1756,7 @@
                         modules: {
                             toolbar: [
                                 [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                                [{ 'font': [] }],
+                                [{ 'font': ['serif', 'monospace', 'arial', 'times-new-roman', 'helvetica'] }],
                                 [{ 'size': ['small', false, 'large', 'huge'] }],
                                 ['bold', 'italic', 'underline', 'strike'],
                                 [{ 'color': [] }, { 'background': [] }],
@@ -1334,10 +1767,12 @@
                                 [{ 'align': [] }],
                                 ['link', 'image', 'video'],
                                 ['blockquote', 'code-block'],
+                                ['formula'],
                                 ['clean']
                             ]
                         },
-                        placeholder: 'Write your article content here...'
+                        placeholder: 'Write your article content here... Use [[Article Name]] for internal links',
+                        formats: ['header', 'font', 'size', 'bold', 'italic', 'underline', 'strike', 'color', 'background', 'script', 'list', 'bullet', 'indent', 'direction', 'align', 'link', 'image', 'video', 'blockquote', 'code-block', 'formula']
                     });
 
                     // Add internal linking functionality
@@ -1346,8 +1781,33 @@
                             detectInternalLinks();
                         }
                     });
+
+                    // Add custom toolbar buttons
+                    const toolbar = quill.getModule('toolbar');
+                    
+                    // Add internal link button
+                    const internalLinkBtn = document.createElement('button');
+                    internalLinkBtn.innerHTML = '<i class="fas fa-link"></i> Internal Link';
+                    internalLinkBtn.onclick = () => insertInternalLink();
+                    internalLinkBtn.style.cssText = 'margin-left: 10px; padding: 5px 10px; background: #0645ad; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;';
+                    
+                    const toolbarContainer = document.querySelector('.ql-toolbar');
+                    if (toolbarContainer) {
+                        toolbarContainer.appendChild(internalLinkBtn);
+                    }
                 }
             }, 100);
+        }
+
+        // Insert internal link
+        function insertInternalLink() {
+            const range = quill.getSelection();
+            if (range) {
+                const text = prompt('Enter article title to link to:');
+                if (text) {
+                    quill.insertText(range.index, `[[${text}]]`, 'user');
+                }
+            }
         }
 
         // Switch between visual and code editing modes
@@ -2402,9 +2862,79 @@
             }
         }
 
+        // Add demo articles on first load
+        function addDemoArticles() {
+            const demoArticles = [
+                {
+                    title: "Artificial Intelligence Revolution",
+                    summary: "Exploring the transformative impact of AI on modern society and future possibilities.",
+                    category: "Technology",
+                    tags: ["AI", "Machine Learning", "Technology", "Future"],
+                    references: ["https://example.com/ai-research", "MIT Technology Review"],
+                    content: `<h2>Introduction</h2><p>Artificial Intelligence (AI) has emerged as one of the most transformative technologies of the 21st century. From <strong>machine learning</strong> algorithms to <em>neural networks</em>, AI is reshaping industries and redefining human capabilities.</p><h2>Key Applications</h2><ul><li>Healthcare diagnostics</li><li>Autonomous vehicles</li><li>Natural language processing</li><li>Computer vision</li></ul><blockquote>AI is not just a technology; it's a paradigm shift that will define the future of human civilization.</blockquote><h2>Future Implications</h2><p>As AI continues to evolve, we must consider both the <span style="color: rgb(230, 0, 0);">challenges</span> and <span style="color: rgb(0, 138, 0);">opportunities</span> it presents for society.</p>`,
+                    author: "Tech Expert",
+                    authorEmail: "tech@forbiary.com",
+                    uid: "demo-tech-user",
+                    status: "approved",
+                    locked: false,
+                    editHistory: []
+                },
+                {
+                    title: "Climate Change Solutions",
+                    summary: "Comprehensive overview of innovative approaches to combat climate change and environmental challenges.",
+                    category: "Science",
+                    tags: ["Climate", "Environment", "Sustainability", "Green Technology"],
+                    references: ["IPCC Reports", "Nature Climate Change Journal"],
+                    content: `<h2>The Challenge</h2><p>Climate change represents one of the most pressing challenges of our time. Rising global temperatures, extreme weather events, and environmental degradation require <strong>immediate action</strong>.</p><h2>Renewable Energy Solutions</h2><ol><li><strong>Solar Power</strong> - Harnessing the sun's energy</li><li><strong>Wind Energy</strong> - Utilizing wind currents</li><li><strong>Hydroelectric Power</strong> - Water-based energy generation</li></ol><h2>Carbon Capture Technologies</h2><p>Innovative technologies are being developed to <em>capture and store carbon dioxide</em> from the atmosphere, helping to reduce greenhouse gas concentrations.</p><blockquote>The time for action is now. Every degree matters, every year matters, and every choice matters.</blockquote>`,
+                    author: "Climate Scientist",
+                    authorEmail: "climate@forbiary.com",
+                    uid: "demo-climate-user",
+                    status: "approved",
+                    locked: false,
+                    editHistory: []
+                },
+                {
+                    title: "Digital Marketing Strategies",
+                    summary: "Essential digital marketing techniques for modern businesses to reach and engage customers effectively.",
+                    category: "Business",
+                    tags: ["Marketing", "Digital", "Business", "Strategy"],
+                    references: ["Harvard Business Review", "Marketing Land"],
+                    content: `<h2>Introduction to Digital Marketing</h2><p>In today's digital age, businesses must adapt their marketing strategies to reach customers where they spend most of their time - <strong>online</strong>.</p><h2>Key Strategies</h2><ul><li><strong>Search Engine Optimization (SEO)</strong></li><li><em>Social Media Marketing</em></li><li>Content Marketing</li><li>Email Marketing</li><li>Pay-Per-Click Advertising</li></ul><h2>Measuring Success</h2><p>Effective digital marketing requires continuous monitoring and optimization. Key metrics include:</p><ol><li>Conversion rates</li><li>Customer acquisition cost</li><li>Return on investment (ROI)</li></ol><blockquote>The best marketing doesn't feel like marketing.</blockquote>`,
+                    author: "Marketing Pro",
+                    authorEmail: "marketing@forbiary.com",
+                    uid: "demo-marketing-user",
+                    status: "approved",
+                    locked: false,
+                    editHistory: []
+                }
+            ];
+
+            // Check if demo articles already exist
+            const existingArticles = JSON.parse(localStorage.getItem('collection_articles') || '[]');
+            if (existingArticles.length === 0) {
+                demoArticles.forEach((article, index) => {
+                    const id = `demo_article_${index + 1}`;
+                    const articleData = {
+                        ...article,
+                        id: id,
+                        timestamp: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)), // Stagger dates
+                        createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString()
+                    };
+                    
+                    localStorage.setItem(`articles_${id}`, JSON.stringify(articleData));
+                    existingArticles.push(articleData);
+                });
+                
+                localStorage.setItem('collection_articles', JSON.stringify(existingArticles));
+            }
+        }
+
         // Initialize app
         window.addEventListener('hashchange', handleHashChange);
         window.addEventListener('load', () => {
+            // Add demo articles
+            addDemoArticles();
+            
             // Load articles for internal linking
             loadArticlesForLinking();
             
@@ -2422,5 +2952,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9659f5ed90feff6b',t:'MTc1MzU5NjQ5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a003ba03b490d',t:'MTc1MzU5NjkxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
