@@ -2510,31 +2510,47 @@
                 };
 
                 if (currentEditingArticleId) {
-                    // Submit edit for existing article
-                    const editData = {
+                    // Update existing article directly
+                    const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags);
+                    const seoDescription = generateSEODescription(summary, htmlContent);
+                    
+                    // Get original article for edit history
+                    const originalDoc = await db.collection('articles').doc(currentEditingArticleId).get();
+                    const originalArticle = originalDoc.exists ? originalDoc.data() : {};
+                    
+                    const updatedArticleData = {
                         ...articleData,
-                        articleId: currentEditingArticleId,
-                        editor: currentUser ? currentUser.displayName : 'Anonymous',
-                        editorEmail: currentUser ? currentUser.email : 'anonymous@forbiary.com',
-                        editorUid: currentUser ? currentUser.uid : 'anonymous',
-                        editorIP: userIP,
-                        status: 'pending'
+                        lastEditedBy: currentUser.displayName,
+                        lastEditedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        // SEO Metadata
+                        seoKeywords,
+                        seoDescription,
+                        seoTitle: `${title} - Forbiary`,
+                        canonicalUrl: `https://forbiary.com/#${currentEditingArticleId}`,
+                        editHistory: firebase.firestore.FieldValue.arrayUnion({
+                            editor: currentUser.displayName,
+                            editSummary: editSummary || 'No summary provided',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            previousTitle: originalArticle.title || '',
+                            previousSummary: originalArticle.summary || ''
+                        })
                     };
 
-                    // Submit to Firestore
-                    const editRef = await db.collection('edits').add(editData);
+                    // Update article in Firestore
+                    await db.collection('articles').doc(currentEditingArticleId).update(updatedArticleData);
                     
-                    // Submit to Realtime Database as backup
+                    // Update in Realtime Database as backup
                     try {
-                        await realtimeDb.ref('edits').child(editRef.id).set({
-                            ...editData,
-                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        await realtimeDb.ref('articles').child(currentEditingArticleId).update({
+                            ...updatedArticleData,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            lastEditedAt: firebase.database.ServerValue.TIMESTAMP
                         });
                     } catch (realtimeError) {
                         console.warn('Could not save to Realtime Database:', realtimeError);
                     }
 
-                    showNotification('Edit submitted successfully! It will be reviewed by moderators.', 'success');
+                    showNotification('🎉 Article updated successfully! Your changes are now live.', 'success');
                 } else {
                     // Create new article
                     const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags);
@@ -3974,5 +3990,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a5161008a3a18',t:'MTc1MzYwMDIzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a59d8e6635524',t:'MTc1MzYwMDU4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
