@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forbiary - Professional Knowledge Platform</title>
-    <meta name="description" content="Forbiary is a collaborative knowledge-sharing platform where users can create, edit, and moderate articles on various topics with Wikipedia-style functionality.">
-    <meta name="keywords" content="knowledge sharing, wiki, articles, collaboration, education, research">
+    <meta name="description" content="Forbiary is a collaborative knowledge-sharing platform where users can create, edit, and moderate articles on various topics with professional moderation system.">
+    <meta name="keywords" content="knowledge sharing, articles, collaboration, education, research, moderation">
     <link rel="canonical" href="https://forbiary.com/">
     
     <!-- Open Graph Tags -->
     <meta property="og:title" content="Forbiary - Professional Knowledge Platform">
-    <meta property="og:description" content="Collaborative knowledge-sharing platform with Wikipedia-style functionality">
+    <meta property="og:description" content="Collaborative knowledge-sharing platform with professional moderation system">
     <meta property="og:url" content="https://forbiary.com/">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://forbiary.com/og-image.jpg">
@@ -18,7 +18,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Forbiary - Professional Knowledge Platform">
-    <meta name="twitter:description" content="Collaborative knowledge-sharing platform with Wikipedia-style functionality">
+    <meta name="twitter:description" content="Collaborative knowledge-sharing platform with professional moderation system">
     <meta name="twitter:image" content="https://forbiary.com/og-image.jpg">
     
     <!-- Structured Data -->
@@ -866,8 +866,8 @@
                 <div class="header-right">
                     <div id="userInfoDesktop" style="display:none;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <img id="userPhotoDesktop" style="width: 32px; height: 32px; border-radius: 50%;" src="" alt="">
-                            <span id="userNameDesktop" style="font-size: 14px; color: #0645ad;"></span>
+                            <img id="userPhotoDesktop" style="width: 32px; height: 32px; border-radius: 50%; cursor: pointer;" src="" alt="" onclick="showProfile()" title="View Profile">
+                            <span id="userNameDesktop" style="font-size: 14px; color: #0645ad; cursor: pointer; text-decoration: underline;" onclick="showProfile()" title="View Profile"></span>
                             <span id="moderatorBadgeDesktop" class="moderator-badge" style="display:none;">Moderator</span>
                             <button onclick="signOut()" style="color: #d33; font-size: 14px; background: none; border: none; cursor: pointer; padding: 4px 8px; margin-left: 8px;">Sign Out</button>
                         </div>
@@ -915,8 +915,8 @@
                     <div style="border-top: 1px solid #ddd; margin: 10px 0; padding-top: 10px;">
                         <div id="userInfoMobile" style="display:none; padding: 8px 15px;">
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                <img id="userPhotoMobile" style="width: 24px; height: 24px; border-radius: 50%;" src="" alt="">
-                                <span id="userNameMobile" style="font-size: 14px; color: #0645ad;"></span>
+                                <img id="userPhotoMobile" style="width: 24px; height: 24px; border-radius: 50%; cursor: pointer;" src="" alt="" onclick="showProfile(); closeMobileMenu()" title="View Profile">
+                                <span id="userNameMobile" style="font-size: 14px; color: #0645ad; cursor: pointer; text-decoration: underline;" onclick="showProfile(); closeMobileMenu()" title="View Profile"></span>
                                 <span id="moderatorBadgeMobile" class="moderator-badge" style="display:none;">Moderator</span>
                             </div>
                             <button onclick="signOut(); closeMobileMenu()" style="color: #d33; font-size: 14px; background: none; border: none; cursor: pointer; padding: 4px 0;">Sign Out</button>
@@ -958,7 +958,7 @@
                 <div class="wiki-main-content">
                     <div class="wiki-article">
                         <h1>Welcome to Forbiary</h1>
-                        <p><strong>Forbiary</strong> is a collaborative knowledge-sharing platform inspired by Wikipedia, where users can create, edit, and moderate articles on various topics. Anyone can contribute and become a moderator to help maintain quality content.</p>
+                        <p><strong>Forbiary</strong> is a collaborative knowledge-sharing platform where users can create, edit, and moderate articles on various topics. Anyone can contribute and become a moderator to help maintain quality content.</p>
                         
                         <div class="wiki-toc">
                             <strong>Contents</strong>
@@ -1208,6 +1208,19 @@
                             <div>
                                 <label style="display: block; font-weight: bold; margin-bottom: 5px;">Tags</label>
                                 <input type="text" id="articleTags" style="width: 100%; padding: 8px; border: 1px solid #a2a9b1; border-radius: 2px; box-sizing: border-box;" placeholder="Comma-separated tags">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Featured Image</label>
+                            <div style="background: #f8f9fa; border: 2px dashed #a2a9b1; padding: 30px; text-align: center; border-radius: 8px; position: relative;">
+                                <i class="fas fa-image" style="font-size: 48px; color: #6c757d; margin-bottom: 15px;"></i>
+                                <div style="margin-bottom: 10px;">
+                                    <span style="background: #ffc107; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">COMING SOON</span>
+                                </div>
+                                <p style="margin: 0; color: #666; font-size: 14px;">Image upload feature will be available soon</p>
+                                <p style="margin: 5px 0 0 0; color: #999; font-size: 12px;">For now, images can be manually added via Firebase</p>
+                                <input type="file" id="articleImage" accept="image/*" style="position: absolute; opacity: 0; pointer-events: none;" disabled>
                             </div>
                         </div>
 
@@ -1482,7 +1495,7 @@
             hideAllPages();
             document.getElementById('homePage').style.display = 'block';
             loadRecentArticles();
-            updatePageMetadata('Forbiary - Professional Knowledge Platform', 'Collaborative knowledge-sharing platform where users can create, edit, and moderate articles on various topics with Wikipedia-style functionality.');
+            updatePageMetadata('Forbiary - Professional Knowledge Platform', 'Collaborative knowledge-sharing platform where users can create, edit, and moderate articles on various topics with professional moderation system.');
             window.location.hash = '';
         }
 
@@ -2197,8 +2210,8 @@
             }
         }
 
-        // Update page metadata for SEO
-        function updatePageMetadata(title, description, keywords = '', canonicalUrl = '') {
+        // Enhanced page metadata update for comprehensive SEO
+        function updatePageMetadata(title, description, keywords = '', canonicalUrl = '', article = null) {
             // Update title
             document.title = title;
             
@@ -2208,7 +2221,7 @@
                 metaDesc.setAttribute('content', description);
             }
             
-            // Update keywords if provided
+            // Update keywords
             if (keywords) {
                 let metaKeywords = document.querySelector('meta[name="keywords"]');
                 if (!metaKeywords) {
@@ -2219,51 +2232,201 @@
                 metaKeywords.setAttribute('content', keywords);
             }
             
+            // Update robots meta
+            let metaRobots = document.querySelector('meta[name="robots"]');
+            if (!metaRobots) {
+                metaRobots = document.createElement('meta');
+                metaRobots.setAttribute('name', 'robots');
+                document.head.appendChild(metaRobots);
+            }
+            metaRobots.setAttribute('content', article?.metaRobots || 'index, follow');
+            
             // Update canonical URL
             let canonical = document.querySelector('link[rel="canonical"]');
             if (canonical) {
                 canonical.setAttribute('href', canonicalUrl || window.location.href);
             }
             
-            // Update Open Graph tags
-            updateOpenGraphTags(title, description, canonicalUrl || window.location.href);
+            // Add article-specific meta tags if article data is provided
+            if (article) {
+                // Add author meta tag
+                let metaAuthor = document.querySelector('meta[name="author"]');
+                if (!metaAuthor) {
+                    metaAuthor = document.createElement('meta');
+                    metaAuthor.setAttribute('name', 'author');
+                    document.head.appendChild(metaAuthor);
+                }
+                metaAuthor.setAttribute('content', article.author);
+                
+                // Add article published time
+                if (article.timestamp) {
+                    let metaPublished = document.querySelector('meta[property="article:published_time"]');
+                    if (!metaPublished) {
+                        metaPublished = document.createElement('meta');
+                        metaPublished.setAttribute('property', 'article:published_time');
+                        document.head.appendChild(metaPublished);
+                    }
+                    const publishedTime = article.timestamp.toDate ? article.timestamp.toDate().toISOString() : new Date(article.timestamp).toISOString();
+                    metaPublished.setAttribute('content', publishedTime);
+                }
+                
+                // Add article modified time
+                if (article.lastEditedAt) {
+                    let metaModified = document.querySelector('meta[property="article:modified_time"]');
+                    if (!metaModified) {
+                        metaModified = document.createElement('meta');
+                        metaModified.setAttribute('property', 'article:modified_time');
+                        document.head.appendChild(metaModified);
+                    }
+                    const modifiedTime = article.lastEditedAt.toDate ? article.lastEditedAt.toDate().toISOString() : new Date(article.lastEditedAt).toISOString();
+                    metaModified.setAttribute('content', modifiedTime);
+                }
+                
+                // Add article section
+                let metaSection = document.querySelector('meta[property="article:section"]');
+                if (!metaSection) {
+                    metaSection = document.createElement('meta');
+                    metaSection.setAttribute('property', 'article:section');
+                    document.head.appendChild(metaSection);
+                }
+                metaSection.setAttribute('content', article.category);
+                
+                // Add article tags
+                if (article.tags && article.tags.length > 0) {
+                    // Remove existing article:tag meta tags
+                    const existingTags = document.querySelectorAll('meta[property="article:tag"]');
+                    existingTags.forEach(tag => tag.remove());
+                    
+                    // Add new article:tag meta tags
+                    article.tags.forEach(tag => {
+                        const metaTag = document.createElement('meta');
+                        metaTag.setAttribute('property', 'article:tag');
+                        metaTag.setAttribute('content', tag);
+                        document.head.appendChild(metaTag);
+                    });
+                }
+            }
+            
+            // Update comprehensive Open Graph and Twitter Card tags
+            updateOpenGraphTags(title, description, canonicalUrl || window.location.href, article);
+            updateTwitterCardTags(title, description, article);
         }
 
-        // Update Open Graph tags
-        function updateOpenGraphTags(title, description, url) {
+        // Enhanced Open Graph tags update
+        function updateOpenGraphTags(title, description, url, article = null) {
             const ogTags = [
-                { property: 'og:title', content: title },
-                { property: 'og:description', content: description },
+                { property: 'og:title', content: article?.ogTitle || title },
+                { property: 'og:description', content: article?.ogDescription || description },
                 { property: 'og:url', content: url },
-                { property: 'og:type', content: 'article' }
+                { property: 'og:type', content: article?.ogType || 'article' },
+                { property: 'og:site_name', content: 'Forbiary' },
+                { property: 'og:locale', content: 'en_US' }
             ];
+            
+            // Add image if available
+            if (article?.featuredImage) {
+                ogTags.push({ property: 'og:image', content: article.featuredImage });
+                ogTags.push({ property: 'og:image:alt', content: `Featured image for ${title}` });
+            } else {
+                ogTags.push({ property: 'og:image', content: 'https://forbiary.com/default-og-image.jpg' });
+                ogTags.push({ property: 'og:image:alt', content: 'Forbiary Knowledge Platform' });
+            }
+            
+            // Add article-specific Open Graph tags
+            if (article) {
+                if (article.author) {
+                    ogTags.push({ property: 'article:author', content: article.author });
+                }
+                if (article.timestamp) {
+                    const publishedTime = article.timestamp.toDate ? article.timestamp.toDate().toISOString() : new Date(article.timestamp).toISOString();
+                    ogTags.push({ property: 'article:published_time', content: publishedTime });
+                }
+                if (article.lastEditedAt) {
+                    const modifiedTime = article.lastEditedAt.toDate ? article.lastEditedAt.toDate().toISOString() : new Date(article.lastEditedAt).toISOString();
+                    ogTags.push({ property: 'article:modified_time', content: modifiedTime });
+                }
+                if (article.category) {
+                    ogTags.push({ property: 'article:section', content: article.category });
+                }
+            }
             
             ogTags.forEach(tag => {
                 let ogTag = document.querySelector(`meta[property="${tag.property}"]`);
                 if (ogTag) {
                     ogTag.setAttribute('content', tag.content);
+                } else {
+                    ogTag = document.createElement('meta');
+                    ogTag.setAttribute('property', tag.property);
+                    ogTag.setAttribute('content', tag.content);
+                    document.head.appendChild(ogTag);
                 }
             });
         }
 
-        // Generate SEO keywords automatically
-        function generateSEOKeywords(title, summary, content, tags) {
-            const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'a', 'an'];
+        // Enhanced Twitter Card tags update
+        function updateTwitterCardTags(title, description, article = null) {
+            const twitterTags = [
+                { name: 'twitter:card', content: article?.twitterCard || 'summary_large_image' },
+                { name: 'twitter:site', content: '@Forbiary' },
+                { name: 'twitter:title', content: article?.twitterTitle || title },
+                { name: 'twitter:description', content: article?.twitterDescription || description }
+            ];
+            
+            // Add image if available
+            if (article?.featuredImage) {
+                twitterTags.push({ name: 'twitter:image', content: article.featuredImage });
+                twitterTags.push({ name: 'twitter:image:alt', content: `Featured image for ${title}` });
+            } else {
+                twitterTags.push({ name: 'twitter:image', content: 'https://forbiary.com/default-twitter-image.jpg' });
+                twitterTags.push({ name: 'twitter:image:alt', content: 'Forbiary Knowledge Platform' });
+            }
+            
+            twitterTags.forEach(tag => {
+                let twitterTag = document.querySelector(`meta[name="${tag.name}"]`);
+                if (twitterTag) {
+                    twitterTag.setAttribute('content', tag.content);
+                } else {
+                    twitterTag = document.createElement('meta');
+                    twitterTag.setAttribute('name', tag.name);
+                    twitterTag.setAttribute('content', tag.content);
+                    document.head.appendChild(twitterTag);
+                }
+            });
+        }
+
+        // Enhanced SEO keywords generation with better analysis
+        function generateSEOKeywords(title, summary, content, tags, category) {
+            const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'a', 'an', 'how', 'what', 'when', 'where', 'why', 'who', 'which', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once'];
             
             // Extract text from HTML content
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
             const textContent = tempDiv.textContent || tempDiv.innerText || '';
             
-            // Combine all text sources
-            const allText = `${title} ${summary} ${textContent}`.toLowerCase();
+            // Combine all text sources with weighted importance
+            const titleWords = title.toLowerCase().split(/\s+/);
+            const summaryWords = summary.toLowerCase().split(/\s+/);
+            const contentWords = textContent.toLowerCase().match(/\b[a-zA-Z]{3,}\b/g) || [];
             
-            // Extract meaningful words
-            const words = allText.match(/\b[a-zA-Z]{3,}\b/g) || [];
             const wordFreq = {};
             
-            words.forEach(word => {
-                if (!commonWords.includes(word)) {
+            // Weight title words more heavily (3x)
+            titleWords.forEach(word => {
+                if (!commonWords.includes(word) && word.length > 2) {
+                    wordFreq[word] = (wordFreq[word] || 0) + 3;
+                }
+            });
+            
+            // Weight summary words moderately (2x)
+            summaryWords.forEach(word => {
+                if (!commonWords.includes(word) && word.length > 2) {
+                    wordFreq[word] = (wordFreq[word] || 0) + 2;
+                }
+            });
+            
+            // Weight content words normally (1x)
+            contentWords.forEach(word => {
+                if (!commonWords.includes(word) && word.length > 2) {
                     wordFreq[word] = (wordFreq[word] || 0) + 1;
                 }
             });
@@ -2271,33 +2434,94 @@
             // Sort by frequency and get top keywords
             const sortedWords = Object.entries(wordFreq)
                 .sort(([,a], [,b]) => b - a)
-                .slice(0, 15)
+                .slice(0, 20)
                 .map(([word]) => word);
             
-            // Combine with user tags
-            const allKeywords = [...new Set([...tags, ...sortedWords])];
+            // Add category-specific keywords
+            const categoryKeywords = {
+                'Technology': ['tech', 'software', 'digital', 'innovation', 'development', 'programming', 'computer', 'internet', 'AI', 'machine learning'],
+                'Business': ['business', 'management', 'strategy', 'marketing', 'finance', 'entrepreneurship', 'startup', 'company', 'corporate', 'leadership'],
+                'Science': ['research', 'study', 'scientific', 'discovery', 'experiment', 'analysis', 'theory', 'methodology', 'data', 'evidence'],
+                'History': ['historical', 'past', 'ancient', 'timeline', 'civilization', 'culture', 'heritage', 'tradition', 'legacy', 'chronicle'],
+                'Health': ['health', 'medical', 'wellness', 'treatment', 'healthcare', 'medicine', 'fitness', 'nutrition', 'disease', 'therapy'],
+                'Education': ['education', 'learning', 'teaching', 'academic', 'knowledge', 'study', 'curriculum', 'training', 'skill', 'development']
+            };
             
-            return allKeywords.slice(0, 20).join(', ');
+            const relevantCategoryKeywords = categoryKeywords[category] || [];
+            
+            // Combine all keywords: user tags (highest priority) + extracted words + category keywords
+            const allKeywords = [
+                ...tags, // User-defined tags get highest priority
+                ...sortedWords,
+                ...relevantCategoryKeywords.filter(keyword => 
+                    textContent.toLowerCase().includes(keyword) || 
+                    title.toLowerCase().includes(keyword) || 
+                    summary.toLowerCase().includes(keyword)
+                ),
+                category.toLowerCase(), // Always include category
+                'forbiary', // Brand keyword
+                'knowledge', 'article', 'information' // Generic relevant keywords
+            ];
+            
+            // Remove duplicates and limit to 25 keywords
+            const uniqueKeywords = [...new Set(allKeywords)];
+            return uniqueKeywords.slice(0, 25).join(', ');
         }
 
-        // Generate SEO description
-        function generateSEODescription(summary, content) {
-            if (summary && summary.length > 50) {
-                return summary.length > 160 ? summary.substring(0, 157) + '...' : summary;
+        // Enhanced SEO description generation
+        function generateSEODescription(summary, content, title, category) {
+            // Optimal length for SEO descriptions is 150-160 characters
+            const maxLength = 155;
+            
+            // If summary is good length and quality, use it
+            if (summary && summary.length >= 50 && summary.length <= maxLength) {
+                return summary;
             }
             
-            // Extract from content if summary is too short
+            // If summary is too long, truncate smartly
+            if (summary && summary.length > maxLength) {
+                const truncated = summary.substring(0, maxLength - 3);
+                const lastSpace = truncated.lastIndexOf(' ');
+                return lastSpace > 100 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
+            }
+            
+            // If summary is too short, enhance it
+            if (summary && summary.length < 50) {
+                const enhanced = `${summary} - Comprehensive ${category.toLowerCase()} article on Forbiary knowledge platform.`;
+                return enhanced.length <= maxLength ? enhanced : enhanced.substring(0, maxLength - 3) + '...';
+            }
+            
+            // Extract from content if no good summary
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
             const textContent = tempDiv.textContent || tempDiv.innerText || '';
             
-            const sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 20);
+            // Try to find a good opening sentence
+            const sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 30);
             if (sentences.length > 0) {
-                const description = sentences[0].trim();
-                return description.length > 160 ? description.substring(0, 157) + '...' : description;
+                let description = sentences[0].trim();
+                
+                // If first sentence is too short, combine with second
+                if (description.length < 80 && sentences.length > 1) {
+                    const combined = `${description}. ${sentences[1].trim()}`;
+                    if (combined.length <= maxLength) {
+                        description = combined;
+                    }
+                }
+                
+                // Ensure it ends properly and fits length
+                if (description.length > maxLength) {
+                    const truncated = description.substring(0, maxLength - 3);
+                    const lastSpace = truncated.lastIndexOf(' ');
+                    description = lastSpace > 100 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
+                }
+                
+                return description;
             }
             
-            return summary || 'Read this article on Forbiary knowledge platform.';
+            // Fallback: create description from title and category
+            const fallback = `Learn about ${title.toLowerCase()} in this comprehensive ${category.toLowerCase()} article on Forbiary knowledge platform.`;
+            return fallback.length <= maxLength ? fallback : fallback.substring(0, maxLength - 3) + '...';
         }
 
         // Notify moderators about new article
@@ -2319,45 +2543,137 @@
             }
         }
 
-        // Generate structured data for article
+        // Generate comprehensive structured data for article
         function generateArticleStructuredData(article, articleId) {
+            const publishDate = article.timestamp ? article.timestamp.toDate().toISOString() : new Date().toISOString();
+            const modifiedDate = article.lastEditedAt ? article.lastEditedAt.toDate().toISOString() : publishDate;
+            
             const structuredData = {
                 "@context": "https://schema.org",
                 "@type": "Article",
                 "headline": article.title,
-                "description": article.summary,
+                "description": article.seoDescription || article.summary,
+                "image": article.featuredImage || "https://forbiary.com/default-article-image.jpg",
                 "author": {
                     "@type": "Person",
-                    "name": article.author
+                    "name": article.author,
+                    "url": `https://forbiary.com/author/${article.uid}`
                 },
-                "datePublished": article.timestamp ? article.timestamp.toDate().toISOString() : new Date().toISOString(),
-                "dateModified": article.lastEditedAt ? article.lastEditedAt.toDate().toISOString() : article.timestamp ? article.timestamp.toDate().toISOString() : new Date().toISOString(),
                 "publisher": {
                     "@type": "Organization",
                     "name": "Forbiary",
-                    "url": "https://forbiary.com"
+                    "url": "https://forbiary.com",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://forbiary.com/logo.png",
+                        "width": 200,
+                        "height": 60
+                    }
                 },
+                "datePublished": publishDate,
+                "dateModified": modifiedDate,
                 "mainEntityOfPage": {
                     "@type": "WebPage",
                     "@id": `https://forbiary.com/#${articleId}`
                 },
                 "articleSection": article.category,
-                "keywords": article.tags.join(', '),
-                "url": `https://forbiary.com/#${articleId}`
+                "keywords": article.seoKeywords || article.tags.join(', '),
+                "wordCount": article.wordCount || 0,
+                "url": `https://forbiary.com/#${articleId}`,
+                "inLanguage": "en-US",
+                "isAccessibleForFree": true,
+                "genre": article.category,
+                "about": {
+                    "@type": "Thing",
+                    "name": article.category
+                }
+            };
+
+            // Add breadcrumb structured data
+            const breadcrumbData = {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": "https://forbiary.com"
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": article.category,
+                        "item": `https://forbiary.com/category/${article.category.toLowerCase()}`
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 3,
+                        "name": article.title,
+                        "item": `https://forbiary.com/#${articleId}`
+                    }
+                ]
             };
             
             // Remove existing structured data
-            const existingScript = document.querySelector('script[type="application/ld+json"][data-article]');
-            if (existingScript) {
-                existingScript.remove();
-            }
+            const existingScripts = document.querySelectorAll('script[type="application/ld+json"][data-article]');
+            existingScripts.forEach(script => script.remove());
             
-            // Add new structured data
-            const script = document.createElement('script');
-            script.type = 'application/ld+json';
-            script.setAttribute('data-article', 'true');
-            script.textContent = JSON.stringify(structuredData);
-            document.head.appendChild(script);
+            // Add article structured data
+            const articleScript = document.createElement('script');
+            articleScript.type = 'application/ld+json';
+            articleScript.setAttribute('data-article', 'true');
+            articleScript.textContent = JSON.stringify(structuredData);
+            document.head.appendChild(articleScript);
+            
+            // Add breadcrumb structured data
+            const breadcrumbScript = document.createElement('script');
+            breadcrumbScript.type = 'application/ld+json';
+            breadcrumbScript.setAttribute('data-article', 'true');
+            breadcrumbScript.textContent = JSON.stringify(breadcrumbData);
+            document.head.appendChild(breadcrumbScript);
+        }
+
+        // Calculate article quality score for SEO ranking
+        function calculateQualityScore(title, summary, content, tags, references, wordCount) {
+            let score = 0;
+            
+            // Title quality (max 20 points)
+            if (title.length >= 10 && title.length <= 60) score += 15;
+            else if (title.length >= 5) score += 10;
+            if (title.split(' ').length >= 3) score += 5; // Multi-word titles are better
+            
+            // Summary quality (max 15 points)
+            if (summary.length >= 50 && summary.length <= 160) score += 15;
+            else if (summary.length >= 30) score += 10;
+            
+            // Content quality (max 30 points)
+            if (wordCount >= 300) score += 20;
+            else if (wordCount >= 150) score += 15;
+            else if (wordCount >= 50) score += 10;
+            
+            // Check for headings in content
+            if (content.includes('<h2>') || content.includes('<h3>')) score += 5;
+            if (content.includes('<ul>') || content.includes('<ol>')) score += 5; // Lists improve readability
+            
+            // Tags quality (max 10 points)
+            if (tags.length >= 3 && tags.length <= 8) score += 10;
+            else if (tags.length >= 1) score += 5;
+            
+            // References quality (max 10 points)
+            if (references.length >= 2) score += 10;
+            else if (references.length >= 1) score += 5;
+            
+            // Content structure bonus (max 15 points)
+            const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
+            if (sentences.length >= 5) score += 5; // Good sentence count
+            
+            const paragraphs = content.split('<p>').length - 1;
+            if (paragraphs >= 3) score += 5; // Well-structured paragraphs
+            
+            if (content.includes('</strong>') || content.includes('</em>')) score += 5; // Text formatting
+            
+            return Math.min(score, 100); // Cap at 100
         }
 
         // Detect and create internal links
@@ -2513,8 +2829,13 @@
 
                 if (currentEditingArticleId) {
                     // Update existing article directly
-                    const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags);
-                    const seoDescription = generateSEODescription(summary, htmlContent);
+                    const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags, category);
+                    const seoDescription = generateSEODescription(summary, htmlContent, title, category);
+                    
+                    // Calculate word count
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = htmlContent;
+                    const wordCount = (tempDiv.textContent || tempDiv.innerText || '').split(/\s+/).filter(word => word.length > 0).length;
                     
                     // Get original article for edit history
                     let originalArticle = {};
@@ -2544,11 +2865,15 @@
                         editSummary: editSummary || 'No summary provided',
                         lastEditedBy: currentUser.displayName,
                         authorIP: userIP,
-                        // SEO Metadata
+                        wordCount,
+                        // Enhanced SEO Metadata
                         seoKeywords,
                         seoDescription,
-                        seoTitle: `${title} - Forbiary`,
-                        canonicalUrl: `https://forbiary.com/#${currentEditingArticleId}`
+                        seoTitle: `${title} - Forbiary Knowledge Platform`,
+                        canonicalUrl: `https://forbiary.com/#${currentEditingArticleId}`,
+                        // Additional metadata for better SEO
+                        readingTime: Math.ceil(wordCount / 200), // Average reading speed
+                        lastOptimized: new Date().toISOString()
                     };
 
                     // Update article in Firestore with serverTimestamp for update operations
@@ -2582,9 +2907,15 @@
 
                     showNotification('🎉 Article updated successfully! Your changes are now live.', 'success');
                 } else {
-                    // Create new article
-                    const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags);
-                    const seoDescription = generateSEODescription(summary, htmlContent);
+                    // Create new article with comprehensive SEO
+                    const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags, category);
+                    const seoDescription = generateSEODescription(summary, htmlContent, title, category);
+                    
+                    // Calculate word count and reading time
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = htmlContent;
+                    const wordCount = (tempDiv.textContent || tempDiv.innerText || '').split(/\s+/).filter(word => word.length > 0).length;
+                    const readingTime = Math.ceil(wordCount / 200); // Average reading speed
                     
                     const baseArticleData = {
                         title,
@@ -2603,10 +2934,25 @@
                         viewCount: 0,
                         authorIP: userIP,
                         createdAt: currentTime.toISOString(),
-                        // SEO Metadata
+                        wordCount,
+                        readingTime,
+                        // Comprehensive SEO Metadata
                         seoKeywords,
                         seoDescription,
-                        seoTitle: `${title} - Forbiary`
+                        seoTitle: `${title} - Forbiary Knowledge Platform`,
+                        // Open Graph metadata
+                        ogTitle: title,
+                        ogDescription: seoDescription,
+                        ogType: 'article',
+                        // Twitter Card metadata
+                        twitterCard: 'summary_large_image',
+                        twitterTitle: title,
+                        twitterDescription: seoDescription,
+                        // Additional SEO fields
+                        metaRobots: 'index, follow',
+                        lastOptimized: currentTime.toISOString(),
+                        // Article quality metrics
+                        qualityScore: calculateQualityScore(title, summary, htmlContent, tags, references, wordCount)
                     };
 
                     // Submit to Firestore with proper timestamp handling
@@ -2759,9 +3105,9 @@
                     return;
                 }
 
-                // Create Wikipedia-style article cards
+                // Create article cards
                 articlesData.forEach((article, index) => {
-                    const articleCard = createWikipediaStyleCard(article.id || `article_${index}`, article);
+                    const articleCard = createArticleCard(article.id || `article_${index}`, article);
                     container.appendChild(articleCard);
                 });
 
@@ -2782,8 +3128,8 @@
             }
         }
 
-        // Create Wikipedia-style article card for home page
-        function createWikipediaStyleCard(id, article) {
+        // Create article card for home page
+        function createArticleCard(id, article) {
             const card = document.createElement('div');
             card.style.cssText = `
                 background: #fff;
@@ -2990,13 +3336,14 @@
                 hideAllPages();
                 document.getElementById('articleReader').style.display = 'block';
                 
-                // Update SEO metadata for article
+                // Update comprehensive SEO metadata for article
                 const canonicalUrl = `https://forbiary.com/#${articleId}`;
                 updatePageMetadata(
-                    article.seoTitle || `${article.title} - Forbiary`,
+                    article.seoTitle || `${article.title} - Forbiary Knowledge Platform`,
                     article.seoDescription || article.summary,
                     article.seoKeywords || article.tags.join(', '),
-                    canonicalUrl
+                    canonicalUrl,
+                    article // Pass full article data for enhanced metadata
                 );
                 
                 // Generate structured data
@@ -4322,5 +4669,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a8bad245891ac',t:'MTc1MzYwMjYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a9f4ca74a3ada',t:'MTc1MzYwMzQyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
