@@ -2008,11 +2008,12 @@
             try {
                 showNotification('Processing your moderator application...', 'info', 2000);
                 
+                const currentTime = new Date();
                 await db.collection('moderators').doc(currentUser.uid).set({
                     email: currentUser.email,
                     name: currentUser.displayName,
-                    reason: reason,
-                    appliedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    reason: reason.trim(),
+                    appliedAt: firebase.firestore.Timestamp.fromDate(currentTime),
                     status: 'approved' // Auto-approve as requested
                 });
 
@@ -2176,6 +2177,7 @@
         async function banIP(ip, reason = 'False information') {
             if (!isAdmin && !isModerator) return;
             
+            const currentTime = new Date();
             const expiryDate = new Date();
             expiryDate.setMonth(expiryDate.getMonth() + 5); // 5 months ban
             
@@ -2183,13 +2185,14 @@
                 await db.collection('bannedIPs').doc(ip).set({
                     reason: reason,
                     bannedBy: currentUser.displayName,
-                    bannedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    bannedAt: firebase.firestore.Timestamp.fromDate(currentTime),
                     expiresAt: firebase.firestore.Timestamp.fromDate(expiryDate)
                 });
                 
-                alert(`IP ${ip} has been banned for 5 months.`);
+                showNotification(`IP ${ip} has been banned for 5 months.`, 'success');
             } catch (error) {
                 console.error('Error banning IP:', error);
+                showNotification('Error banning IP: ' + error.message, 'error');
             }
         }
 
@@ -2299,13 +2302,14 @@
         // Notify moderators about new article
         async function notifyModeratorsNewArticle(articleId, articleData) {
             try {
+                const currentTime = new Date();
                 await db.collection('moderatorNotifications').add({
                     type: 'new_article',
                     articleId: articleId,
                     articleTitle: articleData.title,
                     author: articleData.author,
                     category: articleData.category,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    timestamp: firebase.firestore.Timestamp.fromDate(currentTime),
                     read: false,
                     message: `New article "${articleData.title}" published by ${articleData.author}`
                 });
@@ -2426,7 +2430,7 @@
                     throw new Error('Form elements not properly initialized');
                 }
 
-                // Get form values safely
+                // Get form values safely with validation
                 const title = titleElement.value ? titleElement.value.trim() : '';
                 const summary = summaryElement.value ? summaryElement.value.trim() : '';
                 const category = categoryElement.value ? categoryElement.value.trim() : '';
@@ -2434,9 +2438,9 @@
                 const referencesValue = referencesElement.value ? referencesElement.value.trim() : '';
                 const editSummary = editSummaryElement.value ? editSummaryElement.value.trim() : '';
 
-                // Process tags and references
-                const tags = tagsValue ? tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
-                const references = referencesValue ? referencesValue.split('\n').map(ref => ref.trim()).filter(ref => ref) : [];
+                // Process tags and references with validation
+                const tags = tagsValue ? tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag && tag.length > 0) : [];
+                const references = referencesValue ? referencesValue.split('\n').map(ref => ref.trim()).filter(ref => ref && ref.length > 0) : [];
                 
                 // Get content based on current edit mode
                 let htmlContent = '';
@@ -2475,6 +2479,12 @@
                 if (htmlContent.length > 50000) {
                     validationErrors.push('Article content is too long (maximum 50,000 characters)');
                 }
+                if (tags.length > 10) {
+                    validationErrors.push('Maximum 10 tags allowed');
+                }
+                if (references.length > 20) {
+                    validationErrors.push('Maximum 20 references allowed');
+                }
 
                 if (validationErrors.length > 0) {
                     showNotification('Please fix the following errors:<br><br>• ' + validationErrors.join('<br>• '), 'error', 8000);
@@ -2495,19 +2505,10 @@
                     console.warn('Could not get user IP:', ipError);
                 }
 
-                // Prepare article data
-                const articleData = {
-                    title,
-                    summary,
-                    category,
-                    tags,
-                    references,
-                    content: htmlContent,
-                    editSummary: editSummary || 'No summary provided',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdAt: new Date().toISOString(),
-                    authorIP: userIP
-                };
+                // Create timestamp objects for different databases
+                const currentTime = new Date();
+                const firestoreTimestamp = firebase.firestore.Timestamp.fromDate(currentTime);
+                const realtimeTimestamp = currentTime.getTime();
 
                 if (currentEditingArticleId) {
                     // Update existing article directly
@@ -2515,37 +2516,65 @@
                     const seoDescription = generateSEODescription(summary, htmlContent);
                     
                     // Get original article for edit history
-                    const originalDoc = await db.collection('articles').doc(currentEditingArticleId).get();
-                    const originalArticle = originalDoc.exists ? originalDoc.data() : {};
+                    let originalArticle = {};
+                    try {
+                        const originalDoc = await db.collection('articles').doc(currentEditingArticleId).get();
+                        originalArticle = originalDoc.exists ? originalDoc.data() : {};
+                    } catch (error) {
+                        console.warn('Could not load original article for edit history:', error);
+                    }
                     
+                    // Prepare edit history entry with safe timestamp
+                    const editHistoryEntry = {
+                        editor: currentUser.displayName,
+                        editSummary: editSummary || 'No summary provided',
+                        timestamp: firestoreTimestamp,
+                        previousTitle: originalArticle.title || '',
+                        previousSummary: originalArticle.summary || ''
+                    };
+
                     const updatedArticleData = {
-                        ...articleData,
+                        title,
+                        summary,
+                        category,
+                        tags,
+                        references,
+                        content: htmlContent,
+                        editSummary: editSummary || 'No summary provided',
                         lastEditedBy: currentUser.displayName,
-                        lastEditedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        authorIP: userIP,
                         // SEO Metadata
                         seoKeywords,
                         seoDescription,
                         seoTitle: `${title} - Forbiary`,
-                        canonicalUrl: `https://forbiary.com/#${currentEditingArticleId}`,
-                        editHistory: firebase.firestore.FieldValue.arrayUnion({
-                            editor: currentUser.displayName,
-                            editSummary: editSummary || 'No summary provided',
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                            previousTitle: originalArticle.title || '',
-                            previousSummary: originalArticle.summary || ''
-                        })
+                        canonicalUrl: `https://forbiary.com/#${currentEditingArticleId}`
                     };
 
-                    // Update article in Firestore
-                    await db.collection('articles').doc(currentEditingArticleId).update(updatedArticleData);
+                    // Update article in Firestore with serverTimestamp for update operations
+                    try {
+                        await db.collection('articles').doc(currentEditingArticleId).update({
+                            ...updatedArticleData,
+                            lastEditedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            editHistory: firebase.firestore.FieldValue.arrayUnion(editHistoryEntry)
+                        });
+                    } catch (firestoreError) {
+                        console.error('Firestore update error:', firestoreError);
+                        throw new Error('Failed to update article in Firestore: ' + firestoreError.message);
+                    }
                     
                     // Update in Realtime Database as backup
                     try {
-                        await realtimeDb.ref('articles').child(currentEditingArticleId).update({
+                        const realtimeData = {
                             ...updatedArticleData,
-                            timestamp: firebase.database.ServerValue.TIMESTAMP,
-                            lastEditedAt: firebase.database.ServerValue.TIMESTAMP
-                        });
+                            lastEditedAt: realtimeTimestamp,
+                            editHistory: originalArticle.editHistory ? 
+                                [...(originalArticle.editHistory || []), {
+                                    ...editHistoryEntry,
+                                    timestamp: realtimeTimestamp
+                                }] : [{ ...editHistoryEntry, timestamp: realtimeTimestamp }]
+                        };
+                        
+                        await realtimeDb.ref('articles').child(currentEditingArticleId).update(realtimeData);
                     } catch (realtimeError) {
                         console.warn('Could not save to Realtime Database:', realtimeError);
                     }
@@ -2556,8 +2585,14 @@
                     const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags);
                     const seoDescription = generateSEODescription(summary, htmlContent);
                     
-                    const newArticleData = {
-                        ...articleData,
+                    const baseArticleData = {
+                        title,
+                        summary,
+                        category,
+                        tags,
+                        references,
+                        content: htmlContent,
+                        editSummary: editSummary || 'No summary provided',
                         author: currentUser.displayName,
                         authorEmail: currentUser.email,
                         uid: currentUser.uid,
@@ -2565,40 +2600,61 @@
                         editHistory: [],
                         locked: false,
                         viewCount: 0,
-                        lastViewed: firebase.firestore.FieldValue.serverTimestamp(),
+                        authorIP: userIP,
+                        createdAt: currentTime.toISOString(),
                         // SEO Metadata
                         seoKeywords,
                         seoDescription,
                         seoTitle: `${title} - Forbiary`
                     };
 
-                    // Submit to Firestore
-                    const articleRef = await db.collection('articles').add(newArticleData);
-                    
-                    // Update with canonical URL
-                    await db.collection('articles').doc(articleRef.id).update({
-                        canonicalUrl: `https://forbiary.com/#${articleRef.id}`
-                    });
+                    // Submit to Firestore with proper timestamp handling
+                    let articleRef;
+                    try {
+                        // Use regular Date object for addDoc, then update with serverTimestamp
+                        articleRef = await db.collection('articles').add({
+                            ...baseArticleData,
+                            timestamp: firestoreTimestamp,
+                            lastViewed: firestoreTimestamp
+                        });
+                        
+                        // Update with canonical URL and server timestamps
+                        await db.collection('articles').doc(articleRef.id).update({
+                            canonicalUrl: `https://forbiary.com/#${articleRef.id}`,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            lastViewed: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    } catch (firestoreError) {
+                        console.error('Firestore creation error:', firestoreError);
+                        throw new Error('Failed to create article in Firestore: ' + firestoreError.message);
+                    }
 
                     // Submit to Realtime Database as backup
                     try {
-                        await realtimeDb.ref('articles').child(articleRef.id).set({
-                            ...newArticleData,
-                            timestamp: firebase.database.ServerValue.TIMESTAMP,
-                            lastViewed: firebase.database.ServerValue.TIMESTAMP,
+                        const realtimeData = {
+                            ...baseArticleData,
+                            timestamp: realtimeTimestamp,
+                            lastViewed: realtimeTimestamp,
                             canonicalUrl: `https://forbiary.com/#${articleRef.id}`
-                        });
+                        };
+                        
+                        await realtimeDb.ref('articles').child(articleRef.id).set(realtimeData);
                     } catch (realtimeError) {
                         console.warn('Could not save to Realtime Database:', realtimeError);
+                        // Don't fail the entire operation if Realtime DB fails
                     }
 
                     // Notify moderators about new article
                     try {
-                        await notifyModeratorsNewArticle(articleRef.id, {
-                            title,
+                        await db.collection('moderatorNotifications').add({
+                            type: 'new_article',
+                            articleId: articleRef.id,
+                            articleTitle: title,
                             author: currentUser.displayName,
-                            category,
-                            timestamp: new Date()
+                            category: category,
+                            timestamp: firestoreTimestamp,
+                            read: false,
+                            message: `New article "${title}" published by ${currentUser.displayName}`
                         });
                     } catch (notifyError) {
                         console.warn('Could not notify moderators:', notifyError);
@@ -2629,6 +2685,8 @@
                     errorMessage += 'Network error. Please check your internet connection and try again.';
                 } else if (error.code === 'quota-exceeded') {
                     errorMessage += 'Storage quota exceeded. Please try again later.';
+                } else if (error.code === 'invalid-argument') {
+                    errorMessage += 'Invalid data format. Please check your input and try again.';
                 } else if (error.message) {
                     errorMessage += error.message;
                 } else {
@@ -2968,6 +3026,7 @@
             
             if (confirmLock) {
                 try {
+                    const currentTime = new Date();
                     await db.collection('articles').doc(articleId).update({
                         locked: true,
                         lockedBy: currentUser.displayName,
@@ -2998,6 +3057,7 @@
             
             if (confirmUnlock) {
                 try {
+                    const currentTime = new Date();
                     await db.collection('articles').doc(articleId).update({
                         locked: false,
                         unlockedBy: currentUser.displayName,
@@ -3492,6 +3552,7 @@
             try {
                 const articleDoc = await db.collection('articles').doc(articleId).get();
                 const article = articleDoc.data();
+                const currentTime = new Date();
 
                 await db.collection('moderatorSuggestions').add({
                     articleId: articleId,
@@ -3501,7 +3562,7 @@
                     type: 'improvement',
                     suggestion: suggestion.trim(),
                     status: 'pending',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    timestamp: firebase.firestore.Timestamp.fromDate(currentTime)
                 });
 
                 showNotification('Suggestion submitted successfully!', 'success');
@@ -3528,6 +3589,7 @@
                 try {
                     const articleDoc = await db.collection('articles').doc(articleId).get();
                     const article = articleDoc.data();
+                    const currentTime = new Date();
 
                     // Log the deletion
                     await db.collection('moderatorSuggestions').add({
@@ -3538,7 +3600,7 @@
                         type: 'deletion',
                         suggestion: reason.trim(),
                         status: 'implemented',
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        timestamp: firebase.firestore.Timestamp.fromDate(currentTime)
                     });
 
                     // Delete the article
@@ -3990,5 +4052,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a59d8e6635524',t:'MTc1MzYwMDU4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a63d9251aaa33',t:'MTc1MzYwMDk5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
