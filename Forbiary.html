@@ -40,6 +40,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -1217,6 +1218,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const realtimeDb = firebase.database();
 
         // Initialize Quill Editor
         let quill;
@@ -1803,38 +1805,74 @@
 
         // Clear form
         function clearForm() {
-            document.getElementById('articleTitle').value = '';
-            document.getElementById('articleSummary').value = '';
-            document.getElementById('articleCategory').value = '';
-            document.getElementById('articleTags').value = '';
-            document.getElementById('articleReferences').value = '';
-            document.getElementById('editSummary').value = '';
-            if (quill) {
-                quill.setContents([]);
+            try {
+                const titleElement = document.getElementById('articleTitle');
+                const summaryElement = document.getElementById('articleSummary');
+                const categoryElement = document.getElementById('articleCategory');
+                const tagsElement = document.getElementById('articleTags');
+                const referencesElement = document.getElementById('articleReferences');
+                const editSummaryElement = document.getElementById('editSummary');
+                const codeTextareaElement = document.getElementById('codeTextarea');
+
+                if (titleElement) titleElement.value = '';
+                if (summaryElement) summaryElement.value = '';
+                if (categoryElement) categoryElement.value = '';
+                if (tagsElement) tagsElement.value = '';
+                if (referencesElement) referencesElement.value = '';
+                if (editSummaryElement) editSummaryElement.value = '';
+                if (codeTextareaElement) codeTextareaElement.value = '';
+                
+                if (quill && quill.setContents) {
+                    try {
+                        quill.setContents([]);
+                    } catch (quillError) {
+                        console.warn('Error clearing Quill editor:', quillError);
+                    }
+                }
+            } catch (error) {
+                console.error('Error clearing form:', error);
             }
-            document.getElementById('codeTextarea').value = '';
         }
 
         // Load article for editing
         async function loadArticleForEditing(articleId) {
             try {
                 const doc = await db.collection('articles').doc(articleId).get();
-                if (!doc.exists) return;
+                if (!doc.exists) {
+                    alert('Article not found');
+                    return;
+                }
                 
                 const article = doc.data();
-                document.getElementById('articleTitle').value = article.title || '';
-                document.getElementById('articleSummary').value = article.summary || '';
-                document.getElementById('articleCategory').value = article.category || '';
-                document.getElementById('articleTags').value = (article.tags || []).join(', ');
-                document.getElementById('articleReferences').value = (article.references || []).join('\n');
                 
+                // Safely populate form fields
+                const titleElement = document.getElementById('articleTitle');
+                const summaryElement = document.getElementById('articleSummary');
+                const categoryElement = document.getElementById('articleCategory');
+                const tagsElement = document.getElementById('articleTags');
+                const referencesElement = document.getElementById('articleReferences');
+                const codeTextareaElement = document.getElementById('codeTextarea');
+
+                if (titleElement) titleElement.value = article.title || '';
+                if (summaryElement) summaryElement.value = article.summary || '';
+                if (categoryElement) categoryElement.value = article.category || '';
+                if (tagsElement) tagsElement.value = (article.tags || []).join(', ');
+                if (referencesElement) referencesElement.value = (article.references || []).join('\n');
+                if (codeTextareaElement) codeTextareaElement.value = article.content || '';
+                
+                // Safely populate Quill editor
                 if (quill && quill.root) {
-                    quill.root.innerHTML = article.content || '';
+                    try {
+                        quill.root.innerHTML = article.content || '';
+                    } catch (quillError) {
+                        console.warn('Error loading content into Quill editor:', quillError);
+                        if (codeTextareaElement) codeTextareaElement.value = article.content || '';
+                    }
                 }
-                document.getElementById('codeTextarea').value = article.content || '';
+                
             } catch (error) {
                 console.error('Error loading article for editing:', error);
-                alert('Error loading article for editing');
+                alert('Error loading article for editing: ' + (error.message || 'Unknown error'));
             }
         }
 
@@ -2130,129 +2168,235 @@
             
             // Show loading state
             const submitBtn = document.querySelector('#articleForm button[type="submit"]');
+            if (!submitBtn) {
+                console.error('Submit button not found');
+                return;
+            }
+            
             const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
             submitBtn.disabled = true;
 
             try {
-                const userIP = await getUserIP();
-                const isBanned = await checkIPBan(userIP);
-                
-                if (isBanned) {
-                    alert('Your IP address has been banned for submitting false information. Ban will expire in 5 months.');
+                // Check if user is signed in for new articles
+                if (!currentEditingArticleId && !currentUser) {
+                    alert('Please sign in to create articles');
                     return;
                 }
 
-                const title = document.getElementById('articleTitle').value.trim();
-                const summary = document.getElementById('articleSummary').value.trim();
-                const category = document.getElementById('articleCategory').value;
-                const tags = document.getElementById('articleTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
-                const references = document.getElementById('articleReferences').value.split('\n').filter(ref => ref.trim());
-                const editSummary = document.getElementById('editSummary').value.trim();
+                // Get and validate form elements
+                const titleElement = document.getElementById('articleTitle');
+                const summaryElement = document.getElementById('articleSummary');
+                const categoryElement = document.getElementById('articleCategory');
+                const tagsElement = document.getElementById('articleTags');
+                const referencesElement = document.getElementById('articleReferences');
+                const editSummaryElement = document.getElementById('editSummary');
+                const codeTextareaElement = document.getElementById('codeTextarea');
+
+                if (!titleElement || !summaryElement || !categoryElement || !tagsElement || 
+                    !referencesElement || !editSummaryElement || !codeTextareaElement) {
+                    throw new Error('Form elements not properly initialized');
+                }
+
+                // Get form values safely
+                const title = titleElement.value ? titleElement.value.trim() : '';
+                const summary = summaryElement.value ? summaryElement.value.trim() : '';
+                const category = categoryElement.value ? categoryElement.value.trim() : '';
+                const tagsValue = tagsElement.value ? tagsElement.value.trim() : '';
+                const referencesValue = referencesElement.value ? referencesElement.value.trim() : '';
+                const editSummary = editSummaryElement.value ? editSummaryElement.value.trim() : '';
+
+                // Process tags and references
+                const tags = tagsValue ? tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+                const references = referencesValue ? referencesValue.split('\n').map(ref => ref.trim()).filter(ref => ref) : [];
                 
                 // Get content based on current edit mode
                 let htmlContent = '';
-                if (currentEditMode === 'visual' && quill) {
-                    htmlContent = quill.root.innerHTML;
-                } else {
-                    htmlContent = document.getElementById('codeTextarea').value;
+                try {
+                    if (currentEditMode === 'visual' && quill && quill.root) {
+                        htmlContent = quill.root.innerHTML || '';
+                    } else {
+                        htmlContent = codeTextareaElement.value || '';
+                    }
+                } catch (contentError) {
+                    console.error('Error getting content:', contentError);
+                    htmlContent = codeTextareaElement.value || '';
                 }
 
-                // Validate required fields
+                // Comprehensive field validation
+                const validationErrors = [];
+                
                 if (!title) {
-                    alert('Please enter an article title');
-                    return;
+                    validationErrors.push('Article title is required');
+                }
+                if (title.length > 200) {
+                    validationErrors.push('Article title must be less than 200 characters');
                 }
                 if (!summary) {
-                    alert('Please enter an article summary');
-                    return;
+                    validationErrors.push('Article summary is required');
+                }
+                if (summary.length > 500) {
+                    validationErrors.push('Article summary must be less than 500 characters');
                 }
                 if (!category) {
-                    alert('Please select a category');
+                    validationErrors.push('Please select a category');
+                }
+                if (!htmlContent || htmlContent.trim() === '<p><br></p>' || htmlContent.trim() === '' || htmlContent.trim() === '<p></p>') {
+                    validationErrors.push('Article content is required');
+                }
+                if (htmlContent.length > 50000) {
+                    validationErrors.push('Article content is too long (maximum 50,000 characters)');
+                }
+
+                if (validationErrors.length > 0) {
+                    alert('Please fix the following errors:\n\n• ' + validationErrors.join('\n• '));
                     return;
                 }
-                if (!htmlContent || htmlContent.trim() === '<p><br></p>' || htmlContent.trim() === '') {
-                    alert('Please enter article content');
-                    return;
+
+                // Get user IP for tracking
+                let userIP = 'unknown';
+                try {
+                    userIP = await getUserIP();
+                    const isBanned = await checkIPBan(userIP);
+                    
+                    if (isBanned) {
+                        alert('Your IP address has been banned for submitting false information. Ban will expire in 5 months.');
+                        return;
+                    }
+                } catch (ipError) {
+                    console.warn('Could not get user IP:', ipError);
                 }
+
+                // Prepare article data
+                const articleData = {
+                    title,
+                    summary,
+                    category,
+                    tags,
+                    references,
+                    content: htmlContent,
+                    editSummary: editSummary || 'No summary provided',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: new Date().toISOString(),
+                    authorIP: userIP
+                };
 
                 if (currentEditingArticleId) {
                     // Submit edit for existing article
-                    await db.collection('edits').add({
+                    const editData = {
+                        ...articleData,
                         articleId: currentEditingArticleId,
-                        title,
-                        summary,
-                        category,
-                        tags,
-                        references,
-                        content: htmlContent,
-                        editSummary: editSummary || 'No summary provided',
                         editor: currentUser ? currentUser.displayName : 'Anonymous',
                         editorEmail: currentUser ? currentUser.email : 'anonymous@forbiary.com',
                         editorUid: currentUser ? currentUser.uid : 'anonymous',
                         editorIP: userIP,
-                        status: 'pending',
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        createdAt: new Date().toISOString()
-                    });
+                        status: 'pending'
+                    };
+
+                    // Submit to Firestore
+                    const editRef = await db.collection('edits').add(editData);
+                    
+                    // Submit to Realtime Database as backup
+                    try {
+                        await realtimeDb.ref('edits').child(editRef.id).set({
+                            ...editData,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        });
+                    } catch (realtimeError) {
+                        console.warn('Could not save to Realtime Database:', realtimeError);
+                    }
 
                     alert('Edit submitted successfully! It will be reviewed by moderators.');
                 } else {
-                    if (!currentUser) {
-                        alert('Please sign in to create articles');
-                        return;
-                    }
-                    
-                    // Generate SEO metadata automatically
+                    // Create new article
                     const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags);
                     const seoDescription = generateSEODescription(summary, htmlContent);
                     
-                    // Create new article - Published immediately like Wikipedia
-                    const articleRef = await db.collection('articles').add({
-                        title,
-                        summary,
-                        category,
-                        tags,
-                        references,
-                        content: htmlContent,
+                    const newArticleData = {
+                        ...articleData,
                         author: currentUser.displayName,
                         authorEmail: currentUser.email,
                         uid: currentUser.uid,
-                        authorIP: userIP,
                         status: 'approved', // Published immediately
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        createdAt: new Date().toISOString(),
                         editHistory: [],
                         locked: false,
-                        // SEO Metadata
-                        seoKeywords: seoKeywords,
-                        seoDescription: seoDescription,
-                        seoTitle: `${title} - Forbiary`,
-                        canonicalUrl: `https://forbiary.com/#${articleRef.id}`,
                         viewCount: 0,
-                        lastViewed: firebase.firestore.FieldValue.serverTimestamp()
+                        lastViewed: firebase.firestore.FieldValue.serverTimestamp(),
+                        // SEO Metadata
+                        seoKeywords,
+                        seoDescription,
+                        seoTitle: `${title} - Forbiary`
+                    };
+
+                    // Submit to Firestore
+                    const articleRef = await db.collection('articles').add(newArticleData);
+                    
+                    // Update with canonical URL
+                    await db.collection('articles').doc(articleRef.id).update({
+                        canonicalUrl: `https://forbiary.com/#${articleRef.id}`
                     });
 
+                    // Submit to Realtime Database as backup
+                    try {
+                        await realtimeDb.ref('articles').child(articleRef.id).set({
+                            ...newArticleData,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            lastViewed: firebase.database.ServerValue.TIMESTAMP,
+                            canonicalUrl: `https://forbiary.com/#${articleRef.id}`
+                        });
+                    } catch (realtimeError) {
+                        console.warn('Could not save to Realtime Database:', realtimeError);
+                    }
+
                     // Notify moderators about new article
-                    await notifyModeratorsNewArticle(articleRef.id, {
-                        title,
-                        author: currentUser.displayName,
-                        category,
-                        timestamp: new Date()
-                    });
+                    try {
+                        await notifyModeratorsNewArticle(articleRef.id, {
+                            title,
+                            author: currentUser.displayName,
+                            category,
+                            timestamp: new Date()
+                        });
+                    } catch (notifyError) {
+                        console.warn('Could not notify moderators:', notifyError);
+                    }
 
                     alert('Article published successfully! It is now live on Forbiary.');
                 }
 
+                // Clear form and redirect
                 clearForm();
                 showHome();
+                
             } catch (error) {
                 console.error('Submission error:', error);
-                alert('Error submitting: ' + error.message);
+                
+                // Show user-friendly error message
+                let errorMessage = 'An error occurred while submitting your article. ';
+                
+                if (error.code === 'permission-denied') {
+                    errorMessage += 'You do not have permission to perform this action.';
+                } else if (error.code === 'network-request-failed') {
+                    errorMessage += 'Network error. Please check your internet connection and try again.';
+                } else if (error.code === 'quota-exceeded') {
+                    errorMessage += 'Storage quota exceeded. Please try again later.';
+                } else if (error.message) {
+                    errorMessage += error.message;
+                } else {
+                    errorMessage += 'Please try again or contact support if the problem persists.';
+                }
+                
+                alert(errorMessage);
+                
             } finally {
-                // Reset button state
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+                // Always reset button state
+                try {
+                    if (submitBtn) {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }
+                } catch (resetError) {
+                    console.error('Error resetting button:', resetError);
+                }
             }
         });
 
@@ -3559,5 +3703,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a3332849b37a5',t:'MTc1MzU5OTAwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a3f3d54083501',t:'MTc1MzU5OTQ5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
