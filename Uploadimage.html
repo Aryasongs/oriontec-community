@@ -1,148 +1,413 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Image Upload</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .upload-box {
-      background: #121212;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
-      max-width: 500px;
-      width: 100%;
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-      font-size: 26px;
-      color: #ffffff;
-    }
-
-    input[type="file"] {
-      background: #2c2c2c;
-      color: white;
-      padding: 12px;
-      border: 2px dashed #444;
-      border-radius: 10px;
-      width: 100%;
-      cursor: pointer;
-      margin-bottom: 15px;
-    }
-
-    .btn-upload {
-      padding: 12px 30px;
-      background: #2979ff;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-bottom: 20px;
-      transition: 0.3s;
-    }
-
-    .btn-upload:hover {
-      background: #1565c0;
-    }
-
-    .output {
-      margin-top: 15px;
-      word-wrap: break-word;
-      font-size: 14px;
-      color: #cccccc;
-    }
-
-    .output img {
-      margin-top: 10px;
-      max-width: 100%;
-      border-radius: 12px;
-    }
-
-    .copy-btn {
-      margin-top: 10px;
-      background: #00c853;
-      border: none;
-      padding: 10px 20px;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    @media (max-width: 600px) {
-      .upload-box {
-        padding: 20px;
-      }
-      h1 {
-        font-size: 22px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrioCloud - Image Upload</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .upload-area {
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #f0f4ff;
+            transform: scale(1.02);
+        }
+        
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .success-checkmark {
+            animation: checkmark 0.6s ease-in-out;
+        }
+        
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
 </head>
-<body>
+<body class="min-h-screen gradient-bg">
+    <!-- Header -->
+    <header class="bg-white/10 backdrop-blur-md border-b border-white/20">
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-cloud-upload-alt text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-white">OrioCloud</h1>
+                </div>
+                <div class="text-white/80 text-sm">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    Secure Image Upload
+                </div>
+            </div>
+        </div>
+    </header>
 
-<div class="upload-box">
-  <h1>Upload Your Image</h1>
-  <input type="file" id="fileInput" />
-  <button class="btn-upload" onclick="uploadImage()">Upload</button>
-  <div class="output" id="output"></div>
-</div>
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-6 py-12">
+        <!-- Upload Section -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Upload Your Images</h2>
+                <p class="text-gray-600">Drag and drop your files or click to browse</p>
+            </div>
 
-<script>
-  function uploadImage() {
-    const fileInput = document.getElementById("fileInput");
-    const output = document.getElementById("output");
-    const file = fileInput.files[0];
-    if (!file) return alert("Please select a file first");
+            <!-- Upload Area -->
+            <div id="uploadArea" class="upload-area border-3 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50 cursor-pointer mb-6">
+                <div id="uploadContent">
+                    <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Choose files or drag them here</h3>
+                    <p class="text-gray-500 mb-4">Supports: JPG, PNG, GIF, WebP (Max 10MB)</p>
+                    <button class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-folder-open mr-2"></i>
+                        Browse Files
+                    </button>
+                </div>
+                
+                <!-- Loading State -->
+                <div id="loadingContent" class="hidden">
+                    <div class="pulse-animation">
+                        <i class="fas fa-spinner fa-spin text-6xl text-blue-500 mb-4"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Uploading...</h3>
+                    <div class="w-64 bg-gray-200 rounded-full h-2 mx-auto mb-4">
+                        <div id="progressBar" class="progress-bar bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <p id="progressText" class="text-gray-500">0%</p>
+                </div>
+            </div>
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "your_unsigned_preset");
+            <input type="file" id="fileInput" class="hidden" accept="image/*" multiple />
+            
+            <!-- File Info -->
+            <div id="fileInfo" class="hidden bg-blue-50 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-image text-blue-500 mr-3"></i>
+                        <div>
+                            <p id="fileName" class="font-medium text-gray-800"></p>
+                            <p id="fileSize" class="text-sm text-gray-600"></p>
+                        </div>
+                    </div>
+                    <button id="removeFile" class="text-red-500 hover:text-red-700 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
 
-    output.innerHTML = "Uploading...";
+            <!-- Upload Button -->
+            <div class="text-center">
+                <button id="uploadBtn" class="hidden bg-gradient-to-r from-green-500 to-blue-600 text-white px-12 py-4 rounded-xl font-semibold text-lg hover:from-green-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    <i class="fas fa-upload mr-2"></i>
+                    Upload to Cloud
+                </button>
+            </div>
+        </div>
 
-    fetch("https://api.cloudinary.com/v1_1/your_cloud_name/image/upload", {
-      method: "POST",
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      const imageUrl = data.secure_url;
-      output.innerHTML = `
-        ✅ Uploaded!<br>
-        <input type="text" value="${imageUrl}" id="copyUrl" readonly style="width: 100%; padding: 5px; margin-top: 10px;">
-        <button class="copy-btn" onclick="copyToClipboard()">Copy URL</button><br>
-        <img src="${imageUrl}" alt="Uploaded image">
-      `;
-    })
-    .catch(err => {
-      output.innerHTML = "❌ Upload failed.";
-      console.error(err);
-    });
-  }
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden">
+            <div class="bg-white rounded-2xl shadow-2xl p-8">
+                <div class="text-center mb-6">
+                    <div class="success-checkmark w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check text-green-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Upload Successful!</h3>
+                    <p class="text-gray-600">Your image has been uploaded to Cloudinary</p>
+                </div>
 
-  function copyToClipboard() {
-    const copyText = document.getElementById("copyUrl");
-    copyText.select();
-    copyText.setSelectionRange(0, 99999);
-    document.execCommand("copy");
-    alert("Copied URL to clipboard!");
-  }
-</script>
+                <!-- Image Preview -->
+                <div id="imagePreview" class="mb-6 text-center">
+                    <img id="uploadedImage" class="max-w-md mx-auto rounded-lg shadow-lg" alt="Uploaded image">
+                </div>
 
-</body>
+                <!-- URL Section -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Image URL:</label>
+                    <div class="flex items-center space-x-3">
+                        <input id="imageUrl" type="text" readonly class="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 font-mono text-sm">
+                        <button id="copyBtn" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                            <i class="fas fa-copy mr-2"></i>
+                            Copy
+                        </button>
+                        <a id="openBtn" href="#" target="_blank" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors font-medium">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            Open
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="text-center mt-6">
+                    <button id="uploadAnother" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300">
+                        <i class="fas fa-plus mr-2"></i>
+                        Upload Another Image
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="toastMessage">URL copied to clipboard!</span>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const uploadContent = document.getElementById('uploadContent');
+        const loadingContent = document.getElementById('loadingContent');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const imageUrl = document.getElementById('imageUrl');
+        const uploadedImage = document.getElementById('uploadedImage');
+        const copyBtn = document.getElementById('copyBtn');
+        const openBtn = document.getElementById('openBtn');
+        const uploadAnother = document.getElementById('uploadAnother');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const toast = document.getElementById('toast');
+        const removeFile = document.getElementById('removeFile');
+
+        let selectedFile = null;
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => {
+            if (!uploadArea.classList.contains('uploading')) {
+                fileInput.click();
+            }
+        });
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        // Handle file selection
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('Please select an image file', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('File size must be less than 10MB', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.remove('hidden');
+            uploadBtn.classList.remove('hidden');
+        }
+
+        // Remove file
+        removeFile.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.add('hidden');
+            uploadBtn.classList.add('hidden');
+        });
+
+        // Upload button click
+        uploadBtn.addEventListener('click', uploadImage);
+
+        // Upload function
+        async function uploadImage() {
+            if (!selectedFile) return;
+
+            // Show loading state
+            uploadContent.classList.add('hidden');
+            loadingContent.classList.remove('hidden');
+            uploadArea.classList.add('uploading');
+            uploadBtn.disabled = true;
+
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                updateProgress(progress);
+            }, 200);
+
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('upload_preset', 'Images');
+
+                const response = await fetch('https://api.cloudinary.com/v1_1/ds6uh1fty/image/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                clearInterval(progressInterval);
+                updateProgress(100);
+
+                setTimeout(() => {
+                    showResults(data.secure_url);
+                }, 500);
+
+            } catch (error) {
+                clearInterval(progressInterval);
+                console.error('Upload failed:', error);
+                showToast('Upload failed. Please try again.', 'error');
+                resetUploadArea();
+            }
+        }
+
+        // Update progress
+        function updateProgress(percent) {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = Math.round(percent) + '%';
+        }
+
+        // Show results
+        function showResults(url) {
+            imageUrl.value = url;
+            uploadedImage.src = url;
+            openBtn.href = url;
+            
+            resultsSection.classList.remove('hidden');
+            resultsSection.classList.add('fade-in');
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Copy URL functionality
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(imageUrl.value);
+                showToast('URL copied to clipboard!', 'success');
+            } catch (err) {
+                // Fallback for older browsers
+                imageUrl.select();
+                document.execCommand('copy');
+                showToast('URL copied to clipboard!', 'success');
+            }
+        });
+
+        // Upload another image
+        uploadAnother.addEventListener('click', () => {
+            resetUploadArea();
+            resultsSection.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Reset upload area
+        function resetUploadArea() {
+            selectedFile = null;
+            fileInput.value = '';
+            uploadContent.classList.remove('hidden');
+            loadingContent.classList.add('hidden');
+            fileInfo.classList.add('hidden');
+            uploadBtn.classList.add('hidden');
+            uploadBtn.disabled = false;
+            uploadArea.classList.remove('uploading');
+            updateProgress(0);
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = toast.querySelector('i');
+            
+            toastMessage.textContent = message;
+            
+            if (type === 'error') {
+                toast.className = toast.className.replace('bg-green-500', 'bg-red-500');
+                toastIcon.className = 'fas fa-exclamation-circle mr-2';
+            } else {
+                toast.className = toast.className.replace('bg-red-500', 'bg-green-500');
+                toastIcon.className = 'fas fa-check-circle mr-2';
+            }
+            
+            toast.classList.remove('translate-x-full');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965c249cc45d91e6',t:'MTc1MzYxOTM3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
