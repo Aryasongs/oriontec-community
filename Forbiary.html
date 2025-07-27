@@ -761,9 +761,96 @@
                 background: white;
             }
         }
+        /* Internal Notification System */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .notification {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-left: 4px solid #007bff;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            position: relative;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left-color: #28a745;
+        }
+
+        .notification.error {
+            border-left-color: #dc3545;
+        }
+
+        .notification.warning {
+            border-left-color: #ffc107;
+        }
+
+        .notification.info {
+            border-left-color: #17a2b8;
+        }
+
+        .notification-close {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-close:hover {
+            color: #333;
+        }
+
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+            margin-right: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .notification-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <!-- Internal Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
     <!-- Wikipedia-style Header -->
     <header class="wiki-header">
         <div class="wiki-container">
@@ -1220,6 +1307,52 @@
         const db = firebase.firestore();
         const realtimeDb = firebase.database();
 
+        // Internal Notification System
+        function showNotification(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('notificationContainer');
+            if (!container) return;
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const titles = {
+                success: 'Success',
+                error: 'Error',
+                warning: 'Warning',
+                info: 'Information'
+            };
+
+            notification.innerHTML = `
+                <button class="notification-close" onclick="closeNotification(this)">&times;</button>
+                <div class="notification-title">${titles[type] || 'Notification'}</div>
+                <div class="notification-message">${message}</div>
+            `;
+
+            container.appendChild(notification);
+
+            // Trigger animation
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+
+            // Auto-remove after duration
+            if (duration > 0) {
+                setTimeout(() => {
+                    closeNotification(notification.querySelector('.notification-close'));
+                }, duration);
+            }
+        }
+
+        function closeNotification(closeBtn) {
+            const notification = closeBtn.parentElement;
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.parentElement.removeChild(notification);
+                }
+            }, 300);
+        }
+
         // Initialize Quill Editor
         let quill;
         
@@ -1327,8 +1460,9 @@
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
                 await auth.signInWithPopup(provider);
+                showNotification('🎉 Welcome to Forbiary! You are now signed in.', 'success');
             } catch (error) {
-                alert('Sign in failed: ' + error.message);
+                showNotification('Sign in failed: ' + error.message, 'error');
             }
         }
 
@@ -1336,8 +1470,9 @@
         async function signOut() {
             try {
                 await auth.signOut();
+                showNotification('You have been signed out successfully', 'info');
             } catch (error) {
-                alert('Sign out failed: ' + error.message);
+                showNotification('Sign out failed: ' + error.message, 'error');
             }
         }
 
@@ -1360,7 +1495,7 @@
         // Show drafts for current user
         function showMyDrafts() {
             if (!currentUser) {
-                alert('Please sign in to view your drafts');
+                showNotification('Please sign in to view your drafts', 'warning');
                 return;
             }
             hideAllPages();
@@ -1440,20 +1575,20 @@
                 const doc = await db.collection('articles').doc(articleId).get();
                 
                 if (!doc.exists) {
-                    alert('Draft not found');
+                    showNotification('Draft not found', 'error');
                     return;
                 }
 
                 const article = doc.data();
                 
                 if (article.status !== 'pending') {
-                    alert('This is not a draft');
+                    showNotification('This is not a draft', 'warning');
                     return;
                 }
 
                 // Check if user owns this draft
                 if (currentUser && article.uid !== currentUser.uid && !isAdmin && !isModerator) {
-                    alert('You can only view your own drafts');
+                    showNotification('You can only view your own drafts', 'warning');
                     return;
                 }
 
@@ -1499,22 +1634,30 @@
                 `;
             } catch (error) {
                 console.error('Error loading draft:', error);
-                alert('Error loading draft');
+                showNotification('Error loading draft', 'error');
             }
         }
 
-        // Delete draft
+        // Delete draft with internal confirmation
         async function deleteDraft(articleId) {
             if (!currentUser) return;
             
-            if (confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+            // Create custom confirmation dialog
+            const confirmDelete = await showConfirmDialog(
+                'Delete Draft', 
+                'Are you sure you want to delete this draft? This action cannot be undone.',
+                'Delete',
+                'Cancel'
+            );
+            
+            if (confirmDelete) {
                 try {
                     // Check ownership
                     const doc = await db.collection('articles').doc(articleId).get();
                     if (doc.exists) {
                         const article = doc.data();
                         if (article.uid !== currentUser.uid && !isAdmin && !isModerator) {
-                            alert('You can only delete your own drafts');
+                            showNotification('You can only delete your own drafts', 'warning');
                             return;
                         }
                     }
@@ -1527,24 +1670,95 @@
                     const updatedCollection = collectionData.filter(item => item.id !== articleId);
                     localStorage.setItem('collection_articles', JSON.stringify(updatedCollection));
                     
-                    alert('Draft deleted successfully');
+                    showNotification('Draft deleted successfully', 'success');
                     loadUserDrafts();
                 } catch (error) {
-                    alert('Error deleting draft: ' + error.message);
+                    showNotification('Error deleting draft: ' + error.message, 'error');
                 }
             }
         }
 
+        // Custom confirmation dialog
+        function showConfirmDialog(title, message, confirmText = 'Confirm', cancelText = 'Cancel') {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.5);
+                    z-index: 10001;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+                
+                const dialog = document.createElement('div');
+                dialog.style.cssText = `
+                    background: white;
+                    border-radius: 8px;
+                    padding: 24px;
+                    max-width: 400px;
+                    width: 90%;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                    animation: dialogIn 0.2s ease-out;
+                `;
+                
+                dialog.innerHTML = `
+                    <h3 style="margin: 0 0 16px 0; font-size: 18px; color: #333;">${title}</h3>
+                    <p style="margin: 0 0 24px 0; color: #666; line-height: 1.5;">${message}</p>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button id="cancelBtn" style="padding: 8px 16px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 4px; cursor: pointer;">${cancelText}</button>
+                        <button id="confirmBtn" style="padding: 8px 16px; border: none; background: #dc3545; color: white; border-radius: 4px; cursor: pointer;">${confirmText}</button>
+                    </div>
+                `;
+                
+                overlay.appendChild(dialog);
+                document.body.appendChild(overlay);
+                
+                // Add animation styles
+                const dialogStyle = document.createElement('style');
+                dialogStyle.textContent = `
+                    @keyframes dialogIn {
+                        from { transform: scale(0.9); opacity: 0; }
+                        to { transform: scale(1); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(dialogStyle);
+                
+                // Handle buttons
+                dialog.querySelector('#confirmBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    document.head.removeChild(dialogStyle);
+                    resolve(true);
+                };
+                
+                dialog.querySelector('#cancelBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    document.head.removeChild(dialogStyle);
+                    resolve(false);
+                };
+                
+                // Handle overlay click
+                overlay.onclick = (e) => {
+                    if (e.target === overlay) {
+                        document.body.removeChild(overlay);
+                        document.head.removeChild(dialogStyle);
+                        resolve(false);
+                    }
+                };
+            });
+        }
+
         async function showWrite(articleId = null) {
-            hideAllPages();
-            document.getElementById('writePage').style.display = 'block';
-            
             if (articleId) {
-                // Check if article is locked
+                // For editing existing articles - check if article is locked
                 try {
                     const doc = await db.collection('articles').doc(articleId).get();
                     if (doc.exists && doc.data().locked) {
-                        alert('This article is locked and cannot be edited.');
+                        showNotification('This article is locked and cannot be edited', 'warning');
                         showHome();
                         return;
                     }
@@ -1552,6 +1766,8 @@
                     console.error('Error checking article lock status:', error);
                 }
 
+                hideAllPages();
+                document.getElementById('writePage').style.display = 'block';
                 currentEditingArticleId = articleId;
                 document.getElementById('writePageTitle').textContent = 'Edit Article';
                 document.getElementById('submitButtonText').textContent = 'Submit Edit';
@@ -1563,10 +1779,14 @@
                     setTimeout(() => loadArticleForEditing(articleId), 300);
                 }, 100);
             } else {
+                // For creating new articles - check if user is signed in
                 if (!currentUser) {
-                    alert('Please sign in to create articles');
+                    showNotification('Please sign in to create articles', 'warning');
                     return;
                 }
+                
+                hideAllPages();
+                document.getElementById('writePage').style.display = 'block';
                 currentEditingArticleId = null;
                 document.getElementById('writePageTitle').textContent = 'Create New Article';
                 document.getElementById('submitButtonText').textContent = 'Submit for Review';
@@ -1578,7 +1798,7 @@
 
         function showModerate() {
             if (!currentUser || (!isAdmin && !isModerator)) {
-                alert('Access denied. Moderator privileges required.');
+                showNotification('Access denied. Moderator privileges required', 'warning');
                 return;
             }
             hideAllPages();
@@ -1602,7 +1822,7 @@
 
         function showPendingEdits() {
             if (!currentUser || (!isAdmin && !isModerator)) {
-                alert('Access denied. Moderator privileges required.');
+                showNotification('Access denied. Moderator privileges required', 'warning');
                 return;
             }
             hideAllPages();
@@ -1613,7 +1833,7 @@
 
         function showProfile() {
             if (!currentUser) {
-                alert('Please sign in to view your profile');
+                showNotification('Please sign in to view your profile', 'warning');
                 return;
             }
             hideAllPages();
@@ -1659,7 +1879,7 @@
                                 [{ 'indent': '-1'}, { 'indent': '+1' }],
                                 [{ 'direction': 'rtl' }],
                                 [{ 'align': [] }],
-                                ['link', 'image', 'video'],
+                                ['link'],
                                 ['blockquote', 'code-block'],
                                 ['formula'],
                                 ['clean']
@@ -1775,17 +1995,19 @@
         // Apply to become a moderator
         async function applyForModerator() {
             if (!currentUser) {
-                alert('Please sign in first');
+                showNotification('Please sign in first', 'warning');
                 return;
             }
 
             const reason = document.getElementById('moderatorReason').value;
             if (!reason.trim()) {
-                alert('Please provide a reason for becoming a moderator');
+                showNotification('Please provide a reason for becoming a moderator', 'warning');
                 return;
             }
 
             try {
+                showNotification('Processing your moderator application...', 'info', 2000);
+                
                 await db.collection('moderators').doc(currentUser.uid).set({
                     email: currentUser.email,
                     name: currentUser.displayName,
@@ -1797,9 +2019,15 @@
                 isModerator = true;
                 document.getElementById('moderatorSection').style.display = 'block';
                 document.getElementById('moderatorBadgeMobile').style.display = 'inline-block';
-                document.getElementById('applicationStatus').innerHTML = '<div style="color: green;">✓ You are now a moderator! You can now moderate articles and lock/unlock them.</div>';
+                document.getElementById('moderatorSectionDesktop1').style.display = 'inline-block';
+                document.getElementById('moderatorSectionDesktop2').style.display = 'inline-block';
+                document.getElementById('moderatorBadgeDesktop').style.display = 'inline-block';
+                
+                document.getElementById('applicationStatus').innerHTML = '<div style="color: #28a745; padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; margin-top: 15px;"><i class="fas fa-check-circle"></i> You are now a moderator! You can now moderate articles and lock/unlock them.</div>';
+                
+                showNotification('Congratulations! You are now a moderator', 'success');
             } catch (error) {
-                alert('Error applying for moderator: ' + error.message);
+                showNotification('Error applying for moderator: ' + error.message, 'error');
             }
         }
 
@@ -2180,7 +2408,7 @@
             try {
                 // Check if user is signed in for new articles
                 if (!currentEditingArticleId && !currentUser) {
-                    alert('Please sign in to create articles');
+                    showNotification('Please sign in to create articles', 'warning');
                     return;
                 }
 
@@ -2249,7 +2477,7 @@
                 }
 
                 if (validationErrors.length > 0) {
-                    alert('Please fix the following errors:\n\n• ' + validationErrors.join('\n• '));
+                    showNotification('Please fix the following errors:<br><br>• ' + validationErrors.join('<br>• '), 'error', 8000);
                     return;
                 }
 
@@ -2260,7 +2488,7 @@
                     const isBanned = await checkIPBan(userIP);
                     
                     if (isBanned) {
-                        alert('Your IP address has been banned for submitting false information. Ban will expire in 5 months.');
+                        showNotification('Your IP address has been banned for submitting false information. Ban will expire in 5 months.', 'error');
                         return;
                     }
                 } catch (ipError) {
@@ -2306,7 +2534,7 @@
                         console.warn('Could not save to Realtime Database:', realtimeError);
                     }
 
-                    alert('Edit submitted successfully! It will be reviewed by moderators.');
+                    showNotification('Edit submitted successfully! It will be reviewed by moderators.', 'success');
                 } else {
                     // Create new article
                     const seoKeywords = generateSEOKeywords(title, summary, htmlContent, tags);
@@ -2360,7 +2588,13 @@
                         console.warn('Could not notify moderators:', notifyError);
                     }
 
-                    alert('Article published successfully! It is now live on Forbiary.');
+                    showNotification('🎉 Article published successfully! Your article is now live on Forbiary.', 'success', 6000);
+                    
+                    // Auto-refresh recent articles and redirect to home
+                    setTimeout(() => {
+                        loadRecentArticles();
+                        showHome();
+                    }, 1500);
                 }
 
                 // Clear form and redirect
@@ -2385,7 +2619,7 @@
                     errorMessage += 'Please try again or contact support if the problem persists.';
                 }
                 
-                alert(errorMessage);
+                showNotification(errorMessage, 'error', 8000);
                 
             } finally {
                 // Always reset button state
@@ -2521,14 +2755,14 @@
                 const doc = await db.collection('articles').doc(articleId).get();
                 
                 if (!doc.exists) {
-                    alert('Article not found');
+                    showNotification('Article not found', 'error');
                     return;
                 }
 
                 const article = doc.data();
                 
                 if (article.status !== 'approved') {
-                    alert('Article is not available');
+                    showNotification('Article is not available', 'warning');
                     return;
                 }
 
@@ -2696,18 +2930,27 @@
         function copyArticleLink(articleId) {
             const link = `${window.location.origin}${window.location.pathname}#${articleId}`;
             navigator.clipboard.writeText(link).then(() => {
-                alert('Article link copied to clipboard!');
+                showNotification('Article link copied to clipboard!', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy link to clipboard', 'error');
             });
         }
 
         // Lock article
         async function lockArticle(articleId) {
             if (!isAdmin && !isModerator) {
-                alert('Only moderators can lock articles');
+                showNotification('Only moderators can lock articles', 'warning');
                 return;
             }
 
-            if (confirm('Are you sure you want to lock this article? This will prevent all users from editing it.')) {
+            const confirmLock = await showConfirmDialog(
+                'Lock Article', 
+                'Are you sure you want to lock this article? This will prevent all users from editing it.',
+                'Lock Article',
+                'Cancel'
+            );
+            
+            if (confirmLock) {
                 try {
                     await db.collection('articles').doc(articleId).update({
                         locked: true,
@@ -2715,10 +2958,10 @@
                         lockedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
-                    alert('Article locked successfully!');
+                    showNotification('Article locked successfully!', 'success');
                     openArticle(articleId); // Refresh the article view
                 } catch (error) {
-                    alert('Error locking article: ' + error.message);
+                    showNotification('Error locking article: ' + error.message, 'error');
                 }
             }
         }
@@ -2726,11 +2969,18 @@
         // Unlock article
         async function unlockArticle(articleId) {
             if (!isAdmin && !isModerator) {
-                alert('Only moderators can unlock articles');
+                showNotification('Only moderators can unlock articles', 'warning');
                 return;
             }
 
-            if (confirm('Are you sure you want to unlock this article? This will allow users to edit it again.')) {
+            const confirmUnlock = await showConfirmDialog(
+                'Unlock Article', 
+                'Are you sure you want to unlock this article? This will allow users to edit it again.',
+                'Unlock Article',
+                'Cancel'
+            );
+            
+            if (confirmUnlock) {
                 try {
                     await db.collection('articles').doc(articleId).update({
                         locked: false,
@@ -2738,10 +2988,10 @@
                         unlockedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
-                    alert('Article unlocked successfully!');
+                    showNotification('Article unlocked successfully!', 'success');
                     openArticle(articleId); // Refresh the article view
                 } catch (error) {
-                    alert('Error unlocking article: ' + error.message);
+                    showNotification('Error unlocking article: ' + error.message, 'error');
                 }
             }
         }
@@ -3004,10 +3254,10 @@
                     approvedBy: currentUser.displayName
                 });
                 
-                alert('Article approved successfully!');
+                showNotification('Article approved successfully!', 'success');
                 loadPendingArticles();
             } catch (error) {
-                alert('Error approving article: ' + error.message);
+                showNotification('Error approving article: ' + error.message, 'error');
             }
         }
 
@@ -3015,7 +3265,14 @@
         async function rejectArticle(articleId) {
             if (!isAdmin && !isModerator) return;
 
-            if (confirm('Are you sure you want to reject this article?')) {
+            const confirmReject = await showConfirmDialog(
+                'Reject Article', 
+                'Are you sure you want to reject this article?',
+                'Reject',
+                'Cancel'
+            );
+            
+            if (confirmReject) {
                 try {
                     await db.collection('articles').doc(articleId).update({
                         status: 'rejected',
@@ -3023,10 +3280,10 @@
                         rejectedBy: currentUser.displayName
                     });
                     
-                    alert('Article rejected.');
+                    showNotification('Article rejected', 'info');
                     loadPendingArticles();
                 } catch (error) {
-                    alert('Error rejecting article: ' + error.message);
+                    showNotification('Error rejecting article: ' + error.message, 'error');
                 }
             }
         }
@@ -3175,10 +3432,10 @@
                     approvedBy: currentUser.displayName
                 });
 
-                alert('Edit approved successfully!');
+                showNotification('Edit approved successfully!', 'success');
                 loadPendingEdits();
             } catch (error) {
-                alert('Error approving edit: ' + error.message);
+                showNotification('Error approving edit: ' + error.message, 'error');
             }
         }
 
@@ -3186,7 +3443,14 @@
         async function rejectEdit(editId) {
             if (!isAdmin && !isModerator) return;
 
-            if (confirm('Are you sure you want to reject this edit?')) {
+            const confirmReject = await showConfirmDialog(
+                'Reject Edit', 
+                'Are you sure you want to reject this edit?',
+                'Reject',
+                'Cancel'
+            );
+            
+            if (confirmReject) {
                 try {
                     await db.collection('edits').doc(editId).update({
                         status: 'rejected',
@@ -3194,10 +3458,10 @@
                         rejectedBy: currentUser.displayName
                     });
 
-                    alert('Edit rejected.');
+                    showNotification('Edit rejected', 'info');
                     loadPendingEdits();
                 } catch (error) {
-                    alert('Error rejecting edit: ' + error.message);
+                    showNotification('Error rejecting edit: ' + error.message, 'error');
                 }
             }
         }
@@ -3224,9 +3488,9 @@
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert('Suggestion submitted successfully!');
+                showNotification('Suggestion submitted successfully!', 'success');
             } catch (error) {
-                alert('Error submitting suggestion: ' + error.message);
+                showNotification('Error submitting suggestion: ' + error.message, 'error');
             }
         }
 
@@ -3237,7 +3501,14 @@
             const reason = prompt('Enter reason for deleting this article (required):');
             if (!reason || !reason.trim()) return;
 
-            if (confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
+            const confirmDelete = await showConfirmDialog(
+                'Delete Article', 
+                'Are you sure you want to delete this article? This action cannot be undone.',
+                'Delete',
+                'Cancel'
+            );
+            
+            if (confirmDelete) {
                 try {
                     const articleDoc = await db.collection('articles').doc(articleId).get();
                     const article = articleDoc.data();
@@ -3257,10 +3528,10 @@
                     // Delete the article
                     await db.collection('articles').doc(articleId).delete();
 
-                    alert('Article deleted successfully!');
+                    showNotification('Article deleted successfully!', 'success');
                     loadRecentArticlesForModerators();
                 } catch (error) {
-                    alert('Error deleting article: ' + error.message);
+                    showNotification('Error deleting article: ' + error.message, 'error');
                 }
             }
         }
@@ -3703,5 +3974,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a3f3d54083501',t:'MTc1MzU5OTQ5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a5161008a3a18',t:'MTc1MzYwMDIzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
