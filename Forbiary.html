@@ -448,8 +448,26 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Desktop navigation styles */
+        @media (min-width: 769px) {
+            .mobile-menu {
+                display: none;
+            }
+            
+            .nav-dropdown {
+                display: none !important;
+            }
+            
+            #desktopNavLinks {
+                display: flex;
+            }
+        }
+
         /* Mobile Styles */
         @media (max-width: 768px) {
+            #desktopNavLinks {
+                display: none;
+            }
             .wiki-container {
                 padding: 0 10px;
             }
@@ -731,7 +749,17 @@
                     <input type="text" id="mainSearchInput" placeholder="Search Forbiary..." onkeypress="if(event.key==='Enter') searchFromHeader()">
                 </div>
                 <div class="header-right">
-                    <!-- User info moved to mobile menu -->
+                    <div id="userInfoDesktop" style="display:none;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <img id="userPhotoDesktop" style="width: 32px; height: 32px; border-radius: 50%;" src="" alt="">
+                            <span id="userNameDesktop" style="font-size: 14px; color: #0645ad;"></span>
+                            <span id="moderatorBadgeDesktop" class="moderator-badge" style="display:none;">Moderator</span>
+                            <button onclick="signOut()" style="color: #d33; font-size: 14px; background: none; border: none; cursor: pointer; padding: 4px 8px; margin-left: 8px;">Sign Out</button>
+                        </div>
+                    </div>
+                    <button onclick="signInWithGoogle()" id="loginBtnDesktop" class="wiki-edit-btn">
+                        <i class="fab fa-google" style="margin-right: 5px;"></i>Sign In
+                    </button>
                 </div>
             </div>
         </div>
@@ -743,6 +771,16 @@
             <button class="mobile-menu" onclick="toggleMobileMenu()">
                 <i class="fas fa-bars"></i> Menu
             </button>
+            <div class="wiki-nav-links" id="desktopNavLinks">
+                <a href="#" onclick="showHome()">Main page</a>
+                <a href="#" onclick="showSearch()">Browse articles</a>
+                <a href="#" onclick="showWrite()">Create article</a>
+                <a href="#" onclick="showBecomeModerator()">Become moderator</a>
+                <a href="#" onclick="showCategories()">Categories</a>
+                <a href="#" onclick="showMyDrafts()" id="userSectionDesktop" style="display:none;">My Drafts</a>
+                <a href="#" onclick="showModerate()" id="moderatorSectionDesktop1" style="display:none; color: #28a745;">Moderate Articles</a>
+                <a href="#" onclick="showPendingEdits()" id="moderatorSectionDesktop2" style="display:none; color: #28a745;">Pending Edits</a>
+            </div>
             <div class="nav-dropdown" id="mobileNavDropdown">
                 <div class="wiki-nav-links">
                     <a href="#" onclick="showHome(); closeMobileMenu()">Main page</a>
@@ -1407,21 +1445,36 @@
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
+                
+                // Mobile UI
                 document.getElementById('loginBtnMobile').style.display = 'none';
                 document.getElementById('userInfoMobile').style.display = 'block';
                 document.getElementById('userNameMobile').textContent = user.displayName;
                 document.getElementById('userPhotoMobile').src = user.photoURL;
+                
+                // Desktop UI
+                document.getElementById('loginBtnDesktop').style.display = 'none';
+                document.getElementById('userInfoDesktop').style.display = 'block';
+                document.getElementById('userNameDesktop').textContent = user.displayName;
+                document.getElementById('userPhotoDesktop').src = user.photoURL;
 
-                // Show user section
+                // Show user sections
                 document.getElementById('userSection').style.display = 'block';
+                document.getElementById('userSectionDesktop').style.display = 'inline-block';
 
                 // Check if user is admin or moderator
                 isAdmin = adminEmails.includes(user.email);
                 await checkModeratorStatus();
                 
                 if (isAdmin || isModerator) {
+                    // Mobile moderator UI
                     document.getElementById('moderatorSection').style.display = 'block';
                     document.getElementById('moderatorBadgeMobile').style.display = 'inline-block';
+                    
+                    // Desktop moderator UI
+                    document.getElementById('moderatorSectionDesktop1').style.display = 'inline-block';
+                    document.getElementById('moderatorSectionDesktop2').style.display = 'inline-block';
+                    document.getElementById('moderatorBadgeDesktop').style.display = 'inline-block';
                 }
 
                 // Initialize editor if on write page
@@ -1432,11 +1485,21 @@
                 currentUser = null;
                 isAdmin = false;
                 isModerator = false;
+                
+                // Mobile UI
                 document.getElementById('loginBtnMobile').style.display = 'block';
                 document.getElementById('userInfoMobile').style.display = 'none';
                 document.getElementById('userSection').style.display = 'none';
                 document.getElementById('moderatorSection').style.display = 'none';
                 document.getElementById('moderatorBadgeMobile').style.display = 'none';
+                
+                // Desktop UI
+                document.getElementById('loginBtnDesktop').style.display = 'block';
+                document.getElementById('userInfoDesktop').style.display = 'none';
+                document.getElementById('userSectionDesktop').style.display = 'none';
+                document.getElementById('moderatorSectionDesktop1').style.display = 'none';
+                document.getElementById('moderatorSectionDesktop2').style.display = 'none';
+                document.getElementById('moderatorBadgeDesktop').style.display = 'none';
             }
         });
 
@@ -2635,8 +2698,9 @@
                     </div>
                 </div>
                 <div style="border-top: 1px solid #ddd; padding-top: 15px;">
-                    <div style="max-height: 200px; overflow-y: auto; font-size: 14px; line-height: 1.4;">
-                        ${article.content.substring(0, 1000)}${article.content.length > 1000 ? '...' : ''}
+                    <h4 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">Article Content Preview:</h4>
+                    <div style="max-height: 300px; overflow-y: auto; font-size: 14px; line-height: 1.6; background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 4px;">
+                        ${article.content.length > 1500 ? article.content.substring(0, 1500) + '...<br><br><em style="color: #666;">[Content truncated - Full article available after approval]</em>' : article.content}
                     </div>
                 </div>
             `;
@@ -2782,8 +2846,9 @@
                     </div>
                 </div>
                 <div style="border-top: 1px solid #ddd; padding-top: 15px;">
-                    <div style="max-height: 200px; overflow-y: auto; font-size: 14px; line-height: 1.4;">
-                        ${edit.content.substring(0, 1000)}${edit.content.length > 1000 ? '...' : ''}
+                    <h4 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">Edited Content Preview:</h4>
+                    <div style="max-height: 300px; overflow-y: auto; font-size: 14px; line-height: 1.6; background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 4px;">
+                        ${edit.content.length > 1500 ? edit.content.substring(0, 1500) + '...<br><br><em style="color: #666;">[Content truncated - Full content available after approval]</em>' : edit.content}
                     </div>
                 </div>
             `;
@@ -2952,5 +3017,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a003ba03b490d',t:'MTc1MzU5NjkxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a07d7d2a1400f',t:'MTc1MzU5NzIyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
