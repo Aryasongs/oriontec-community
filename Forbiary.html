@@ -707,6 +707,33 @@
             }
         }
 
+        /* Profile Page Styles */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .profile-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .profile-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
         /* Print Styles */
         @media print {
             .wiki-header,
@@ -778,6 +805,7 @@
                 <a href="#" onclick="showBecomeModerator()">Become moderator</a>
                 <a href="#" onclick="showCategories()">Categories</a>
                 <a href="#" onclick="showMyDrafts()" id="userSectionDesktop" style="display:none;">My Drafts</a>
+                <a href="#" onclick="showProfile()" id="profileSectionDesktop" style="display:none;">My Profile</a>
                 <a href="#" onclick="showModerate()" id="moderatorSectionDesktop1" style="display:none; color: #28a745;">Moderate Articles</a>
                 <a href="#" onclick="showPendingEdits()" id="moderatorSectionDesktop2" style="display:none; color: #28a745;">Pending Edits</a>
             </div>
@@ -790,6 +818,7 @@
                     <a href="#" onclick="showCategories(); closeMobileMenu()">Categories</a>
                     <div style="border-top: 1px solid #ddd; margin: 10px 0; padding-top: 10px;" id="userSection" style="display:none;">
                         <a href="#" onclick="showMyDrafts(); closeMobileMenu()">My Drafts</a>
+                        <a href="#" onclick="showProfile(); closeMobileMenu()">My Profile</a>
                     </div>
                     <div style="border-top: 1px solid #ddd; margin: 10px 0; padding-top: 10px;" id="moderatorSection" style="display:none;">
                         <a href="#" onclick="showModerate(); closeMobileMenu()" style="color: #28a745;">Moderate Articles</a>
@@ -1040,6 +1069,18 @@
             </div>
         </div>
 
+        <!-- User Profile Page -->
+        <div id="profilePage" style="display:none;">
+            <div class="wiki-content">
+                <div class="wiki-article">
+                    <h1>User Profile</h1>
+                    <div id="profileContent">
+                        <!-- Profile content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Write/Edit Article Page -->
         <div id="writePage" style="display:none;">
             <div class="wiki-content">
@@ -1238,6 +1279,7 @@
                 // Show user sections
                 document.getElementById('userSection').style.display = 'block';
                 document.getElementById('userSectionDesktop').style.display = 'inline-block';
+                document.getElementById('profileSectionDesktop').style.display = 'inline-block';
 
                 // Check if user is admin or moderator
                 isAdmin = adminEmails.includes(user.email);
@@ -1274,6 +1316,7 @@
                 document.getElementById('loginBtnDesktop').style.display = 'block';
                 document.getElementById('userInfoDesktop').style.display = 'none';
                 document.getElementById('userSectionDesktop').style.display = 'none';
+                document.getElementById('profileSectionDesktop').style.display = 'none';
                 document.getElementById('moderatorSectionDesktop1').style.display = 'none';
                 document.getElementById('moderatorSectionDesktop2').style.display = 'none';
                 document.getElementById('moderatorBadgeDesktop').style.display = 'none';
@@ -1569,6 +1612,17 @@
             updatePageMetadata('Pending Edits - Forbiary', 'Review pending edits on Forbiary knowledge platform.');
         }
 
+        function showProfile() {
+            if (!currentUser) {
+                alert('Please sign in to view your profile');
+                return;
+            }
+            hideAllPages();
+            document.getElementById('profilePage').style.display = 'block';
+            loadUserProfile();
+            updatePageMetadata('My Profile - Forbiary', 'View your profile and contribution statistics on Forbiary.');
+        }
+
         function hideAllPages() {
             document.getElementById('homePage').style.display = 'none';
             document.getElementById('searchPage').style.display = 'none';
@@ -1578,6 +1632,7 @@
             document.getElementById('becomeModeratorPage').style.display = 'none';
             document.getElementById('categoriesPage').style.display = 'none';
             document.getElementById('pendingEditsPage').style.display = 'none';
+            document.getElementById('profilePage').style.display = 'none';
         }
 
         // Initialize Quill editor with enhanced toolbar
@@ -3172,6 +3227,318 @@
             }
         }
 
+        // Load user profile with points system
+        async function loadUserProfile() {
+            if (!currentUser) return;
+
+            try {
+                // Get user's articles
+                const articlesSnapshot = await db.collection('articles')
+                    .where('uid', '==', currentUser.uid)
+                    .get();
+
+                // Get user's edits
+                const editsSnapshot = await db.collection('edits')
+                    .where('editorUid', '==', currentUser.uid)
+                    .get();
+
+                // Calculate statistics
+                let totalArticles = 0;
+                let approvedArticles = 0;
+                let rejectedArticles = 0;
+                let pendingArticles = 0;
+
+                articlesSnapshot.forEach(doc => {
+                    const article = doc.data();
+                    totalArticles++;
+                    if (article.status === 'approved') approvedArticles++;
+                    else if (article.status === 'rejected') rejectedArticles++;
+                    else if (article.status === 'pending') pendingArticles++;
+                });
+
+                let totalEdits = 0;
+                let approvedEdits = 0;
+                let rejectedEdits = 0;
+                let pendingEdits = 0;
+
+                editsSnapshot.forEach(doc => {
+                    const edit = doc.data();
+                    totalEdits++;
+                    if (edit.status === 'approved') approvedEdits++;
+                    else if (edit.status === 'rejected') rejectedEdits++;
+                    else if (edit.status === 'pending') pendingEdits++;
+                });
+
+                // Calculate points
+                const points = calculateUserPoints(approvedArticles, rejectedArticles, approvedEdits, rejectedEdits);
+                
+                // Get user's profile data or create default
+                let profileData = {
+                    joinedAt: currentUser.metadata.creationTime,
+                    totalContributions: totalArticles + totalEdits,
+                    points: points
+                };
+
+                try {
+                    const profileDoc = await db.collection('userProfiles').doc(currentUser.uid).get();
+                    if (profileDoc.exists) {
+                        profileData = { ...profileData, ...profileDoc.data() };
+                    } else {
+                        // Create profile document
+                        await db.collection('userProfiles').doc(currentUser.uid).set({
+                            ...profileData,
+                            email: currentUser.email,
+                            name: currentUser.displayName,
+                            photoURL: currentUser.photoURL,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading profile data:', error);
+                }
+
+                displayUserProfile(profileData, {
+                    totalArticles,
+                    approvedArticles,
+                    rejectedArticles,
+                    pendingArticles,
+                    totalEdits,
+                    approvedEdits,
+                    rejectedEdits,
+                    pendingEdits,
+                    points
+                });
+
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                document.getElementById('profileContent').innerHTML = '<p style="color: #dc3545;">Error loading profile data.</p>';
+            }
+        }
+
+        // Calculate user points based on contributions
+        function calculateUserPoints(approvedArticles, rejectedArticles, approvedEdits, rejectedEdits) {
+            let points = 0;
+            
+            // Article points
+            points += approvedArticles * 10; // +10 for each approved article
+            points -= rejectedArticles * 5;  // -5 for each rejected article
+            
+            // Edit points
+            points += approvedEdits * 5;     // +5 for each approved edit
+            points -= rejectedEdits * 2;     // -2 for each rejected edit
+            
+            return points;
+        }
+
+        // Display user profile
+        function displayUserProfile(profileData, stats) {
+            const joinedDate = new Date(profileData.joinedAt).toLocaleDateString();
+            const pointsColor = stats.points >= 0 ? '#007bff' : '#dc3545'; // Blue for positive, red for negative
+            const pointsSign = stats.points >= 0 ? '+' : '';
+
+            const profileHTML = `
+                <div class="profile-grid">
+                    <div style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 20px; border-radius: 8px;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <img src="${currentUser.photoURL}" alt="Profile Photo" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 15px;">
+                            <h2 style="margin: 0 0 5px 0; font-size: 24px; color: #333;">${currentUser.displayName}</h2>
+                            <p style="margin: 0; color: #666; font-size: 14px;">${currentUser.email}</p>
+                            ${isModerator ? '<span class="moderator-badge" style="margin-top: 10px; display: inline-block;">Moderator</span>' : ''}
+                        </div>
+                        
+                        <div style="text-align: center; padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 6px;">
+                            <div style="font-size: 32px; font-weight: bold; color: ${pointsColor}; margin-bottom: 5px;">
+                                ${pointsSign}${stats.points}
+                            </div>
+                            <div style="font-size: 14px; color: #666;">Contribution Points</div>
+                        </div>
+                        
+                        <div style="margin-top: 20px; font-size: 14px; color: #666;">
+                            <div style="margin-bottom: 8px;"><strong>Joined:</strong> ${joinedDate}</div>
+                            <div style="margin-bottom: 8px;"><strong>Total Contributions:</strong> ${profileData.totalContributions}</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin: 0 0 20px 0; font-size: 20px; color: #333;">Contribution Statistics</h3>
+                        
+                        <div class="profile-stats-grid">
+                            <div style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 15px; border-radius: 6px;">
+                                <h4 style="margin: 0 0 15px 0; font-size: 16px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 8px;">
+                                    <i class="fas fa-file-alt" style="margin-right: 8px; color: #007bff;"></i>Articles
+                                </h4>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Total:</span>
+                                    <strong>${stats.totalArticles}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="color: #28a745;">✓ Approved:</span>
+                                    <strong style="color: #28a745;">${stats.approvedArticles} (+${stats.approvedArticles * 10})</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="color: #dc3545;">✗ Rejected:</span>
+                                    <strong style="color: #dc3545;">${stats.rejectedArticles} (${stats.rejectedArticles * -5})</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #ffc107;">⏳ Pending:</span>
+                                    <strong style="color: #ffc107;">${stats.pendingArticles}</strong>
+                                </div>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 15px; border-radius: 6px;">
+                                <h4 style="margin: 0 0 15px 0; font-size: 16px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 8px;">
+                                    <i class="fas fa-edit" style="margin-right: 8px; color: #17a2b8;"></i>Edits
+                                </h4>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Total:</span>
+                                    <strong>${stats.totalEdits}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="color: #28a745;">✓ Approved:</span>
+                                    <strong style="color: #28a745;">${stats.approvedEdits} (+${stats.approvedEdits * 5})</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="color: #dc3545;">✗ Rejected:</span>
+                                    <strong style="color: #dc3545;">${stats.rejectedEdits} (${stats.rejectedEdits * -2})</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #ffc107;">⏳ Pending:</span>
+                                    <strong style="color: #ffc107;">${stats.pendingEdits}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #e9ecef; border: 1px solid #ced4da; padding: 15px; border-radius: 6px;">
+                            <h4 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">
+                                <i class="fas fa-calculator" style="margin-right: 8px; color: #6c757d;"></i>Points Breakdown
+                            </h4>
+                            <div style="font-size: 14px; color: #666;">
+                                <div style="margin-bottom: 5px;">• Approved Articles: ${stats.approvedArticles} × 10 = <span style="color: #28a745;">+${stats.approvedArticles * 10}</span></div>
+                                <div style="margin-bottom: 5px;">• Rejected Articles: ${stats.rejectedArticles} × -5 = <span style="color: #dc3545;">${stats.rejectedArticles * -5}</span></div>
+                                <div style="margin-bottom: 5px;">• Approved Edits: ${stats.approvedEdits} × 5 = <span style="color: #28a745;">+${stats.approvedEdits * 5}</span></div>
+                                <div style="margin-bottom: 10px;">• Rejected Edits: ${stats.rejectedEdits} × -2 = <span style="color: #dc3545;">${stats.rejectedEdits * -2}</span></div>
+                                <hr style="margin: 10px 0;">
+                                <div style="font-size: 16px; font-weight: bold;">
+                                    Total Points: <span style="color: ${pointsColor};">${pointsSign}${stats.points}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h3 style="margin: 0 0 20px 0; font-size: 20px; color: #333;">Recent Activity</h3>
+                    <div id="recentActivity">
+                        <div class="loading-spinner" style="margin: 20px auto; display: block;"></div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('profileContent').innerHTML = profileHTML;
+            
+            // Load recent activity
+            loadUserRecentActivity();
+        }
+
+        // Load user's recent activity
+        async function loadUserRecentActivity() {
+            if (!currentUser) return;
+
+            try {
+                const activities = [];
+
+                // Get recent articles
+                const articlesSnapshot = await db.collection('articles')
+                    .where('uid', '==', currentUser.uid)
+                    .orderBy('timestamp', 'desc')
+                    .limit(5)
+                    .get();
+
+                articlesSnapshot.forEach(doc => {
+                    const article = doc.data();
+                    activities.push({
+                        type: 'article',
+                        title: article.title,
+                        status: article.status,
+                        timestamp: article.timestamp,
+                        id: doc.id
+                    });
+                });
+
+                // Get recent edits
+                const editsSnapshot = await db.collection('edits')
+                    .where('editorUid', '==', currentUser.uid)
+                    .orderBy('timestamp', 'desc')
+                    .limit(5)
+                    .get();
+
+                editsSnapshot.forEach(doc => {
+                    const edit = doc.data();
+                    activities.push({
+                        type: 'edit',
+                        title: edit.title,
+                        status: edit.status,
+                        timestamp: edit.timestamp,
+                        articleId: edit.articleId,
+                        editSummary: edit.editSummary
+                    });
+                });
+
+                // Sort by timestamp
+                activities.sort((a, b) => {
+                    const aTime = a.timestamp ? a.timestamp.toDate() : new Date(0);
+                    const bTime = b.timestamp ? b.timestamp.toDate() : new Date(0);
+                    return bTime - aTime;
+                });
+
+                // Display activities
+                const activityContainer = document.getElementById('recentActivity');
+                if (activities.length === 0) {
+                    activityContainer.innerHTML = '<p style="color: #666; text-align: center;">No recent activity.</p>';
+                    return;
+                }
+
+                const activityHTML = activities.slice(0, 10).map(activity => {
+                    const timeAgo = getTimeAgo(activity.timestamp ? activity.timestamp.toDate() : new Date());
+                    const statusColor = activity.status === 'approved' ? '#28a745' : 
+                                       activity.status === 'rejected' ? '#dc3545' : '#ffc107';
+                    const statusIcon = activity.status === 'approved' ? '✓' : 
+                                      activity.status === 'rejected' ? '✗' : '⏳';
+
+                    return `
+                        <div style="background: #f8f9fa; border: 1px solid #a2a9b1; padding: 15px; border-radius: 6px; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px;">
+                                <div style="flex: 1;">
+                                    <div style="font-size: 16px; color: #333; margin-bottom: 5px;">
+                                        <i class="fas fa-${activity.type === 'article' ? 'file-alt' : 'edit'}" style="margin-right: 8px; color: ${activity.type === 'article' ? '#007bff' : '#17a2b8'};"></i>
+                                        ${activity.type === 'article' ? 'Created Article' : 'Edited Article'}: 
+                                        <strong>${activity.title}</strong>
+                                    </div>
+                                    ${activity.editSummary ? `<div style="font-size: 14px; color: #666; margin-bottom: 5px;">Summary: ${activity.editSummary}</div>` : ''}
+                                    <div style="font-size: 14px; color: #666;">
+                                        ${timeAgo} • Status: <span style="color: ${statusColor}; font-weight: bold;">${statusIcon} ${activity.status.toUpperCase()}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    ${activity.type === 'article' && activity.id ? 
+                                        `<button onclick="openArticle('${activity.id}')" class="wiki-edit-btn" style="font-size: 12px; padding: 4px 8px;">View</button>` : 
+                                        activity.articleId ? 
+                                        `<button onclick="openArticle('${activity.articleId}')" class="wiki-edit-btn" style="font-size: 12px; padding: 4px 8px;">View</button>` : ''
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                activityContainer.innerHTML = activityHTML;
+
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                document.getElementById('recentActivity').innerHTML = '<p style="color: #dc3545;">Error loading recent activity.</p>';
+            }
+        }
+
         // Initialize app
         window.addEventListener('hashchange', handleHashChange);
         window.addEventListener('load', () => {
@@ -3195,5 +3562,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a2592a487aa12',t:'MTc1MzU5ODQ0MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965a2b0e93feaed9',t:'MTc1MzU5ODY2Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
