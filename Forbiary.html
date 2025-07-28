@@ -3224,7 +3224,23 @@
                     }
 
                     if (!titleChanged) {
-                        showNotification('🎉 Article updated successfully! Your changes are now live.', 'success');
+                        // Check if this edit was AI-enhanced
+                        const aiTracker = document.getElementById('aiEnhancementTracker');
+                        const isEditAIEnhanced = aiTracker && aiTracker.value === 'true';
+                        
+                        if (isEditAIEnhanced) {
+                            const aiEditMessages = [
+                                '🎉 Article updated with AI enhancements! Your changes are now live with improved structure.',
+                                '✨ Update successful! AI has optimized your changes and added smart connections.',
+                                '🚀 Article updated! AI enhancement has made your edits more comprehensive.',
+                                '💡 Changes saved with AI magic! Your updated content is now better organized.',
+                                '🌟 Update complete! AI has enhanced your edits with professional formatting.'
+                            ];
+                            const randomEditMessage = aiEditMessages[Math.floor(Math.random() * aiEditMessages.length)];
+                            showNotification(randomEditMessage, 'success');
+                        } else {
+                            showNotification('🎉 Article updated successfully! Your changes are now live.', 'success');
+                        }
                     }
                 } else {
                     // Create new article with comprehensive SEO
@@ -3237,6 +3253,10 @@
                     const wordCount = (tempDiv.textContent || tempDiv.innerText || '').split(/\s+/).filter(word => word.length > 0).length;
                     const readingTime = Math.ceil(wordCount / 200); // Average reading speed
                     
+                    // Check if article was AI-enhanced
+                    const aiTracker = document.getElementById('aiEnhancementTracker');
+                    const isAIEnhanced = aiTracker && aiTracker.value === 'true';
+
                     const baseArticleData = {
                         title,
                         summary,
@@ -3257,6 +3277,9 @@
                         createdAt: currentTime.toISOString(),
                         wordCount,
                         readingTime,
+                        // AI Enhancement tracking
+                        aiEnhanced: isAIEnhanced,
+                        enhancementTimestamp: isAIEnhanced ? currentTime.toISOString() : null,
                         // Comprehensive SEO Metadata
                         seoKeywords,
                         seoDescription,
@@ -3330,7 +3353,20 @@
                         console.warn('Could not notify moderators:', notifyError);
                     }
 
-                    showNotification('🎉 Article published successfully! Your article is now live on Forbiary.', 'success', 6000);
+                    // Contextual success notification based on AI enhancement
+                    if (isAIEnhanced) {
+                        const aiSuccessMessages = [
+                            '🎉 AI-enhanced article published successfully! Your content is now live with smart internal links and professional structure.',
+                            '✨ Article published with AI magic! Your enhanced content is now available to readers worldwide.',
+                            '🚀 Success! Your AI-optimized article is now live on Forbiary with automatic cross-references.',
+                            '🌟 Published successfully! AI has made your article more discoverable and well-connected.',
+                            '💡 Article live! AI enhancement has improved your content\'s readability and knowledge connections.'
+                        ];
+                        const randomAIMessage = aiSuccessMessages[Math.floor(Math.random() * aiSuccessMessages.length)];
+                        showNotification(randomAIMessage, 'success', 6000);
+                    } else {
+                        showNotification('🎉 Article published successfully! Your article is now live on Forbiary.', 'success', 6000);
+                    }
                     
                     // Auto-refresh recent articles and redirect to home
                     setTimeout(() => {
@@ -3700,6 +3736,12 @@
                     </div>` : '';
 
                 const isLocked = article.locked || false;
+                // AI enhancement indicator (subtle)
+                const aiIndicator = article.aiEnhanced ? 
+                    `<span style="float: right; background: linear-gradient(45deg, #6f42c1, #007bff); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; margin-right: 8px; opacity: 0.8;" title="This article was enhanced with AI assistance">
+                        <i class="fas fa-magic" style="margin-right: 3px;"></i>AI Enhanced
+                    </span>` : '';
+
                 const editButton = !isLocked ? `<button onclick="showWrite('${articleId}')" class="wiki-edit-btn" style="float: right;"><i class="fas fa-edit"></i> Edit</button>` : 
                     `<span style="float: right; background: #dc3545; color: white; padding: 8px 16px; border-radius: 2px; font-size: 14px;"><i class="fas fa-lock"></i> Locked</span>`;
                 
@@ -3726,6 +3768,7 @@
                 
                 document.getElementById('articleContent').innerHTML = `
                     <div style="margin-bottom: 20px;">
+                        ${aiIndicator}
                         ${editButton}
                         <div class="article-meta">
                             <span style="background: #f0f0f0; padding: 4px 8px; border-radius: 3px; font-size: 14px;">${article.category}</span>
@@ -5564,5 +5607,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9662676fe66a8ae7',t:'MTc1MzY4NTAyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96626ffd961b91b5',t:'MTc1MzY4NTM3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
