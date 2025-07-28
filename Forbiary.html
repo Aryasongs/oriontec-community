@@ -5035,8 +5035,10 @@
         // Internal Linking System
         let linkSuggestionsVisible = false;
         let currentLinkPosition = null;
+        let selectedTextRange = null;
+        let linkSearchModal = null;
 
-        // Enhanced internal linking with suggestions
+        // Enhanced internal linking with suggestions and text selection
         function setupInternalLinking() {
             if (!quill) return;
             
@@ -5046,12 +5048,271 @@
                 }
             });
             
-            // Hide suggestions when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('#linkSuggestions') && !e.target.closest('.ql-editor')) {
-                    hideLinkSuggestions();
+            // Add text selection handler for internal linking
+            quill.on('selection-change', function(range, oldRange, source) {
+                if (range && range.length > 0) {
+                    selectedTextRange = range;
+                    showTextSelectionLinkOption();
+                } else {
+                    hideTextSelectionLinkOption();
                 }
             });
+            
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#linkSuggestions') && !e.target.closest('.ql-editor') && !e.target.closest('#linkSearchModal')) {
+                    hideLinkSuggestions();
+                    hideTextSelectionLinkOption();
+                }
+            });
+        }
+
+        // Show text selection link option
+        function showTextSelectionLinkOption() {
+            if (!selectedTextRange || selectedTextRange.length === 0) return;
+            
+            const selectedText = quill.getText(selectedTextRange.index, selectedTextRange.length).trim();
+            if (selectedText.length < 2) return;
+            
+            // Remove existing link option
+            const existingOption = document.getElementById('textLinkOption');
+            if (existingOption) existingOption.remove();
+            
+            // Create link option button
+            const linkOption = document.createElement('div');
+            linkOption.id = 'textLinkOption';
+            linkOption.style.cssText = `
+                position: absolute;
+                background: #0645ad;
+                color: white;
+                padding: 8px 12px;
+                border-radius: 4px;
+                font-size: 12px;
+                cursor: pointer;
+                z-index: 1001;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                white-space: nowrap;
+            `;
+            linkOption.innerHTML = `<i class="fas fa-link"></i> Link "${selectedText.substring(0, 20)}${selectedText.length > 20 ? '...' : ''}"`;
+            linkOption.onclick = () => openLinkSearchModal(selectedText);
+            
+            // Position the button near the selection
+            const editorBounds = quill.container.getBoundingClientRect();
+            const selection = quill.getBounds(selectedTextRange.index, selectedTextRange.length);
+            
+            linkOption.style.left = (editorBounds.left + selection.left) + 'px';
+            linkOption.style.top = (editorBounds.top + selection.top - 40) + 'px';
+            
+            document.body.appendChild(linkOption);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                if (document.getElementById('textLinkOption')) {
+                    hideTextSelectionLinkOption();
+                }
+            }, 5000);
+        }
+
+        // Hide text selection link option
+        function hideTextSelectionLinkOption() {
+            const linkOption = document.getElementById('textLinkOption');
+            if (linkOption) linkOption.remove();
+        }
+
+        // Open link search modal
+        function openLinkSearchModal(selectedText) {
+            hideTextSelectionLinkOption();
+            
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'linkSearchModal';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 10002;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            // Create modal content
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                background: white;
+                border-radius: 8px;
+                padding: 24px;
+                max-width: 500px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 18px; color: #333;">
+                        <i class="fas fa-link" style="margin-right: 8px; color: #0645ad;"></i>Link Text: "${selectedText}"
+                    </h3>
+                    <button onclick="closeLinkSearchModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #666; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">&times;</button>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="linkSearchInput" placeholder="Search for articles to link..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+                </div>
+                
+                <div id="linkSearchResults" style="max-height: 300px; overflow-y: auto;">
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        <i class="fas fa-search" style="font-size: 24px; margin-bottom: 10px; color: #ccc;"></i>
+                        <p style="margin: 0;">Start typing to search for articles...</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="closeLinkSearchModal()" style="padding: 8px 16px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button onclick="createRedLink('${selectedText.replace(/'/g, "\\'")}', '${selectedText.replace(/'/g, "\\'")}', 'No matching article found')" style="padding: 8px 16px; border: none; background: #dc3545; color: white; border-radius: 4px; cursor: pointer;">
+                        <i class="fas fa-exclamation-triangle"></i> Create Red Link
+                    </button>
+                </div>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            linkSearchModal = overlay;
+            
+            // Focus on search input
+            setTimeout(() => {
+                const searchInput = document.getElementById('linkSearchInput');
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.addEventListener('input', handleLinkSearch);
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            handleLinkSearch();
+                        }
+                    });
+                }
+            }, 100);
+            
+            // Close modal when clicking overlay
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    closeLinkSearchModal();
+                }
+            };
+        }
+
+        // Handle link search in modal
+        async function handleLinkSearch() {
+            const searchInput = document.getElementById('linkSearchInput');
+            const resultsContainer = document.getElementById('linkSearchResults');
+            
+            if (!searchInput || !resultsContainer) return;
+            
+            const searchTerm = searchInput.value.trim();
+            
+            if (searchTerm.length < 2) {
+                resultsContainer.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        <i class="fas fa-search" style="font-size: 24px; margin-bottom: 10px; color: #ccc;"></i>
+                        <p style="margin: 0;">Type at least 2 characters to search...</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Show loading
+            resultsContainer.innerHTML = `
+                <div style="text-align: center; color: #666; padding: 20px;">
+                    <div class="loading-spinner" style="margin: 0 auto 10px auto;"></div>
+                    <p style="margin: 0;">Searching articles...</p>
+                </div>
+            `;
+            
+            try {
+                const articles = await searchArticlesForLinking(searchTerm);
+                
+                if (articles.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div style="text-align: center; color: #666; padding: 20px;">
+                            <i class="fas fa-search" style="font-size: 24px; margin-bottom: 10px; color: #ccc;"></i>
+                            <p style="margin: 0;">No articles found matching "${searchTerm}"</p>
+                            <p style="margin: 10px 0 0 0; font-size: 12px;">You can create a red link instead</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const resultsHTML = articles.map(article => `
+                    <div onclick="createInternalLink('${article.id}', '${article.title.replace(/'/g, "\\'")}', '${article.category}')" 
+                         style="padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; transition: background 0.2s;" 
+                         onmouseover="this.style.background='#f8f9fa'" 
+                         onmouseout="this.style.background='white'">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: bold; color: #0645ad; margin-bottom: 4px;">${article.title}</div>
+                                <div style="font-size: 12px; color: #666; margin-bottom: 4px;">
+                                    <span style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px; margin-right: 8px;">${article.category}</span>
+                                    ${article.tags ? article.tags.slice(0, 3).map(tag => `<span style="color: #999;">#${tag}</span>`).join(' ') : ''}
+                                </div>
+                                <div style="font-size: 13px; color: #666; line-height: 1.4;">${article.summary.substring(0, 100)}...</div>
+                            </div>
+                            <i class="fas fa-arrow-right" style="color: #ccc; margin-left: 10px;"></i>
+                        </div>
+                    </div>
+                `).join('');
+                
+                resultsContainer.innerHTML = resultsHTML;
+                
+            } catch (error) {
+                console.error('Error searching articles:', error);
+                resultsContainer.innerHTML = `
+                    <div style="text-align: center; color: #dc3545; padding: 20px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p style="margin: 0;">Error searching articles. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Create internal link from modal selection
+        function createInternalLink(articleId, articleTitle, category) {
+            if (!selectedTextRange || !quill) return;
+            
+            // Replace selected text with internal link
+            const linkHtml = `<a href="#${articleId}" class="internal-link" data-article-id="${articleId}" onclick="openArticle('${articleId}'); return false;" title="${category}: ${articleTitle}" style="color: #0645ad; text-decoration: none; border-bottom: 1px dotted #0645ad;">${quill.getText(selectedTextRange.index, selectedTextRange.length)}</a>`;
+            
+            quill.deleteText(selectedTextRange.index, selectedTextRange.length);
+            quill.clipboard.dangerouslyPasteHTML(selectedTextRange.index, linkHtml);
+            
+            closeLinkSearchModal();
+            showNotification(`✅ Linked to "${articleTitle}"`, 'success', 3000);
+        }
+
+        // Create red link (non-existent article)
+        function createRedLink(selectedText, searchTerm, reason) {
+            if (!selectedTextRange || !quill) return;
+            
+            // Replace selected text with red link
+            const redLinkHtml = `<span class="internal-link-missing" style="color: #dc3545; text-decoration: none; border-bottom: 1px dotted #dc3545;" title="Article '${searchTerm}' does not exist - ${reason}">${selectedText}</span>`;
+            
+            quill.deleteText(selectedTextRange.index, selectedTextRange.length);
+            quill.clipboard.dangerouslyPasteHTML(selectedTextRange.index, redLinkHtml);
+            
+            closeLinkSearchModal();
+            showNotification(`⚠️ Created red link for "${selectedText}" (article not found)`, 'warning', 4000);
+        }
+
+        // Close link search modal
+        function closeLinkSearchModal() {
+            if (linkSearchModal) {
+                document.body.removeChild(linkSearchModal);
+                linkSearchModal = null;
+            }
+            selectedTextRange = null;
         }
 
         // Handle internal link typing
@@ -5303,5 +5564,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966259b2874b5969',t:'MTc1MzY4NDQ2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9662676fe66a8ae7',t:'MTc1MzY4NTAyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
