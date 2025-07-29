@@ -269,6 +269,7 @@
         let isIntroPlaying = false;
         let mainMovieUrl = "https://r5---sn-gwpa-5u9l.googlevideo.com/videoplayback?expire=1753786002&ei=MlKIaJHeF67CmLAP47L26Aw&ip=176.6.134.119&id=o-AA2xOsmzzJAbIYJ7hj_XfibLkBDu_dKv7qeOz4iZFVcc&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&rms=au%2Cau&bui=AY1jyLNBcIEIFus7j6viO2cyFYzEsnZsg7TgSrBntK1paSHk-uzBHUC_Hr-2G-ncXUCS6y7vZAxjMRx1&vprv=1&svpuc=1&mime=video%2Fmp4&ns=EXeJssLmIeaBkj1xQ-9BXokQ&rqh=1&gir=yes&clen=432767708&ratebypass=yes&dur=7092.372&lmt=1736773603&fexp=51331020%2C51514993%2C51542236&c=MWEB&sefc=1&txp=5538534&n=hlzmJfT2dmlyyA&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRQIhAO7iqGESgcwhyQI-JcJUtpHzV1sL1n9APgziYWzfU5L3AiBzE1ROsxT9rN3KUaAglXP_5lnTytvSo0cYCQAYohKlQw%3D%3D&pot=MnR2Qns_NrCz7nZ-9zydxLrqVzEKrT4hCWvLiyxcH2CSKyM-j6nERGQpif8F7ZYF7Ricl25E1eMt6mJkh04HpQ37OAyRkGyMoDbCci-A7l5MENT8hLgXZAMA8_PNSQAbygpH39AQn_3Au5PMjQWWxIJOHwjwA==&cms_redirect=yes&met=1753774603,&mh=ks&mip=2409:40d1:101e:aa58:ad04:e2dd:da50:2e51&mm=31&mn=sn-gwpa-5u9l&ms=au&mt=1753774164&mv=m&mvi=5&pl=47&lsparams=met,mh,mip,mm,mn,ms,mv,mvi,pl,rms&lsig=APaTxxMwRAIgUHT-CgdkRul4SsMUqZEwUv_spX2qRIVlQzpUudleAd0CIDB0R8qig33KrBIhw4aj5zQwXSWbDrvDGyKCvHv2KBP5";
         let introUrl = "https://ai.oriontec.xyz/.mp4";
+        let hasTriedIntro = false;
         
         const video = document.getElementById('mainVideo');
         const videoPlayer = document.getElementById('videoPlayer');
@@ -286,10 +287,35 @@
             document.getElementById('homepage').style.display = 'none';
             videoPlayer.classList.remove('hidden');
             
-            // Start with intro
-            isIntroPlaying = true;
-            video.src = introUrl;
-            video.play();
+            // Try intro first, fallback to main movie if intro fails
+            if (!hasTriedIntro) {
+                isIntroPlaying = true;
+                hasTriedIntro = true;
+                video.src = introUrl;
+                
+                // If intro fails to load, play main movie
+                video.addEventListener('error', function() {
+                    console.log('Intro failed, playing main movie');
+                    isIntroPlaying = false;
+                    video.src = mainMovieUrl;
+                    video.play();
+                }, { once: true });
+                
+                video.play().catch(function(error) {
+                    console.log('Intro playback failed, trying main movie');
+                    isIntroPlaying = false;
+                    video.src = mainMovieUrl;
+                    video.play();
+                });
+            } else {
+                // Play main movie directly
+                isIntroPlaying = false;
+                video.src = mainMovieUrl;
+                video.play().catch(function(error) {
+                    console.log('Video playback failed:', error);
+                    alert('Unable to play video. Please check your internet connection.');
+                });
+            }
             
             // Show controls on hover
             videoPlayer.addEventListener('mousemove', showControls);
@@ -319,6 +345,27 @@
         video.addEventListener('ended', function() {
             if (isIntroPlaying) {
                 // Intro finished, play main movie
+                isIntroPlaying = false;
+                video.src = mainMovieUrl;
+                video.play().catch(function(error) {
+                    console.log('Main movie playback failed:', error);
+                    alert('Unable to play the main movie. Please try again later.');
+                });
+            }
+        });
+
+        video.addEventListener('loadstart', function() {
+            console.log('Video loading started...');
+        });
+
+        video.addEventListener('canplay', function() {
+            console.log('Video can start playing');
+        });
+
+        video.addEventListener('error', function(e) {
+            console.log('Video error:', e);
+            if (isIntroPlaying && !hasTriedIntro) {
+                // If intro fails, try main movie
                 isIntroPlaying = false;
                 video.src = mainMovieUrl;
                 video.play();
@@ -406,5 +453,5 @@
             videoControls.style.opacity = '1';
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966b0fc39190470d',t:'MTc1Mzc3NTgwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966b163f47123b49',t:'MTc1Mzc3NjA3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
