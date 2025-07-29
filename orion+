@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion+ - Premium Streaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 100%);
+        }
+        
+        .movie-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .movie-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .video-controls {
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        }
+        
+        .control-btn {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .progress-bar {
+            background: rgba(255,255,255,0.3);
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: #e50914;
+            height: 100%;
+            transition: width 0.1s ease;
+        }
+        
+        .orion-logo {
+            background: linear-gradient(45deg, #e50914, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .category-scroll {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-gradient-to-b from-black to-transparent px-6 py-4">
+        <div class="flex items-center justify-between max-w-7xl mx-auto">
+            <div class="flex items-center space-x-8">
+                <h1 class="text-3xl font-bold orion-logo">Orion+</h1>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#" class="hover:text-gray-300 transition-colors">Home</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">Movies</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">TV Shows</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">My List</a>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="p-2 hover:bg-gray-800 rounded">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+                    <span class="text-sm font-semibold">U</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="homepage" class="min-h-screen">
+        <!-- Hero Section -->
+        <div class="relative h-screen">
+            <div class="absolute inset-0 bg-gradient-to-r from-gray-900 to-gray-700"></div>
+            <div class="absolute inset-0 hero-gradient"></div>
+            <div class="relative z-10 flex items-center h-full px-6">
+                <div class="max-w-2xl ml-8">
+                    <h1 class="text-6xl font-bold mb-4">Once Upon a Time in Mumbaai</h1>
+                    <p class="text-xl mb-6 text-gray-300">A tale of ambition, power, and betrayal set in the golden era of Bombay's underworld. Experience the rise of two gangsters in this gripping crime drama.</p>
+                    <div class="flex items-center space-x-4 mb-6">
+                        <span class="bg-red-600 px-3 py-1 rounded text-sm font-semibold">2010</span>
+                        <span class="text-green-400 font-semibold">95% Match</span>
+                        <span class="border border-gray-500 px-2 py-1 text-xs">HD</span>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button onclick="playMovie()" class="bg-white text-black px-8 py-3 rounded font-semibold hover:bg-gray-200 transition-colors flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Play</span>
+                        </button>
+                        <button class="bg-gray-600 bg-opacity-70 px-8 py-3 rounded font-semibold hover:bg-opacity-90 transition-colors flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>More Info</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Movie Categories -->
+        <div class="px-6 pb-20 space-y-12">
+            <!-- Trending Now -->
+            <div>
+                <h2 class="text-2xl font-bold mb-6">Trending Now</h2>
+                <div class="flex space-x-4 overflow-x-auto category-scroll pb-4">
+                    <div class="movie-card flex-shrink-0 w-64 cursor-pointer" onclick="playMovie()">
+                        <div class="bg-gradient-to-br from-red-900 to-red-700 h-36 rounded-lg flex items-center justify-center mb-2">
+                            <span class="text-lg font-semibold">Once Upon a Time in Mumbaai</span>
+                        </div>
+                        <h3 class="font-semibold">Once Upon a Time in Mumbaai</h3>
+                        <p class="text-sm text-gray-400">2010 • Crime Drama</p>
+                    </div>
+                    <div class="movie-card flex-shrink-0 w-64 cursor-pointer">
+                        <div class="bg-gradient-to-br from-blue-900 to-blue-700 h-36 rounded-lg flex items-center justify-center mb-2">
+                            <span class="text-lg font-semibold">Action Thriller</span>
+                        </div>
+                        <h3 class="font-semibold">Mumbai Saga</h3>
+                        <p class="text-sm text-gray-400">2021 • Action</p>
+                    </div>
+                    <div class="movie-card flex-shrink-0 w-64 cursor-pointer">
+                        <div class="bg-gradient-to-br from-green-900 to-green-700 h-36 rounded-lg flex items-center justify-center mb-2">
+                            <span class="text-lg font-semibold">Drama</span>
+                        </div>
+                        <h3 class="font-semibold">Scam 1992</h3>
+                        <p class="text-sm text-gray-400">2020 • Drama Series</p>
+                    </div>
+                    <div class="movie-card flex-shrink-0 w-64 cursor-pointer">
+                        <div class="bg-gradient-to-br from-purple-900 to-purple-700 h-36 rounded-lg flex items-center justify-center mb-2">
+                            <span class="text-lg font-semibold">Romance</span>
+                        </div>
+                        <h3 class="font-semibold">Zindagi Na Milegi Dobara</h3>
+                        <p class="text-sm text-gray-400">2011 • Adventure</p>
+                    </div>
+                    <div class="movie-card flex-shrink-0 w-64 cursor-pointer">
+                        <div class="bg-gradient-to-br from-yellow-900 to-yellow-700 h-36 rounded-lg flex items-center justify-center mb-2">
+                            <span class="text-lg font-semibold">Comedy</span>
+                        </div>
+                        <h3 class="font-semibold">3 Idiots</h3>
+                        <p class="text-sm text-gray-400">2009 • Comedy Drama</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Movies -->
+            <div>
+                <h2 class="text-2xl font-bold mb-6">Popular Movies</h2>
+                <div class="flex space-x-4 overflow-x-auto category-scroll pb-4">
+                    <div class="movie-card flex-shrink-0 w-64 cursor-pointer">
+                        <div class="bg-gradient-to-br from-indigo-900 to-indigo-700 h-36 rounded-lg flex items-center justify-center mb-2">
+                            <span class="text-lg font-semibold">Thriller</span>
+                        </div>
+                        <h3 class="font-semibold">Drishyam</h3>
+                        <p class="text-sm text-gray-400">2015 • Thriller</p>
+                    </div>
+                    <div class="movie-card flex-shrink-0 w-64 cursor-pointer">
+                        <div class="bg-gradient-to-br from-pink-900 to-pink-700 h-36 rounded-lg flex items-center justify-center mb-2">
+                            <span class="text-lg font-semibold">Romance</span>
+                        </div>
+                        <h3 class="font-semibold">Yeh Jawaani Hai Deewani</h3>
+                        <p class="text-sm text-gray-400">2013 • Romance</p>
+                    </div>
+                    <div class="movie-card flex-shrink-0 w-64 cursor-pointer">
+                        <div class="bg-gradient-to-br from-teal-900 to-teal-700 h-36 rounded-lg flex items-center justify-center mb-2">
+                            <span class="text-lg font-semibold">Biography</span>
+                        </div>
+                        <h3 class="font-semibold">Dangal</h3>
+                        <p class="text-sm text-gray-400">2016 • Sports Drama</p>
+                    </div>
+                    <div class="movie-card flex-shrink-0 w-64 cursor-pointer">
+                        <div class="bg-gradient-to-br from-orange-900 to-orange-700 h-36 rounded-lg flex items-center justify-center mb-2">
+                            <span class="text-lg font-semibold">Action</span>
+                        </div>
+                        <h3 class="font-semibold">War</h3>
+                        <p class="text-sm text-gray-400">2019 • Action</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Player -->
+    <div id="videoPlayer" class="fixed inset-0 bg-black z-50 hidden">
+        <div class="relative w-full h-full">
+            <video id="mainVideo" class="w-full h-full object-contain" controls="false">
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            
+            <!-- Custom Video Controls -->
+            <div id="videoControls" class="absolute bottom-0 left-0 right-0 video-controls p-6 opacity-0 transition-opacity duration-300">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-4">
+                        <button id="playPauseBtn" class="control-btn p-3 rounded-full">
+                            <svg id="playIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                            </svg>
+                            <svg id="pauseIcon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <button class="control-btn p-3 rounded-full">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.824L4.5 13.5H2a1 1 0 01-1-1v-5a1 1 0 011-1h2.5l3.883-3.324a1 1 0 011.617.824zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <span id="currentTime" class="text-sm">0:00</span>
+                        <span class="text-sm">/</span>
+                        <span id="duration" class="text-sm">0:00</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="control-btn p-3 rounded-full">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <button id="fullscreenBtn" class="control-btn p-3 rounded-full">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <button onclick="closePlayer()" class="control-btn p-3 rounded-full">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="progress-bar cursor-pointer" id="progressBar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isIntroPlaying = false;
+        let mainMovieUrl = "https://r5---sn-gwpa-5u9l.googlevideo.com/videoplayback?expire=1753786002&ei=MlKIaJHeF67CmLAP47L26Aw&ip=176.6.134.119&id=o-AA2xOsmzzJAbIYJ7hj_XfibLkBDu_dKv7qeOz4iZFVcc&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&rms=au%2Cau&bui=AY1jyLNBcIEIFus7j6viO2cyFYzEsnZsg7TgSrBntK1paSHk-uzBHUC_Hr-2G-ncXUCS6y7vZAxjMRx1&vprv=1&svpuc=1&mime=video%2Fmp4&ns=EXeJssLmIeaBkj1xQ-9BXokQ&rqh=1&gir=yes&clen=432767708&ratebypass=yes&dur=7092.372&lmt=1736773603&fexp=51331020%2C51514993%2C51542236&c=MWEB&sefc=1&txp=5538534&n=hlzmJfT2dmlyyA&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRQIhAO7iqGESgcwhyQI-JcJUtpHzV1sL1n9APgziYWzfU5L3AiBzE1ROsxT9rN3KUaAglXP_5lnTytvSo0cYCQAYohKlQw%3D%3D&pot=MnR2Qns_NrCz7nZ-9zydxLrqVzEKrT4hCWvLiyxcH2CSKyM-j6nERGQpif8F7ZYF7Ricl25E1eMt6mJkh04HpQ37OAyRkGyMoDbCci-A7l5MENT8hLgXZAMA8_PNSQAbygpH39AQn_3Au5PMjQWWxIJOHwjwA==&cms_redirect=yes&met=1753774603,&mh=ks&mip=2409:40d1:101e:aa58:ad04:e2dd:da50:2e51&mm=31&mn=sn-gwpa-5u9l&ms=au&mt=1753774164&mv=m&mvi=5&pl=47&lsparams=met,mh,mip,mm,mn,ms,mv,mvi,pl,rms&lsig=APaTxxMwRAIgUHT-CgdkRul4SsMUqZEwUv_spX2qRIVlQzpUudleAd0CIDB0R8qig33KrBIhw4aj5zQwXSWbDrvDGyKCvHv2KBP5";
+        let introUrl = "https://ai.oriontec.xyz/.mp4";
+        
+        const video = document.getElementById('mainVideo');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoControls = document.getElementById('videoControls');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const currentTimeSpan = document.getElementById('currentTime');
+        const durationSpan = document.getElementById('duration');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+        function playMovie() {
+            document.getElementById('homepage').style.display = 'none';
+            videoPlayer.classList.remove('hidden');
+            
+            // Start with intro
+            isIntroPlaying = true;
+            video.src = introUrl;
+            video.play();
+            
+            // Show controls on hover
+            videoPlayer.addEventListener('mousemove', showControls);
+            videoPlayer.addEventListener('mouseleave', hideControls);
+        }
+
+        function closePlayer() {
+            videoPlayer.classList.add('hidden');
+            document.getElementById('homepage').style.display = 'block';
+            video.pause();
+            video.src = '';
+        }
+
+        function showControls() {
+            videoControls.style.opacity = '1';
+            clearTimeout(window.controlsTimeout);
+            window.controlsTimeout = setTimeout(hideControls, 3000);
+        }
+
+        function hideControls() {
+            if (!video.paused) {
+                videoControls.style.opacity = '0';
+            }
+        }
+
+        // Video event listeners
+        video.addEventListener('ended', function() {
+            if (isIntroPlaying) {
+                // Intro finished, play main movie
+                isIntroPlaying = false;
+                video.src = mainMovieUrl;
+                video.play();
+            }
+        });
+
+        video.addEventListener('loadedmetadata', function() {
+            durationSpan.textContent = formatTime(video.duration);
+        });
+
+        video.addEventListener('timeupdate', function() {
+            currentTimeSpan.textContent = formatTime(video.currentTime);
+            const progress = (video.currentTime / video.duration) * 100;
+            progressFill.style.width = progress + '%';
+        });
+
+        // Play/Pause button
+        playPauseBtn.addEventListener('click', function() {
+            if (video.paused) {
+                video.play();
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            } else {
+                video.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+        });
+
+        // Progress bar click
+        progressBar.addEventListener('click', function(e) {
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const width = rect.width;
+            const clickTime = (clickX / width) * video.duration;
+            video.currentTime = clickTime;
+        });
+
+        // Fullscreen button
+        fullscreenBtn.addEventListener('click', function() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                videoPlayer.requestFullscreen();
+            }
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', function(e) {
+            if (!videoPlayer.classList.contains('hidden')) {
+                switch(e.code) {
+                    case 'Space':
+                        e.preventDefault();
+                        playPauseBtn.click();
+                        break;
+                    case 'Escape':
+                        closePlayer();
+                        break;
+                    case 'ArrowLeft':
+                        video.currentTime -= 10;
+                        break;
+                    case 'ArrowRight':
+                        video.currentTime += 10;
+                        break;
+                }
+            }
+        });
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Auto-hide controls
+        video.addEventListener('play', function() {
+            playIcon.classList.add('hidden');
+            pauseIcon.classList.remove('hidden');
+            setTimeout(hideControls, 3000);
+        });
+
+        video.addEventListener('pause', function() {
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+            videoControls.style.opacity = '1';
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966b0fc39190470d',t:'MTc1Mzc3NTgwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
