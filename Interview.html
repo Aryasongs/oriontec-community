@@ -516,30 +516,32 @@
                 }, 1000);
             }
         }
-
         // Send message
-        async function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const messageText = messageInput.value.trim();
-            
-            if (!messageText) return;
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const messageText = messageInput.value.trim();
 
-            const message = {
-                text: messageText,
-                sender: 'candidate',
-                senderId: currentApplicationId,
-                timestamp: Date.now(),
-                highlighted: false
-            };
+    if (!messageText || !currentApplicationId) {
+        alert('Empty message or Application ID not set. Please reconnect.');
+        return;
+    }
 
-            try {
-                await rtdb.ref(`chats/${currentApplicationId}/messages`).push(message);
-                messageInput.value = '';
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('Error sending message. Please try again.');
-            }
-        }
+    const message = {
+        text: messageText,
+        sender: 'candidate',
+        senderId: currentApplicationId,
+        timestamp: Date.now(),
+        highlighted: false
+    };
+
+    try {
+        await rtdb.ref(`chats/${currentApplicationId}/messages`).push(message);
+        messageInput.value = '';
+    } catch (error) {
+        console.error('Error sending message:', error);
+        alert('Error sending message: ' + error.message);
+    }
+}
 
         // Listen for officer connection
         function listenForOfficerConnection() {
