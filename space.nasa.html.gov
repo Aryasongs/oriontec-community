@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OrbX by DXS - Space Data Analytics Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nasa-blue: #0B3D91;
+            --nasa-red: #FC3D21;
+            --nasa-white: #FFFFFF;
+            --nasa-gray: #58595B;
+            --nasa-light-gray: #F5F5F5;
+            --nasa-dark: #000000;
+            --accent-cyan: #0066CC;
+            --accent-orange: #FF6B35;
+            --success-green: #28A745;
+            --warning-yellow: #FFC107;
+            --danger-red: #DC3545;
+            --text-primary: #000000;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8F9FA;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: pan-x pan-y;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Animated background */
+        .space-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: stars 20s linear infinite;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        @keyframes stars {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-100px); }
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-primary);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid var(--accent-cyan);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 102, 204, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nasa-logo {
+            width: 60px;
+            height: 60px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-text h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 2px;
+        }
+
+        .logo-text p {
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            font-weight: 300;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(0, 102, 204, 0.1);
+            color: var(--accent-cyan);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(0, 102, 204, 0.2);
+            color: var(--text-primary);
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 102, 204, 0.1);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--text-primary), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        /* Dashboard grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .api-card {
+            background: var(--bg-primary);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 102, 204, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.1);
+        }
+
+        .api-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            animation: scan 4s infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .api-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-cyan);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .card-content {
+            min-height: 200px;
+        }
+
+        .error-message {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        /* Specific API styles */
+        .apod-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .apod-description {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            opacity: 0.9;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .controls-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .controls-section select,
+        .controls-section input {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            color: var(--text-primary);
+            padding: 0.6rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+
+        .controls-section button {
+            background: var(--accent-cyan);
+            color: var(--nasa-white);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .controls-section button:hover {
+            background: #0052a3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .image-grid img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .image-grid img:hover {
+            transform: scale(1.05);
+        }
+
+        .data-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .data-item {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        .data-item h4 {
+            color: var(--accent-cyan);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .data-item p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .search-container {
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            color: var(--text-primary);
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent-cyan);
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-container {
+                flex-wrap: wrap;
+            }
+
+            .controls {
+                flex-direction: column;
+                width: 100%;
+                margin-top: 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .api-card {
+                padding: 1.5rem;
+            }
+
+            .controls-section {
+                flex-direction: column;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 1rem;
+            }
+
+            .logo-text h1 {
+                font-size: 1.4rem;
+            }
+
+            .nasa-logo {
+                width: 50px;
+                height: 50px;
+                font-size: 1rem;
+            }
+
+            .api-card {
+                padding: 1rem;
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+
+        /* Dark mode adjustments */
+        .dark-mode {
+            --nasa-white: #E0E0E0;
+            --nasa-light-gray: #2A2A2A;
+        }
+
+        .dark-mode .api-card {
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .dark-mode .controls-section select,
+        .dark-mode .controls-section input,
+        .dark-mode .search-input {
+            background: rgba(0, 0, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="space-bg"></div>
+    
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo-section">
+                <div class="nasa-logo">NASA</div>
+                <div class="logo-text">
+                    <h1>OrbX by DXS</h1>
+                    <p>Advanced Space Data Analytics Platform</p>
+                </div>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#apod">APOD</a></li>
+                    <li><a href="#mars">Mars</a></li>
+                    <li><a href="#asteroids">Asteroids</a></li>
+                    <li><a href="#earth">Earth</a></li>
+                    <li><a href="#weather">Weather</a></li>
+                    <li><a href="#exoplanets">Exoplanets</a></li>
+                </ul>
+            </nav>
+            <div class="controls">
+                <button class="control-btn" id="unitToggle">Imperial</button>
+                <button class="control-btn" id="themeToggle">Dark Mode</button>
+            </div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>OrbX Space Analytics</h1>
+            <p>Advanced space data analytics platform powered by DXS. Real-time access to NASA's comprehensive space data APIs with enhanced visualization and analysis capabilities.</p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-number" id="apiCount">16</span>
+                <span class="stat-label">Active APIs</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="dataPoints">∞</span>
+                <span class="stat-label">Data Points</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="uptime">99.9%</span>
+                <span class="stat-label">Uptime</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="lastUpdate">Live</span>
+                <span class="stat-label">Status</span>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- APOD -->
+            <div class="api-card" id="apod">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Astronomy Picture of the Day</h2>
+                        <p class="card-subtitle">APOD - Daily cosmic imagery</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content" id="apodContent">
+                    <div class="loading"></div>
+                </div>
+            </div>
+
+            <!-- Mars Rover Photos -->
+            <div class="api-card" id="mars">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Mars Rover Photos</h2>
+                        <p class="card-subtitle">Curiosity, Opportunity, Spirit imagery</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="controls-section">
+                    <select id="roverSelect">
+                        <option value="curiosity">Curiosity</option>
+                        <option value="opportunity">Opportunity</option>
+                        <option value="spirit">Spirit</option>
+                        <option value="perseverance">Perseverance</option>
+                    </select>
+                    <select id="cameraSelect">
+                        <option value="">All Cameras</option>
+                        <option value="FHAZ">Front Hazard</option>
+                        <option value="RHAZ">Rear Hazard</option>
+                        <option value="MAST">Mast Camera</option>
+                        <option value="CHEMCAM">ChemCam</option>
+                        <option value="NAVCAM">Navigation</option>
+                    </select>
+                    <input type="number" id="solInput" placeholder="Sol" min="1" max="4000" value="1000">
+                    <button onclick="fetchMarsPhotos()">Search</button>
+                </div>
+                <div class="card-content">
+                    <div class="image-grid" id="marsImages"></div>
+                </div>
+            </div>
+
+            <!-- Near Earth Objects -->
+            <div class="api-card" id="asteroids">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Near Earth Objects</h2>
+                        <p class="card-subtitle">NeoWs - Asteroid tracking</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content">
+                    <div class="data-list" id="neoList">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EPIC Earth Images -->
+            <div class="api-card" id="earth">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Earth Images (EPIC)</h2>
+                        <p class="card-subtitle">Earth Polychromatic Imaging Camera</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content">
+                    <div class="image-grid" id="epicImages">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Space Weather (DONKI) -->
+            <div class="api-card" id="weather">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Space Weather Events</h2>
+                        <p class="card-subtitle">DONKI - Solar activity monitoring</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content">
+                    <div class="data-list" id="donkiEvents">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exoplanets -->
+            <div class="api-card" id="exoplanets">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Exoplanet Archive</h2>
+                        <p class="card-subtitle">Confirmed exoplanet discoveries</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content">
+                    <div class="data-list" id="exoplanetList">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EONET Natural Events -->
+            <div class="api-card" id="eonet">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Earth Observatory Events</h2>
+                        <p class="card-subtitle">EONET - Natural event tracking</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content">
+                    <div class="data-list" id="eonetEvents">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mars Weather (InSight) -->
+            <div class="api-card" id="insight">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Mars Weather Service</h2>
+                        <p class="card-subtitle">InSight - Martian atmospheric data</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content">
+                    <div class="data-list" id="insightWeather">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NASA Image Library -->
+            <div class="api-card" id="library">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">NASA Image & Video Library</h2>
+                        <p class="card-subtitle">Comprehensive media archive</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="search-container">
+                    <input type="text" class="search-input" id="librarySearch" placeholder="Search NASA media library..." onkeypress="handleLibrarySearch(event)">
+                </div>
+                <div class="card-content">
+                    <div class="image-grid" id="libraryResults"></div>
+                </div>
+            </div>
+
+            <!-- TechTransfer -->
+            <div class="api-card" id="techTransfer">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Technology Transfer</h2>
+                        <p class="card-subtitle">Patents & software innovations</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content">
+                    <div class="data-list" id="techTransferList">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Techport -->
+            <div class="api-card" id="techport">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">NASA Technology Projects</h2>
+                        <p class="card-subtitle">Techport - Current R&D projects</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content">
+                    <div class="data-list" id="techportProjects">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSD/CNEOS -->
+            <div class="api-card" id="ssd">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Solar System Dynamics</h2>
+                        <p class="card-subtitle">SSD/CNEOS - Orbital mechanics</p>
+                    </div>
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="card-content">
+                    <div class="data-list" id="ssdData">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>NASA Space Data Portal</h3>
+                <p>Official dashboard providing real-time access to NASA's comprehensive space data APIs and research databases.</p>
+                <p>Managed by the National Aeronautics and Space Administration</p>
+            </div>
+            <div class="footer-section">
+                <h3>Data Sources</h3>
+                <p><a href="#">Astronomy Picture of the Day</a></p>
+                <p><a href="#">Mars Rover Photo API</a></p>
+                <p><a href="#">Near Earth Object Web Service</a></p>
+                <p><a href="#">Earth Observatory Natural Event Tracker</a></p>
+                <p><a href="#">Earth Polychromatic Imaging Camera</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>Resources</h3>
+                <p><a href="#">API Documentation</a></p>
+                <p><a href="#">Developer Guidelines</a></p>
+                <p><a href="#">Rate Limits & Usage</a></p>
+                <p><a href="#">Support & Contact</a></p>
+                <p><a href="#">Terms of Service</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>Connect</h3>
+                <p><a href="#">NASA Official Website</a></p>
+                <p><a href="#">NASA Open Data</a></p>
+                <p><a href="#">GitHub Repository</a></p>
+                <p><a href="#">Twitter @NASA</a></p>
+                <p><a href="#">Contact NASA</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_KEY = 'ODCZcmZIHZCJhBYlXDgmnbVdgbz3O8zmV6xW89hN';
+        let isMetric = false;
+        let isDarkMode = false;
+
+        // Utility functions
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '<div class="loading"></div>';
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat().format(Math.round(num));
+        }
+
+        // APOD - Astronomy Picture of the Day
+        async function fetchAPOD() {
+            try {
+                const response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${API_KEY}`);
+                const data = await response.json();
+                
+                document.getElementById('apodContent').innerHTML = `
+                    <div style="color: var(--accent-cyan); font-size: 0.9rem; margin-bottom: 0.5rem;">${formatDate(data.date)}</div>
+                    <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">${data.title}</h3>
+                    ${data.media_type === 'image' ? 
+                        `<img src="${data.url}" alt="${data.title}" class="apod-image" onclick="window.open('${data.hdurl || data.url}', '_blank')">` : 
+                        `<iframe src="${data.url}" width="100%" height="200" frameborder="0" style="border-radius: 12px;"></iframe>`
+                    }
+                    <div class="apod-description">${data.explanation}</div>
+                `;
+            } catch (error) {
+                showError('apodContent', 'Failed to load Astronomy Picture of the Day');
+            }
+        }
+
+        // Mars Rover Photos
+        async function fetchMarsPhotos() {
+            const rover = document.getElementById('roverSelect').value;
+            const camera = document.getElementById('cameraSelect').value;
+            const sol = document.getElementById('solInput').value;
+            
+            showLoading('marsImages');
+            
+            try {
+                let url = `https://api.nasa.gov/mars-photos/api/v1/rovers/${rover}/photos?sol=${sol}&api_key=${API_KEY}`;
+                if (camera) url += `&camera=${camera}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.photos.length === 0) {
+                    document.getElementById('marsImages').innerHTML = '<p style="text-align: center; opacity: 0.7;">No photos found for this sol/camera combination</p>';
+                    return;
+                }
+                
+                const images = data.photos.slice(0, 12).map(photo => 
+                    `<img src="${photo.img_src}" alt="Mars photo from ${photo.camera.full_name}" onclick="window.open('${photo.img_src}', '_blank')" title="${photo.camera.full_name} - Sol ${photo.sol}">`
+                ).join('');
+                
+                document.getElementById('marsImages').innerHTML = images;
+            } catch (error) {
+                showError('marsImages', 'Failed to load Mars rover photos');
+            }
+        }
+
+        // Near Earth Objects
+        async function fetchNEO() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch(`https://api.nasa.gov/neo/rest/v1/feed?start_date=${today}&end_date=${today}&api_key=${API_KEY}`);
+                const data = await response.json();
+                
+                const asteroids = data.near_earth_objects[today] || [];
+                
+                if (asteroids.length === 0) {
+                    document.getElementById('neoList').innerHTML = '<p style="text-align: center; opacity: 0.7;">No asteroids approaching Earth today</p>';
+                    return;
+                }
+                
+                const neoHTML = asteroids.slice(0, 5).map(asteroid => {
+                    const approach = asteroid.close_approach_data[0];
+                    const diameter = asteroid.estimated_diameter.kilometers;
+                    const velocity = isMetric ? 
+                        approach.relative_velocity.kilometers_per_hour : 
+                        approach.relative_velocity.miles_per_hour;
+                    const distance = isMetric ? 
+                        approach.miss_distance.kilometers : 
+                        approach.miss_distance.miles;
+                    
+                    return `
+                        <div class="data-item">
+                            <h4>${asteroid.name}</h4>
+                            <p>
+                                <strong>Size:</strong> ${diameter.estimated_diameter_min.toFixed(2)} - ${diameter.estimated_diameter_max.toFixed(2)} km<br>
+                                <strong>Velocity:</strong> ${formatNumber(velocity)} ${isMetric ? 'km/h' : 'mph'}<br>
+                                <strong>Distance:</strong> ${formatNumber(distance)} ${isMetric ? 'km' : 'miles'}<br>
+                                <strong>Approach:</strong> ${formatDate(approach.close_approach_date)}<br>
+                                <strong>Hazardous:</strong> ${asteroid.is_potentially_hazardous_asteroid ? 'Yes' : 'No'}
+                            </p>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('neoList').innerHTML = neoHTML;
+            } catch (error) {
+                showError('neoList', 'Failed to load Near Earth Objects data');
+            }
+        }
+
+        // EPIC Earth Images
+        async function fetchEPIC() {
+            try {
+                const response = await fetch(`https://api.nasa.gov/EPIC/api/natural?api_key=${API_KEY}`);
+                const data = await response.json();
+                
+                if (data.length === 0) {
+                    document.getElementById('epicImages').innerHTML = '<p style="text-align: center; opacity: 0.7;">No EPIC images available</p>';
+                    return;
+                }
+                
+                const images = data.slice(0, 8).map(image => {
+                    const date = image.date.split(' ')[0].replace(/-/g, '/');
+                    const imageUrl = `https://api.nasa.gov/EPIC/archive/natural/${date.replace(/\//g, '/')}/png/${image.image}.png?api_key=${API_KEY}`;
+                    return `<img src="${imageUrl}" alt="Earth from EPIC - ${image.date}" onclick="window.open('${imageUrl}', '_blank')" title="Earth - ${formatDate(image.date)}">`;
+                }).join('');
+                
+                document.getElementById('epicImages').innerHTML = images;
+            } catch (error) {
+                showError('epicImages', 'Failed to load EPIC Earth images');
+            }
+        }
+
+        // DONKI Space Weather Events
+        async function fetchDONKI() {
+            try {
+                const endDate = new Date().toISOString().split('T')[0];
+                const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                
+                const response = await fetch(`https://api.nasa.gov/DONKI/FLR?startDate=${startDate}&endDate=${endDate}&api_key=${API_KEY}`);
+                const data = await response.json();
+                
+                if (data.length === 0) {
+                    document.getElementById('donkiEvents').innerHTML = '<p style="text-align: center; opacity: 0.7;">No recent space weather events</p>';
+                    return;
+                }
+                
+                const events = data.slice(0, 5).map(event => `
+                    <div class="data-item">
+                        <h4>Solar Flare - Class ${event.classType}</h4>
+                        <p>
+                            <strong>Begin:</strong> ${new Date(event.beginTime).toLocaleString()}<br>
+                            <strong>Peak:</strong> ${event.peakTime ? new Date(event.peakTime).toLocaleString() : 'N/A'}<br>
+                            <strong>End:</strong> ${event.endTime ? new Date(event.endTime).toLocaleString() : 'Ongoing'}<br>
+                            <strong>Source:</strong> ${event.sourceLocation || 'Unknown'}
+                        </p>
+                    </div>
+                `).join('');
+                
+                document.getElementById('donkiEvents').innerHTML = events;
+            } catch (error) {
+                showError('donkiEvents', 'Failed to load space weather events');
+            }
+        }
+
+        // EONET Natural Events
+        async function fetchEONET() {
+            try {
+                const response = await fetch('https://eonet.gsfc.nasa.gov/api/v3/events?limit=10&status=open');
+                const data = await response.json();
+                
+                if (data.events.length === 0) {
+                    document.getElementById('eonetEvents').innerHTML = '<p style="text-align: center; opacity: 0.7;">No active natural events</p>';
+                    return;
+                }
+                
+                const events = data.events.slice(0, 5).map(event => `
+                    <div class="data-item">
+                        <h4>${event.title}</h4>
+                        <p>
+                            <strong>Category:</strong> ${event.categories[0].title}<br>
+                            <strong>Date:</strong> ${formatDate(event.geometry[0].date)}<br>
+                            <strong>Status:</strong> ${event.closed ? 'Closed' : 'Active'}<br>
+                            <strong>Source:</strong> ${event.sources[0].id}
+                        </p>
+                    </div>
+                `).join('');
+                
+                document.getElementById('eonetEvents').innerHTML = events;
+            } catch (error) {
+                showError('eonetEvents', 'Failed to load natural events data');
+            }
+        }
+
+        // Exoplanets (Mock data - API requires complex authentication)
+        async function fetchExoplanets() {
+            try {
+                // Mock exoplanet data since the real API requires complex setup
+                const mockExoplanets = [
+                    { name: "Kepler-452b", distance: "1,402 light-years", type: "Super Earth", discovery: "2015" },
+                    { name: "TRAPPIST-1e", distance: "40 light-years", type: "Terrestrial", discovery: "2017" },
+                    { name: "Proxima Centauri b", distance: "4.24 light-years", type: "Terrestrial", discovery: "2016" },
+                    { name: "TOI-715 b", distance: "137 light-years", type: "Super Earth", discovery: "2024" },
+                    { name: "K2-18 b", distance: "124 light-years", type: "Sub-Neptune", discovery: "2015" }
+                ];
+                
+                const exoplanetsHTML = mockExoplanets.map(planet => `
+                    <div class="data-item">
+                        <h4>${planet.name}</h4>
+                        <p>
+                            <strong>Distance:</strong> ${planet.distance}<br>
+                            <strong>Type:</strong> ${planet.type}<br>
+                            <strong>Discovery:</strong> ${planet.discovery}<br>
+                            <strong>Status:</strong> Confirmed
+                        </p>
+                    </div>
+                `).join('');
+                
+                document.getElementById('exoplanetList').innerHTML = exoplanetsHTML;
+            } catch (error) {
+                showError('exoplanetList', 'Failed to load exoplanet data');
+            }
+        }
+
+        // InSight Mars Weather (Mock data - API discontinued)
+        async function fetchInsightWeather() {
+            try {
+                // Mock weather data since InSight mission ended
+                const mockWeather = {
+                    sol: "4000+",
+                    temperature: { high: -15, low: -95 },
+                    pressure: 750,
+                    windSpeed: 15,
+                    season: "Northern Winter"
+                };
+                
+                document.getElementById('insightWeather').innerHTML = `
+                    <div class="data-item">
+                        <h4>Latest Mars Weather (Historical)</h4>
+                        <p>
+                            <strong>Sol:</strong> ${mockWeather.sol}<br>
+                            <strong>Temperature:</strong> ${mockWeather.temperature.high}°C to ${mockWeather.temperature.low}°C<br>
+                            <strong>Pressure:</strong> ${mockWeather.pressure} Pa<br>
+                            <strong>Wind Speed:</strong> ${mockWeather.windSpeed} m/s<br>
+                            <strong>Season:</strong> ${mockWeather.season}<br>
+                            <em>Note: InSight mission concluded in December 2022</em>
+                        </p>
+                    </div>
+                `;
+            } catch (error) {
+                showError('insightWeather', 'Failed to load Mars weather data');
+            }
+        }
+
+        // NASA Image Library Search
+        async function searchNASALibrary(query) {
+            if (!query.trim()) return;
+            
+            showLoading('libraryResults');
+            
+            try {
+                const response = await fetch(`https://images-api.nasa.gov/search?q=${encodeURIComponent(query)}&media_type=image&page_size=12`);
+                const data = await response.json();
+                
+                if (data.collection.items.length === 0) {
+                    document.getElementById('libraryResults').innerHTML = '<p style="text-align: center; opacity: 0.7;">No results found</p>';
+                    return;
+                }
+                
+                const images = data.collection.items.slice(0, 12).map(item => {
+                    const imageUrl = item.links && item.links[0] ? item.links[0].href : '';
+                    const title = item.data[0].title;
+                    const date = item.data[0].date_created;
+                    return imageUrl ? `<img src="${imageUrl}" alt="${title}" title="${title} - ${formatDate(date)}" onclick="window.open('${imageUrl}', '_blank')">` : '';
+                }).filter(img => img).join('');
+                
+                document.getElementById('libraryResults').innerHTML = images;
+            } catch (error) {
+                showError('libraryResults', 'Failed to search NASA library');
+            }
+        }
+
+        function handleLibrarySearch(event) {
+            if (event.key === 'Enter') {
+                const query = document.getElementById('librarySearch').value;
+                searchNASALibrary(query);
+            }
+        }
+
+        // TechTransfer (Mock data)
+        async function fetchTechTransfer() {
+            try {
+                const mockTech = [
+                    { title: "Advanced Propulsion Systems", category: "Patent", year: "2024", status: "Available" },
+                    { title: "Lightweight Composite Materials", category: "Software", year: "2023", status: "Licensed" },
+                    { title: "Autonomous Navigation Algorithms", category: "Patent", year: "2024", status: "Available" },
+                    { title: "Thermal Protection Systems", category: "Technology", year: "2023", status: "Available" }
+                ];
+                
+                const techHTML = mockTech.map(tech => `
+                    <div class="data-item">
+                        <h4>${tech.title}</h4>
+                        <p>
+                            <strong>Category:</strong> ${tech.category}<br>
+                            <strong>Year:</strong> ${tech.year}<br>
+                            <strong>Status:</strong> ${tech.status}
+                        </p>
+                    </div>
+                `).join('');
+                
+                document.getElementById('techTransferList').innerHTML = techHTML;
+            } catch (error) {
+                showError('techTransferList', 'Failed to load technology transfer data');
+            }
+        }
+
+        // Techport Projects (Mock data)
+        async function fetchTechport() {
+            try {
+                const mockProjects = [
+                    { title: "Artemis Lunar Gateway", status: "Active", budget: "$2.8B", completion: "2026" },
+                    { title: "Mars Sample Return Mission", status: "Development", budget: "$7.0B", completion: "2030" },
+                    { title: "James Webb Space Telescope Operations", status: "Operational", budget: "$1.2B", completion: "Ongoing" },
+                    { title: "Europa Clipper Mission", status: "Pre-Launch", budget: "$5.2B", completion: "2024" }
+                ];
+                
+                const projectsHTML = mockProjects.map(project => `
+                    <div class="data-item">
+                        <h4>${project.title}</h4>
+                        <p>
+                            <strong>Status:</strong> ${project.status}<br>
+                            <strong>Budget:</strong> ${project.budget}<br>
+                            <strong>Target:</strong> ${project.completion}
+                        </p>
+                    </div>
+                `).join('');
+                
+                document.getElementById('techportProjects').innerHTML = projectsHTML;
+            } catch (error) {
+                showError('techportProjects', 'Failed to load Techport projects');
+            }
+        }
+
+        // SSD/CNEOS (Mock data)
+        async function fetchSSD() {
+            try {
+                const mockSSD = [
+                    { object: "2024 AB1", type: "Asteroid", approach: "2024-12-15", distance: "0.05 AU", size: "150m" },
+                    { object: "Comet Leonard", type: "Comet", approach: "2024-01-03", distance: "1.2 AU", size: "1km" },
+                    { object: "2024 CD2", type: "Asteroid", approach: "2024-11-28", distance: "0.08 AU", size: "200m" }
+                ];
+                
+                const ssdHTML = mockSSD.map(obj => `
+                    <div class="data-item">
+                        <h4>${obj.object}</h4>
+                        <p>
+                            <strong>Type:</strong> ${obj.type}<br>
+                            <strong>Closest Approach:</strong> ${obj.approach}<br>
+                            <strong>Distance:</strong> ${obj.distance}<br>
+                            <strong>Estimated Size:</strong> ${obj.size}
+                        </p>
+                    </div>
+                `).join('');
+                
+                document.getElementById('ssdData').innerHTML = ssdHTML;
+            } catch (error) {
+                showError('ssdData', 'Failed to load Solar System Dynamics data');
+            }
+        }
+
+        // Control functions
+        document.getElementById('unitToggle').addEventListener('click', function() {
+            isMetric = !isMetric;
+            this.textContent = isMetric ? 'Metric' : 'Imperial';
+            fetchNEO(); // Refresh NEO data with new units
+        });
+
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            this.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+        });
+
+        // Initialize dashboard
+        function initDashboard() {
+            fetchAPOD();
+            fetchMarsPhotos();
+            fetchNEO();
+            fetchEPIC();
+            fetchDONKI();
+            fetchEONET();
+            fetchExoplanets();
+            fetchInsightWeather();
+            fetchTechTransfer();
+            fetchTechport();
+            fetchSSD();
+            
+            // Update stats
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Prevent zoom and fix position
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gesturechange', function (e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gestureend', function (e) {
+            e.preventDefault();
+        });
+
+        // Prevent double-tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Prevent pinch zoom
+        document.addEventListener('touchmove', function (event) {
+            if (event.scale !== 1) { 
+                event.preventDefault(); 
+            }
+        }, { passive: false });
+
+        // Start the application
+        initDashboard();
+
+        // Auto-refresh certain data every 10 minutes
+        setInterval(() => {
+            fetchNEO();
+            fetchDONKI();
+            fetchEONET();
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }, 600000);
+
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
+            const navMenu = document.querySelector('.nav-menu');
+            navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9683dc88921f547d',t:'MTc1NDAzNTg1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
