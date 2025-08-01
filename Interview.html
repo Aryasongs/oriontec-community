@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Portal - Candidate Chat</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chat-message {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        .highlighted-wrong {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .loading-dots {
+            animation: loadingDots 1.5s infinite;
+        }
+        @keyframes loadingDots {
+            0%, 20% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b-4 border-blue-600">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">🏛️</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Interview Portal</h1>
+                        <p class="text-sm text-gray-600">Candidate Chat System</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div id="connectionStatus" class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                        <span class="text-sm text-gray-600">Disconnected</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-6">
+        <!-- Application ID Input Section -->
+        <div id="loginSection" class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 mb-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">📋</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Enter Application Details</h2>
+                <p class="text-gray-600">Please enter your Application ID or Acknowledgment Number</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Application ID / Acknowledgment Number</label>
+                    <input type="text" id="applicationId" placeholder="Enter Application ID or Acknowledgment Number" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">You can use either your Application ID or Acknowledgment Number</p>
+                </div>
+                
+                <button onclick="connectToChat()" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105">
+                    <span id="connectButtonText">Connect to Officer</span>
+                    <div id="loadingSpinner" class="hidden inline-block ml-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- Validation Message -->
+            <div id="validationMessage" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+        </div>
+
+        <!-- Application Status Card -->
+        <div id="statusCard" class="hidden max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Application Status</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Candidate Name:</span>
+                            <span id="candidateName" class="font-semibold text-blue-600"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Application ID:</span>
+                            <span id="displayAppId" class="font-semibold"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Acknowledgment No:</span>
+                            <span id="acknowledgmentNumber" class="font-semibold text-blue-600"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span id="applicationStatus" class="px-3 py-1 rounded-full text-sm font-medium status-badge">Pending Review</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Created Date:</span>
+                            <span id="createdDate" class="text-sm text-gray-500"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Last Updated:</span>
+                            <span id="lastUpdated" class="text-sm text-gray-500"></span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div id="interviewDetails" class="hidden">
+                        <h4 class="font-semibold text-gray-800 mb-2">Interview Details</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Location:</span>
+                                <span id="interviewLocation"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Officer:</span>
+                                <span id="assignedOfficer"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Date:</span>
+                                <span id="interviewDate"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Application History -->
+            <div id="applicationHistory" class="mt-6">
+                <h4 class="font-semibold text-gray-800 mb-3 border-b pb-2">📋 Application History</h4>
+                <div id="historyTimeline" class="space-y-3">
+                    <!-- History items will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Office Notice -->
+            <div id="officeNotice" class="hidden mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+                <div class="flex items-start">
+                    <span class="text-yellow-600 mr-2">📢</span>
+                    <div>
+                        <h4 class="font-semibold text-yellow-800">Office Notice</h4>
+                        <p id="noticeText" class="text-yellow-700 mt-1"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div id="chatInterface" class="hidden max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Chat Header -->
+            <div class="bg-blue-600 text-white p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span class="font-bold">👨‍💼</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">Interview Officer</h3>
+                            <p class="text-sm text-blue-200" id="officerStatus">Online</p>
+                        </div>
+                    </div>
+                    <button onclick="disconnectChat()" class="text-blue-200 hover:text-white">
+                        <span class="text-xl">✕</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chatMessages" class="h-96 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                <!-- Messages will be populated here -->
+            </div>
+
+            <!-- Message Input -->
+            <div class="border-t bg-white p-4">
+                <div class="flex space-x-3">
+                    <input type="text" id="messageInput" placeholder="Type your message..." 
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessage()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition duration-200">
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chartsheet Section -->
+        <div id="chartsheetSection" class="hidden max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 mt-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800">📊 Interview Chartsheet</h3>
+                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                    Interview Completed
+                </span>
+            </div>
+            
+            <div id="chartsheetContent" class="space-y-6">
+                <!-- Chartsheet content will be populated here -->
+            </div>
+            
+            <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+                <div class="flex items-start">
+                    <span class="text-blue-600 mr-2">ℹ️</span>
+                    <div>
+                        <h4 class="font-semibold text-blue-800">Important Notice</h4>
+                        <p class="text-blue-700 mt-1">This chartsheet has been prepared by the interview officer. Please review all details carefully.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAl8eI-_8Ew9va0KPV8p4D2hc9WUTGiwuI",
+            authDomain: "chat-d647c.firebaseapp.com",
+            databaseURL: "https://chat-d647c-default-rtdb.firebaseio.com",
+            projectId: "chat-d647c",
+            storageBucket: "chat-d647c.firebasestorage.app",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:7248a0983dcf0d45a87418",
+            measurementId: "G-5RFLRYTLCN"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const rtdb = firebase.database();
+
+        let currentApplicationId = '';
+        let messagesListener = null;
+
+        // Connect to chat with Application ID or Acknowledgment Number
+        async function connectToChat() {
+            const inputValue = document.getElementById('applicationId').value.trim();
+            if (!inputValue) {
+                showValidationMessage('Please enter your Application ID or Acknowledgment Number', 'error');
+                return;
+            }
+
+            // Show loading state
+            showLoadingState(true);
+            hideValidationMessage();
+
+            try {
+                let applicationData = null;
+                let actualAppId = null;
+
+                // First, try to find by Application ID
+                const appDoc = await db.collection('applications').doc(inputValue).get();
+                
+                if (appDoc.exists) {
+                    applicationData = appDoc.data();
+                    actualAppId = inputValue;
+                } else {
+                    // If not found by Application ID, search by Acknowledgment Number
+                    const acknowledgmentQuery = await db.collection('applications')
+                        .where('acknowledgmentNumber', '==', inputValue)
+                        .limit(1)
+                        .get();
+                    
+                    if (!acknowledgmentQuery.empty) {
+                        const doc = acknowledgmentQuery.docs[0];
+                        applicationData = doc.data();
+                        actualAppId = doc.id;
+                    }
+                }
+
+                if (!applicationData) {
+                    // Show invalid message for non-existent applications
+                    showValidationMessage('❌ Invalid Application ID or Acknowledgment Number. Please check and try again.', 'error');
+                    showLoadingState(false);
+                    return;
+                } else {
+                    // Validate existing application
+                    if (applicationData.validatedByFirestore) {
+                        showValidationMessage('✅ Application validated successfully!', 'success');
+                    } else {
+                        showValidationMessage('⚠️ Application found but needs validation', 'warning');
+                    }
+                }
+
+                currentApplicationId = actualAppId;
+                
+                // Hide login section and show chat interface
+                setTimeout(() => {
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('statusCard').classList.remove('hidden');
+                    document.getElementById('chatInterface').classList.remove('hidden');
+                    
+                    loadApplicationStatus();
+                    initializeChat();
+                    updateConnectionStatus('Connected', 'green');
+                    showLoadingState(false);
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error connecting:', error);
+                showValidationMessage('❌ Error connecting to system. Please try again.', 'error');
+                showLoadingState(false);
+            }
+        }
+
+        // Generate acknowledgment number
+        function generateAcknowledgmentNumber() {
+            const timestamp = Date.now().toString().slice(-6);
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `ACK${timestamp}${random}`;
+        }
+
+        // Show validation message
+        function showValidationMessage(message, type) {
+            const messageDiv = document.getElementById('validationMessage');
+            messageDiv.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-yellow-100', 'text-yellow-700');
+            
+            if (type === 'error') {
+                messageDiv.classList.add('bg-red-100', 'text-red-700');
+            } else if (type === 'success') {
+                messageDiv.classList.add('bg-green-100', 'text-green-700');
+            } else if (type === 'warning') {
+                messageDiv.classList.add('bg-yellow-100', 'text-yellow-700');
+            }
+            
+            messageDiv.textContent = message;
+        }
+
+        // Hide validation message
+        function hideValidationMessage() {
+            document.getElementById('validationMessage').classList.add('hidden');
+        }
+
+        // Show loading state
+        function showLoadingState(show) {
+            const buttonText = document.getElementById('connectButtonText');
+            const spinner = document.getElementById('loadingSpinner');
+            
+            if (show) {
+                buttonText.textContent = 'Validating...';
+                spinner.classList.remove('hidden');
+            } else {
+                buttonText.textContent = 'Connect to Officer';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Load application status
+        async function loadApplicationStatus() {
+            try {
+                const appDoc = await db.collection('applications').doc(currentApplicationId).get();
+                const appData = appDoc.data();
+
+                // Update basic information
+                document.getElementById('candidateName').textContent = appData.candidateName || 'N/A';
+                document.getElementById('displayAppId').textContent = currentApplicationId;
+                document.getElementById('acknowledgmentNumber').textContent = appData.acknowledgmentNumber || 'Not Generated';
+                
+                // Update status badge
+                const statusElement = document.getElementById('applicationStatus');
+                const status = appData.status || 'pending_review';
+                
+                statusElement.textContent = getStatusText(status);
+                statusElement.className = `px-3 py-1 rounded-full text-sm font-medium status-badge ${getStatusColor(status)}`;
+
+                // Update dates
+                if (appData.createdAt) {
+                    document.getElementById('createdDate').textContent = 
+                        appData.createdAt.toDate().toLocaleDateString();
+                }
+                if (appData.lastUpdated) {
+                    document.getElementById('lastUpdated').textContent = 
+                        appData.lastUpdated.toDate().toLocaleString();
+                }
+
+                // Show interview details if scheduled
+                if (appData.interviewScheduled && appData.interviewDetails) {
+                    document.getElementById('interviewDetails').classList.remove('hidden');
+                    document.getElementById('interviewLocation').textContent = appData.interviewDetails.location || 'TBD';
+                    document.getElementById('assignedOfficer').textContent = appData.interviewDetails.officer || 'TBD';
+                    document.getElementById('interviewDate').textContent = appData.interviewDetails.date || 'TBD';
+                }
+
+                // Display application history
+                displayApplicationHistory(appData);
+
+                // Show office notice if exists
+                if (appData.officeNotice) {
+                    document.getElementById('officeNotice').classList.remove('hidden');
+                    document.getElementById('noticeText').textContent = appData.officeNotice;
+                }
+
+                // Show chartsheet if available
+                if (appData.chartsheet && appData.interviewCompleted) {
+                    displayChartsheet(appData.chartsheet);
+                }
+
+                // Listen for real-time updates
+                db.collection('applications').doc(currentApplicationId).onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        loadApplicationStatus();
+                        
+                        // Check for new chartsheet
+                        if (data.chartsheet && data.interviewCompleted && !document.getElementById('chartsheetSection').classList.contains('hidden')) {
+                            displayChartsheet(data.chartsheet);
+                        } else if (data.chartsheet && data.interviewCompleted) {
+                            displayChartsheet(data.chartsheet);
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading application status:', error);
+            }
+        }
+
+        // Get status text
+        function getStatusText(status) {
+            const statusMap = {
+                'pending_review': 'Pending Review',
+                'approved': 'Approved',
+                'rejected': 'Rejected',
+                'frozen': 'Frozen - Clarification Required',
+                'interview_scheduled': 'Interview Scheduled'
+            };
+            return statusMap[status] || 'Unknown';
+        }
+
+        // Get status color
+        function getStatusColor(status) {
+            const colorMap = {
+                'pending_review': 'bg-yellow-100 text-yellow-800',
+                'approved': 'bg-green-100 text-green-800',
+                'rejected': 'bg-red-100 text-red-800',
+                'frozen': 'bg-blue-100 text-blue-800',
+                'interview_scheduled': 'bg-purple-100 text-purple-800'
+            };
+            return colorMap[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        // Initialize chat
+        async function initializeChat() {
+            const chatRef = rtdb.ref(`chats/${currentApplicationId}/messages`);
+            
+            // Listen for new messages
+            messagesListener = chatRef.on('child_added', (snapshot) => {
+                const message = snapshot.val();
+                displayMessage(message);
+            });
+
+            // Get candidate name and send personalized welcome message
+            try {
+                const appDoc = await db.collection('applications').doc(currentApplicationId).get();
+                const appData = appDoc.data();
+                const candidateName = appData.candidateName || `Candidate_${currentApplicationId}`;
+                
+                // Send personalized welcome message
+                setTimeout(() => {
+                    displayMessage({
+                        text: `Welcome ${candidateName}! You are successfully connected to the interview portal.`,
+                        sender: 'system',
+                        timestamp: Date.now(),
+                        isWelcome: true
+                    });
+                    
+                    // Send waiting message
+                    setTimeout(() => {
+                        displayMessage({
+                            text: `Please wait, we are connecting you with an officer. You will be notified once the officer joins the chat.`,
+                            sender: 'system',
+                            timestamp: Date.now(),
+                            isWaiting: true,
+                            messageId: 'waiting_officer'
+                        });
+                    }, 1500);
+                }, 1000);
+                
+                // Listen for officer connection status
+                listenForOfficerConnection();
+                
+            } catch (error) {
+                console.error('Error getting candidate name:', error);
+                // Fallback welcome message
+                setTimeout(() => {
+                    displayMessage({
+                        text: `Welcome! You are connected with Application ID: ${currentApplicationId}. An officer will assist you shortly.`,
+                        sender: 'system',
+                        timestamp: Date.now()
+                    });
+                }, 1000);
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+            
+            if (!messageText) return;
+
+            const message = {
+                text: messageText,
+                sender: 'candidate',
+                senderId: currentApplicationId,
+                timestamp: Date.now(),
+                highlighted: false
+            };
+
+            try {
+                await rtdb.ref(`chats/${currentApplicationId}/messages`).push(message);
+                messageInput.value = '';
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error sending message. Please try again.');
+            }
+        }
+
+        // Listen for officer connection
+        function listenForOfficerConnection() {
+            const officerStatusRef = rtdb.ref(`chats/${currentApplicationId}/officerConnected`);
+            
+            officerStatusRef.on('value', (snapshot) => {
+                const officerConnected = snapshot.val();
+                
+                if (officerConnected) {
+                    // Remove waiting message when officer connects
+                    removeWaitingMessage();
+                    
+                    // Send officer connected message
+                    displayMessage({
+                        text: `✅ An officer has joined the chat. You can now start your interview discussion.`,
+                        sender: 'system',
+                        timestamp: Date.now(),
+                        isOfficerConnected: true
+                    });
+                    
+                    // Update officer status in header
+                    document.getElementById('officerStatus').textContent = 'Online - Connected';
+                }
+            });
+        }
+
+        // Remove waiting message
+        function removeWaitingMessage() {
+            const waitingMessage = document.querySelector('[data-message-id="waiting_officer"]');
+            if (waitingMessage) {
+                waitingMessage.style.animation = 'fadeOut 0.5s ease-out';
+                setTimeout(() => {
+                    waitingMessage.remove();
+                }, 500);
+            }
+        }
+
+        // Display message
+        function displayMessage(message) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+
+            // Add message ID for tracking if provided
+            if (message.messageId) {
+                messageDiv.setAttribute('data-message-id', message.messageId);
+            }
+
+            const isCandidate = message.sender === 'candidate';
+            const isSystem = message.sender === 'system';
+            const isHighlighted = message.highlighted;
+            const isWaiting = message.isWaiting;
+            const isWelcome = message.isWelcome;
+            const isOfficerConnected = message.isOfficerConnected;
+
+            let senderName = 'Officer';
+            let bgColor = 'bg-gray-100';
+            let textAlign = 'text-left';
+            let icon = '';
+
+            if (isCandidate) {
+                senderName = 'You';
+                bgColor = 'bg-blue-100';
+                textAlign = 'text-right ml-auto';
+                icon = '👤';
+            } else if (isSystem) {
+                senderName = 'System';
+                bgColor = 'bg-green-100';
+                textAlign = 'text-center mx-auto';
+                
+                if (isWelcome) {
+                    bgColor = 'bg-blue-100';
+                    icon = '👋';
+                } else if (isWaiting) {
+                    bgColor = 'bg-yellow-100';
+                    icon = '⏳';
+                } else if (isOfficerConnected) {
+                    bgColor = 'bg-green-100';
+                    icon = '✅';
+                } else {
+                    icon = '🔔';
+                }
+            } else {
+                icon = '👨‍💼';
+            }
+
+            if (isHighlighted) {
+                bgColor = 'bg-red-100 border-l-4 border-red-500';
+                messageDiv.classList.add('highlighted-wrong');
+            }
+
+            // Add loading animation for waiting message
+            const loadingDots = isWaiting ? '<span class="loading-dots">...</span>' : '';
+
+            messageDiv.innerHTML = `
+                <div class="max-w-xs md:max-w-md ${textAlign}">
+                    <div class="${bgColor} rounded-lg p-3 shadow-sm">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold text-gray-600 flex items-center">
+                                <span class="mr-1">${icon}</span>
+                                ${senderName}
+                            </span>
+                            <span class="text-xs text-gray-500">${new Date(message.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                        <p class="text-gray-800">${message.text}${loadingDots}</p>
+                        ${isHighlighted ? '<p class="text-xs text-red-600 mt-1">⚠️ This answer needs clarification</p>' : ''}
+                    </div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Handle Enter key press
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Disconnect chat
+        function disconnectChat() {
+            if (messagesListener) {
+                rtdb.ref(`chats/${currentApplicationId}/messages`).off('child_added', messagesListener);
+            }
+            
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('statusCard').classList.add('hidden');
+            document.getElementById('chatInterface').classList.add('hidden');
+            document.getElementById('applicationId').value = '';
+            currentApplicationId = '';
+            updateConnectionStatus('Disconnected', 'gray');
+        }
+
+        // Update connection status
+        function updateConnectionStatus(status, color) {
+            const statusElement = document.getElementById('connectionStatus');
+            const colorMap = {
+                'green': 'bg-green-500',
+                'gray': 'bg-gray-400',
+                'red': 'bg-red-500'
+            };
+            
+            statusElement.innerHTML = `
+                <div class="w-3 h-3 ${colorMap[color]} rounded-full"></div>
+                <span class="text-sm text-gray-600">${status}</span>
+            `;
+        }
+
+        // Display chartsheet
+        function displayChartsheet(chartsheetData) {
+            const chartsheetSection = document.getElementById('chartsheetSection');
+            const chartsheetContent = document.getElementById('chartsheetContent');
+            
+            chartsheetSection.classList.remove('hidden');
+            
+            let chartsheetHTML = `
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="font-semibold text-gray-800 border-b pb-2">Personal Information</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Candidate Name:</span>
+                                <span class="font-medium">${chartsheetData.candidateName || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Application ID:</span>
+                                <span class="font-medium">${chartsheetData.applicationId || currentApplicationId}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Interview Date:</span>
+                                <span class="font-medium">${chartsheetData.interviewDate || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Interview Officer:</span>
+                                <span class="font-medium">${chartsheetData.interviewOfficer || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h4 class="font-semibold text-gray-800 border-b pb-2">Interview Results</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Overall Score:</span>
+                                <span class="font-bold text-lg ${getScoreColor(chartsheetData.overallScore)}">${chartsheetData.overallScore || 'N/A'}/100</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Final Result:</span>
+                                <span class="px-2 py-1 rounded text-xs font-medium ${getResultColor(chartsheetData.finalResult)}">${chartsheetData.finalResult || 'Pending'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Recommendation:</span>
+                                <span class="font-medium">${chartsheetData.recommendation || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add questions and answers if available
+            if (chartsheetData.questionsAnswers && chartsheetData.questionsAnswers.length > 0) {
+                chartsheetHTML += `
+                    <div class="mt-6">
+                        <h4 class="font-semibold text-gray-800 border-b pb-2 mb-4">Interview Questions & Answers</h4>
+                        <div class="space-y-4">
+                `;
+                
+                chartsheetData.questionsAnswers.forEach((qa, index) => {
+                    const scoreColor = qa.score >= 7 ? 'text-green-600' : qa.score >= 5 ? 'text-yellow-600' : 'text-red-600';
+                    chartsheetHTML += `
+                        <div class="border rounded-lg p-4 ${qa.highlighted ? 'bg-red-50 border-red-200' : 'bg-gray-50'}">
+                            <div class="flex justify-between items-start mb-2">
+                                <h5 class="font-medium text-gray-800">Question ${index + 1}</h5>
+                                <span class="text-sm font-semibold ${scoreColor}">${qa.score || 0}/10</span>
+                            </div>
+                            <p class="text-gray-700 mb-2"><strong>Q:</strong> ${qa.question}</p>
+                            <p class="text-gray-600 mb-2"><strong>A:</strong> ${qa.answer}</p>
+                            ${qa.officerComment ? `<p class="text-sm text-blue-600"><strong>Officer Comment:</strong> ${qa.officerComment}</p>` : ''}
+                            ${qa.highlighted ? '<p class="text-xs text-red-600 mt-1">⚠️ This answer was highlighted for review</p>' : ''}
+                        </div>
+                    `;
+                });
+                
+                chartsheetHTML += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Add officer's final comments
+            if (chartsheetData.finalComments) {
+                chartsheetHTML += `
+                    <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2">Officer's Final Comments</h4>
+                        <p class="text-blue-700">${chartsheetData.finalComments}</p>
+                    </div>
+                `;
+            }
+            
+            chartsheetContent.innerHTML = chartsheetHTML;
+        }
+        
+        // Get score color
+        function getScoreColor(score) {
+            if (score >= 70) return 'text-green-600';
+            if (score >= 50) return 'text-yellow-600';
+            return 'text-red-600';
+        }
+        
+        // Get result color
+        function getResultColor(result) {
+            if (result === 'Selected' || result === 'Passed') return 'bg-green-100 text-green-800';
+            if (result === 'Rejected' || result === 'Failed') return 'bg-red-100 text-red-800';
+            if (result === 'Waitlist') return 'bg-yellow-100 text-yellow-800';
+            return 'bg-gray-100 text-gray-800';
+        }
+
+        // Display application history
+        function displayApplicationHistory(appData) {
+            const historyTimeline = document.getElementById('historyTimeline');
+            let historyHTML = '';
+            
+            // Create history events based on application data
+            const historyEvents = [];
+            
+            // Application created
+            if (appData.createdAt) {
+                historyEvents.push({
+                    date: appData.createdAt.toDate(),
+                    title: 'Application Submitted',
+                    description: `Application ${currentApplicationId} was successfully submitted`,
+                    icon: '📝',
+                    color: 'bg-blue-100 text-blue-800'
+                });
+            }
+            
+            // Acknowledgment generated
+            if (appData.acknowledgmentNumber) {
+                historyEvents.push({
+                    date: appData.createdAt ? appData.createdAt.toDate() : new Date(),
+                    title: 'Acknowledgment Generated',
+                    description: `Acknowledgment Number: ${appData.acknowledgmentNumber}`,
+                    icon: '🎫',
+                    color: 'bg-green-100 text-green-800'
+                });
+            }
+            
+            // Status changes
+            if (appData.statusHistory && appData.statusHistory.length > 0) {
+                appData.statusHistory.forEach(statusChange => {
+                    historyEvents.push({
+                        date: statusChange.timestamp.toDate(),
+                        title: `Status Changed to ${getStatusText(statusChange.status)}`,
+                        description: statusChange.reason || 'Status updated by system',
+                        icon: getStatusIcon(statusChange.status),
+                        color: getStatusHistoryColor(statusChange.status)
+                    });
+                });
+            } else {
+                // Default status entry
+                historyEvents.push({
+                    date: appData.lastUpdated ? appData.lastUpdated.toDate() : new Date(),
+                    title: `Current Status: ${getStatusText(appData.status)}`,
+                    description: 'Application is under review',
+                    icon: getStatusIcon(appData.status),
+                    color: getStatusHistoryColor(appData.status)
+                });
+            }
+            
+            // Interview scheduled
+            if (appData.interviewScheduled && appData.interviewDetails) {
+                historyEvents.push({
+                    date: appData.interviewDetails.scheduledDate ? new Date(appData.interviewDetails.scheduledDate) : new Date(),
+                    title: 'Interview Scheduled',
+                    description: `Interview scheduled with ${appData.interviewDetails.officer || 'Officer'} at ${appData.interviewDetails.location || 'TBD'}`,
+                    icon: '📅',
+                    color: 'bg-purple-100 text-purple-800'
+                });
+            }
+            
+            // Interview completed
+            if (appData.interviewCompleted) {
+                historyEvents.push({
+                    date: appData.interviewCompletedDate ? appData.interviewCompletedDate.toDate() : new Date(),
+                    title: 'Interview Completed',
+                    description: 'Interview has been completed successfully',
+                    icon: '✅',
+                    color: 'bg-green-100 text-green-800'
+                });
+            }
+            
+            // Chartsheet generated
+            if (appData.chartsheet) {
+                historyEvents.push({
+                    date: appData.chartsheetGeneratedDate ? appData.chartsheetGeneratedDate.toDate() : new Date(),
+                    title: 'Chartsheet Generated',
+                    description: `Final result: ${appData.chartsheet.finalResult || 'Pending'}`,
+                    icon: '📊',
+                    color: 'bg-indigo-100 text-indigo-800'
+                });
+            }
+            
+            // Sort events by date (newest first)
+            historyEvents.sort((a, b) => b.date - a.date);
+            
+            // Generate HTML for history timeline
+            historyEvents.forEach((event, index) => {
+                historyHTML += `
+                    <div class="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 ${event.color} rounded-full flex items-center justify-center text-sm">
+                                ${event.icon}
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h5 class="text-sm font-medium text-gray-900">${event.title}</h5>
+                                <span class="text-xs text-gray-500">${event.date.toLocaleDateString()}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">${event.description}</p>
+                            <span class="text-xs text-gray-400">${event.date.toLocaleTimeString()}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (historyHTML === '') {
+                historyHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <span class="text-2xl">📋</span>
+                        <p class="mt-2">No history available yet</p>
+                    </div>
+                `;
+            }
+            
+            historyTimeline.innerHTML = historyHTML;
+        }
+        
+        // Get status icon
+        function getStatusIcon(status) {
+            const iconMap = {
+                'pending_review': '⏳',
+                'approved': '✅',
+                'rejected': '❌',
+                'frozen': '🔒',
+                'interview_scheduled': '📅'
+            };
+            return iconMap[status] || '📄';
+        }
+        
+        // Get status history color
+        function getStatusHistoryColor(status) {
+            const colorMap = {
+                'pending_review': 'bg-yellow-100 text-yellow-800',
+                'approved': 'bg-green-100 text-green-800',
+                'rejected': 'bg-red-100 text-red-800',
+                'frozen': 'bg-blue-100 text-blue-800',
+                'interview_scheduled': 'bg-purple-100 text-purple-800'
+            };
+            return colorMap[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateConnectionStatus('Ready to Connect', 'gray');
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96822b80e7380522',t:'MTc1NDAxODExNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
