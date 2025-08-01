@@ -225,9 +225,9 @@
         }
 
         .stat-item {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-secondary);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 102, 204, 0.2);
             border-radius: 12px;
             padding: 1.5rem;
             text-align: center;
@@ -237,7 +237,7 @@
         .stat-item:hover {
             transform: translateY(-5px);
             border-color: var(--accent-cyan);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 102, 204, 0.2);
         }
 
         .stat-number {
@@ -333,7 +333,7 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 2px solid rgba(0, 212, 255, 0.3);
+            border: 2px solid rgba(0, 102, 204, 0.3);
             border-radius: 50%;
             border-top-color: var(--accent-cyan);
             animation: spin 1s linear infinite;
@@ -477,8 +477,8 @@
 
         /* Footer */
         .footer {
-            background: rgba(0, 0, 0, 0.4);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-secondary);
+            border-top: 1px solid rgba(0, 102, 204, 0.2);
             padding: 3rem 0;
             margin-top: 4rem;
         }
@@ -500,14 +500,16 @@
 
         .footer-section p,
         .footer-section a {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-primary);
             text-decoration: none;
             line-height: 1.6;
             font-size: 0.9rem;
+            opacity: 0.8;
         }
 
         .footer-section a:hover {
             color: var(--accent-cyan);
+            opacity: 1;
         }
 
         /* Responsive design */
@@ -579,6 +581,85 @@
             .stats-bar {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
+        }
+
+        /* Image Lightbox Modal */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+        }
+
+        .lightbox-content {
+            position: relative;
+            margin: auto;
+            padding: 20px;
+            width: 90%;
+            height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(0, 102, 204, 0.8);
+            transform: scale(1.1);
+        }
+
+        .lightbox-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .lightbox-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .lightbox-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
         }
 
         /* Dark mode adjustments */
@@ -800,13 +881,13 @@
             <div class="api-card" id="library">
                 <div class="card-header">
                     <div>
-                        <h2 class="card-title">NASA Image & Video Library</h2>
+                        <h2 class="card-title">Space Image & Video Library</h2>
                         <p class="card-subtitle">Comprehensive media archive</p>
                     </div>
                     <div class="status-indicator"></div>
                 </div>
                 <div class="search-container">
-                    <input type="text" class="search-input" id="librarySearch" placeholder="Search NASA media library..." onkeypress="handleLibrarySearch(event)">
+                    <input type="text" class="search-input" id="librarySearch" placeholder="Search space media library..." onkeypress="handleLibrarySearch(event)">
                 </div>
                 <div class="card-content">
                     <div class="image-grid" id="libraryResults"></div>
@@ -866,9 +947,9 @@
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
-                <h3>NASA Space Data Portal</h3>
-                <p>Official dashboard providing real-time access to NASA's comprehensive space data APIs and research databases.</p>
-                <p>Managed by the National Aeronautics and Space Administration</p>
+                <h3>OrbX by DXS</h3>
+                <p>Advanced space data analytics platform providing real-time access to comprehensive space data APIs and research databases.</p>
+                <p>Powered by DXS - Your trusted space data partner</p>
             </div>
             <div class="footer-section">
                 <h3>Data Sources</h3>
@@ -888,14 +969,26 @@
             </div>
             <div class="footer-section">
                 <h3>Connect</h3>
-                <p><a href="#">NASA Official Website</a></p>
-                <p><a href="#">NASA Open Data</a></p>
+                <p><a href="#">DXS Official Website</a></p>
+                <p><a href="#">OrbX Platform</a></p>
                 <p><a href="#">GitHub Repository</a></p>
-                <p><a href="#">Twitter @NASA</a></p>
-                <p><a href="#">Contact NASA</a></p>
+                <p><a href="#">Twitter @DXSOrbX</a></p>
+                <p><a href="#">Contact DXS</a></p>
             </div>
         </div>
     </footer>
+
+    <!-- Image Lightbox Modal -->
+    <div id="lightboxModal" class="lightbox-modal">
+        <div class="lightbox-content">
+            <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+            <img id="lightboxImage" class="lightbox-image" src="" alt="">
+            <div id="lightboxInfo" class="lightbox-info">
+                <div id="lightboxTitle" class="lightbox-title"></div>
+                <div id="lightboxDescription" class="lightbox-description"></div>
+            </div>
+        </div>
+    </div>
 
     <script>
         const API_KEY = 'ODCZcmZIHZCJhBYlXDgmnbVdgbz3O8zmV6xW89hN';
@@ -925,6 +1018,50 @@
             return new Intl.NumberFormat().format(Math.round(num));
         }
 
+        // Lightbox functions
+        function openLightbox(imageSrc, title = '', description = '') {
+            const modal = document.getElementById('lightboxModal');
+            const image = document.getElementById('lightboxImage');
+            const titleElement = document.getElementById('lightboxTitle');
+            const descriptionElement = document.getElementById('lightboxDescription');
+            const infoElement = document.getElementById('lightboxInfo');
+            
+            image.src = imageSrc;
+            image.alt = title;
+            titleElement.textContent = title;
+            descriptionElement.textContent = description;
+            
+            // Hide info if no title or description
+            if (!title && !description) {
+                infoElement.style.display = 'none';
+            } else {
+                infoElement.style.display = 'block';
+            }
+            
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeLightbox() {
+            const modal = document.getElementById('lightboxModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Close lightbox when clicking outside the image
+        document.getElementById('lightboxModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLightbox();
+            }
+        });
+
+        // Close lightbox with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+
         // APOD - Astronomy Picture of the Day
         async function fetchAPOD() {
             try {
@@ -935,7 +1072,7 @@
                     <div style="color: var(--accent-cyan); font-size: 0.9rem; margin-bottom: 0.5rem;">${formatDate(data.date)}</div>
                     <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">${data.title}</h3>
                     ${data.media_type === 'image' ? 
-                        `<img src="${data.url}" alt="${data.title}" class="apod-image" onclick="window.open('${data.hdurl || data.url}', '_blank')">` : 
+                        `<img src="${data.url}" alt="${data.title}" class="apod-image" onclick="openLightbox('${data.hdurl || data.url}', '${data.title}', '${data.explanation.substring(0, 200)}...')" style="cursor: pointer;">` : 
                         `<iframe src="${data.url}" width="100%" height="200" frameborder="0" style="border-radius: 12px;"></iframe>`
                     }
                     <div class="apod-description">${data.explanation}</div>
@@ -966,7 +1103,7 @@
                 }
                 
                 const images = data.photos.slice(0, 12).map(photo => 
-                    `<img src="${photo.img_src}" alt="Mars photo from ${photo.camera.full_name}" onclick="window.open('${photo.img_src}', '_blank')" title="${photo.camera.full_name} - Sol ${photo.sol}">`
+                    `<img src="${photo.img_src}" alt="Mars photo from ${photo.camera.full_name}" onclick="openLightbox('${photo.img_src}', 'Mars Rover Photo', '${photo.camera.full_name} - Sol ${photo.sol}')" title="${photo.camera.full_name} - Sol ${photo.sol}" style="cursor: pointer;">`
                 ).join('');
                 
                 document.getElementById('marsImages').innerHTML = images;
@@ -1033,7 +1170,7 @@
                 const images = data.slice(0, 8).map(image => {
                     const date = image.date.split(' ')[0].replace(/-/g, '/');
                     const imageUrl = `https://api.nasa.gov/EPIC/archive/natural/${date.replace(/\//g, '/')}/png/${image.image}.png?api_key=${API_KEY}`;
-                    return `<img src="${imageUrl}" alt="Earth from EPIC - ${image.date}" onclick="window.open('${imageUrl}', '_blank')" title="Earth - ${formatDate(image.date)}">`;
+                    return `<img src="${imageUrl}" alt="Earth from EPIC - ${image.date}" onclick="openLightbox('${imageUrl}', 'Earth from EPIC', '${formatDate(image.date)}')" title="Earth - ${formatDate(image.date)}" style="cursor: pointer;">`;
                 }).join('');
                 
                 document.getElementById('epicImages').innerHTML = images;
@@ -1182,7 +1319,8 @@
                     const imageUrl = item.links && item.links[0] ? item.links[0].href : '';
                     const title = item.data[0].title;
                     const date = item.data[0].date_created;
-                    return imageUrl ? `<img src="${imageUrl}" alt="${title}" title="${title} - ${formatDate(date)}" onclick="window.open('${imageUrl}', '_blank')">` : '';
+                    const description = item.data[0].description || '';
+                    return imageUrl ? `<img src="${imageUrl}" alt="${title}" title="${title} - ${formatDate(date)}" onclick="openLightbox('${imageUrl}', '${title}', '${description.substring(0, 200)}...')" style="cursor: pointer;">` : '';
                 }).filter(img => img).join('');
                 
                 document.getElementById('libraryResults').innerHTML = images;
@@ -1357,5 +1495,5 @@
             navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9683dc88921f547d',t:'MTc1NDAzNTg1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9683ea5281d74254',t:'MTc1NDAzNjQxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
