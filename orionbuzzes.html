@@ -273,6 +273,7 @@
         };
 
         // DOM elements
+        const welcomeSection = document.getElementById('welcomeSection');
         const loginSection = document.getElementById('loginSection');
         const signupSection = document.getElementById('signupSection');
         const onboardingSection = document.getElementById('onboardingSection');
@@ -291,28 +292,33 @@
 
         // Authentication state listener
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                await loadUserProfile();
-                
-                // Check if user is suspended
-                if (currentUserProfile?.isSuspended) {
-                    alert('Your account has been suspended. Please contact support.');
-                    await auth.signOut();
-                    return;
-                }
-                
-                // Check if user needs onboarding
-                if (!currentUserProfile?.hasCompletedOnboarding) {
-                    showOnboardingSection();
+            try {
+                if (user) {
+                    currentUser = user;
+                    await loadUserProfile();
+                    
+                    // Check if user is suspended
+                    if (currentUserProfile?.isSuspended) {
+                        alert('Your account has been suspended. Please contact support.');
+                        await auth.signOut();
+                        return;
+                    }
+                    
+                    // Check if user needs onboarding
+                    if (!currentUserProfile?.hasCompletedOnboarding) {
+                        showOnboardingSection();
+                    } else {
+                        showMainApp();
+                        loadUserFeed();
+                        setupNotificationListener();
+                        setupPresence();
+                    }
                 } else {
-                    showMainApp();
-                    loadUserFeed();
-                    setupNotificationListener();
-                    setupPresence();
+                    showWelcomeSection();
                 }
-            } else {
-                showLoginSection();
+            } catch (error) {
+                console.error('Auth state change error:', error);
+                showWelcomeSection();
             }
         });
 
@@ -338,6 +344,11 @@
         }
 
         // Show different sections
+        function showWelcomeSection() {
+            hideAllSections();
+            welcomeSection.classList.remove('hidden');
+        }
+
         function showLoginSection() {
             hideAllSections();
             loginSection.classList.remove('hidden');
@@ -378,6 +389,7 @@
         }
 
         function hideAllSections() {
+            welcomeSection.classList.add('hidden');
             loginSection.classList.add('hidden');
             signupSection.classList.add('hidden');
             onboardingSection.classList.add('hidden');
@@ -863,6 +875,22 @@
                 document.body.classList.add('dark-mode');
             } else {
                 document.body.classList.remove('dark-mode');
+            }
+        };
+
+        // Toggle user menu dropdown
+        window.toggleUserMenu = () => {
+            const dropdown = document.getElementById('userMenuDropdown');
+            const icon = document.getElementById('userMenuIcon');
+            
+            dropdown.classList.toggle('hidden');
+            
+            if (dropdown.classList.contains('hidden')) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
             }
         };
 
@@ -1382,6 +1410,11 @@
             showLoginSection();
         };
 
+        // Show existing user login (from main landing)
+        window.showExistingUserLogin = () => {
+            showLoginSection();
+        };
+
         // Sign up new user
         window.signUp = async () => {
             const email = document.getElementById('signupEmail').value;
@@ -1797,23 +1830,23 @@
         // Load user's feed
         async function loadUserFeed() {
             try {
-                const followingList = [...currentUserProfile.following, currentUser.uid];
+                const followingList = [...(currentUserProfile.following || []), currentUser.uid];
                 
-                if (followingList.length === 0) {
-                    document.getElementById('feedContainer').innerHTML = `
-                        <div class="text-center py-12 text-gray-500">
-                            <p class="text-lg">Your feed is empty!</p>
-                            <p class="text-sm mt-2">Follow some users to see their buzzes here.</p>
-                        </div>
-                    `;
-                    return;
+                // First try to load all buzzes if following list is small
+                let q;
+                if (followingList.length <= 10) {
+                    q = query(
+                        collection(db, 'buzzes'),
+                        where('authorId', 'in', followingList),
+                        orderBy('timestamp', 'desc')
+                    );
+                } else {
+                    // If following too many, just show own buzzes and recent ones
+                    q = query(
+                        collection(db, 'buzzes'),
+                        orderBy('timestamp', 'desc')
+                    );
                 }
-
-                const q = query(
-                    collection(db, 'buzzes'),
-                    where('authorId', 'in', followingList),
-                    orderBy('timestamp', 'desc')
-                );
 
                 if (feedListener) {
                     feedListener();
@@ -1823,15 +1856,53 @@
                     const buzzes = [];
                     querySnapshot.forEach((doc) => {
                         const buzzData = doc.data();
-                        if (!currentUserProfile.blockedUsers.includes(buzzData.authorId)) {
+                        // Show buzzes from followed users or own buzzes
+                        if (followingList.includes(buzzData.authorId) && 
+                            !currentUserProfile.blockedUsers?.includes(buzzData.authorId)) {
                             buzzes.push({ id: doc.id, ...buzzData });
                         }
                     });
                     renderFeed(buzzes);
+                }, (error) => {
+                    console.error('Error in feed listener:', error);
+                    // Fallback: show all recent buzzes
+                    loadPublicFeed();
                 });
 
             } catch (error) {
                 console.error('Error loading feed:', error);
+                loadPublicFeed();
+            }
+        }
+
+        // Fallback function to load public feed
+        async function loadPublicFeed() {
+            try {
+                const q = query(
+                    collection(db, 'buzzes'),
+                    orderBy('timestamp', 'desc')
+                );
+
+                const querySnapshot = await getDocs(q);
+                const buzzes = [];
+                querySnapshot.forEach((doc) => {
+                    const buzzData = doc.data();
+                    if (!currentUserProfile.blockedUsers?.includes(buzzData.authorId)) {
+                        buzzes.push({ id: doc.id, ...buzzData });
+                    }
+                });
+                renderFeed(buzzes);
+            } catch (error) {
+                console.error('Error loading public feed:', error);
+                document.getElementById('feedContainer').innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <p class="text-lg">Unable to load feed</p>
+                        <p class="text-sm mt-2">Please check your connection and try again.</p>
+                        <button onclick="loadUserFeed()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            Retry
+                        </button>
+                    </div>
+                `;
             }
         }
 
@@ -2046,6 +2117,19 @@
                 notificationDropdown.classList.add('hidden');
             }
             
+            // Close user menu
+            if (!e.target.closest('[onclick="toggleUserMenu()"]') && !e.target.closest('#userMenuDropdown')) {
+                const userMenu = document.getElementById('userMenuDropdown');
+                const userMenuIcon = document.getElementById('userMenuIcon');
+                if (userMenu && !userMenu.classList.contains('hidden')) {
+                    userMenu.classList.add('hidden');
+                    if (userMenuIcon) {
+                        userMenuIcon.classList.remove('fa-chevron-down');
+                        userMenuIcon.classList.add('fa-chevron-up');
+                    }
+                }
+            }
+            
             // Close buzz menus
             if (!e.target.closest('[onclick^="toggleBuzzMenu"]') && !e.target.closest('[id^="buzzMenu-"]')) {
                 document.querySelectorAll('[id^="buzzMenu-"]').forEach(menu => {
@@ -2053,6 +2137,17 @@
                 });
             }
         });
+
+        // Toggle image upload section
+        window.toggleImageUpload = () => {
+            const section = document.getElementById('imageUploadSection');
+            section.classList.toggle('hidden');
+        };
+
+        // Hide image upload section
+        window.hideImageUpload = () => {
+            document.getElementById('imageUploadSection').classList.add('hidden');
+        };
 
         // Cleanup
         window.addEventListener('beforeunload', () => {
@@ -2064,12 +2159,30 @@
     </script>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Login Section -->
-    <div id="loginSection" class="flex items-center justify-center min-h-screen px-4">
+    <!-- Welcome Landing Section -->
+    <div id="welcomeSection" class="flex items-center justify-center min-h-screen px-4">
         <div class="instagram-card p-8 max-w-md w-full">
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold instagram-gradient-text mb-3">OrioBuzz</h1>
                 <p class="text-gray-600">Connect and share your thoughts</p>
+            </div>
+            <button onclick="showSignup()" class="w-full instagram-button text-white py-3 px-4 rounded-lg font-medium mb-3">
+                <i class="fas fa-user-plus mr-2"></i>
+                Create Account
+            </button>
+            <button onclick="showExistingUserLogin()" class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors font-medium">
+                <i class="fas fa-sign-in-alt mr-2"></i>
+                Already have an account? Sign In
+            </button>
+        </div>
+    </div>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="hidden flex items-center justify-center min-h-screen px-4">
+        <div class="instagram-card p-8 max-w-md w-full">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold instagram-gradient-text mb-3">Welcome Back!</h1>
+                <p class="text-gray-600">Sign in to your OrioBuzz account</p>
             </div>
             <div class="space-y-4 mb-6">
                 <div class="relative">
@@ -2087,7 +2200,7 @@
             </button>
             <button onclick="showSignup()" class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors font-medium">
                 <i class="fas fa-user-plus mr-2"></i>
-                Create Account
+                Don't have an account? Sign Up
             </button>
         </div>
     </div>
@@ -2202,21 +2315,35 @@
             </div>
             
             <div class="absolute bottom-6 left-6 right-6">
-                <div class="flex items-center space-x-3 mb-4">
-                    <img id="desktopUserAvatar" src="" alt="Your avatar" class="w-10 h-10 rounded-full">
-                    <div class="flex-1 min-w-0">
-                        <p id="desktopUserName" class="font-medium text-sm truncate"></p>
-                        <p id="desktopUserHandle" class="text-xs text-gray-500 truncate"></p>
+                <div class="relative">
+                    <div class="flex items-center space-x-3 mb-4 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors" onclick="toggleUserMenu()">
+                        <img id="desktopUserAvatar" src="" alt="Your avatar" class="w-10 h-10 rounded-full">
+                        <div class="flex-1 min-w-0">
+                            <p id="desktopUserName" class="font-medium text-sm truncate"></p>
+                            <p id="desktopUserHandle" class="text-xs text-gray-500 truncate"></p>
+                        </div>
+                        <i class="fas fa-chevron-up text-gray-400" id="userMenuIcon"></i>
                     </div>
-                </div>
-                
-                <div class="flex space-x-2">
-                    <button onclick="toggleDarkMode()" class="flex-1 p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button onclick="logout()" class="flex-1 p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
+                    
+                    <div id="userMenuDropdown" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                        <button onclick="toggleDarkMode(); toggleUserMenu();" class="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-moon w-5 mr-3"></i>
+                            <span>Dark Mode</span>
+                        </button>
+                        <button onclick="goToMyProfile(); toggleUserMenu();" class="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-user w-5 mr-3"></i>
+                            <span>My Profile</span>
+                        </button>
+                        <button onclick="goToVerification(); toggleUserMenu();" class="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-certificate w-5 mr-3"></i>
+                            <span>Get Verified</span>
+                        </button>
+                        <hr class="my-2 border-gray-200">
+                        <button onclick="logout(); toggleUserMenu();" class="w-full flex items-center px-4 py-2 text-red-600 hover:bg-red-50 transition-colors">
+                            <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+                            <span>Logout</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -2672,5 +2799,5 @@
             </div>
         </div>
     </div>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'968b0b6d90b0a74a',t:'MTc1NDExMTE3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'968b2e62e4ae7932',t:'MTc1NDExMjYwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
