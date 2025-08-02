@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OrioBuzz - Social Media</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #4facfe 50%, #00f2fe 75%, #43e97b 100%);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #4facfe 50%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .buzz-card {
+            transition: all 0.3s ease;
+        }
+        .buzz-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .sidebar-item {
+            transition: all 0.3s ease;
+        }
+        .sidebar-item:hover {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+            transform: translateX(5px);
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(10px);
+        }
+        .verified-badge {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+            margin-left: 4px;
+            object-fit: contain;
+        }
+        .notification-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .notification-item {
+            transition: all 0.3s ease;
+        }
+        .notification-item:hover {
+            background-color: #f3f4f6;
+            transform: translateX(5px);
+        }
+        .onboarding-step {
+            transition: all 0.5s ease;
+        }
+        .interest-tag {
+            transition: all 0.3s ease;
+        }
+        .interest-tag:hover {
+            transform: scale(1.05);
+        }
+        .character-counter {
+            transition: color 0.3s ease;
+        }
+        .character-counter.warning {
+            color: #f59e0b;
+        }
+        .character-counter.danger {
+            color: #ef4444;
+        }
+        
+        /* Prevent zoom on mobile */
+        input, textarea, select {
+            font-size: 16px !important;
+        }
+        
+        /* Disable zoom on double tap */
+        * {
+            touch-action: manipulation;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #f093fb;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="loginScreen" class="min-h-screen gradient-bg flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl p-12 max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold gradient-text mb-2">OrioBuzz</h1>
+                <p class="text-gray-600">Connect with the world</p>
+            </div>
+            <button id="googleSignIn" class="w-full bg-white border-2 border-gray-300 rounded-full py-3 px-6 flex items-center justify-center hover:bg-gray-50 transition-all duration-300 shadow-lg">
+                <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+            </button>
+        </div>
+    </div>
+
+    <div id="onboardingScreens" class="hidden">
+        <div id="profileSetupScreen" class="hidden min-h-screen gradient-bg flex items-center justify-center onboarding-step">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full mx-4">
+                <h2 class="text-3xl font-bold gradient-text mb-2 text-center">Complete Your Profile</h2>
+                <p class="text-gray-600 text-center mb-8">Let's set up your OrioBuzz profile</p>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Display Name *</label>
+                        <input type="text" id="onboardingDisplayName" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="Your display name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Username *</label>
+                        <input type="text" id="onboardingUsername" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="username (no spaces)" oninput="checkOnboardingUsername()">
+                        <p id="onboardingUsernameStatus" class="text-xs mt-1"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Bio</label>
+                        <textarea id="onboardingBio" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300" rows="3" placeholder="Tell us about yourself..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Location</label>
+                        <input type="text" id="onboardingLocation" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="Your location">
+                    </div>
+                </div>
+                <button onclick="completeProfileSetup()" class="w-full gradient-bg text-white py-3 rounded-full hover:opacity-90 transition-opacity mt-8">Continue</button>
+            </div>
+        </div>
+
+        <div id="interestSelectionScreen" class="hidden min-h-screen gradient-bg flex items-center justify-center onboarding-step">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full mx-4">
+                <h2 class="text-3xl font-bold gradient-text mb-2 text-center">What interests you?</h2>
+                <p class="text-gray-600 text-center mb-8">Select topics you'd like to see in your feed</p>
+                <div id="interestTags" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                    </div>
+                <div class="text-center">
+                    <button onclick="completeInterestSelection()" class="gradient-bg text-white px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="userSuggestionsScreen" class="hidden min-h-screen gradient-bg flex items-center justify-center onboarding-step">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full mx-4">
+                <h2 class="text-3xl font-bold gradient-text mb-2 text-center">Follow Interesting People</h2>
+                <p class="text-gray-600 text-center mb-8">Discover users based on your interests</p>
+                <div id="suggestedUsers" class="space-y-4 mb-8 max-h-96 overflow-y-auto">
+                    </div>
+                <div class="text-center">
+                    <button onclick="completeOnboarding()" class="gradient-bg text-white px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Start Buzzing!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
+        <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+                <h1 class="text-2xl font-bold gradient-text">OrioBuzz</h1>
+                <div class="flex items-center space-x-4">
+                    <img id="topBarUserImage" class="w-8 h-8 rounded-full border-2 border-pink-300" src="" alt="User">
+                    <span id="topBarUsername" class="font-medium text-gray-700"></span>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-6xl mx-auto flex flex-col lg:flex-row">
+            <aside class="hidden lg:block w-64 bg-white h-screen sticky top-16 border-r border-gray-200 p-6">
+                <nav class="space-y-4">
+                    <a href="#home" class="sidebar-item p-3 rounded-xl cursor-pointer flex items-center space-x-3" onclick="showHome()">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+                        <span class="font-medium">Home</span>
+                    </a>
+                    <a href="#notifications" class="sidebar-item p-3 rounded-xl cursor-pointer flex items-center space-x-3 relative" onclick="showNotifications()">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+                        <span class="font-medium">Notifications</span>
+                        <span id="notificationBadgeDesktop" class="hidden absolute -top-1 left-5 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center notification-dot">0</span>
+                    </a>
+                     <a href="#messages" class="sidebar-item p-3 rounded-xl cursor-pointer flex items-center space-x-3" onclick="showMessages()">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/><path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/></svg>
+                        <span class="font-medium">Messages</span>
+                    </a>
+                    <a href="#profile" class="sidebar-item p-3 rounded-xl cursor-pointer flex items-center space-x-3" onclick="showProfile()">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                        <span class="font-medium">Profile</span>
+                    </a>
+                    <a href="#settings" class="sidebar-item p-3 rounded-xl cursor-pointer flex items-center space-x-3" onclick="showSettings()">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+                        <span class="font-medium">Settings</span>
+                    </a>
+                    <button class="sidebar-item p-3 rounded-xl cursor-pointer flex items-center space-x-3" onclick="openBuzzModal()">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+                        <span class="font-medium">Create Buzz</span>
+                    </button>
+                    <button class="sidebar-item p-3 rounded-xl cursor-pointer flex items-center space-x-3" onclick="logout()">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/></svg>
+                        <span class="font-medium">Logout</span>
+                    </button>
+                </nav>
+            </aside>
+
+            <div class="lg:hidden bg-white border-b border-gray-200 p-4">
+                <input type="text" id="mobileSearchInput" placeholder="Search users..." class="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm" oninput="mobileSearchUsers()">
+                <div id="mobileSearchResults" class="hidden mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    </div>
+            </div>
+            
+            <main class="flex-1 lg:max-w-2xl">
+                <section id="homeFeed" class="p-4 lg:p-6 pb-20 lg:pb-6">
+                    <h2 class="text-xl lg:text-2xl font-bold mb-4 lg:mb-6 gradient-text">Latest Buzz</h2>
+                    <div id="buzzFeed" class="space-y-4 lg:space-y-6">
+                        </div>
+                    <div id="feedLoader" class="loader hidden"></div>
+                    <button id="loadMoreBtn" class="w-full mt-6 bg-gray-200 text-gray-700 py-2 rounded-full hover:bg-gray-300 transition-colors">Load More</button>
+                </section>
+
+                <section id="profilePage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    </section>
+                <section id="notificationsPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    <h2 class="text-xl lg:text-2xl font-bold mb-4 lg:mb-6 gradient-text">Notifications</h2>
+                    <div id="notificationsFeed" class="space-y-4">
+                        </div>
+                </section>
+                <section id="messagesPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    </section>
+                <section id="settingsPage" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    </section>
+                <section id="otherUserProfile" class="hidden p-4 lg:p-6 pb-20 lg:pb-6">
+                    </section>
+            </main>
+
+            <aside class="hidden md:block w-full md:w-80 bg-white h-screen sticky top-16 border-l border-gray-200 p-4 lg:p-6">
+                <div class="mb-6">
+                    <input type="text" id="searchInput" placeholder="Search users..." class="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" oninput="searchUsers()">
+                    <div id="searchResults" class="hidden mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                        </div>
+                </div>
+                <div class="bg-gray-50 rounded-2xl p-4">
+                    <h3 class="font-bold mb-4 text-sm lg:text-base">Verified Users</h3>
+                    <div id="verifiedUsers" class="space-y-3">
+                        </div>
+                </div>
+            </aside>
+        </div>
+        
+        <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 flex justify-around py-2">
+            <a href="#home" onclick="showHome()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+                <span class="text-xs">Home</span>
+            </a>
+            <a href="#notifications" onclick="showNotifications()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500 relative">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+                <span class="text-xs">Notifications</span>
+                <span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center notification-dot">0</span>
+            </a>
+            <button onclick="openBuzzModal()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+                <span class="text-xs">Create</span>
+            </button>
+            <a href="#messages" onclick="showMessages()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/><path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/></svg>
+                <span class="text-xs">Messages</span>
+            </a>
+            <a href="#profile" onclick="showProfile()" class="flex flex-col items-center p-2 text-gray-600 hover:text-pink-500">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                <span class="text-xs">Profile</span>
+            </a>
+        </nav>
+    </div>
+    
+    <div id="buzzModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-4 lg:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 class="text-lg lg:text-xl font-bold">Create Buzz</h3>
+                <button onclick="closeBuzzModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+            </div>
+            <div class="flex items-start space-x-3 lg:space-x-4 mb-4">
+                <img id="modalUserImage" class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-pink-300" src="" alt="User">
+                <div class="flex-1 relative">
+                    <textarea id="buzzContent" placeholder="What's buzzing? Use #hashtags and @mentions" class="w-full p-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm lg:text-base" rows="4" oninput="handleBuzzInput()" maxlength="500"></textarea>
+                    <div class="flex justify-between items-center mt-2">
+                        <div id="hashtagSuggestions" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg max-h-40 overflow-y-auto z-10">
+                            </div>
+                        <div class="flex-1"></div>
+                        <div id="characterCounter" class="text-sm text-gray-500 character-counter">0/500</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-4">
+                <button class="text-gray-400 cursor-not-allowed flex items-center space-x-2 text-sm lg:text-base" disabled>
+                    <span>📷</span>
+                    <span>Add Image - Coming Soon</span>
+                </button>
+            </div>
+            <div class="flex justify-end">
+                <button id="postBuzzBtn" onclick="postBuzz()" class="gradient-bg text-white px-6 lg:px-8 py-2 rounded-full hover:opacity-90 transition-opacity text-sm lg:text-base">
+                    Post Buzz
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Firebase Configuration ---
+        // IMPORTANT: In a production application, DO NOT expose your Firebase config keys on the client-side.
+        // Use environment variables and server-side rendering or a backend API to protect these keys.
+        // For this example, they are included for functionality.
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCWB4adPUSrSW2cSd9I3oqYIw65ZnStj4",
+            authDomain: "twitter-1903a.firebaseapp.com",
+            databaseURL: "https://twitter-1903a-default-rtdb.firebaseio.com",
+            projectId: "twitter-1903a",
+            storageBucket: "twitter-1903a.appspot.com",
+            messagingSenderId: "37758914989",
+            appId: "1:37758914989:web:6c364d74288a8b08f8d124"
+        };
+
+        // --- Firebase Initialization ---
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const storage = firebase.storage();
+        
+        // --- Global State ---
+        let currentUser = null;
+        let lastBuzzTimestamp = null;
+        const BUZZ_PAGE_SIZE = 10;
+        
+        // --- Firebase Database Rules (Example for Security) ---
+        /*
+        IMPORTANT: These are example rules. You MUST configure your Firebase Realtime Database rules in the Firebase console for your app to be secure.
+        {
+          "rules": {
+            "users": {
+              "$uid": {
+                ".read": "auth != null",
+                ".write": "$uid === auth.uid"
+              }
+            },
+            "buzz": {
+              ".read": "auth != null",
+              "$buzzId": {
+                ".write": "auth != null && (newData.child('uid').val() === auth.uid || !data.exists())",
+                "likes": {
+                  "$uid": {
+                    ".write": "$uid === auth.uid"
+                  }
+                }
+              }
+            },
+            "followers": {
+              "$uid": {
+                "$followerId": {
+                  ".write": "$followerId === auth.uid"
+                }
+              }
+            },
+            "following": {
+              "$uid": {
+                "$followingId": {
+                  ".write": "$uid === auth.uid"
+                }
+              }
+            }
+          }
+        }
+        */
+
+        // --- Authentication ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                checkUserStatus(user);
+            } else {
+                showLoginScreen();
+            }
+        });
+
+        document.getElementById('googleSignIn').addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => {
+                console.error("Google Sign-In Error: ", error);
+                alert("Could not sign in with Google. Please try again.");
+            });
+        });
+
+        function logout() {
+            auth.signOut().catch(error => console.error("Logout Error: ", error));
+        }
+
+        async function checkUserStatus(user) {
+            const userRef = database.ref(`users/${user.uid}`);
+            try {
+                const snapshot = await userRef.once('value');
+                if (snapshot.exists()) {
+                    showMainApp();
+                } else {
+                    await createUserProfile(user);
+                    showOnboarding();
+                }
+            } catch (error) {
+                console.error("Error checking user status: ", error);
+            }
+        }
+        
+        async function createUserProfile(user) {
+            const userRef = database.ref(`users/${user.uid}`);
+            const username = user.email.split('@')[0];
+            const newUser = {
+                uid: user.uid,
+                displayName: user.displayName || username,
+                username: username,
+                email: user.email,
+                photoURL: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+                bio: 'New OrioBuzz user!',
+                joined: firebase.database.ServerValue.TIMESTAMP,
+                onboardingCompleted: false
+            };
+            try {
+                await userRef.set(newUser);
+            } catch (error) {
+                console.error("Error creating user profile: ", error);
+            }
+        }
+
+        // --- UI Navigation ---
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('onboardingScreens').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showOnboarding() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('onboardingScreens').classList.remove('hidden');
+            document.getElementById('profileSetupScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('onboardingScreens').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            updateTopBar();
+            loadBuzzFeed(true);
+        }
+
+        function showHome() {
+            // Add logic to show home feed
+            document.getElementById('homeFeed').classList.remove('hidden');
+            document.getElementById('profilePage').classList.add('hidden');
+            // ... hide other pages
+        }
+        
+        function showProfile() {
+            // Add logic to show profile page
+            document.getElementById('homeFeed').classList.add('hidden');
+            document.getElementById('profilePage').classList.remove('hidden');
+            // ... hide other pages
+        }
+        
+        function updateTopBar() {
+            if (!currentUser) return;
+            const userRef = database.ref(`users/${currentUser.uid}`);
+            userRef.once('value').then(snapshot => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('topBarUserImage').src = userData.photoURL;
+                    document.getElementById('topBarUsername').textContent = userData.displayName;
+                    document.getElementById('modalUserImage').src = userData.photoURL;
+                }
+            }).catch(error => console.error("Error updating top bar: ", error));
+        }
+
+        // --- Feed ---
+        function loadBuzzFeed(initialLoad = false) {
+            const buzzFeed = document.getElementById('buzzFeed');
+            const feedLoader = document.getElementById('feedLoader');
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            
+            feedLoader.classList.remove('hidden');
+            loadMoreBtn.classList.add('hidden');
+
+            let query = database.ref('buzz').orderByChild('timestamp').limitToLast(BUZZ_PAGE_SIZE);
+
+            if (lastBuzzTimestamp && !initialLoad) {
+                query = database.ref('buzz').orderByChild('timestamp').endAt(lastBuzzTimestamp - 1).limitToLast(BUZZ_PAGE_SIZE);
+            }
+            
+            if (initialLoad) {
+                buzzFeed.innerHTML = '';
+                lastBuzzTimestamp = null;
+            }
+
+            query.once('value').then(snapshot => {
+                const buzzes = [];
+                snapshot.forEach(childSnapshot => {
+                    buzzes.unshift({ id: childSnapshot.key, ...childSnapshot.val() });
+                });
+
+                if (buzzes.length > 0) {
+                    lastBuzzTimestamp = buzzes[buzzes.length - 1].timestamp;
+                    buzzes.forEach(buzz => {
+                        const buzzElement = createBuzzElement(buzz);
+                        buzzFeed.appendChild(buzzElement);
+                    });
+                    loadMoreBtn.classList.remove('hidden');
+                } else {
+                    if (initialLoad) {
+                        buzzFeed.innerHTML = '<p class="text-center text-gray-500">No buzzes yet. Be the first!</p>';
+                    }
+                    loadMoreBtn.classList.add('hidden');
+                }
+                feedLoader.classList.add('hidden');
+            }).catch(error => {
+                console.error("Error loading buzz feed: ", error);
+                feedLoader.classList.add('hidden');
+            });
+        }
+        
+        document.getElementById('loadMoreBtn').addEventListener('click', () => loadBuzzFeed());
+
+        function createBuzzElement(buzz) {
+            const div = document.createElement('div');
+            div.className = 'buzz-card bg-white rounded-2xl shadow-lg p-4 lg:p-6';
+            div.setAttribute('data-buzz-id', buzz.id);
+
+            const likesCount = buzz.likes ? Object.keys(buzz.likes).length : 0;
+            const isLiked = buzz.likes && currentUser && buzz.likes[currentUser.uid];
+
+            const userInfo = document.createElement('div');
+            userInfo.className = 'flex items-start space-x-3 lg:space-x-4';
+            
+            const userImage = document.createElement('img');
+            userImage.className = 'w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-pink-300 flex-shrink-0';
+            userImage.src = buzz.userImage || `https://i.pravatar.cc/150?u=${buzz.uid}`;
+            userImage.alt = buzz.displayName;
+            
+            const buzzContentWrapper = document.createElement('div');
+            buzzContentWrapper.className = 'flex-1 min-w-0';
+
+            const buzzHeader = document.createElement('div');
+            buzzHeader.className = 'flex items-center space-x-2 mb-2 flex-wrap';
+            buzzHeader.innerHTML = `
+                <span class="font-bold text-sm lg:text-base truncate cursor-pointer hover:text-pink-500 transition-colors">${buzz.displayName}</span>
+                <span class="text-gray-500 text-xs lg:text-sm flex-shrink-0">@${buzz.username}</span>
+                <span class="text-gray-500 text-xs lg:text-sm flex-shrink-0">${new Date(buzz.timestamp).toLocaleDateString()}</span>
+            `;
+
+            const buzzText = document.createElement('p');
+            buzzText.className = 'text-gray-800 mb-3 text-sm lg:text-base break-words';
+            
+            // Securely render content
+            processContentForDisplay(buzz.content, buzzText);
+            
+            const buzzActions = document.createElement('div');
+            buzzActions.className = 'flex items-center space-x-4 lg:space-x-6';
+            buzzActions.innerHTML = `
+                <button onclick="toggleLike('${buzz.id}')" class="flex items-center space-x-1 lg:space-x-2 ${isLiked ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    <span id="likes-${buzz.id}">${likesCount}</span>
+                </button>
+            `;
+            
+            buzzContentWrapper.appendChild(buzzHeader);
+            buzzContentWrapper.appendChild(buzzText);
+            buzzContentWrapper.appendChild(buzzActions);
+            
+            userInfo.appendChild(userImage);
+            userInfo.appendChild(buzzContentWrapper);
+            div.appendChild(userInfo);
+
+            return div;
+        }
+
+        // --- Buzz Actions ---
+        function openBuzzModal() {
+            document.getElementById('buzzModal').classList.remove('hidden');
+        }
+
+        function closeBuzzModal() {
+            document.getElementById('buzzModal').classList.add('hidden');
+            document.getElementById('buzzContent').value = '';
+            document.getElementById('characterCounter').textContent = '0/500';
+        }
+
+        function postBuzz() {
+            const content = document.getElementById('buzzContent').value.trim();
+            if (!content) return;
+            
+            const userRef = database.ref(`users/${currentUser.uid}`);
+            userRef.once('value').then(snapshot => {
+                const userData = snapshot.val();
+                const newBuzz = {
+                    uid: currentUser.uid,
+                    displayName: userData.displayName,
+                    username: userData.username,
+                    userImage: userData.photoURL,
+                    content: content,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    likes: {},
+                    comments: {},
+                    rebuzzes: {}
+                };
+
+                const buzzRef = database.ref('buzz').push();
+                buzzRef.set(newBuzz).then(() => {
+                    closeBuzzModal();
+                    loadBuzzFeed(true); // Refresh feed
+                }).catch(error => console.error("Error posting buzz: ", error));
+            }).catch(error => console.error("Error getting user data for buzz: ", error));
+        }
+        
+        function toggleLike(buzzId) {
+            const likeRef = database.ref(`buzz/${buzzId}/likes/${currentUser.uid}`);
+            likeRef.once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    likeRef.remove();
+                } else {
+                    likeRef.set(true);
+                }
+            }).catch(error => console.error("Error toggling like: ", error));
+        }
+        
+        // --- Security & Content Processing ---
+        // **FIXED for XSS**
+        function processContentForDisplay(content, parentElement) {
+            parentElement.innerHTML = ''; // Clear existing content
+            const hashtagRegex = /#(\w+)/g;
+            const mentionRegex = /@(\w+)/g;
+
+            let lastIndex = 0;
+            let match;
+
+            const combinedRegex = new RegExp(`(${hashtagRegex.source})|(${mentionRegex.source})`, 'g');
+
+            while ((match = combinedRegex.exec(content)) !== null) {
+                // Add text before the match
+                if (match.index > lastIndex) {
+                    parentElement.appendChild(document.createTextNode(content.substring(lastIndex, match.index)));
+                }
+
+                const matchedText = match[0];
+                const span = document.createElement('span');
+                span.className = 'text-blue-500 cursor-pointer hover:text-blue-700 font-medium';
+                span.textContent = matchedText;
+
+                if (matchedText.startsWith('#')) {
+                    const hashtag = match[2];
+                    span.onclick = () => showHashtagPage(hashtag);
+                } else if (matchedText.startsWith('@')) {
+                    const mention = match[4];
+                    span.onclick = () => viewUserByUsername(mention);
+                }
+                
+                parentElement.appendChild(span);
+                lastIndex = combinedRegex.lastIndex;
+            }
+
+            // Add any remaining text
+            if (lastIndex < content.length) {
+                parentElement.appendChild(document.createTextNode(content.substring(lastIndex)));
+            }
+        }
+        
+        // --- Onboarding ---
+        function completeProfileSetup() {
+            // Add logic for profile setup
+            showInterestSelectionScreen();
+        }
+        
+        function showInterestSelectionScreen() {
+            document.getElementById('profileSetupScreen').classList.add('hidden');
+            document.getElementById('interestSelectionScreen').classList.remove('hidden');
+        }
+
+        function completeInterestSelection() {
+            // Add logic for interest selection
+            showUserSuggestionsScreen();
+        }
+        
+        function showUserSuggestionsScreen() {
+            document.getElementById('interestSelectionScreen').classList.add('hidden');
+            document.getElementById('userSuggestionsScreen').classList.remove('hidden');
+        }
+        
+        function completeOnboarding() {
+            const userRef = database.ref(`users/${currentUser.uid}`);
+            userRef.update({ onboardingCompleted: true }).then(() => {
+                showMainApp();
+            }).catch(error => console.error("Error completing onboarding: ", error));
+        }
+        
+        // --- Listen for Realtime Updates ---
+        database.ref('buzz').on('child_changed', snapshot => {
+            const buzz = { id: snapshot.key, ...snapshot.val() };
+            const likesElement = document.getElementById(`likes-${buzz.id}`);
+            if (likesElement) {
+                likesElement.textContent = buzz.likes ? Object.keys(buzz.likes).length : 0;
+            }
+            // Add similar logic for comments and rebuzzes
+        });
+        
+    </script>
+</body>
+</html>
