@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrioBuzz - Social Media Platform</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .buzz-card:hover { transform: translateY(-2px); transition: all 0.3s ease; }
+        .verified-badge { color: #1d9bf0; }
+        .nav-item:hover { background-color: rgba(29, 155, 240, 0.1); }
+        .buzz-input:focus { border-color: #1d9bf0; outline: none; }
+        .modal { backdrop-filter: blur(4px); }
+        .interest-tag { transition: all 0.3s ease; }
+        .interest-tag:hover { transform: scale(1.05); }
+        .notification-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .typing-indicator { animation: typing 1.5s infinite; }
+        @keyframes typing { 0%, 60%, 100% { opacity: 0.3; } 30% { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="fixed inset-0 bg-black flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="text-6xl font-bold text-blue-500 mb-4">OrioBuzz</div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+        </div>
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="authScreen" class="hidden fixed inset-0 bg-black flex items-center justify-center z-40">
+        <div class="bg-gray-900 p-8 rounded-2xl w-96 max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-blue-500 mb-2">OrioBuzz</h1>
+                <p class="text-gray-400">Join the conversation</p>
+            </div>
+            
+            <div id="loginForm">
+                <h2 class="text-2xl font-bold mb-6">Sign In</h2>
+                <input type="email" id="loginEmail" placeholder="Email" class="w-full p-3 bg-gray-800 rounded-lg mb-4 buzz-input">
+                <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3 bg-gray-800 rounded-lg mb-4 buzz-input">
+                <button onclick="signIn()" class="w-full bg-blue-500 hover:bg-blue-600 p-3 rounded-lg font-bold mb-4">Sign In</button>
+                <button onclick="signInWithGoogle()" class="w-full bg-red-500 hover:bg-red-600 p-3 rounded-lg font-bold mb-4">
+                    <i class="fab fa-google mr-2"></i>Sign in with Google
+                </button>
+                <p class="text-center text-gray-400">Don't have an account? <span onclick="showSignUp()" class="text-blue-500 cursor-pointer">Sign up</span></p>
+            </div>
+
+            <div id="signupForm" class="hidden">
+                <h2 class="text-2xl font-bold mb-6">Create Account</h2>
+                <input type="text" id="signupName" placeholder="Full Name" class="w-full p-3 bg-gray-800 rounded-lg mb-4 buzz-input">
+                <input type="text" id="signupUsername" placeholder="Username" class="w-full p-3 bg-gray-800 rounded-lg mb-4 buzz-input">
+                <input type="email" id="signupEmail" placeholder="Email" class="w-full p-3 bg-gray-800 rounded-lg mb-4 buzz-input">
+                <input type="password" id="signupPassword" placeholder="Password" class="w-full p-3 bg-gray-800 rounded-lg mb-4 buzz-input">
+                <button onclick="signUp()" class="w-full bg-blue-500 hover:bg-blue-600 p-3 rounded-lg font-bold mb-4">Create Account</button>
+                <p class="text-center text-gray-400">Already have an account? <span onclick="showSignIn()" class="text-blue-500 cursor-pointer">Sign in</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interest Selection Screen -->
+    <div id="interestScreen" class="hidden fixed inset-0 bg-black flex items-center justify-center z-40">
+        <div class="bg-gray-900 p-8 rounded-2xl w-96 max-w-md">
+            <h2 class="text-2xl font-bold mb-6 text-center">What are you interested in?</h2>
+            <p class="text-gray-400 mb-6 text-center">Select topics to personalize your experience</p>
+            <div class="grid grid-cols-2 gap-3 mb-6" id="interestTags">
+                <!-- Interest tags will be populated here -->
+            </div>
+            <button onclick="saveInterests()" class="w-full bg-blue-500 hover:bg-blue-600 p-3 rounded-lg font-bold">Continue</button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-black border-r border-gray-800 flex flex-col">
+            <div class="p-4">
+                <h1 class="text-2xl font-bold text-blue-500">OrioBuzz</h1>
+            </div>
+            
+            <nav class="flex-1 px-4">
+                <div class="nav-item p-3 rounded-full cursor-pointer mb-2" onclick="showHome()">
+                    <i class="fas fa-home mr-3"></i>Home
+                </div>
+                <div class="nav-item p-3 rounded-full cursor-pointer mb-2" onclick="showExplore()">
+                    <i class="fas fa-search mr-3"></i>Explore
+                </div>
+                <div class="nav-item p-3 rounded-full cursor-pointer mb-2" onclick="showNotifications()">
+                    <i class="fas fa-bell mr-3"></i>Notifications
+                    <span id="notificationDot" class="hidden w-2 h-2 bg-red-500 rounded-full notification-dot ml-2"></span>
+                </div>
+                <div class="nav-item p-3 rounded-full cursor-pointer mb-2" onclick="showMessages()">
+                    <i class="fas fa-envelope mr-3"></i>Messages
+                    <span id="messageDot" class="hidden w-2 h-2 bg-red-500 rounded-full notification-dot ml-2"></span>
+                </div>
+                <div class="nav-item p-3 rounded-full cursor-pointer mb-2" onclick="showProfile()">
+                    <i class="fas fa-user mr-3"></i>Profile
+                </div>
+                <div class="nav-item p-3 rounded-full cursor-pointer mb-2" onclick="showSettings()">
+                    <i class="fas fa-cog mr-3"></i>Settings
+                </div>
+            </nav>
+
+            <div class="p-4">
+                <button onclick="showBuzzModal()" class="w-full bg-blue-500 hover:bg-blue-600 p-3 rounded-full font-bold">
+                    Buzz
+                </button>
+            </div>
+
+            <div class="p-4 border-t border-gray-800">
+                <div class="flex items-center cursor-pointer" onclick="showUserMenu()">
+                    <img id="sidebarAvatar" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full mr-3">
+                    <div class="flex-1">
+                        <div class="font-bold" id="sidebarName">User</div>
+                        <div class="text-gray-400 text-sm" id="sidebarUsername">@user</div>
+                    </div>
+                    <i class="fas fa-ellipsis-h"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <div class="bg-black bg-opacity-80 backdrop-blur-md border-b border-gray-800 p-4 sticky top-0 z-10">
+                <h2 id="pageTitle" class="text-xl font-bold">Home</h2>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto">
+                <!-- Home Feed -->
+                <div id="homeFeed" class="max-w-2xl mx-auto">
+                    <!-- Buzz Composer -->
+                    <div class="border-b border-gray-800 p-4">
+                        <div class="flex space-x-3">
+                            <img id="composerAvatar" src="https://via.placeholder.com/48" class="w-12 h-12 rounded-full">
+                            <div class="flex-1">
+                                <textarea id="buzzText" placeholder="What's buzzing?" class="w-full bg-transparent text-xl placeholder-gray-500 resize-none buzz-input" rows="3"></textarea>
+                                <div class="flex items-center justify-between mt-3">
+                                    <div class="flex space-x-4">
+                                        <button onclick="addPoll()" class="text-blue-500 hover:bg-blue-500 hover:bg-opacity-10 p-2 rounded-full">
+                                            <i class="fas fa-poll"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:bg-blue-500 hover:bg-opacity-10 p-2 rounded-full">
+                                            <i class="fas fa-image"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:bg-blue-500 hover:bg-opacity-10 p-2 rounded-full">
+                                            <i class="fas fa-smile"></i>
+                                        </button>
+                                    </div>
+                                    <button onclick="postBuzz()" class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-full font-bold">
+                                        Buzz
+                                    </button>
+                                </div>
+                                <div id="pollContainer" class="hidden mt-3 p-3 border border-gray-700 rounded-lg">
+                                    <input type="text" id="pollOption1" placeholder="Option 1" class="w-full bg-gray-800 p-2 rounded mb-2">
+                                    <input type="text" id="pollOption2" placeholder="Option 2" class="w-full bg-gray-800 p-2 rounded mb-2">
+                                    <button onclick="addPollOption()" class="text-blue-500 text-sm">+ Add option</button>
+                                    <button onclick="removePoll()" class="text-red-500 text-sm ml-4">Remove poll</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feed -->
+                    <div id="feedContainer">
+                        <!-- Buzzes will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Other Pages -->
+                <div id="explorePage" class="hidden max-w-2xl mx-auto p-4">
+                    <div class="mb-6">
+                        <input type="text" id="searchInput" placeholder="Search OrioBuzz" class="w-full bg-gray-800 p-3 rounded-full buzz-input">
+                    </div>
+                    <div id="exploreContent">
+                        <h3 class="text-xl font-bold mb-4">Trending</h3>
+                        <div id="trendingTopics"></div>
+                    </div>
+                </div>
+
+                <div id="notificationsPage" class="hidden max-w-2xl mx-auto">
+                    <div id="notificationsContainer">
+                        <!-- Notifications will be loaded here -->
+                    </div>
+                </div>
+
+                <div id="messagesPage" class="hidden max-w-4xl mx-auto flex h-full">
+                    <div class="w-1/3 border-r border-gray-800">
+                        <div class="p-4 border-b border-gray-800">
+                            <h3 class="text-xl font-bold">Messages</h3>
+                        </div>
+                        <div id="conversationsList">
+                            <!-- Conversations will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="flex-1 flex flex-col">
+                        <div id="messageHeader" class="hidden p-4 border-b border-gray-800">
+                            <div class="flex items-center">
+                                <img id="chatAvatar" class="w-10 h-10 rounded-full mr-3">
+                                <div>
+                                    <div class="font-bold" id="chatName"></div>
+                                    <div class="text-sm text-gray-400" id="chatUsername"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="messagesContainer" class="flex-1 overflow-y-auto p-4">
+                            <div class="text-center text-gray-400 mt-20">
+                                Select a conversation to start messaging
+                            </div>
+                        </div>
+                        <div id="messageInput" class="hidden p-4 border-t border-gray-800">
+                            <div class="flex space-x-3">
+                                <input type="text" id="messageText" placeholder="Start a new message" class="flex-1 bg-gray-800 p-3 rounded-full buzz-input">
+                                <button onclick="sendMessage()" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-full">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profilePage" class="hidden max-w-2xl mx-auto">
+                    <!-- Profile content will be loaded here -->
+                </div>
+
+                <div id="settingsPage" class="hidden max-w-2xl mx-auto p-4">
+                    <h2 class="text-2xl font-bold mb-6">Settings</h2>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-bold mb-4">Account Settings</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span>Private Account</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="privateAccount" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+                                <button onclick="showVerificationModal()" class="w-full bg-blue-500 hover:bg-blue-600 p-3 rounded-lg text-left">
+                                    <i class="fas fa-check-circle mr-2"></i>Request Verification
+                                </button>
+                                <button onclick="showBlockedUsers()" class="w-full bg-gray-700 hover:bg-gray-600 p-3 rounded-lg text-left">
+                                    <i class="fas fa-ban mr-2"></i>Blocked Users
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-bold mb-4">Privacy & Safety</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span>Allow messages from anyone</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="allowMessages" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-900 p-4 rounded-lg">
+                            <h3 class="text-lg font-bold mb-4 text-red-500">Danger Zone</h3>
+                            <button onclick="signOut()" class="w-full bg-red-500 hover:bg-red-600 p-3 rounded-lg">
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Buzz Modal -->
+    <div id="buzzModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal">
+        <div class="bg-gray-900 p-6 rounded-2xl w-96 max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Create Buzz</h3>
+                <button onclick="closeBuzzModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <textarea id="modalBuzzText" placeholder="What's buzzing?" class="w-full bg-gray-800 p-3 rounded-lg mb-4 buzz-input" rows="4"></textarea>
+            <div class="flex justify-between items-center">
+                <div class="flex space-x-3">
+                    <button class="text-blue-500 hover:bg-blue-500 hover:bg-opacity-10 p-2 rounded-full">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <button class="text-blue-500 hover:bg-blue-500 hover:bg-opacity-10 p-2 rounded-full">
+                        <i class="fas fa-poll"></i>
+                    </button>
+                </div>
+                <button onclick="postModalBuzz()" class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-full font-bold">
+                    Buzz
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Modal -->
+    <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal">
+        <div class="bg-gray-900 p-6 rounded-2xl w-96 max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Request Verification</h3>
+                <button onclick="closeVerificationModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="verificationForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Full Name</label>
+                    <input type="text" id="verificationName" class="w-full bg-gray-800 p-3 rounded-lg buzz-input" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Profile URL</label>
+                    <div class="flex">
+                        <span class="bg-gray-700 px-3 py-3 rounded-l-lg text-sm">www.oriontec.xyz/</span>
+                        <input type="text" id="verificationUsername" class="flex-1 bg-gray-800 p-3 rounded-r-lg buzz-input" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Age</label>
+                    <input type="number" id="verificationAge" class="w-full bg-gray-800 p-3 rounded-lg buzz-input" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Reason for Verification</label>
+                    <textarea id="verificationReason" class="w-full bg-gray-800 p-3 rounded-lg buzz-input" rows="3" placeholder="Why should you be verified?"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 p-3 rounded-lg font-bold">
+                    Submit Request
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal">
+        <div class="bg-gray-900 p-6 rounded-2xl w-96 max-w-md">
+            <div id="userProfileContent">
+                <!-- User profile content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCWB4adPUSrSW2cSd9I3oqYIw65ZnStj4",
+            authDomain: "twitter-1903a.firebaseapp.com",
+            databaseURL: "https://twitter-1903a-default-rtdb.firebaseio.com",
+            projectId: "twitter-1903a",
+            storageBucket: "twitter-1903a.firebasestorage.app",
+            messagingSenderId: "37758914989",
+            appId: "1:37758914989:web:6c364d74288a8b08f8d124"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const rtdb = firebase.database();
+        const storage = firebase.storage();
+
+        // Global variables
+        let currentUser = null;
+        let selectedInterests = [];
+        let currentChatUser = null;
+        let pollOptions = 2;
+
+        // Interest categories
+        const interests = [
+            'Technology', 'Sports', 'Music', 'Movies', 'Gaming', 'Food',
+            'Travel', 'Fashion', 'Art', 'Science', 'Politics', 'Business',
+            'Health', 'Education', 'Photography', 'Books', 'Fitness', 'Nature'
+        ];
+
+        // Auto-verified users
+        const autoVerifiedUsers = [
+            'Gursharn Arya',
+            'oriontec',
+            'Anmol Sunda',
+            'OrioBuzz'
+        ];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+                checkAuthState();
+            }, 2000);
+        });
+
+        // Auth state observer
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                checkUserSetup();
+            } else {
+                showAuthScreen();
+            }
+        });
+
+        function checkAuthState() {
+            const user = auth.currentUser;
+            if (user) {
+                currentUser = user;
+                checkUserSetup();
+            } else {
+                showAuthScreen();
+            }
+        }
+
+        function showAuthScreen() {
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('interestScreen').classList.add('hidden');
+        }
+
+        function showSignUp() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('signupForm').classList.remove('hidden');
+        }
+
+        function showSignIn() {
+            document.getElementById('signupForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        async function signUp() {
+            const name = document.getElementById('signupName').value;
+            const username = document.getElementById('signupUsername').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+
+            if (!name || !username || !email || !password) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // Update profile
+                await user.updateProfile({
+                    displayName: name
+                });
+
+                // Check if user should be auto-verified
+                const isAutoVerified = autoVerifiedUsers.includes(name) || autoVerifiedUsers.includes(username);
+
+                // Create user document
+                await db.collection('users').doc(user.uid).set({
+                    uid: user.uid,
+                    name: name,
+                    username: username,
+                    email: email,
+                    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1d9bf0&color=fff`,
+                    bio: '',
+                    location: '',
+                    website: '',
+                    verified: isAutoVerified,
+                    private: false,
+                    followers: [],
+                    following: [],
+                    blocked: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    interests: []
+                });
+
+                currentUser = user;
+                showInterestScreen();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function signIn() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                checkUserSetup();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                currentUser = user;
+
+                // Check if user document exists
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (!userDoc.exists) {
+                    // Create user document for new Google user
+                    const isAutoVerified = autoVerifiedUsers.includes(user.displayName);
+                    
+                    await db.collection('users').doc(user.uid).set({
+                        uid: user.uid,
+                        name: user.displayName,
+                        username: user.email.split('@')[0],
+                        email: user.email,
+                        avatar: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName)}&background=1d9bf0&color=fff`,
+                        bio: '',
+                        location: '',
+                        website: '',
+                        verified: isAutoVerified,
+                        private: false,
+                        followers: [],
+                        following: [],
+                        blocked: [],
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        interests: []
+                    });
+                    showInterestScreen();
+                } else {
+                    checkUserSetup();
+                }
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function checkUserSetup() {
+            try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    if (!userData.interests || userData.interests.length === 0) {
+                        showInterestScreen();
+                    } else {
+                        showMainApp();
+                    }
+                } else {
+                    showInterestScreen();
+                }
+            } catch (error) {
+                console.error('Error checking user setup:', error);
+                showInterestScreen();
+            }
+        }
+
+        function showInterestScreen() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('interestScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            
+            const interestTags = document.getElementById('interestTags');
+            interestTags.innerHTML = '';
+            
+            interests.forEach(interest => {
+                const tag = document.createElement('div');
+                tag.className = 'interest-tag bg-gray-800 hover:bg-blue-500 p-3 rounded-lg text-center cursor-pointer transition-all';
+                tag.textContent = interest;
+                tag.onclick = () => toggleInterest(interest, tag);
+                interestTags.appendChild(tag);
+            });
+        }
+
+        function toggleInterest(interest, element) {
+            if (selectedInterests.includes(interest)) {
+                selectedInterests = selectedInterests.filter(i => i !== interest);
+                element.classList.remove('bg-blue-500');
+                element.classList.add('bg-gray-800');
+            } else {
+                selectedInterests.push(interest);
+                element.classList.remove('bg-gray-800');
+                element.classList.add('bg-blue-500');
+            }
+        }
+
+        async function saveInterests() {
+            if (selectedInterests.length === 0) {
+                alert('Please select at least one interest');
+                return;
+            }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    interests: selectedInterests
+                });
+                showMainApp();
+            } catch (error) {
+                console.error('Error saving interests:', error);
+                showMainApp();
+            }
+        }
+
+        async function showMainApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('interestScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            await loadUserProfile();
+            loadFeed();
+            setupRealtimeListeners();
+        }
+
+        async function loadUserProfile() {
+            try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    document.getElementById('sidebarName').textContent = userData.name;
+                    document.getElementById('sidebarUsername').textContent = `@${userData.username}`;
+                    document.getElementById('sidebarAvatar').src = userData.avatar;
+                    document.getElementById('composerAvatar').src = userData.avatar;
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        }
+
+        // Navigation functions
+        function showHome() {
+            hideAllPages();
+            document.getElementById('homeFeed').classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = 'Home';
+            loadFeed();
+        }
+
+        function showExplore() {
+            hideAllPages();
+            document.getElementById('explorePage').classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = 'Explore';
+            loadTrending();
+        }
+
+        function showNotifications() {
+            hideAllPages();
+            document.getElementById('notificationsPage').classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = 'Notifications';
+            loadNotifications();
+        }
+
+        function showMessages() {
+            hideAllPages();
+            document.getElementById('messagesPage').classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = 'Messages';
+            loadConversations();
+        }
+
+        function showProfile() {
+            hideAllPages();
+            document.getElementById('profilePage').classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = 'Profile';
+            loadProfile(currentUser.uid);
+        }
+
+        function showSettings() {
+            hideAllPages();
+            document.getElementById('settingsPage').classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = 'Settings';
+        }
+
+        function hideAllPages() {
+            document.getElementById('homeFeed').classList.add('hidden');
+            document.getElementById('explorePage').classList.add('hidden');
+            document.getElementById('notificationsPage').classList.add('hidden');
+            document.getElementById('messagesPage').classList.add('hidden');
+            document.getElementById('profilePage').classList.add('hidden');
+            document.getElementById('settingsPage').classList.add('hidden');
+        }
+
+        // Buzz functions
+        function addPoll() {
+            document.getElementById('pollContainer').classList.remove('hidden');
+        }
+
+        function removePoll() {
+            document.getElementById('pollContainer').classList.add('hidden');
+            document.getElementById('pollOption1').value = '';
+            document.getElementById('pollOption2').value = '';
+            pollOptions = 2;
+        }
+
+        function addPollOption() {
+            if (pollOptions < 4) {
+                pollOptions++;
+                const container = document.getElementById('pollContainer');
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `pollOption${pollOptions}`;
+                input.placeholder = `Option ${pollOptions}`;
+                input.className = 'w-full bg-gray-800 p-2 rounded mb-2';
+                container.insertBefore(input, container.lastElementChild.previousElementSibling);
+            }
+        }
+
+        async function postBuzz() {
+            const text = document.getElementById('buzzText').value.trim();
+            if (!text) return;
+
+            const buzzData = {
+                uid: currentUser.uid,
+                text: text,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                likes: [],
+                rebuzzes: [],
+                comments: [],
+                poll: null
+            };
+
+            // Check if poll is added
+            const pollContainer = document.getElementById('pollContainer');
+            if (!pollContainer.classList.contains('hidden')) {
+                const options = [];
+                for (let i = 1; i <= pollOptions; i++) {
+                    const option = document.getElementById(`pollOption${i}`).value.trim();
+                    if (option) {
+                        options.push({ text: option, votes: [] });
+                    }
+                }
+                if (options.length >= 2) {
+                    buzzData.poll = { options: options };
+                }
+            }
+
+            try {
+                await db.collection('buzzes').add(buzzData);
+                document.getElementById('buzzText').value = '';
+                removePoll();
+                loadFeed();
+            } catch (error) {
+                console.error('Error posting buzz:', error);
+            }
+        }
+
+        async function loadFeed() {
+            try {
+                const buzzesSnapshot = await db.collection('buzzes')
+                    .orderBy('timestamp', 'desc')
+                    .limit(20)
+                    .get();
+
+                const feedContainer = document.getElementById('feedContainer');
+                feedContainer.innerHTML = '';
+
+                for (const doc of buzzesSnapshot.docs) {
+                    const buzz = doc.data();
+                    const buzzElement = await createBuzzElement(doc.id, buzz);
+                    feedContainer.appendChild(buzzElement);
+                }
+            } catch (error) {
+                console.error('Error loading feed:', error);
+            }
+        }
+
+        async function createBuzzElement(buzzId, buzz) {
+            const userDoc = await db.collection('users').doc(buzz.uid).get();
+            const userData = userDoc.data();
+
+            const buzzElement = document.createElement('div');
+            buzzElement.className = 'border-b border-gray-800 p-4 buzz-card';
+            
+            const isLiked = buzz.likes && buzz.likes.includes(currentUser.uid);
+            const isRebuzzed = buzz.rebuzzes && buzz.rebuzzes.includes(currentUser.uid);
+            
+            let pollHtml = '';
+            if (buzz.poll) {
+                const totalVotes = buzz.poll.options.reduce((sum, option) => sum + (option.votes ? option.votes.length : 0), 0);
+                const hasVoted = buzz.poll.options.some(option => option.votes && option.votes.includes(currentUser.uid));
+                
+                pollHtml = `
+                    <div class="mt-3 border border-gray-700 rounded-lg p-3">
+                        ${buzz.poll.options.map((option, index) => {
+                            const votes = option.votes ? option.votes.length : 0;
+                            const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+                            return `
+                                <div class="mb-2 last:mb-0">
+                                    <button onclick="votePoll('${buzzId}', ${index})" 
+                                            class="w-full text-left p-2 rounded ${hasVoted ? 'bg-gray-700' : 'bg-gray-800 hover:bg-gray-700'} 
+                                            ${hasVoted && option.votes && option.votes.includes(currentUser.uid) ? 'border-2 border-blue-500' : ''}"
+                                            ${hasVoted ? 'disabled' : ''}>
+                                        <div class="flex justify-between items-center">
+                                            <span>${option.text}</span>
+                                            ${hasVoted ? `<span class="text-sm text-gray-400">${percentage}%</span>` : ''}
+                                        </div>
+                                        ${hasVoted ? `
+                                            <div class="w-full bg-gray-600 rounded-full h-1 mt-1">
+                                                <div class="bg-blue-500 h-1 rounded-full" style="width: ${percentage}%"></div>
+                                            </div>
+                                        ` : ''}
+                                    </button>
+                                </div>
+                            `;
+                        }).join('')}
+                        ${hasVoted ? `<div class="text-sm text-gray-400 mt-2">${totalVotes} votes</div>` : ''}
+                    </div>
+                `;
+            }
+
+            buzzElement.innerHTML = `
+                <div class="flex space-x-3">
+                    <img src="${userData.avatar}" class="w-12 h-12 rounded-full cursor-pointer" onclick="showUserProfile('${buzz.uid}')">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold cursor-pointer" onclick="showUserProfile('${buzz.uid}')">${userData.name}</span>
+                            ${userData.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
+                            <span class="text-gray-400">@${userData.username}</span>
+                            <span class="text-gray-400">·</span>
+                            <span class="text-gray-400">${formatTimestamp(buzz.timestamp)}</span>
+                        </div>
+                        <div class="mt-2">${buzz.text}</div>
+                        ${pollHtml}
+                        <div class="flex items-center justify-between mt-3 max-w-md">
+                            <button onclick="showComments('${buzzId}')" class="flex items-center space-x-2 text-gray-400 hover:text-blue-500">
+                                <i class="far fa-comment"></i>
+                                <span>${buzz.comments ? buzz.comments.length : 0}</span>
+                            </button>
+                            <button onclick="rebuzz('${buzzId}')" class="flex items-center space-x-2 text-gray-400 hover:text-green-500 ${isRebuzzed ? 'text-green-500' : ''}">
+                                <i class="fas fa-retweet"></i>
+                                <span>${buzz.rebuzzes ? buzz.rebuzzes.length : 0}</span>
+                            </button>
+                            <button onclick="likeBuzz('${buzzId}')" class="flex items-center space-x-2 text-gray-400 hover:text-red-500 ${isLiked ? 'text-red-500' : ''}">
+                                <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
+                                <span>${buzz.likes ? buzz.likes.length : 0}</span>
+                            </button>
+                            <button class="text-gray-400 hover:text-blue-500">
+                                <i class="far fa-share"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return buzzElement;
+        }
+
+        async function likeBuzz(buzzId) {
+            try {
+                const buzzRef = db.collection('buzzes').doc(buzzId);
+                const buzzDoc = await buzzRef.get();
+                const buzz = buzzDoc.data();
+                
+                let likes = buzz.likes || [];
+                if (likes.includes(currentUser.uid)) {
+                    likes = likes.filter(uid => uid !== currentUser.uid);
+                } else {
+                    likes.push(currentUser.uid);
+                }
+                
+                await buzzRef.update({ likes: likes });
+                loadFeed();
+            } catch (error) {
+                console.error('Error liking buzz:', error);
+            }
+        }
+
+        async function rebuzz(buzzId) {
+            try {
+                const buzzRef = db.collection('buzzes').doc(buzzId);
+                const buzzDoc = await buzzRef.get();
+                const buzz = buzzDoc.data();
+                
+                let rebuzzes = buzz.rebuzzes || [];
+                if (rebuzzes.includes(currentUser.uid)) {
+                    rebuzzes = rebuzzes.filter(uid => uid !== currentUser.uid);
+                } else {
+                    rebuzzes.push(currentUser.uid);
+                }
+                
+                await buzzRef.update({ rebuzzes: rebuzzes });
+                loadFeed();
+            } catch (error) {
+                console.error('Error rebuzzing:', error);
+            }
+        }
+
+        async function votePoll(buzzId, optionIndex) {
+            try {
+                const buzzRef = db.collection('buzzes').doc(buzzId);
+                const buzzDoc = await buzzRef.get();
+                const buzz = buzzDoc.data();
+                
+                if (!buzz.poll) return;
+                
+                // Check if user already voted
+                const hasVoted = buzz.poll.options.some(option => option.votes && option.votes.includes(currentUser.uid));
+                if (hasVoted) return;
+                
+                // Add vote
+                const updatedOptions = buzz.poll.options.map((option, index) => {
+                    if (index === optionIndex) {
+                        const votes = option.votes || [];
+                        votes.push(currentUser.uid);
+                        return { ...option, votes };
+                    }
+                    return option;
+                });
+                
+                await buzzRef.update({
+                    'poll.options': updatedOptions
+                });
+                
+                loadFeed();
+            } catch (error) {
+                console.error('Error voting in poll:', error);
+            }
+        }
+
+        // Modal functions
+        function showBuzzModal() {
+            document.getElementById('buzzModal').classList.remove('hidden');
+        }
+
+        function closeBuzzModal() {
+            document.getElementById('buzzModal').classList.add('hidden');
+            document.getElementById('modalBuzzText').value = '';
+        }
+
+        async function postModalBuzz() {
+            const text = document.getElementById('modalBuzzText').value.trim();
+            if (!text) return;
+
+            try {
+                await db.collection('buzzes').add({
+                    uid: currentUser.uid,
+                    text: text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    likes: [],
+                    rebuzzes: [],
+                    comments: []
+                });
+                
+                closeBuzzModal();
+                loadFeed();
+            } catch (error) {
+                console.error('Error posting buzz:', error);
+            }
+        }
+
+        function showVerificationModal() {
+            document.getElementById('verificationModal').classList.remove('hidden');
+        }
+
+        function closeVerificationModal() {
+            document.getElementById('verificationModal').classList.add('hidden');
+        }
+
+        // Verification form handler
+        document.getElementById('verificationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('verificationName').value;
+            const username = document.getElementById('verificationUsername').value;
+            const age = document.getElementById('verificationAge').value;
+            const reason = document.getElementById('verificationReason').value;
+            
+            try {
+                // Check if user should be auto-verified
+                const isAutoVerified = autoVerifiedUsers.includes(name) || autoVerifiedUsers.includes(username);
+                
+                // Create verification request
+                await db.collection('verificationRequests').add({
+                    uid: currentUser.uid,
+                    name: name,
+                    username: username,
+                    age: parseInt(age),
+                    reason: reason,
+                    profileUrl: `www.oriontec.xyz/${username}`,
+                    status: isAutoVerified ? 'approved' : 'pending',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // If auto-verified, update user document
+                if (isAutoVerified) {
+                    await db.collection('users').doc(currentUser.uid).update({
+                        verified: true
+                    });
+                    alert('Congratulations! Your verification has been approved automatically.');
+                    location.reload();
+                } else {
+                    alert('Your verification request has been submitted. You will be notified once it is reviewed.');
+                }
+                
+                closeVerificationModal();
+            } catch (error) {
+                console.error('Error submitting verification request:', error);
+                alert('Error submitting verification request. Please try again.');
+            }
+        });
+
+        // Utility functions
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'now';
+            const date = timestamp.toDate();
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
+            return Math.floor(diff / 86400000) + 'd';
+        }
+
+        function setupRealtimeListeners() {
+            // Listen for new notifications
+            db.collection('notifications')
+                .where('userId', '==', currentUser.uid)
+                .where('read', '==', false)
+                .onSnapshot(snapshot => {
+                    const unreadCount = snapshot.size;
+                    const notificationDot = document.getElementById('notificationDot');
+                    if (unreadCount > 0) {
+                        notificationDot.classList.remove('hidden');
+                    } else {
+                        notificationDot.classList.add('hidden');
+                    }
+                });
+        }
+
+        async function loadTrending() {
+            // Simulate trending topics
+            const trendingContainer = document.getElementById('trendingTopics');
+            const trends = [
+                { topic: '#OrioBuzz', buzzes: '12.5K' },
+                { topic: '#Technology', buzzes: '8.2K' },
+                { topic: '#AI', buzzes: '5.7K' },
+                { topic: '#WebDev', buzzes: '3.1K' }
+            ];
+            
+            trendingContainer.innerHTML = trends.map(trend => `
+                <div class="p-3 hover:bg-gray-900 cursor-pointer rounded-lg">
+                    <div class="font-bold">${trend.topic}</div>
+                    <div class="text-sm text-gray-400">${trend.buzzes} Buzzes</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadNotifications() {
+            // Load user notifications
+            const container = document.getElementById('notificationsContainer');
+            container.innerHTML = '<div class="p-4 text-center text-gray-400">No notifications yet</div>';
+        }
+
+        async function loadConversations() {
+            // Load user conversations
+            const container = document.getElementById('conversationsList');
+            container.innerHTML = '<div class="p-4 text-center text-gray-400">No conversations yet</div>';
+        }
+
+        async function signOut() {
+            try {
+                await auth.signOut();
+                location.reload();
+            } catch (error) {
+                console.error('Error signing out:', error);
+            }
+        }
+
+        // Initialize search functionality
+        document.getElementById('searchInput')?.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            // Implement search functionality
+        });
+
+        // Message input handler
+        document.getElementById('messageText')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const messageText = document.getElementById('messageText').value.trim();
+            if (!messageText || !currentChatUser) return;
+            
+            // Implement message sending
+            document.getElementById('messageText').value = '';
+        }
+
+        // Additional placeholder functions for complete functionality
+        function showComments(buzzId) {
+            // Implement comments modal
+            console.log('Show comments for buzz:', buzzId);
+        }
+
+        function showUserProfile(userId) {
+            // Implement user profile modal
+            console.log('Show user profile:', userId);
+        }
+
+        function showUserMenu() {
+            // Implement user menu dropdown
+            console.log('Show user menu');
+        }
+
+        function showBlockedUsers() {
+            // Implement blocked users management
+            console.log('Show blocked users');
+        }
+
+        async function loadProfile(userId) {
+            // Implement profile loading
+            console.log('Load profile for user:', userId);
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'968aa1ebf666794d',t:'MTc1NDEwNjg1MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
