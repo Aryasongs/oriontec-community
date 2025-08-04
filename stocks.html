@@ -21,7 +21,7 @@
         .container {
             max-width: 100%;
             margin: 0;
-            padding: 15px;
+            padding: 8px;
             min-height: 100vh;
         }
 
@@ -132,10 +132,10 @@
 
         .main-content {
             display: grid;
-            grid-template-columns: 280px 1fr 320px;
-            gap: 15px;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 8px;
             margin-bottom: 60px;
-            min-height: calc(100vh - 140px);
+            min-height: calc(100vh - 120px);
         }
 
         .indicators-panel {
@@ -313,7 +313,7 @@
 
         .chart-container {
             position: relative;
-            height: 500px;
+            height: 600px;
             background: #1c1c1e;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -2085,26 +2085,103 @@
         let currentStock = 'DZRA';
         let currentTimeframe = '1D';
 
-        // Weekly price fluctuation system
-        function simulateWeeklyFluctuations() {
+        // Global synchronized price system
+        let globalPriceState = {
+            lastUpdate: Date.now(),
+            dailyTrend: 'neutral', // 'up', 'down', 'neutral'
+            weeklyPattern: 'normal', // 'crash', 'surge', 'normal'
+            marketSession: 'open' // 'open', 'closed'
+        };
+
+        function simulateGlobalPriceSync() {
+            const now = Date.now();
+            const timeSinceUpdate = now - globalPriceState.lastUpdate;
+            
+            // Determine market session (9 AM to 4 PM EST simulation)
+            const hour = new Date().getHours();
+            globalPriceState.marketSession = (hour >= 9 && hour <= 16) ? 'open' : 'closed';
+            
+            // Weekly pattern changes (every 7 days simulation = 2 minutes)
+            if (Math.random() < 0.001) { // Very rare crash
+                globalPriceState.weeklyPattern = 'crash';
+                console.log('📉 Market crash triggered globally!');
+            } else if (Math.random() < 0.002) { // Rare surge
+                globalPriceState.weeklyPattern = 'surge';
+                console.log('📈 Market surge triggered globally!');
+            } else if (Math.random() < 0.01) { // Return to normal
+                globalPriceState.weeklyPattern = 'normal';
+            }
+            
+            // Daily trend changes
+            if (Math.random() < 0.05) {
+                const trends = ['up', 'down', 'neutral'];
+                globalPriceState.dailyTrend = trends[Math.floor(Math.random() * trends.length)];
+            }
+            
+            // Apply synchronized changes to all stocks
             Object.keys(stockData).forEach(symbol => {
-                const stock = stockData[symbol];
-                const volatility = Math.random() * 0.08 - 0.04; // -4% to +4% weekly change
-                const newPrice = stock.currentPrice * (1 + volatility);
-                const change = newPrice - stock.currentPrice;
-                const changePercent = (change / stock.currentPrice) * 100;
-                
-                stock.currentPrice = Math.max(0.01, newPrice);
-                stock.change = change;
-                stock.changePercent = changePercent;
-                
-                // Update analyst ratings based on performance
-                updateAnalystRatings(symbol, changePercent);
+                updateStockPrice(symbol, globalPriceState);
             });
             
+            globalPriceState.lastUpdate = now;
             updateStockDisplay(currentStock);
             updateTickerPrices();
             updateMarketIndices();
+            
+            // Save state to localStorage for persistence
+            localStorage.setItem('globalPriceState', JSON.stringify(globalPriceState));
+            localStorage.setItem('stockData', JSON.stringify(stockData));
+        }
+
+        function updateStockPrice(symbol, globalState) {
+            const stock = stockData[symbol];
+            let volatilityMultiplier = 1;
+            let trendBias = 0;
+            
+            // Apply weekly pattern
+            switch (globalState.weeklyPattern) {
+                case 'crash':
+                    volatilityMultiplier = 2.5;
+                    trendBias = -0.08; // Strong downward bias
+                    break;
+                case 'surge':
+                    volatilityMultiplier = 2.0;
+                    trendBias = 0.06; // Strong upward bias
+                    break;
+                default:
+                    volatilityMultiplier = 1;
+                    trendBias = 0;
+            }
+            
+            // Apply daily trend
+            switch (globalState.dailyTrend) {
+                case 'up':
+                    trendBias += 0.02;
+                    break;
+                case 'down':
+                    trendBias -= 0.02;
+                    break;
+            }
+            
+            // Market session affects volatility
+            if (globalState.marketSession === 'closed') {
+                volatilityMultiplier *= 0.3; // Much less movement after hours
+            }
+            
+            // Calculate price change
+            const baseVolatility = (Math.random() - 0.5) * 0.04; // -2% to +2%
+            const finalChange = (baseVolatility + trendBias) * volatilityMultiplier;
+            
+            const newPrice = stock.currentPrice * (1 + finalChange);
+            const change = newPrice - stock.currentPrice;
+            const changePercent = (change / stock.currentPrice) * 100;
+            
+            stock.currentPrice = Math.max(0.01, newPrice);
+            stock.change = change;
+            stock.changePercent = changePercent;
+            
+            // Update analyst ratings based on performance
+            updateAnalystRatings(symbol, changePercent);
         }
         
         function updateAnalystRatings(symbol, changePercent) {
@@ -2153,8 +2230,32 @@
             document.getElementById('niftyChange').className = `benchmark-change ${niftyChange >= 0 ? 'price-up' : 'price-down'}`;
         }
         
-        // Start weekly fluctuations (every 30 seconds for demo, would be weekly in production)
-        setInterval(simulateWeeklyFluctuations, 30000);
+        // Load persistent data on page load
+        function loadPersistentData() {
+            const savedGlobalState = localStorage.getItem('globalPriceState');
+            const savedStockData = localStorage.getItem('stockData');
+            
+            if (savedGlobalState) {
+                globalPriceState = JSON.parse(savedGlobalState);
+                console.log('📊 Loaded persistent global state');
+            }
+            
+            if (savedStockData) {
+                const saved = JSON.parse(savedStockData);
+                Object.keys(saved).forEach(symbol => {
+                    if (stockData[symbol]) {
+                        stockData[symbol].currentPrice = saved[symbol].currentPrice;
+                        stockData[symbol].change = saved[symbol].change;
+                        stockData[symbol].changePercent = saved[symbol].changePercent;
+                        stockData[symbol].analystRatings = saved[symbol].analystRatings || stockData[symbol].analystRatings;
+                    }
+                });
+                console.log('💾 Loaded persistent stock prices');
+            }
+        }
+
+        // Start global synchronized price updates (every 15 seconds)
+        setInterval(simulateGlobalPriceSync, 15000);
 
         function generateCandleData(finalPrice, pattern, periods) {
             const candles = [];
@@ -2295,30 +2396,87 @@
             });
         }
 
-        function getNewsEvents(stock, timeframe) {
-            const events = {
-                DZRA: {
-                    '1M': [
-                        { index: 22, type: 'earnings', icon: '🔔', position: 20, title: 'Q2 Earnings Call', description: 'Beat expectations by 12% — Revenue: $340M vs $305M expected' },
-                        { index: 25, type: 'product', icon: '🏗️', position: 30, title: 'New Factory Announcement', description: 'Dozera Group announces $50M investment in new manufacturing facility' }
-                    ],
-                    '6M': [
-                        { index: 120, type: 'deal', icon: '💼', position: 40, title: 'Major Contract Win', description: 'Secured $200M infrastructure contract with government' }
-                    ]
-                },
-                ORIN: {
-                    '1M': [
-                        { index: 18, type: 'product', icon: '💻', position: 25, title: 'Software Launch', description: 'Oriontec launches new AI-powered analytics platform' }
-                    ]
-                },
-                VRZO: {
-                    '1M': [
-                        { index: 20, type: 'product', icon: '🚗', position: 35, title: 'EV Partnership', description: 'Strategic partnership with Tesla for battery technology' }
-                    ]
-                }
+        // Dynamic news generation system
+        let globalNewsEvents = [];
+
+        function generateRandomNews() {
+            const newsTemplates = {
+                DZRA: [
+                    { type: 'earnings', icon: '🔔', title: 'Q{quarter} Earnings Report', description: 'Dozera Group reports {result} earnings - Revenue: ${revenue}M vs ${expected}M expected' },
+                    { type: 'product', icon: '🏗️', title: 'Infrastructure Investment', description: 'New ${amount}M investment in {location} manufacturing facility announced' },
+                    { type: 'deal', icon: '💼', title: 'Government Contract', description: 'Secured ${value}M infrastructure contract with {country} government' },
+                    { type: 'factory', icon: '🏭', title: 'Production Update', description: 'Factory production increased by {percent}% this quarter' }
+                ],
+                ORIN: [
+                    { type: 'product', icon: '💻', title: 'AI Platform Launch', description: 'Oriontec launches new {tech} analytics platform for {industry} sector' },
+                    { type: 'deal', icon: '🤝', title: 'Strategic Partnership', description: 'Partnership with {company} to develop {technology} solutions' },
+                    { type: 'earnings', icon: '🔔', title: 'Tech Earnings Beat', description: 'Software revenue up {percent}% - Cloud services driving growth' }
+                ],
+                VRZO: [
+                    { type: 'product', icon: '🚗', title: 'EV Technology', description: 'New {tech} technology partnership with {company} announced' },
+                    { type: 'factory', icon: '⚡', title: 'Battery Innovation', description: 'Revolutionary {type} battery technology increases range by {percent}%' },
+                    { type: 'deal', icon: '🌍', title: 'Global Expansion', description: 'Expanding operations to {region} with ${investment}M investment' }
+                ]
             };
-            
-            return events[stock] && events[stock][timeframe] ? events[stock][timeframe] : [];
+
+            const companies = ['Tesla', 'Apple', 'Microsoft', 'Google', 'Amazon'];
+            const countries = ['India', 'USA', 'Germany', 'Japan', 'UK'];
+            const locations = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Pune'];
+            const technologies = ['AI-powered', 'blockchain-based', 'quantum', 'neural network'];
+            const industries = ['automotive', 'healthcare', 'finance', 'manufacturing'];
+
+            Object.keys(newsTemplates).forEach(stock => {
+                if (Math.random() < 0.1) { // 10% chance per update
+                    const templates = newsTemplates[stock];
+                    const template = templates[Math.floor(Math.random() * templates.length)];
+                    
+                    let description = template.description
+                        .replace('{result}', Math.random() > 0.5 ? 'strong' : 'mixed')
+                        .replace('{quarter}', ['Q1', 'Q2', 'Q3', 'Q4'][Math.floor(Math.random() * 4)])
+                        .replace('{revenue}', (200 + Math.random() * 300).toFixed(0))
+                        .replace('{expected}', (180 + Math.random() * 250).toFixed(0))
+                        .replace('{amount}', (20 + Math.random() * 80).toFixed(0))
+                        .replace('{value}', (100 + Math.random() * 400).toFixed(0))
+                        .replace('{percent}', (5 + Math.random() * 25).toFixed(0))
+                        .replace('{location}', locations[Math.floor(Math.random() * locations.length)])
+                        .replace('{country}', countries[Math.floor(Math.random() * countries.length)])
+                        .replace('{company}', companies[Math.floor(Math.random() * companies.length)])
+                        .replace('{tech}', technologies[Math.floor(Math.random() * technologies.length)])
+                        .replace('{technology}', technologies[Math.floor(Math.random() * technologies.length)])
+                        .replace('{industry}', industries[Math.floor(Math.random() * industries.length)])
+                        .replace('{type}', ['lithium-ion', 'solid-state', 'graphene'][Math.floor(Math.random() * 3)])
+                        .replace('{region}', ['Southeast Asia', 'Europe', 'Middle East'][Math.floor(Math.random() * 3)])
+                        .replace('{investment}', (50 + Math.random() * 200).toFixed(0));
+
+                    const newsEvent = {
+                        id: Date.now() + Math.random(),
+                        stock: stock,
+                        type: template.type,
+                        icon: template.icon,
+                        title: template.title.replace('{quarter}', ['Q1', 'Q2', 'Q3', 'Q4'][Math.floor(Math.random() * 4)]),
+                        description: description,
+                        timestamp: Date.now(),
+                        position: 20 + Math.random() * 60,
+                        index: Math.floor(Math.random() * 25) + 5
+                    };
+
+                    globalNewsEvents.push(newsEvent);
+                    
+                    // Keep only last 10 news events
+                    if (globalNewsEvents.length > 10) {
+                        globalNewsEvents = globalNewsEvents.slice(-10);
+                    }
+
+                    console.log(`📰 New ${stock} news: ${newsEvent.title}`);
+                }
+            });
+        }
+
+        function getNewsEvents(stock, timeframe) {
+            return globalNewsEvents.filter(event => 
+                event.stock === stock && 
+                Date.now() - event.timestamp < 24 * 60 * 60 * 1000 // Last 24 hours
+            );
         }
 
         function showNewsTooltip(event, newsEvent) {
@@ -2356,6 +2514,9 @@
             const currentDate = new Date();
             currentDate.setDate(currentDate.getDate() - (30 - index));
             
+            // Convert to Indian Standard Time
+            const istDate = new Date(currentDate.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+            
             const changePercent = index > 0 ? 
                 ((candle.close - stockData[currentStock].timeframes[currentTimeframe][index-1].close) / 
                  stockData[currentStock].timeframes[currentTimeframe][index-1].close * 100).toFixed(2) : 0;
@@ -2364,28 +2525,29 @@
             tooltip.style.left = event.pageX + 10 + 'px';
             tooltip.style.top = event.pageY - 10 + 'px';
             tooltip.innerHTML = `
-                <div class="tooltip-header">${currentDate.toLocaleDateString('en-US', { 
+                <div class="tooltip-header">${istDate.toLocaleDateString('en-IN', { 
                     month: 'short', 
                     day: 'numeric', 
                     year: 'numeric',
                     hour: '2-digit',
-                    minute: '2-digit'
-                })}</div>
+                    minute: '2-digit',
+                    timeZone: 'Asia/Kolkata'
+                })} IST</div>
                 <div class="tooltip-row">
                     <span class="tooltip-label">Open:</span>
-                    <span class="tooltip-value">$${candle.open.toFixed(2)} USD</span>
+                    <span class="tooltip-value">₹${(candle.open * 83.12).toFixed(2)} | $${candle.open.toFixed(2)}</span>
                 </div>
                 <div class="tooltip-row">
                     <span class="tooltip-label">High:</span>
-                    <span class="tooltip-value">$${candle.high.toFixed(2)} USD</span>
+                    <span class="tooltip-value">₹${(candle.high * 83.12).toFixed(2)} | $${candle.high.toFixed(2)}</span>
                 </div>
                 <div class="tooltip-row">
                     <span class="tooltip-label">Low:</span>
-                    <span class="tooltip-value">$${candle.low.toFixed(2)} USD</span>
+                    <span class="tooltip-value">₹${(candle.low * 83.12).toFixed(2)} | $${candle.low.toFixed(2)}</span>
                 </div>
                 <div class="tooltip-row">
                     <span class="tooltip-label">Close:</span>
-                    <span class="tooltip-value">$${candle.close.toFixed(2)} USD</span>
+                    <span class="tooltip-value">₹${(candle.close * 83.12).toFixed(2)} | $${candle.close.toFixed(2)}</span>
                 </div>
                 <div class="tooltip-row">
                     <span class="tooltip-label">Volume:</span>
@@ -2506,9 +2668,16 @@
         // Add click event to branding for 5-click admin access
         document.getElementById('brandingText').addEventListener('click', handleBrandingClick);
 
-        // Initialize
+        // Initialize all systems
+        loadPersistentData();
         updateStockDisplay(currentStock);
         updateMarketIndices();
+        
+        // Start news generation (every 2 minutes)
+        setInterval(generateRandomNews, 120000);
+        
+        // Generate initial news
+        generateRandomNews();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969d4cedd4898af1',t:'MTc1NDMwMjU5OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969d5b0a66013a33',t:'MTc1NDMwMzE3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
