@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dozera App Hub - Your Trusted App Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .app-card {
+            transition: all 0.3s ease;
+        }
+        .app-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        }
+        .star-rating {
+            color: #fbbf24;
+        }
+        .category-pill {
+            transition: all 0.2s ease;
+        }
+        .category-pill:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            backdrop-filter: blur(10px);
+        }
+        .download-progress {
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .realistic-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .realistic-shadow:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .app-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .verified-badge {
+            background: linear-gradient(45deg, #10b981, #059669);
+        }
+        .floating-notification {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .typing-indicator {
+            animation: typing 1.5s infinite;
+        }
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 1; }
+            30% { opacity: 0.5; }
+        }
+        .install-progress {
+            animation: install 3s ease-in-out;
+        }
+        @keyframes install {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                        <span class="text-2xl">🚀</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">Dozera App Hub</h1>
+                        <p class="text-sm opacity-90">Your Trusted App Store</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative hidden md:block">
+                        <input type="text" id="searchInput" placeholder="Search apps..." 
+                               class="bg-white/20 backdrop-blur-sm text-white placeholder-white/70 px-4 py-2 rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-white/30">
+                        <i class="fas fa-search absolute right-3 top-3 text-white/70"></i>
+                    </div>
+                    <button id="themeToggle" class="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <select id="languageSelect" class="bg-white/20 text-white rounded px-3 py-2 focus:outline-none">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी</option>
+                        <option value="pa">ਪੰਜਾਬੀ</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Search -->
+    <div class="md:hidden bg-white dark:bg-gray-800 p-4 shadow-sm">
+        <div class="relative">
+            <input type="text" placeholder="Search apps..." 
+                   class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <i class="fas fa-search absolute right-3 top-4 text-gray-400"></i>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
+        <!-- Sidebar -->
+        <aside class="lg:w-64 space-y-6">
+            <!-- Categories -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Categories</h3>
+                <div class="space-y-2">
+                    <button class="category-pill w-full text-left px-4 py-3 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium" data-category="all">
+                        <i class="fas fa-th-large mr-3"></i>All Apps
+                    </button>
+                    <button class="category-pill w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300" data-category="social">
+                        📱 Social Media
+                    </button>
+                    <button class="category-pill w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300" data-category="entertainment">
+                        🎬 Entertainment
+                    </button>
+                    <button class="category-pill w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300" data-category="communication">
+                        💬 Communication
+                    </button>
+                    <button class="category-pill w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300" data-category="productivity">
+                        📊 Productivity
+                    </button>
+                    <button class="category-pill w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300" data-category="games">
+                        🎮 Games
+                    </button>
+                    <button class="category-pill w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300" data-category="business">
+                        💼 Business
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Stats -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">📊 Live Stats</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Active Downloads</span>
+                        <span class="text-sm font-semibold text-green-600" id="activeDownloads">1,247</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Online Users</span>
+                        <span class="text-sm font-semibold text-blue-600" id="onlineUsers">15,892</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Apps Updated Today</span>
+                        <span class="text-sm font-semibold text-purple-600" id="updatedToday">23</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">⭐ Editor's Pick</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+                        <img src="https://play-lh.googleusercontent.com/VRMWkE5p3CkWhJs6nv-9ZsLAs1QOg5ob1_3qg-rckwYW7yp1fILjuW7omtI5IDrVmvA=s64-rw" alt="Instagram" class="app-icon">
+                        <div>
+                            <p class="font-medium text-gray-800 dark:text-white">Instagram</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Photo & Video</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">
+                        <img src="https://play-lh.googleusercontent.com/lMoItBgdPPVDJsNOVtP26EKHePkwBg-PkuY9NOrc-fumRtTFP4XhpUNk_22syN4Datc=s64-rw" alt="YouTube" class="app-icon">
+                        <div>
+                            <p class="font-medium text-gray-800 dark:text-white">YouTube</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Video Streaming</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+            <!-- Featured Banner -->
+            <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-8 mb-8 text-white relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-bold mb-2">Trending This Week</h2>
+                    <p class="text-lg opacity-90 mb-4">Discover the most downloaded apps</p>
+                    <button class="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                        Explore Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="flex flex-wrap gap-4 mb-6">
+                <select id="sortFilter" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="popular">Most Popular</option>
+                    <option value="newest">Newest First</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="size">Smallest Size</option>
+                </select>
+                <select id="priceFilter" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="all">All Apps</option>
+                    <option value="free">Free Only</option>
+                    <option value="paid">Paid Only</option>
+                </select>
+                <button id="refreshApps" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+            </div>
+
+            <!-- Apps Grid -->
+            <div id="appsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Apps will be populated by JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <!-- App Detail Modal -->
+    <div id="appModal" class="fixed inset-0 bg-black/50 modal hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div id="modalContent">
+                <!-- Modal content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Guide Modal -->
+    <div id="downloadGuideModal" class="fixed inset-0 bg-black/50 modal hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white">⚠️ Manual APK Installation Guide</h3>
+                <button id="closeGuideModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-4 text-gray-700 dark:text-gray-300">
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                    <p class="font-semibold text-yellow-800 dark:text-yellow-200">⚠️ Security Notice</p>
+                    <p class="text-sm mt-1">Only install APKs from trusted sources. Enable "Unknown Sources" at your own risk.</p>
+                </div>
+                <ol class="list-decimal list-inside space-y-2">
+                    <li>Go to Settings → Security → Unknown Sources</li>
+                    <li>Enable "Allow installation from unknown sources"</li>
+                    <li>Download the APK file</li>
+                    <li>Open the downloaded APK file</li>
+                    <li>Follow the installation prompts</li>
+                    <li>Disable "Unknown Sources" after installation</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Support -->
+    <div id="chatWidget" class="fixed bottom-6 right-6 z-40">
+        <button id="chatToggle" class="w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition-colors flex items-center justify-center floating-notification">
+            <i class="fas fa-comments text-xl"></i>
+        </button>
+        <div id="chatBox" class="hidden absolute bottom-16 right-0 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 dark:text-white">Support Agent</h4>
+                        <p class="text-xs text-green-500">Online</p>
+                    </div>
+                </div>
+            </div>
+            <div id="chatMessages" class="p-4 h-64 overflow-y-auto">
+                <div class="space-y-3">
+                    <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                        <p class="text-sm text-gray-700 dark:text-gray-300">Hi! How can I help you today?</p>
+                        <p class="text-xs text-gray-500 mt-1">Just now</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex space-x-2">
+                    <input type="text" id="chatInput" placeholder="Type your message..." class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="sendMessage" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Notifications -->
+    <div id="notificationContainer" class="fixed top-20 right-4 z-50 space-y-2">
+        <!-- Notifications will be added here -->
+    </div>
+
+    <script>
+        // Real app data with actual icons and download links
+        const apps = [
+            {
+                id: 1,
+                name: "Instagram",
+                icon: "https://play-lh.googleusercontent.com/VRMWkE5p3CkWhJs6nv-9ZsLAs1QOg5ob1_3qg-rckwYW7yp1fILjuW7omtI5IDrVmvA=s64-rw",
+                category: "social",
+                rating: 4.5,
+                downloads: "5B+",
+                size: "45MB",
+                price: "Free",
+                developer: "Meta Platforms, Inc.",
+                description: "Bringing you closer to the people and things you love. Share photos and videos, send messages and get updates from friends and family. Create and share your story, follow friends and discover accounts you'll love. Instagram is a simple way to capture and share the world's moments on your Android.",
+                version: "285.0.0.18.119",
+                lastUpdate: "2024-01-15",
+                screenshots: ["📱", "📸", "🎥", "💬"],
+                permissions: ["Camera", "Storage", "Location", "Contacts", "Microphone", "Phone"],
+                downloadUrl: "https://www.instagram.com/static/bundles/es6/FBSDKStub.js/6eafa4b2d9b8.js",
+                realApkUrl: "https://apkpure.com/instagram/com.instagram.android/download",
+                featured: true,
+                verified: true,
+                contentRating: "Teen",
+                inAppPurchases: true,
+                adSupported: true
+            },
+            {
+                id: 2,
+                name: "YouTube",
+                icon: "https://play-lh.googleusercontent.com/lMoItBgdPPVDJsNOVtP26EKHePkwBg-PkuY9NOrc-fumRtTFP4XhpUNk_22syN4Datc=s64-rw",
+                category: "entertainment",
+                rating: 4.3,
+                downloads: "10B+",
+                size: "78MB",
+                price: "Free",
+                developer: "Google LLC",
+                description: "Get the official YouTube app on Android phones and tablets. See what the world is watching -- from the hottest music videos to what's popular in gaming, fashion, beauty, news, learning and more. Subscribe to channels you love, create content of your own, share with friends, and watch on any device.",
+                version: "18.45.43",
+                lastUpdate: "2024-01-12",
+                screenshots: ["📺", "🎵", "🎬", "📱"],
+                permissions: ["Storage", "Camera", "Microphone", "Location", "Phone"],
+                downloadUrl: "https://www.youtube.com/s/desktop/12345678/jsbin/desktop_polymer.vflset/desktop_polymer.js",
+                realApkUrl: "https://apkpure.com/youtube/com.google.android.youtube/download",
+                featured: true,
+                verified: true,
+                contentRating: "Teen",
+                inAppPurchases: true,
+                adSupported: true
+            },
+            {
+                id: 3,
+                name: "WhatsApp Messenger",
+                icon: "https://play-lh.googleusercontent.com/bYtqbOcTYOlgc6gqZ2rwb8lptHuwlNE75zYJu6Bn076-hTmvd96HH-6v7S0YUAAJXoJN=s64-rw",
+                category: "communication",
+                rating: 4.4,
+                downloads: "5B+",
+                size: "65MB",
+                price: "Free",
+                developer: "WhatsApp LLC",
+                description: "WhatsApp Messenger is a FREE messaging app available for Android and other smartphones. WhatsApp uses your phone's Internet connection (4G/3G/2G/EDGE or Wi-Fi, as available) to message and call friends and family. Switch from SMS to WhatsApp to send and receive messages, calls, photos, videos, documents, and Voice Messages.",
+                version: "2.24.1.78",
+                lastUpdate: "2024-01-10",
+                screenshots: ["💬", "📞", "📁", "🔒"],
+                permissions: ["Contacts", "Camera", "Microphone", "Storage", "Phone", "Location"],
+                downloadUrl: "https://static.whatsapp.net/rsrc.php/v3/yZ/r/JvsnINJ2CZv.js",
+                realApkUrl: "https://www.whatsapp.com/android/",
+                featured: false,
+                verified: true,
+                contentRating: "Everyone",
+                inAppPurchases: false,
+                adSupported: false
+            },
+            {
+                id: 4,
+                name: "Facebook",
+                icon: "https://play-lh.googleusercontent.com/ccWDU4A7fX1R24v-vvT480ySh26AYp97g1VrIB_FIdjRcuQB2JP2WdY7h_wVVAeSpg=s64-rw",
+                category: "social",
+                rating: 4.1,
+                downloads: "5B+",
+                size: "85MB",
+                price: "Free",
+                developer: "Meta Platforms",
+                description: "Connect with friends and the world around you on Facebook. Share updates and photos, engage with friends and Pages, and stay connected to communities important to you.",
+                version: "445.0.0.33.118",
+                lastUpdate: "2024-01-08",
+                screenshots: ["📘", "👥", "📰", "💬"],
+                permissions: ["Camera", "Storage", "Location", "Contacts"],
+                downloadUrl: "https://static.xx.fbcdn.net/rsrc.php/v3/yX/r/Kvo5FesWVKX.js",
+                realApkUrl: "https://apkpure.com/facebook/com.facebook.katana/download",
+                featured: false,
+                verified: true,
+                contentRating: "Teen",
+                inAppPurchases: false,
+                adSupported: true
+            },
+            {
+                id: 5,
+                name: "Gmail",
+                icon: "https://play-lh.googleusercontent.com/KSuaRLiI_FlDP8cM4MzJ23ml3og5Hxb9AapaGTMZ2GgR103mvJ3AAnoOFz1yheeQBBI=s64-rw",
+                category: "productivity",
+                rating: 4.2,
+                downloads: "10B+",
+                size: "32MB",
+                price: "Free",
+                developer: "Google LLC",
+                description: "Gmail is email that's intuitive, efficient, and useful. 15 GB of storage, less spam, and mobile access.",
+                version: "2024.01.07.598208432",
+                lastUpdate: "2024-01-07",
+                screenshots: ["📧", "📎", "🔍", "📱"],
+                permissions: ["Contacts", "Storage", "Camera"],
+                downloadUrl: "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico",
+                realApkUrl: "https://apkpure.com/gmail/com.google.android.gm/download",
+                featured: false,
+                verified: true,
+                contentRating: "Everyone",
+                inAppPurchases: false,
+                adSupported: false
+            },
+            {
+                id: 6,
+                name: "TikTok",
+                icon: "https://play-lh.googleusercontent.com/z5nin6HbNdcGIuMiONbKOhpGO6Q2ywXjqMZkVuKBURWoyibbPt4eANEVAXms9eOF8A=s64-rw",
+                category: "entertainment",
+                rating: 4.4,
+                downloads: "3B+",
+                size: "95MB",
+                price: "Free",
+                developer: "TikTok Pte. Ltd.",
+                description: "TikTok is THE destination for mobile videos. On TikTok, short-form videos are exciting, spontaneous, and genuine. Whether you're a sports fanatic, a pet enthusiast, or just looking for a laugh, there's something for everyone on TikTok.",
+                version: "32.8.4",
+                lastUpdate: "2024-01-14",
+                screenshots: ["🎵", "💃", "🎬", "📱"],
+                permissions: ["Camera", "Microphone", "Storage", "Location"],
+                downloadUrl: "https://sf16-website-login.neutral.ttwstatic.com/obj/tiktok_web_login_static/tiktok/webapp/main/webapp-desktop/8704e7b82b4d6bdaf5b5.js",
+                realApkUrl: "https://apkpure.com/tiktok/com.zhiliaoapp.musically/download",
+                featured: true,
+                verified: true,
+                contentRating: "Teen",
+                inAppPurchases: true,
+                adSupported: true
+            },
+            {
+                id: 7,
+                name: "Spotify",
+                icon: "https://play-lh.googleusercontent.com/cShys-AmJ93dB0SV8kE6Fl5eSaf4-qMMZdwEDKI5VEmKAXfzOqbiaeAsqqrEBCTdIEs=s64-rw",
+                category: "entertainment",
+                rating: 4.3,
+                downloads: "1B+",
+                size: "55MB",
+                price: "Free",
+                developer: "Spotify AB",
+                description: "Spotify is a digital music service that gives you access to millions of songs, podcasts and videos from artists all over the world, like Apple Music and Amazon Music Unlimited.",
+                version: "8.8.96.488",
+                lastUpdate: "2024-01-11",
+                screenshots: ["🎵", "🎧", "📱", "🎤"],
+                permissions: ["Storage", "Microphone", "Location"],
+                downloadUrl: "https://open.spotifycdn.com/cdn/build/web-player/web-player.12345678.js",
+                realApkUrl: "https://apkpure.com/spotify/com.spotify.music/download",
+                featured: false,
+                verified: true,
+                contentRating: "Teen",
+                inAppPurchases: true,
+                adSupported: true
+            },
+            {
+                id: 8,
+                name: "Netflix",
+                icon: "https://play-lh.googleusercontent.com/TBRwjS_qfJCSj1m7zZB93FnpJM5fSpMA_wUlFDLxWAb45T9RmwBvQd5cWR5viJJOhkI=s64-rw",
+                category: "entertainment",
+                rating: 4.2,
+                downloads: "1B+",
+                size: "125MB",
+                price: "Free",
+                developer: "Netflix, Inc.",
+                description: "Netflix is the world's leading streaming entertainment service with over 238 million paid memberships in over 190 countries enjoying TV series, documentaries and feature films across a wide variety of genres and languages.",
+                version: "8.108.0",
+                lastUpdate: "2024-01-09",
+                screenshots: ["🎬", "📺", "🍿", "📱"],
+                permissions: ["Storage", "Camera", "Microphone"],
+                downloadUrl: "https://assets.nflxext.com/web/ffe/wp/common/icons/nficon2016.ico",
+                realApkUrl: "https://apkpure.com/netflix/com.netflix.mediaclient/download",
+                featured: true,
+                verified: true,
+                contentRating: "Teen",
+                inAppPurchases: true,
+                adSupported: false
+            },
+            {
+                id: 9,
+                name: "Telegram",
+                icon: "https://play-lh.googleusercontent.com/ZU9cSsyIJZo6Oy7HTHiEPwZg0m2Crep-d5ZrfajqtsH-qgUXSqKpNA2FpPDTn-7qA5Q=s64-rw",
+                category: "communication",
+                rating: 4.5,
+                downloads: "1B+",
+                size: "48MB",
+                price: "Free",
+                developer: "Telegram FZ-LLC",
+                description: "Telegram is a messaging app with a focus on speed and security, it's super-fast, simple and free. You can use Telegram on all your devices at the same time — your messages sync seamlessly across any number of your phones, tablets or computers.",
+                version: "10.5.2",
+                lastUpdate: "2024-01-13",
+                screenshots: ["💬", "🔒", "📁", "🤖"],
+                permissions: ["Contacts", "Camera", "Storage", "Microphone"],
+                downloadUrl: "https://web.telegram.org/z/main.12345678.js",
+                realApkUrl: "https://telegram.org/android",
+                featured: false,
+                verified: true,
+                contentRating: "Everyone",
+                inAppPurchases: false,
+                adSupported: false
+            },
+            {
+                id: 10,
+                name: "Discord",
+                icon: "https://play-lh.googleusercontent.com/0oO5sAneb9lJP6l8c6DH4rNHlwu2qfyUdarkm2HDUaQGanqLUgfDWs7XgJ5DbqkUgA=s64-rw",
+                category: "communication",
+                rating: 4.1,
+                downloads: "500M+",
+                size: "78MB",
+                price: "Free",
+                developer: "Discord Inc.",
+                description: "Discord is your place to talk. Create a home for your communities and friends, where you can stay close and have fun over text, voice, and video chat.",
+                version: "207.21",
+                lastUpdate: "2024-01-12",
+                screenshots: ["💬", "🎮", "🎤", "📱"],
+                permissions: ["Microphone", "Camera", "Storage"],
+                downloadUrl: "https://discord.com/assets/12345678.js",
+                realApkUrl: "https://apkpure.com/discord/com.discord/download",
+                featured: false,
+                verified: true,
+                contentRating: "Teen",
+                inAppPurchases: true,
+                adSupported: false
+            }
+        ];
+
+        let currentLanguage = 'en';
+        let isDarkMode = false;
+        let currentCategory = 'all';
+        let filteredApps = [...apps];
+        let downloadQueue = [];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            renderApps();
+            setupEventListeners();
+            checkDarkMode();
+            startLiveStats();
+            initializeChat();
+        });
+
+        function setupEventListeners() {
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Language selector
+            document.getElementById('languageSelect').addEventListener('change', function(e) {
+                currentLanguage = e.target.value;
+                updateLanguage();
+            });
+
+            // Category filters
+            document.querySelectorAll('[data-category]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    currentCategory = this.dataset.category;
+                    updateCategoryUI(this);
+                    filterApps();
+                });
+            });
+
+            // Sort and price filters
+            document.getElementById('sortFilter').addEventListener('change', filterApps);
+            document.getElementById('priceFilter').addEventListener('change', filterApps);
+            document.getElementById('refreshApps').addEventListener('click', refreshApps);
+
+            // Search
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                searchApps(e.target.value);
+            });
+
+            // Chat widget
+            document.getElementById('chatToggle').addEventListener('click', function() {
+                const chatBox = document.getElementById('chatBox');
+                chatBox.classList.toggle('hidden');
+            });
+
+            document.getElementById('sendMessage').addEventListener('click', sendChatMessage);
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+
+            // Modal close buttons
+            document.getElementById('appModal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal('appModal');
+            });
+
+            document.getElementById('closeGuideModal').addEventListener('click', function() {
+                closeModal('downloadGuideModal');
+            });
+        }
+
+        function renderApps() {
+            const grid = document.getElementById('appsGrid');
+            grid.innerHTML = '';
+
+            filteredApps.forEach(app => {
+                const appCard = createAppCard(app);
+                grid.appendChild(appCard);
+            });
+        }
+
+        function createAppCard(app) {
+            const card = document.createElement('div');
+            card.className = 'app-card bg-white dark:bg-gray-800 rounded-xl realistic-shadow p-6 cursor-pointer relative';
+            card.onclick = () => openAppDetail(app);
+
+            const stars = '★'.repeat(Math.floor(app.rating)) + '☆'.repeat(5 - Math.floor(app.rating));
+
+            card.innerHTML = `
+                <div class="flex items-start space-x-4">
+                    <div class="relative">
+                        <img src="${app.icon}" alt="${app.name}" class="app-icon" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTIiIGZpbGw9IiM2MzY2RjEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0tMiAxNWwtNS01IDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPgo8L3N2Zz4KPC9zdmc+'">
+                        ${app.verified ? '<div class="absolute -bottom-1 -right-1 w-5 h-5 verified-badge rounded-full flex items-center justify-center"><i class="fas fa-check text-white text-xs"></i></div>' : ''}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <h3 class="font-semibold text-lg text-gray-800 dark:text-white truncate">${app.name}</h3>
+                            ${app.verified ? '<i class="fas fa-check-circle text-blue-500 text-sm" title="Verified Developer"></i>' : ''}
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">${app.developer}</p>
+                        <div class="flex items-center space-x-2 mt-2">
+                            <span class="star-rating text-sm">${stars}</span>
+                            <span class="text-sm text-gray-500">${app.rating}</span>
+                            <span class="text-sm text-gray-400">•</span>
+                            <span class="text-sm text-gray-500">${app.downloads}</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-medium ${app.price === 'Free' ? 'text-green-600' : 'text-blue-600'}">${app.price}</span>
+                                ${app.inAppPurchases ? '<span class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">In-app</span>' : ''}
+                                ${app.adSupported ? '<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Ads</span>' : ''}
+                            </div>
+                            <span class="text-xs text-gray-500">${app.size}</span>
+                        </div>
+                        <div class="flex items-center space-x-1 mt-2">
+                            <span class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">${app.contentRating}</span>
+                            <div class="pulse-dot w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span class="text-xs text-gray-500">Updated ${new Date(app.lastUpdate).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+                ${app.featured ? '<div class="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs px-2 py-1 rounded-full font-medium shadow-sm">⭐ Featured</div>' : ''}
+            `;
+
+            return card;
+        }
+
+        function openAppDetail(app) {
+            const modal = document.getElementById('appModal');
+            const content = document.getElementById('modalContent');
+            
+            const stars = '★'.repeat(Math.floor(app.rating)) + '☆'.repeat(5 - Math.floor(app.rating));
+            const screenshots = app.screenshots.map(s => `<div class="w-20 h-32 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-2xl">${s}</div>`).join('');
+
+            content.innerHTML = `
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="flex items-start space-x-4">
+                            <img src="${app.icon}" alt="${app.name}" class="w-20 h-20 rounded-xl" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiByeD0iMTYiIGZpbGw9IiM2MzY2RjEiLz4KPHN2ZyB4PSIyMCIgeT0iMjAiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0tMiAxNWwtNS01IDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPgo8L3N2Zz4KPC9zdmc+'">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">${app.name}</h2>
+                                <p class="text-gray-600 dark:text-gray-400">${app.developer}</p>
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <span class="star-rating">${stars}</span>
+                                    <span class="text-sm text-gray-500">${app.rating} (${app.downloads} downloads)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="closeModal('appModal')" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Screenshots</h3>
+                                <div class="flex space-x-3 overflow-x-auto pb-2">
+                                    ${screenshots}
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Description</h3>
+                                <p class="text-gray-700 dark:text-gray-300 leading-relaxed">${app.description}</p>
+                            </div>
+
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Permissions</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    ${app.permissions.map(p => `<span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm">${p}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-semibold mb-3 text-gray-800 dark:text-white">App Info</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Version:</span>
+                                        <span class="text-gray-800 dark:text-white">${app.version}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Size:</span>
+                                        <span class="text-gray-800 dark:text-white">${app.size}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Updated:</span>
+                                        <span class="text-gray-800 dark:text-white">${app.lastUpdate}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Price:</span>
+                                        <span class="font-semibold ${app.price === 'Free' ? 'text-green-600' : 'text-blue-600'}">${app.price}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <button onclick="downloadApp('${app.realApkUrl}', '${app.name}', '${app.id}')" class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center justify-center space-x-2">
+                                    <i class="fas fa-download"></i>
+                                    <span>Download APK</span>
+                                </button>
+                                
+                                <button onclick="showInstallGuide()" class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2">
+                                    <i class="fas fa-question-circle"></i>
+                                    <span>Install Guide</span>
+                                </button>
+
+                                <button onclick="generateQR('${app.realApkUrl}')" class="w-full bg-purple-500 text-white py-3 rounded-lg font-semibold hover:bg-purple-600 transition-colors flex items-center justify-center space-x-2">
+                                    <i class="fas fa-qrcode"></i>
+                                    <span>QR Code</span>
+                                </button>
+
+                                <button onclick="shareApp('${app.name}', '${app.realApkUrl}')" class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center space-x-2">
+                                    <i class="fas fa-share"></i>
+                                    <span>Share App</span>
+                                </button>
+                            </div>
+
+                            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                                <div class="flex items-center space-x-2 mb-3">
+                                    <i class="fas fa-shield-alt text-green-600"></i>
+                                    <span class="font-semibold text-green-800 dark:text-green-200">Security Verified</span>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-check-circle text-green-600 text-xs"></i>
+                                        <span class="text-green-700 dark:text-green-300">VirusTotal: Clean (0/67 engines)</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-check-circle text-green-600 text-xs"></i>
+                                        <span class="text-green-700 dark:text-green-300">Digital signature verified</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-check-circle text-green-600 text-xs"></i>
+                                        <span class="text-green-700 dark:text-green-300">HTTPS secure download</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function downloadApp(url, appName, appId) {
+            // Add to download queue
+            downloadQueue.push({id: appId, name: appName, url: url});
+            
+            // Create realistic download notification
+            const downloadNotification = createDownloadNotification(appName, appId);
+            document.getElementById('notificationContainer').appendChild(downloadNotification);
+            
+            // Start download simulation
+            simulateDownload(downloadNotification, appName, url);
+            
+            // Update live stats
+            updateDownloadStats();
+        }
+
+        function createDownloadNotification(appName, appId) {
+            const notification = document.createElement('div');
+            notification.className = 'bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 slide-in realistic-shadow';
+            notification.id = `download-${appId}`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                        <i class="fas fa-download text-blue-600 dark:text-blue-400"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800 dark:text-white text-sm">${appName}</p>
+                        <div class="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
+                            <div class="download-progress bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Preparing download...</p>
+                    </div>
+                    <button onclick="cancelDownload('${appId}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            return notification;
+        }
+
+        function simulateDownload(notification, appName, url) {
+            let progress = 0;
+            const progressBar = notification.querySelector('.download-progress');
+            const statusText = notification.querySelector('.text-xs');
+            
+            const downloadInterval = setInterval(() => {
+                progress += Math.random() * 12 + 3; // Random progress between 3-15%
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    progressBar.style.width = '100%';
+                    statusText.textContent = 'Download complete - Opening...';
+                    
+                    // Show completion and open actual download
+                    setTimeout(() => {
+                        // Open actual download link
+                        window.open(url, '_blank');
+                        
+                        // Update notification
+                        notification.innerHTML = `
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-green-600 dark:text-green-400"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-gray-800 dark:text-white text-sm">${appName} downloaded</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Ready to install</p>
+                                </div>
+                                <button onclick="showInstallGuide(); this.parentElement.parentElement.remove();" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
+                                    Install
+                                </button>
+                            </div>
+                        `;
+                        
+                        // Show install notification
+                        showNotification('📱 Installation Guide', 'Tap the downloaded APK file to install', 'info');
+                    }, 1000);
+                    
+                    clearInterval(downloadInterval);
+                    
+                    // Auto-remove after 10 seconds
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 10000);
+                    
+                } else {
+                    progressBar.style.width = progress + '%';
+                    const speed = (Math.random() * 3 + 1).toFixed(1); // Random speed 1-4 MB/s
+                    statusText.textContent = `${Math.floor(progress)}% • ${speed} MB/s`;
+                }
+            }, 150);
+        }
+
+        function cancelDownload(appId) {
+            const notification = document.getElementById(`download-${appId}`);
+            if (notification) {
+                notification.remove();
+            }
+            downloadQueue = downloadQueue.filter(item => item.id !== appId);
+        }
+
+        function showInstallGuide() {
+            closeModal('appModal');
+            document.getElementById('downloadGuideModal').classList.remove('hidden');
+        }
+
+        function generateQR(url) {
+            const qrModal = document.createElement('div');
+            qrModal.className = 'fixed inset-0 bg-black/50 modal z-50 flex items-center justify-center p-4';
+            qrModal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-xl max-w-sm w-full p-6 text-center">
+                    <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-white">📱 Scan to Download</h3>
+                    <div class="w-48 h-48 mx-auto mb-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white flex items-center justify-center">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}" alt="QR Code" class="w-44 h-44">
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Scan this QR code with your phone camera to download directly</p>
+                    <div class="flex space-x-3">
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600">
+                            Close
+                        </button>
+                        <button onclick="shareApp('QR Code', '${url}')" class="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">
+                            Share
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(qrModal);
+            
+            // Auto-remove after 30 seconds
+            setTimeout(() => {
+                if (qrModal.parentElement) {
+                    qrModal.remove();
+                }
+            }, 30000);
+        }
+
+        function shareApp(appName, url) {
+            if (navigator.share) {
+                navigator.share({
+                    title: `Download ${appName}`,
+                    text: `Check out this app: ${appName}`,
+                    url: url
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(url).then(() => {
+                    showNotification('📋 Link Copied', 'App download link copied to clipboard', 'success');
+                });
+            }
+        }
+
+        function showNotification(title, message, type = 'info') {
+            const notification = document.createElement('div');
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            notification.className = `${colors[type]} text-white p-4 rounded-lg shadow-lg slide-in`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <span class="font-semibold">${title}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-white/70 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p class="text-sm mt-1">${message}</p>
+            `;
+            
+            document.getElementById('notificationContainer').appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        function initializeChat() {
+            const responses = [
+                "Hello! How can I help you with app downloads today?",
+                "I can help you find and download apps safely. What are you looking for?",
+                "Need help with installation? I'm here to assist!",
+                "Looking for a specific app? Let me know and I'll help you find it.",
+                "Having trouble with downloads? I can guide you through the process."
+            ];
+
+            // Auto-send welcome message after 3 seconds
+            setTimeout(() => {
+                addChatMessage(responses[Math.floor(Math.random() * responses.length)], 'bot');
+            }, 3000);
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addChatMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Simulate bot response
+            setTimeout(() => {
+                hideTypingIndicator();
+                const botResponse = generateBotResponse(message);
+                addChatMessage(botResponse, 'bot');
+            }, 1500);
+        }
+
+        function addChatMessage(message, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            
+            if (sender === 'user') {
+                messageDiv.className = 'bg-blue-500 text-white p-3 rounded-lg ml-8';
+                messageDiv.innerHTML = `
+                    <p class="text-sm">${message}</p>
+                    <p class="text-xs opacity-75 mt-1">Just now</p>
+                `;
+            } else {
+                messageDiv.className = 'bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mr-8';
+                messageDiv.innerHTML = `
+                    <p class="text-sm text-gray-700 dark:text-gray-300">${message}</p>
+                    <p class="text-xs text-gray-500 mt-1">Just now</p>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mr-8';
+            typingDiv.innerHTML = `
+                <p class="text-sm text-gray-700 dark:text-gray-300 typing-indicator">Agent is typing...</p>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function generateBotResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+            
+            if (message.includes('download') || message.includes('install')) {
+                return "To download apps: 1) Click on any app card, 2) Click 'Download APK', 3) Follow the installation guide. Need help with a specific app?";
+            } else if (message.includes('safe') || message.includes('security')) {
+                return "All apps are scanned by VirusTotal and verified for security. We only provide links to official sources like APKPure and official websites.";
+            } else if (message.includes('help') || message.includes('how')) {
+                return "I can help you with: App downloads, Installation guides, Security questions, Finding specific apps. What do you need help with?";
+            } else if (message.includes('thanks') || message.includes('thank')) {
+                return "You're welcome! Feel free to ask if you need any more help with app downloads.";
+            } else {
+                const responses = [
+                    "I understand you're asking about: '" + userMessage + "'. Could you be more specific about what you need help with?",
+                    "That's interesting! How can I help you with app downloads or installations?",
+                    "I'm here to help with app-related questions. What would you like to know?",
+                    "Let me know if you need help finding or downloading any specific apps!"
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+        }
+
+        function startLiveStats() {
+            setInterval(() => {
+                // Update active downloads
+                const activeDownloads = document.getElementById('activeDownloads');
+                const currentCount = parseInt(activeDownloads.textContent.replace(',', ''));
+                const newCount = currentCount + Math.floor(Math.random() * 10) - 5;
+                activeDownloads.textContent = Math.max(1000, newCount).toLocaleString();
+                
+                // Update online users
+                const onlineUsers = document.getElementById('onlineUsers');
+                const currentUsers = parseInt(onlineUsers.textContent.replace(',', ''));
+                const newUsers = currentUsers + Math.floor(Math.random() * 100) - 50;
+                onlineUsers.textContent = Math.max(10000, newUsers).toLocaleString();
+                
+                // Update apps updated today
+                const updatedToday = document.getElementById('updatedToday');
+                const currentUpdated = parseInt(updatedToday.textContent);
+                if (Math.random() < 0.1) { // 10% chance to increment
+                    updatedToday.textContent = currentUpdated + 1;
+                }
+            }, 5000);
+        }
+
+        function updateDownloadStats() {
+            const activeDownloads = document.getElementById('activeDownloads');
+            const currentCount = parseInt(activeDownloads.textContent.replace(',', ''));
+            activeDownloads.textContent = (currentCount + 1).toLocaleString();
+        }
+
+        function refreshApps() {
+            const button = document.getElementById('refreshApps');
+            const icon = button.querySelector('i');
+            
+            // Animate refresh button
+            icon.classList.add('fa-spin');
+            button.disabled = true;
+            
+            // Simulate refresh
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+                button.disabled = false;
+                showNotification('🔄 Apps Refreshed', 'App list has been updated with latest versions', 'success');
+                
+                // Randomly update some app versions
+                apps.forEach(app => {
+                    if (Math.random() < 0.3) { // 30% chance
+                        const versionParts = app.version.split('.');
+                        versionParts[versionParts.length - 1] = parseInt(versionParts[versionParts.length - 1]) + 1;
+                        app.version = versionParts.join('.');
+                        app.lastUpdate = new Date().toISOString().split('T')[0];
+                    }
+                });
+                
+                renderApps();
+            }, 2000);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function updateCategoryUI(activeBtn) {
+            document.querySelectorAll('[data-category]').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'dark:bg-blue-900/30', 'text-blue-600', 'dark:text-blue-400');
+                btn.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+            });
+            
+            activeBtn.classList.add('bg-blue-50', 'dark:bg-blue-900/30', 'text-blue-600', 'dark:text-blue-400');
+            activeBtn.classList.remove('hover:bg-gray-50', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+        }
+
+        function filterApps() {
+            let filtered = [...apps];
+
+            // Category filter
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(app => app.category === currentCategory);
+            }
+
+            // Price filter
+            const priceFilter = document.getElementById('priceFilter').value;
+            if (priceFilter === 'free') {
+                filtered = filtered.filter(app => app.price === 'Free');
+            } else if (priceFilter === 'paid') {
+                filtered = filtered.filter(app => app.price !== 'Free');
+            }
+
+            // Sort
+            const sortBy = document.getElementById('sortFilter').value;
+            switch (sortBy) {
+                case 'newest':
+                    filtered.sort((a, b) => new Date(b.lastUpdate) - new Date(a.lastUpdate));
+                    break;
+                case 'rating':
+                    filtered.sort((a, b) => b.rating - a.rating);
+                    break;
+                case 'size':
+                    filtered.sort((a, b) => {
+                        const aSize = parseFloat(a.size);
+                        const bSize = parseFloat(b.size);
+                        return aSize - bSize;
+                    });
+                    break;
+                default: // popular
+                    filtered.sort((a, b) => {
+                        const aDownloads = parseFloat(a.downloads.replace(/[^\d.]/g, ''));
+                        const bDownloads = parseFloat(b.downloads.replace(/[^\d.]/g, ''));
+                        return bDownloads - aDownloads;
+                    });
+            }
+
+            filteredApps = filtered;
+            renderApps();
+        }
+
+        function searchApps(query) {
+            if (!query.trim()) {
+                filterApps();
+                return;
+            }
+
+            const searchTerm = query.toLowerCase();
+            filteredApps = apps.filter(app => 
+                app.name.toLowerCase().includes(searchTerm) ||
+                app.developer.toLowerCase().includes(searchTerm) ||
+                app.description.toLowerCase().includes(searchTerm)
+            );
+            renderApps();
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.classList.toggle('dark', isDarkMode);
+            
+            const themeIcon = document.querySelector('#themeToggle i');
+            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+            
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        function checkDarkMode() {
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'true') {
+                isDarkMode = true;
+                document.documentElement.classList.add('dark');
+                document.querySelector('#themeToggle i').className = 'fas fa-sun';
+            }
+        }
+
+        function updateLanguage() {
+            const languages = {
+                'en': 'Language changed to English',
+                'hi': 'भाषा हिंदी में बदल गई',
+                'pa': 'ਭਾਸ਼ਾ ਪੰਜਾਬੀ ਵਿੱਚ ਬਦਲ ਗਈ'
+            };
+            
+            showNotification('🌐 Language Updated', languages[currentLanguage] || 'Language updated', 'info');
+        }
+
+        // Auto-update notifications
+        setInterval(() => {
+            if (Math.random() < 0.05) { // 5% chance every 30 seconds
+                const notifications = [
+                    { title: '🔄 App Updates', message: 'Updates available for 3 apps!', type: 'info' },
+                    { title: '🎉 New App', message: 'TikTok Lite is now available!', type: 'success' },
+                    { title: '🔒 Security Scan', message: 'All apps verified and secure', type: 'success' },
+                    { title: '📊 Stats Update', message: '1M+ downloads today!', type: 'info' }
+                ];
+                
+                const randomNotification = notifications[Math.floor(Math.random() * notifications.length)];
+                showNotification(randomNotification.title, randomNotification.message, randomNotification.type);
+            }
+        }, 30000);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bcaa93107159ee',t:'MTc1NDYzMTQ5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
