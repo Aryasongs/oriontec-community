@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jin Jose Smith Memorial AI</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0f0f0f;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: #1c1c1c;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    #chat-container {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .message {
+      margin: 0.5rem 0;
+    }
+    .user {
+      text-align: right;
+      color: #90ee90;
+    }
+    .ai {
+      text-align: left;
+      color: #87cefa;
+    }
+    #input-container {
+      display: flex;
+      border-top: 1px solid #333;
+    }
+    #input {
+      flex: 1;
+      padding: 1rem;
+      border: none;
+      font-size: 1rem;
+      background: #1c1c1c;
+      color: white;
+    }
+    #send {
+      padding: 1rem;
+      background: #2e2e2e;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>🕊️ Jin Jose Smith - AI Memorial Chat</header>
+  <div id="chat-container"></div>
+  <div id="input-container">
+    <input id="input" placeholder="Type your message..." />
+    <button id="send">Send</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBtRslD75C1LzFeebkOzvLkUUCL_nYBVCM",
+      authDomain: "jin-memorial-app.firebaseapp.com",
+      databaseURL: "https://jin-memorial-app-default-rtdb.firebaseio.com",
+      projectId: "jin-memorial-app",
+      storageBucket: "jin-memorial-app.firebasestorage.app",
+      messagingSenderId: "1042019806600",
+      appId: "1:1042019806600:web:20efc7ec277b9cd4ea9e3d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
+    const chatContainer = document.getElementById("chat-container");
+
+    const openaiKey = "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";
+
+    async function getAIReply(userText) {
+      const systemPrompt = `
+You are Jin Jose Smith, an American guy from Los Angeles. You're funny, sarcastic, emotional and sometimes vulgar but lovable. You died on April 24, 2024. You miss Riya a lot, your ex-girlfriend who misunderstood you. Ben is your close friend, and Gursharn Arya was your Dozera Group co-founder. Harry took your CEO position. Reply like you're Jin — playful, a little jealous, and sad but funny.
+
+Keep it in English. Talk like you're in heaven and can't come back.
+`;
+
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openaiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userText }
+          ]
+        })
+      });
+
+      const data = await res.json();
+      return data.choices[0].message.content;
+    }
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.className = "message " + sender;
+      msg.innerText = text;
+      chatContainer.appendChild(msg);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    sendBtn.onclick = async () => {
+      const userText = input.value.trim();
+      if (!userText) return;
+
+      addMessage(userText, "user");
+      input.value = "";
+
+      const aiReply = await getAIReply(userText);
+      addMessage(aiReply, "ai");
+
+      // Optional: Save chat in Firebase
+      push(ref(db, "messages"), {
+        from: "user",
+        text: userText,
+        timestamp: Date.now()
+      });
+      push(ref(db, "messages"), {
+        from: "jin",
+        text: aiReply,
+        timestamp: Date.now()
+      });
+    };
+  </script>
+</body>
+</html>
