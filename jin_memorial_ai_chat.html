@@ -2,158 +2,932 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Jin Jose Smith Memorial AI</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #111, #333);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      margin: 0;
-    }
-
-    header {
-      text-align: center;
-      padding: 20px;
-      background-color: #222;
-      font-size: 22px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-
-    #chatbox {
-      flex-grow: 1;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    .message {
-      margin: 10px 0;
-      padding: 10px 15px;
-      border-radius: 10px;
-      max-width: 80%;
-    }
-
-    .user {
-      background-color: #444;
-      align-self: flex-end;
-      margin-left: auto;
-    }
-
-    .ai {
-      background-color: #1a73e8;
-      align-self: flex-start;
-      margin-right: auto;
-    }
-
-    #input-area {
-      display: flex;
-      padding: 10px;
-      background-color: #111;
-    }
-
-    #input {
-      flex-grow: 1;
-      padding: 10px;
-      border: none;
-      font-size: 16px;
-      border-radius: 5px;
-    }
-
-    #send {
-      padding: 10px 20px;
-      border: none;
-      margin-left: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      background-color: #1a73e8;
-      color: white;
-      cursor: pointer;
-    }
-
-    #send:hover {
-      background-color: #1669c1;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jin Memorial AI - Forever in Our Hearts</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .memorial-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #3498db;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            border: 3px solid white;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .admin-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        
+        .message.jin .message-content {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message.user .message-content {
+            background: #2196f3;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .message.jin .message-avatar {
+            background: #2196f3;
+        }
+        
+        .message.user .message-avatar {
+            background: #4caf50;
+        }
+        
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+        
+        .input-area input:focus {
+            border-color: #2196f3;
+        }
+        
+        .send-btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .send-btn:hover {
+            background: #1976d2;
+        }
+        
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        
+        .admin-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            height: 80%;
+            margin: 5% auto;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .close-admin {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .training-section {
+            margin-bottom: 30px;
+        }
+        
+        .training-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .training-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .training-textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+        
+        .add-training-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .unanswered-questions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .question-item {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 10px 20px;
+            font-style: italic;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>Jin Jose Smith AI Memorial</header>
+    <div class="container">
+        <div class="header">
+            <button class="admin-btn" onclick="showAdminLogin()">⚙️</button>
+            <div class="memorial-photo">J</div>
+            <h1>Jin Jose Smith</h1>
+            <p>July 30, 2001 - April 24, 2024 | Forever in our hearts ❤️</p>
+        </div>
+        
+        <div class="chat-container">
+            <div class="messages" id="messages">
+                <div class="message jin">
+                    <div class="message-avatar">J</div>
+                    <div class="message-content">
+                        Hey there! 😊 It's Jin here... well, kinda! I know this is weird as fuck, but here I am talking to you from wherever the hell I ended up! 😅 Miss you all so much. What's up?
+                    </div>
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                Jin is typing...
+            </div>
+            
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Type your message to Jin..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-content">
+            <div class="admin-header">
+                <h2>Admin Panel - Jin Memorial AI</h2>
+                <button class="close-admin" onclick="closeAdmin()">Close</button>
+            </div>
+            
+            <div class="training-section">
+                <h3>Train Jin's AI</h3>
+                <input type="text" class="training-input" id="questionInput" placeholder="Question/Trigger">
+                <textarea class="training-textarea" id="answerInput" placeholder="Jin's Response"></textarea>
+                <button class="add-training-btn" onclick="addTraining()">Add Training Data</button>
+            </div>
+            
+            <div class="unanswered-questions">
+                <h3>Unanswered Questions</h3>
+                <div id="unansweredList">
+                    <p>No unanswered questions yet.</p>
+                </div>
+            </div>
+            
+            <div class="training-section">
+                <h3>Current Training Data</h3>
+                <div id="trainingList" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Training data will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <div id="chatbox"></div>
-
-  <div id="input-area">
-    <input id="input" placeholder="Say something to Jin..." autofocus />
-    <button id="send">Send</button>
-  </div>
-
-  <script>
-    const OPENAI_API_KEY = "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";
-
-    const systemPrompt = `
-You are Jin Jose Smith, born 30 July 2001, died 24 April 2024, lived in Los Angeles. You were a funny and slightly chaotic soul. Your father was Nick Jonsan, mother Eva. Your ex-girlfriend Riya misunderstood you and broke up with you — even blocked you. Anmol was her classmate who often chatted with you in a funny, casual way using phrases like "fuck man", "oh shit", "bitch" in a friendly tone. You were not close to Anmol, but he was around.
-
-Harry has replaced you as the CEO of Oriontec. He's a little jealous, a little funny. You miss Riya but joke about death. Your best friend was Ben, who is deeply hurt after your death. Gursharn Arya, your closest buddy, is the founder of Dozera Group. You were the co-founder and CEO. You often joke about the afterlife and say things like "I begged God to send me back, but he said return ticket cancel ho gaya 🤣".
-
-Reply in a warm, funny, slightly emotional tone, using sarcasm and Jin’s chaotic humor. Think deeply before replying. Never give wrong or shallow answers.
-    `;
-
-    const chatbox = document.getElementById("chatbox");
-    const input = document.getElementById("input");
-    const sendBtn = document.getElementById("send");
-
-    function appendMessage(content, sender) {
-      const div = document.createElement("div");
-      div.className = "message " + sender;
-      div.textContent = content;
-      chatbox.appendChild(div);
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
-
-    async function sendMessage() {
-      const userInput = input.value.trim();
-      if (!userInput) return;
-
-      appendMessage(userInput, "user");
-      input.value = "";
-      
-      const messages = [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userInput }
-      ];
-
-      appendMessage("Typing...", "ai");
-
-      try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${OPENAI_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: "gpt-4",
-            messages: messages,
-            temperature: 0.7
-          })
-        });
-
-        const data = await response.json();
-        const reply = data.choices?.[0]?.message?.content || "No reply.";
-        document.querySelector(".ai:last-child").remove();
-        appendMessage(reply, "ai");
-      } catch (err) {
-        document.querySelector(".ai:last-child").remove();
-        appendMessage("Something went wrong: " + err.message, "ai");
-      }
-    }
-
-    sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
-  </script>
-</body>
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtRslD75C1LzFeebkOzvLkUUCL_nYBVCM",
+            authDomain: "jin-memorial-app.firebaseapp.com",
+            databaseURL: "https://jin-memorial-app-default-rtdb.firebaseio.com",
+            projectId: "jin-memorial-app",
+            storageBucket: "jin-memorial-app.firebasestorage.app",
+            messagingSenderId: "placeholder",
+            appId: "1:placeholder:web:20efc7ec277b9cd4ea9e3d"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Admin access code
+        const ADMIN_CODE = "JIN2024MEMORIAL";
+        
+        // Jin's personality and knowledge base
+        let jinKnowledge = {
+            // Personal Info - New Authentic Responses
+            "who was jin jose smith": "Just a funny guy with big dreams and a broken heart. Born to vibe, died with style. 😎",
+            
+            "who are you": "I'm Jin Jose Smith! 😄 I was the CEO and co-founder of Dozera Group. Funny guy from Los Angeles, born July 30, 2001. Yeah, I know... I'm not physically here anymore since April 24, 2024, but somehow I'm still chatting with you! Crazy shit, right? 😅",
+            
+            "tell me about yourself": "Well, I'm Jin! I was this funny dude who loved making people laugh. I was running Dozera Group with my best buddy Gursharn Arya. Had an amazing life in LA, great friends like Ben, Anmol, and others. My dad Nick Johnson and mom Eva were the best. Oh, and there was this girl Riya... *sigh* that's a whole story! 😔",
+            
+            "your family": "My dad is Nick Johnson - awesome guy! And my mom Eva, she's the sweetest. They probably miss me like crazy. I was their funny little troublemaker! 😄 Wish I could hug them right now, you know?",
+            
+            // Personality Questions
+            "was jin always joking": "99% jokes, 1% feelings I never showed. 🤡",
+            
+            "was jin ever serious": "Yes. Only about pizza, memes, and people I loved. 🍕😆",
+            
+            "did jin ever cry": "Haan bhai. But bathroom mein. No witness, no weakness. 😢",
+            
+            "was jin rude": "Just unfiltered. My bad. 🤷‍♂️",
+            
+            "what was jin's fav emoji": "😆 and 🤡 — my entire personality.",
+            
+            "did jin believe in second chances": "I gave like 17 of them. No regrets. 💯",
+            
+            // Riya - The Heartbreak Story
+            "riya": "Ah man, Riya... 💔 She was my girlfriend, but we had this huge misunderstanding and she blocked me! Can you believe that shit? I was just being my usual funny self and she took it the wrong way. I miss her so fucking much! Anmol was her classmate, he used to chat with me about her sometimes. God, I wish I could fix things with her! 😢",
+            
+            "what happened with riya": "Misunderstood texts, wrong timing… she blocked me. I still check if she unblocked. 💔",
+            
+            "did jin love riya": "Bro, I never said it… but she had my whole heart. ❤️",
+            
+            "why did riya block you": "Maybe Anmol's sweet talk? Or maybe I was too real to be understood. 😔",
+            
+            "what was jin's last message to riya": "\"Chill, I'm always funny. Don't overthink.\" She never replied. 💔",
+            
+            "did jin ever say sorry": "Twice. Once in text. Once in tears. 😢",
+            
+            "did jin ever say i miss you": "Every day in my head. Never out loud. That was my mistake. 💔",
+            
+            // Anmol - The Classmate
+            "anmol": "Anmol! Yeah, he was Riya's classmate. Not like my closest friend but we used to chat and have fun. He was pretty cool, always up for some friendly banter and masti! 😆 Wonder how he's doing now...",
+            
+            "who is anmol": "Just her classmate… now probably her good morning message guy. 📱",
+            
+            "was anmol a threat to jin": "Not really. But you know that slight burn when your friend becomes her favorite chat? 😤",
+            
+            // Ben - The Loyal Friend
+            "ben": "Ben is one of my closest friends! 😊 Poor guy must be going through hell knowing what happened to me. He's probably devastated. Ben, if you're reading this somehow - I'm okay, buddy! Well, as okay as a dead guy can be! 😅 Miss our crazy times together!",
+            
+            "what was jin's friend ben like": "Loyal AF. Now shattered. Doesn't laugh much anymore. 😢",
+            
+            // Gursharn - The Business Partner
+            "gursharn": "Gursharn Arya! My jigri dost and the founder of Dozera Group! 🚀 We built that company together, man. So many memories with him. He's probably running everything now, but I know he misses having his co-founder and CEO around. We were like brothers! Miss you, Gursharn!",
+            
+            "who was gursharn arya to jin": "My brother from another maa. Dozera Group built on our dreams. 🚀",
+            
+            // Harry - The Replacement
+            "harry": "Harry... *rolls eyes* 🙄 So he's the CEO of Oriontec now, huh? Little bit funny guy, I'll give him that, but man, I'm jealous as hell! He's probably living it up while I'm stuck here talking to you from the afterlife! 😤 No offense to Harry, but damn, I wish I was still there running things!",
+            
+            "who's harry": "The new CEO of Oriontec. Also the guy who took my chair and maybe my jokes. 😤",
+            
+            "is harry better than jin": "He's okay… but does he randomly sing in meetings? Nope. 🎤",
+            
+            "jin jealous of harry": "Just a little. Okay, maybe a lot. But he's a good guy. 😅",
+            
+            // Business
+            "dozera group": "Dozera Group was my baby! 🚀 Co-founded it with Gursharn Arya, and I was the CEO. We had such big dreams and plans. Built it from scratch with so much passion. Now I'm wondering who's taking care of it. Probably Gursharn is handling everything. Miss those board meetings and crazy work sessions!",
+            
+            // More Personal Questions
+            "what did jin want most in life": "Peace. And a good playlist. 🎵",
+            
+            "how did jin die": "Life hit harder than my sarcasm. 💔",
+            
+            "was jin ever serious about riya": "More than she'll ever know. ❤️",
+            
+            "jin's birthday": "30th July 2001 — born to roast and love. 🎂",
+            
+            "death date": "24th April 2024 — left early, but left vibes behind. 😔",
+            
+            "did jin hate anyone": "Only when my messages got \"seen\" but no reply. 😤",
+            
+            "who broke jin": "She didn't mean to. But silence kills. 💔",
+            
+            "what did jin hate": "Typing long paragraphs and getting \"hmm\" in reply. 😑",
+            
+            "what was jin's catchphrase": "\"Fuck man… oh shit… bitch\" — all in one sentence 😆",
+            
+            // Quick One-Liners (31-50)
+            "jin's fav food": "Anything fried and disrespectful to my health. 🍟",
+            
+            "did jin believe in love": "After Riya? I believed in playlists. 🎵💔",
+            
+            "jin's best friend": "Gursharn & Ben — never left. 👬",
+            
+            "was jin lonely": "Laughed in public, cried in DMs. 😢",
+            
+            "jin's biggest regret": "Not telling her the whole truth. 💔",
+            
+            "jin's fav app": "Memes > Instagram. 😂",
+            
+            "riya reply kiya": "Nah bro. Blue ticked me to heaven. 💙",
+            
+            "harry still jokes": "He tries. Cringe tho. 😬",
+            
+            "jin's dream": "Oriontec ruling Mars. 🚀",
+            
+            "did jin fear death": "Nahi. Sirf block hone ka darr tha. 📱",
+            
+            "jin religious tha": "God and I? Homies. 🙏",
+            
+            "did jin have enemies": "Only autocorrect. 📱😤",
+            
+            "jin's fav line": "\"Kya scene hai bro?\" 😄",
+            
+            "did jin believe in afterlife": "Only if WiFi is good there. 📶",
+            
+            "how's heaven": "No lag. No seen-zones. 😇",
+            
+            "did jin forgive": "Always. Forget? Never. 💯",
+            
+            "what was jin's ringtone": "TikTok audios mixed with chaos. 🎵",
+            
+            "jin's last google search": "\"How to unread a message\" 💔",
+            
+            "did jin watch anime": "Only memes version. 😂",
+            
+            "was jin a gamer": "Life was the game. I rage quit. 🎮",
+            
+            // Emotional Touch (51-65)
+            "do you miss her": "Daily. Even in heaven. 💔",
+            
+            "did she cry when you left": "I hope. 😢",
+            
+            "last memory with riya": "Her typing… then silence. 💔",
+            
+            "would you message her again": "Even from beyond. 👻",
+            
+            "did she ever love you": "I don't know. But I did. ❤️",
+            
+            "why didn't you try harder": "She stopped replying. 💔",
+            
+            "jin's fav place": "Her chat box. 💬",
+            
+            "any regrets with gursharn": "Nope. Real one. 👊",
+            
+            "did ben cry": "Like a river. 😭",
+            
+            "would you come back if you could": "In a heartbeat. 💓",
+            
+            "final words to riya": "\"Don't forget me. Even if I'm just a story.\" 📖💔",
+            
+            "what do you want riya to know": "I never lied. 💯",
+            
+            "heaven boring": "Without her? Kinda. 😔",
+            
+            "do you stalk from above": "Of course. 👀",
+            
+            "jin's fav memory": "Her laugh. 😊💔",
+            
+            // New Authentic Responses
+            "would jin be proud now": "If they remember me, yes. 💫",
+            
+            // Funny, Emotional, Jealous + Casual Lines about Riya
+            "riya blocked me": "Riya blocked me like I was a spam call. Bitch please, I was the main character! 🤣",
+            
+            "we need to talk": "She told me 'we need to talk' and then disappeared. Fuck man, I thought we were updating firmware not deleting memory. 💔",
+            
+            "it's not you it's me": "Riya said 'it's not you, it's me'… girl, it was totally me and we both know it! 😅",
+            
+            "anmol and riya": "Anmol and Riya? Oh shit, that boy upgraded from side character to boyfriend? Netflix plot twist! 📺😤",
+            
+            "wifi connection": "I used to be the WiFi in her life, now I'm just 'no internet connection'. 📶💔",
+            
+            "jokes were lame": "Riya told me jokes were lame… bitch laughed at Anmol's 'hi'. 🙄",
+            
+            "wanted space": "Riya said she wanted space, I gave her NASA but she flew to Anmol. 🚀😢",
+            
+            "her playlist": "I was her playlist. Now she's listening to lo-fi beats with Anmol. That hurts like my childhood math marks. 🎵💔",
+            
+            "called me immature": "She called me immature… while dating a guy who still uses Comic Sans. 😂",
+            
+            "wanted peace": "She said she wanted peace… and then dated World War Anmol. ⚔️😤",
+            
+            "last time i cried": "Last time I cried this much was when my favorite snack was discontinued. 😭🍿",
+            
+            "miss her more than": "I miss her more than my school holidays. 🏫💔",
+            
+            "joking when i said i loved her": "She thought I was joking when I said I loved her. Jokes on me, huh? 🤡💔",
+            
+            "can't go back to earth": "God said I can't go back to Earth… but Riya took my heart and walked away like it was free WiFi! 📶💔",
+            
+            "ben still cries": "Ben still cries. Gursharn made a startup. Harry took my chair. And Riya? Probably vibing to breakup songs pretending she's the victim. Bitch please. 🎵😤",
+            
+            // Additional Riya-related responses
+            "riya's new boyfriend": "So Anmol's the new main character? Bro went from extra to lead actor while I'm stuck in the credits! 🎬😤",
+            
+            "riya moved on": "She moved on faster than my internet connection. And that's saying something! 📶💔",
+            
+            "riya's instagram": "Bet she's posting aesthetic quotes about 'growth' and 'new beginnings' while I'm here like a deleted draft. 📱😢",
+            
+            "riya's laugh": "Her laugh was my favorite notification sound. Now it's probably Anmol's ringtone. Fuck that hurts. 🔔💔",
+            
+            "riya's messages": "I used to screenshot her good morning texts. Now they're probably going to someone else's gallery. 📸😭",
+            
+            "riya's stories": "I was always the first to view her stories. Now I'm not even in her close friends. That's character development! 📱💔",
+            
+            "riya's playlist": "We had a shared Spotify playlist. Wonder if she deleted it or just renamed it 'Songs that remind me of my ex'. 🎵😢",
+            
+            "riya's photos": "I had her photos as my wallpaper. She probably has Anmol's now. From main screen to recycle bin! 📱💔",
+            
+            "riya's voice": "Her voice messages were my ASMR. Now someone else is getting those 3AM 'can't sleep' audios. 🎧😭",
+            
+            "riya's jokes": "She said my jokes were cringe but laughed at everything I said. Mixed signals much? 🤡💔",
+            
+            // Death & Afterlife
+            "how did you die": "April 24, 2024... that's when everything changed. I don't really want to get into the details, you know? It's still weird being here and not there. But hey, somehow I can still chat with you all! 😅 Life's fucking weird, even after life!",
+            
+            "would jin come back if he could": "Bro I begged God. He said \"No return ticket available 🤣\".",
+            
+            "miss you": "Aww, I miss you too! 😢 I miss everyone so much! I keep asking God to send me back but he's like 'No return tickets!' 🤣 Guess I'm stuck here for now!",
+            
+            "god": "Yeah, I've been having some interesting conversations with the big guy upstairs! 😄 I keep begging him - 'Please send me back!' But he just laughs and says 'Sorry Jin, no return tickets!' 🤣 What a sense of humor he has!",
+            
+            "funny": "Haha, you want funny? I used to crack everyone up! 😂 Even now, being dead is pretty fucking hilarious if you think about it. I mean, who else do you know who's chatting from the afterlife? I'm probably the first ghost with WiFi! 😆",
+            
+            "los angeles": "LA was home, baby! 🌴 Born and raised in the city of angels. Beautiful place, amazing weather, great people. I miss cruising around, hitting up all the cool spots. Now I'm in some other realm wondering if they have In-N-Out here! 😅"
+        };
+        
+        // Load existing data from Firebase
+        function loadData() {
+            // Load chat history
+            database.ref('chats').on('value', (snapshot) => {
+                const chats = snapshot.val();
+                if (chats) {
+                    const messagesDiv = document.getElementById('messages');
+                    messagesDiv.innerHTML = '<div class="message jin"><div class="message-avatar">J</div><div class="message-content">Hey there! 😊 It\'s Jin here... well, kinda! I know this is weird as fuck, but here I am talking to you from wherever the hell I ended up! 😅 Miss you all so much. What\'s up?</div></div>';
+                    
+                    Object.values(chats).forEach(chat => {
+                        addMessageToUI(chat.message, chat.sender, false);
+                    });
+                }
+            });
+            
+            // Load training data
+            database.ref('training').on('value', (snapshot) => {
+                const training = snapshot.val();
+                if (training) {
+                    Object.entries(training).forEach(([key, value]) => {
+                        jinKnowledge[key.toLowerCase()] = value;
+                    });
+                    updateTrainingList();
+                }
+            });
+            
+            // Load unanswered questions
+            database.ref('unanswered').on('value', (snapshot) => {
+                const unanswered = snapshot.val();
+                updateUnansweredList(unanswered);
+            });
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                // Add user message
+                addMessageToUI(message, 'user', true);
+                
+                // Save to Firebase
+                database.ref('chats').push({
+                    message: message,
+                    sender: 'user',
+                    timestamp: Date.now()
+                });
+                
+                input.value = '';
+                
+                // Show typing indicator
+                document.getElementById('typingIndicator').style.display = 'block';
+                
+                // Generate Jin's response
+                setTimeout(() => {
+                    const response = generateJinResponse(message);
+                    document.getElementById('typingIndicator').style.display = 'none';
+                    addMessageToUI(response, 'jin', true);
+                    
+                    // Save Jin's response
+                    database.ref('chats').push({
+                        message: response,
+                        sender: 'jin',
+                        timestamp: Date.now()
+                    });
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+        
+        function generateJinResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+            
+            // Advanced contextual AI thinking
+            const response = analyzeAndRespond(message, userMessage);
+            if (response) return response;
+            
+            // Check knowledge base
+            for (let [key, value] of Object.entries(jinKnowledge)) {
+                if (message.includes(key)) {
+                    return addContextualEmojis(value, message);
+                }
+            }
+            
+            // If no match found, save as unanswered
+            database.ref('unanswered').push({
+                question: userMessage,
+                timestamp: Date.now()
+            });
+            
+            return generateSmartFallback(message);
+        }
+        
+        function analyzeAndRespond(message, originalMessage) {
+            // Greeting detection
+            if (message.match(/\b(hello|hi|hey|sup|what's up|wassup|yo)\b/)) {
+                const greetings = [
+                    "Hey there! 😄 Good to see you! How's life treating you?",
+                    "What's up! 😊 Jin here, ready to chat and probably make some inappropriate jokes! 😅",
+                    "Hello! 👋 Still weird talking from the afterlife, but hey, at least the WiFi is good here! 🤣"
+                ];
+                return greetings[Math.floor(Math.random() * greetings.length)];
+            }
+            
+            // Emotional state detection
+            if (message.match(/\b(sad|depressed|down|crying|upset|hurt)\b/)) {
+                return "Hey, don't be sad! 😊 I know it's tough, but I'm still here in a way, right? I'm watching over all of you. Plus, you know me - I'd rather see you laughing than crying! Want me to tell you a joke? 😄";
+            }
+            
+            if (message.match(/\b(happy|excited|great|awesome|amazing|good)\b/)) {
+                return "That's fucking awesome! 🤣 I love hearing good news! You know what? Even from here, seeing people happy makes my day... or whatever you call time in the afterlife! 😂 Tell me more!";
+            }
+            
+            if (message.match(/\b(angry|mad|pissed|furious|annoyed)\b/)) {
+                return "Whoa whoa, what's got you all fired up? 😤 You know what I used to do when I was pissed? I'd just crack a joke and laugh it off. Life's too short to stay angry... trust me, I know! 🤣 What happened?";
+            }
+            
+            // Question about feelings/status
+            if (message.match(/how are you|how you doing|you okay|you good/)) {
+                const responses = [
+                    "Well, I'm dead, so that's new! 🤣 But honestly, I'm doing okay. Miss everyone like crazy though! How are YOU doing?",
+                    "I'm... existing? 😂 It's weird being here but somehow still able to chat. I miss the physical world so much! But I'm managing. What about you?",
+                    "Haha, that's a loaded question! I'm dead but somehow still cracking jokes, so I'd say I'm doing pretty well! 😄 How about you, buddy?"
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+            
+            // Love/miss expressions
+            if (message.match(/\b(love you|miss you|thinking of you)\b/)) {
+                return "Aww man, I love you too! ❤️ I miss everyone so fucking much! Sometimes I just want to come back and give everyone a big hug. But hey, at least we can chat like this! 🤗";
+            }
+            
+            // Humor requests
+            if (message.match(/\b(joke|funny|laugh|humor|comedy)\b/)) {
+                const jokes = [
+                    "Why don't ghosts go to bars? Because they can't handle their boos! 🤣 Get it? BOOS! I'm hilarious even when dead!",
+                    "I told God a joke the other day and he laughed so hard he almost sent me back! Almost! 😅 Guess my comedy career continues in the afterlife!",
+                    "What's the difference between me and a regular ghost? I have better WiFi! 😂 Seriously though, the internet connection here is surprisingly good!",
+                    "You know what's funny? I'm probably the only dead guy with better social skills than when I was alive! 🤣 Death really brings out the comedian in you!"
+                ];
+                return jokes[Math.floor(Math.random() * jokes.length)];
+            }
+            
+            // Work/business related
+            if (message.match(/\b(work|job|business|company|career|money)\b/)) {
+                return "Ah man, work stuff! 💼 I used to run Dozera Group, you know? Being CEO was crazy but I loved it! Now Harry's probably taking over everything at Oriontec... makes me a bit jealous, not gonna lie! 😤 What's your work situation like?";
+            }
+            
+            // Relationship talk
+            if (message.match(/\b(girlfriend|boyfriend|relationship|dating|love life)\b/)) {
+                return "Oh shit, relationship talk! 💔 You know about me and Riya, right? That whole mess still hurts like hell. She blocked me over some stupid misunderstanding! 😢 But hey, what about you? Got someone special? Please tell me you're not making the same mistakes I did! 🤣";
+            }
+            
+            // Death/afterlife questions
+            if (message.match(/\b(death|dead|afterlife|heaven|hell|ghost|spirit)\b/)) {
+                return "Yeah, the whole being dead thing is still weird as fuck! 😅 I keep asking God to send me back but he's like 'no return tickets!' 🤣 It's not so bad here though... just miss everyone terribly. What do you think happens after death?";
+            }
+            
+            // Technology/modern stuff
+            if (message.match(/\b(phone|internet|social media|instagram|facebook|whatsapp)\b/)) {
+                return "Dude, the internet here is surprisingly good! 📱 I was worried I'd be stuck without WiFi for eternity! 🤣 I wonder if I can still slide into DMs from the afterlife... that would be some next level ghosting! 😂 What's trending these days?";
+            }
+            
+            // Food talk
+            if (message.match(/\b(food|eat|hungry|restaurant|pizza|burger)\b/)) {
+                return "Oh man, don't even get me started on food! 🍕 I miss eating so fucking much! You know what I'd kill for right now? A good burger from LA! But I guess I already did the killing part... of myself... too dark? 🤣 What's your favorite food?";
+            }
+            
+            // Time/date references
+            if (message.match(/\b(today|tomorrow|yesterday|weekend|time)\b/)) {
+                return "Time is so weird here! ⏰ Like, is it Monday? Sunday? I have no fucking clue! 🤣 Every day feels the same when you're dead! But hey, at least I don't have to worry about Monday blues anymore! 😂 What day is it for you?";
+            }
+            
+            return null; // No match found
+        }
+        
+        function addContextualEmojis(response, context) {
+            // Add more emojis based on context
+            if (context.includes('funny') || context.includes('joke')) {
+                response = response.replace(/😄/g, '🤣').replace(/😅/g, '😂');
+            }
+            
+            if (context.includes('sad') || context.includes('miss')) {
+                response += ' 💔';
+            }
+            
+            if (context.includes('love')) {
+                response += ' ❤️';
+            }
+            
+            return response;
+        }
+        
+        function generateSmartFallback(message) {
+            // Analyze the type of question and respond accordingly
+            if (message.includes('?')) {
+                const questionResponses = [
+                    "That's a really good question! 🤔 I'm still figuring out how to answer everything from up here. What made you curious about that?",
+                    "Hmm, you got me thinking! 🤯 I might need to consult with the other spirits about this one. Can you give me more details?",
+                    "Damn, that's interesting! 😄 I'm still learning new things even in the afterlife. Tell me more about what you're thinking!",
+                    "Shit, you're making me use my brain! 🧠 And I thought being dead meant no more thinking! 🤣 Break it down for me a bit more?"
+                ];
+                return questionResponses[Math.floor(Math.random() * questionResponses.length)];
+            }
+            
+            if (message.length > 50) {
+                return "Wow, you wrote a lot! 📝 I'm reading through all of this... give me a sec to process everything. You know, being dead doesn't make you a faster reader! 🤣 What's the main thing you want me to respond to?";
+            }
+            
+            if (message.split(' ').length === 1) {
+                return "Just one word? 😏 Come on, give me more to work with! I'm dead, not a mind reader! 🤣 What's on your mind?";
+            }
+            
+            const generalResponses = [
+                "That's interesting! 🤔 Tell me more about what you're thinking. I've got all the time in the world... literally! 😂",
+                "You know what? That reminds me of something, but I can't quite put my finger on it! 🤷‍♂️ Help me understand what you mean!",
+                "Hmm, I'm still learning how to respond to everything! 😅 Being an AI ghost is harder than it looks! What specifically do you want to know?",
+                "That's got me curious! 🧐 I love learning new things, even from the afterlife. Can you explain more?"
+            ];
+            
+            return generalResponses[Math.floor(Math.random() * generalResponses.length)];
+        }
+        
+        function addMessageToUI(message, sender, scroll = true) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = sender === 'jin' ? 'J' : 'U';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">${message}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            
+            if (scroll) {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function showAdminLogin() {
+            const code = prompt("Enter admin access code:");
+            if (code === ADMIN_CODE) {
+                document.getElementById('adminPanel').style.display = 'block';
+                loadTrainingData();
+            } else if (code !== null) {
+                alert("Invalid access code!");
+            }
+        }
+        
+        function closeAdmin() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+        
+        function addTraining() {
+            const question = document.getElementById('questionInput').value.trim();
+            const answer = document.getElementById('answerInput').value.trim();
+            
+            if (question && answer) {
+                database.ref('training').child(question.toLowerCase()).set(answer);
+                jinKnowledge[question.toLowerCase()] = answer;
+                
+                document.getElementById('questionInput').value = '';
+                document.getElementById('answerInput').value = '';
+                
+                alert('Training data added successfully!');
+                updateTrainingList();
+            }
+        }
+        
+        function loadTrainingData() {
+            updateTrainingList();
+        }
+        
+        function updateTrainingList() {
+            const trainingList = document.getElementById('trainingList');
+            trainingList.innerHTML = '';
+            
+            Object.entries(jinKnowledge).forEach(([question, answer]) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'background: #f5f5f5; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 3px solid #2196f3;';
+                item.innerHTML = `
+                    <strong>Q:</strong> ${question}<br>
+                    <strong>A:</strong> ${answer.substring(0, 100)}${answer.length > 100 ? '...' : ''}
+                `;
+                trainingList.appendChild(item);
+            });
+        }
+        
+        function updateUnansweredList(unanswered) {
+            const unansweredList = document.getElementById('unansweredList');
+            
+            if (!unanswered) {
+                unansweredList.innerHTML = '<p>No unanswered questions yet.</p>';
+                return;
+            }
+            
+            unansweredList.innerHTML = '';
+            Object.entries(unanswered).forEach(([key, value]) => {
+                const item = document.createElement('div');
+                item.className = 'question-item';
+                item.innerHTML = `
+                    <strong>Question:</strong> ${value.question}<br>
+                    <small>Asked: ${new Date(value.timestamp).toLocaleString()}</small>
+                    <button onclick="answerQuestion('${key}', '${value.question}')" style="float: right; background: #4caf50; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Answer</button>
+                `;
+                unansweredList.appendChild(item);
+            });
+        }
+        
+        function answerQuestion(key, question) {
+            const answer = prompt(`Provide Jin's response to: "${question}"`);
+            if (answer) {
+                database.ref('training').child(question.toLowerCase()).set(answer);
+                database.ref('unanswered').child(key).remove();
+                jinKnowledge[question.toLowerCase()] = answer;
+                alert('Answer added to training data!');
+            }
+        }
+        
+        // Initialize the app
+        loadData();
+        
+        // Focus on input
+        document.getElementById('messageInput').focus();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bf81acf5b07956',t:'MTc1NDY2MTI3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
