@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CereusPay - P2P Payment App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-shadow { box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .pulse-animation { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white p-4 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                    <span class="text-purple-600 font-bold text-sm">C</span>
+                </div>
+                <h1 class="text-xl font-bold">CereusPay</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm opacity-90" id="navWelcome">Welcome</span>
+                <button onclick="showProfile()" class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <span class="text-sm font-medium" id="profileInitial">U</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-md card-shadow">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div class="flex space-x-1">
+                        <div class="w-3 h-3 bg-white rounded-full"></div>
+                        <div class="w-3 h-3 bg-white rounded-full"></div>
+                    </div>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">Welcome to CereusPay</h1>
+                <p class="text-gray-600">Sign in to your account</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email or Phone</label>
+                    <input type="text" id="loginInput" placeholder="Enter email or phone number" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="passwordInput" placeholder="Enter your password" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <button onclick="login()" class="w-full gradient-bg text-white py-3 rounded-xl font-medium hover:opacity-90 transition-all">
+                    Sign In
+                </button>
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">Don't have an account? <button onclick="showSignup()" class="text-purple-600 font-medium">Sign up</button></p>
+                </div>
+                
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div id="mainApp" class="max-w-6xl mx-auto p-4 space-y-6 hidden">
+        <!-- Wallet Balance Card -->
+        <div class="gradient-bg text-white rounded-2xl p-6 card-shadow">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <p class="text-sm opacity-90">Available Balance</p>
+                    <h2 class="text-3xl font-bold" id="walletBalance">$1,247.83</h2>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs opacity-75">Pay Handle</p>
+                    <p class="font-medium" id="payHandle">cereus_user#0000</p>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="showSendMoney()" class="flex-1 bg-white bg-opacity-20 rounded-xl py-3 px-4 text-center font-medium hover:bg-opacity-30 transition-all">
+                    Send Money
+                </button>
+                <button onclick="showReceiveMoney()" class="flex-1 bg-white bg-opacity-20 rounded-xl py-3 px-4 text-center font-medium hover:bg-opacity-30 transition-all">
+                    Receive
+                </button>
+                <button onclick="showPaymentCard()" class="bg-white bg-opacity-20 rounded-xl py-3 px-4 hover:bg-opacity-30 transition-all">
+                    <span class="text-xl">💳</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Actions Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <button onclick="showScanToPay()" class="bg-white rounded-xl p-4 card-shadow hover:shadow-lg transition-all text-center">
+                <div class="text-2xl mb-2">📷</div>
+                <p class="font-medium text-gray-800">Scan to Pay</p>
+            </button>
+            <button onclick="showMobileRecharge()" class="bg-white rounded-xl p-4 card-shadow hover:shadow-lg transition-all text-center">
+                <div class="text-2xl mb-2">📱</div>
+                <p class="font-medium text-gray-800">Mobile Recharge</p>
+            </button>
+            <button onclick="showReferrals()" class="bg-white rounded-xl p-4 card-shadow hover:shadow-lg transition-all text-center">
+                <div class="text-2xl mb-2">🎁</div>
+                <p class="font-medium text-gray-800">Refer & Earn</p>
+            </button>
+            <button onclick="showKYCStatus()" class="bg-white rounded-xl p-4 card-shadow hover:shadow-lg transition-all text-center">
+                <div class="text-2xl mb-2">✅</div>
+                <p class="font-medium text-gray-800">KYC Status</p>
+            </button>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="bg-white rounded-2xl p-6 card-shadow">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Recent Transactions</h3>
+                <button class="text-purple-600 text-sm font-medium">View All</button>
+            </div>
+            <div class="space-y-3" id="transactionsList">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <span class="text-green-600 text-sm">↓</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800">Received from John</p>
+                            <p class="text-sm text-gray-500">cereus_john#1234</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-green-600">+$25.00</p>
+                        <p class="text-xs text-gray-500">2 hours ago</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                            <span class="text-red-600 text-sm">↑</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800">Sent to Sarah</p>
+                            <p class="text-sm text-gray-500">cereus_sarah#5678</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-red-600">-$50.00</p>
+                        <p class="text-xs text-gray-500">Yesterday</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-blue-600 text-sm">📱</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800">Mobile Recharge</p>
+                            <p class="text-sm text-gray-500">+1 (555) 123-4567</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-gray-600">-$30.00</p>
+                        <p class="text-xs text-gray-500">3 days ago</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Send Money Modal -->
+    <div id="sendMoneyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Send Money</h3>
+                <button onclick="closeSendMoney()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Recipient Handle</label>
+                    <input type="text" placeholder="cereus_username#1234" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
+                    <input type="number" placeholder="0.00" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Memo (Optional)</label>
+                    <input type="text" placeholder="What's this for?" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <button onclick="showPINEntry('send')" class="w-full gradient-bg text-white py-3 rounded-xl font-medium hover:opacity-90 transition-all">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receive Money Modal -->
+    <div id="receiveMoneyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Receive Money</h3>
+                <button onclick="closeReceiveMoney()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div class="text-center space-y-4">
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <p class="text-sm text-gray-600 mb-2">Your Pay Handle</p>
+                    <p class="font-mono text-lg font-semibold text-purple-600" id="receivePayHandle">cereus_user#0000</p>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Request Amount (Optional)</label>
+                        <input type="number" placeholder="0.00" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <button onclick="generatePaymentQR()" class="w-full gradient-bg text-white py-3 rounded-xl font-medium hover:opacity-90 transition-all">
+                        Generate QR Code
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qrModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md text-center">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Your QR Code</h3>
+                <button onclick="closeQRModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <div id="qrcode" class="flex justify-center mb-4"></div>
+                    <p class="text-sm text-gray-600" id="qrPayText">Scan to pay</p>
+                </div>
+                <button onclick="shareQR()" class="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-medium hover:bg-gray-200 transition-all">
+                    Share QR Code
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN Entry Modal -->
+    <div id="pinModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md text-center">
+            <h3 class="text-lg font-semibold mb-4">Enter Your PIN</h3>
+            <div class="space-y-4">
+                <div class="flex justify-center space-x-2">
+                    <input type="password" maxlength="1" class="w-12 h-12 text-center border-2 border-gray-300 rounded-lg text-xl font-bold focus:border-purple-500 focus:outline-none pin-input" oninput="movePINFocus(this, 0)">
+                    <input type="password" maxlength="1" class="w-12 h-12 text-center border-2 border-gray-300 rounded-lg text-xl font-bold focus:border-purple-500 focus:outline-none pin-input" oninput="movePINFocus(this, 1)">
+                    <input type="password" maxlength="1" class="w-12 h-12 text-center border-2 border-gray-300 rounded-lg text-xl font-bold focus:border-purple-500 focus:outline-none pin-input" oninput="movePINFocus(this, 2)">
+                    <input type="password" maxlength="1" class="w-12 h-12 text-center border-2 border-gray-300 rounded-lg text-xl font-bold focus:border-purple-500 focus:outline-none pin-input" oninput="movePINFocus(this, 3)">
+                    <input type="password" maxlength="1" class="w-12 h-12 text-center border-2 border-gray-300 rounded-lg text-xl font-bold focus:border-purple-500 focus:outline-none pin-input" oninput="movePINFocus(this, 4)">
+                    <input type="password" maxlength="1" class="w-12 h-12 text-center border-2 border-gray-300 rounded-lg text-xl font-bold focus:border-purple-500 focus:outline-none pin-input" oninput="movePINFocus(this, 5)">
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="closePINModal()" class="flex-1 bg-gray-100 text-gray-800 py-3 rounded-xl font-medium hover:bg-gray-200 transition-all">
+                        Cancel
+                    </button>
+                    <button onclick="verifyPIN()" class="flex-1 gradient-bg text-white py-3 rounded-xl font-medium hover:opacity-90 transition-all">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KYC Status Modal -->
+    <div id="kycModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">KYC Verification</h3>
+                <button onclick="closeKYCModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div class="text-center space-y-4">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <span class="text-green-600 text-2xl">✓</span>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-green-600 mb-2">Verification Complete</h4>
+                    <p class="text-sm text-gray-600">Your identity has been verified successfully. You can now send and receive unlimited amounts.</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 text-left">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-600">Status:</span>
+                        <span class="text-sm font-medium text-green-600">Approved</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-600">Verified:</span>
+                        <span class="text-sm font-medium">Dec 15, 2024</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Daily Limit:</span>
+                        <span class="text-sm font-medium">$10,000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Recharge Modal -->
+    <div id="rechargeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Mobile Recharge</h3>
+                <button onclick="closeRechargeModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                    <input type="tel" placeholder="+1 (555) 123-4567" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Carrier</label>
+                    <select class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option>Select Carrier</option>
+                        <option>Verizon</option>
+                        <option>AT&T</option>
+                        <option>T-Mobile</option>
+                        <option>Sprint</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Recharge Amount</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="selectRechargeAmount(10)" class="p-3 border border-gray-300 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-center font-medium">$10</button>
+                        <button onclick="selectRechargeAmount(25)" class="p-3 border border-gray-300 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-center font-medium">$25</button>
+                        <button onclick="selectRechargeAmount(50)" class="p-3 border border-gray-300 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-center font-medium">$50</button>
+                    </div>
+                </div>
+                <button onclick="if(processRecharge()) showPINEntry('recharge')" class="w-full gradient-bg text-white py-3 rounded-xl font-medium hover:opacity-90 transition-all">
+                    Recharge Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Card Modal -->
+    <div id="paymentCardModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Payment Card</h3>
+                <button onclick="closePaymentCard()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            
+            <!-- Payment Card Design -->
+            <div class="bg-white border-4 border-gray-100 rounded-2xl p-6 mx-auto" style="width: 300px; height: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <!-- Top Stripe -->
+                <div class="h-2 bg-gradient-to-r from-blue-600 to-yellow-400 rounded-full mb-6" style="background: linear-gradient(90deg, #0052cc 0%, #ffcc00 100%);"></div>
+                
+                <!-- Logo and Brand -->
+                <div class="text-center mb-6">
+                    <div class="flex items-center justify-center space-x-2 mb-2">
+                        <div class="flex space-x-1">
+                            <div class="w-4 h-4 bg-blue-600 rounded-full"></div>
+                            <div class="w-4 h-4 bg-blue-600 rounded-full"></div>
+                        </div>
+                        <span class="text-xl font-bold text-gray-800">CereusPay</span>
+                    </div>
+                </div>
+                
+                <!-- QR Code -->
+                <div class="flex justify-center mb-4">
+                    <div id="paymentCardQR" class="bg-gray-100 rounded-lg p-4"></div>
+                </div>
+                
+                <!-- Pay Handle -->
+                <div class="text-center mb-6">
+                    <p class="text-sm text-gray-600 font-mono" id="cardPayHandle">cereus_harry#2708</p>
+                </div>
+                
+                <!-- Partner Logos -->
+                <div class="flex justify-center items-center space-x-4 mb-4">
+                    <div class="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">Google Pay</div>
+                    <div class="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">VISA</div>
+                    <div class="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">ORIONTEC</div>
+                </div>
+                
+                <!-- Bottom Stripe -->
+                <div class="h-2 bg-gradient-to-r from-blue-600 to-yellow-400 rounded-full" style="background: linear-gradient(90deg, #0052cc 0%, #ffcc00 100%);"></div>
+            </div>
+            
+            <div class="mt-4 space-y-2">
+                <button onclick="downloadCard()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition-all">
+                    Download Card
+                </button>
+                <button onclick="shareCard()" class="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-medium hover:bg-gray-200 transition-all">
+                    Share Card
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Referral Modal -->
+    <div id="referralModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Refer & Earn</h3>
+                <button onclick="closeReferralModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div class="text-center space-y-4">
+                <div class="bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl p-4">
+                    <h4 class="font-semibold text-purple-800 mb-2">Earn $5 for each referral!</h4>
+                    <p class="text-sm text-purple-600">Your friend gets $5 too when they sign up</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <p class="text-sm text-gray-600 mb-2">Your Referral Code</p>
+                    <p class="font-mono text-lg font-semibold text-purple-600" id="referralCodeDisplay">USER0000</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-green-600">12</p>
+                        <p class="text-sm text-gray-600">Successful Referrals</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-purple-600">$60</p>
+                        <p class="text-sm text-gray-600">Total Earned</p>
+                    </div>
+                </div>
+                <button onclick="shareReferral()" class="w-full gradient-bg text-white py-3 rounded-xl font-medium hover:opacity-90 transition-all">
+                    Share Referral Code
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAction = '';
+        let selectedRechargeAmount = 0;
+        let currentUser = null;
+        
+        // User accounts database (in production, this would be Firebase)
+        const users = {
+            'sdozera@gmail.com': {
+                uid: 'harry_uid_001',
+                name: 'Harvinder Singh Harry',
+                email: 'sdozera@gmail.com',
+                phone: '+1-797-380-4008',
+                password: '7973804008',
+                payHandle: 'cereus_harry#2708',
+                walletBalance: 27083.00,
+                kycStatus: 'approved',
+                referralCode: 'HARRY2708',
+                qrPayload: 'cereuspay://pay?handle=cereus_harry#2708'
+            },
+            '7973804008': {
+                uid: 'harry_uid_001',
+                name: 'Harvinder Singh Harry',
+                email: 'sdozera@gmail.com',
+                phone: '+1-797-380-4008',
+                password: '7973804008',
+                payHandle: 'cereus_harry#2708',
+                walletBalance: 27083.00,
+                kycStatus: 'approved',
+                referralCode: 'HARRY2708',
+                qrPayload: 'cereuspay://pay?handle=cereus_harry#2708'
+            }
+        };
+        
+        // Check if user is logged in
+        function checkAuth() {
+            const savedUser = localStorage.getItem('cereuspay_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateUserInterface();
+                return true;
+            }
+            return false;
+        }
+
+        // Authentication Functions
+        function login() {
+            const loginInput = document.getElementById('loginInput').value;
+            const password = document.getElementById('passwordInput').value;
+            
+            if (!loginInput || !password) {
+                showErrorMessage('Please enter both email/phone and password');
+                return;
+            }
+            
+            const user = users[loginInput];
+            if (user && user.password === password) {
+                currentUser = user;
+                localStorage.setItem('cereuspay_user', JSON.stringify(user));
+                showSuccessMessage('Login successful!');
+                updateUserInterface();
+                showMainApp();
+            } else {
+                showErrorMessage('Invalid credentials. Please try again.');
+            }
+        }
+        
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('cereuspay_user');
+            showLoginScreen();
+        }
+        
+        function showSignup() {
+            showSuccessMessage('Signup feature would redirect to registration flow');
+        }
+        
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+        
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+        }
+        
+        function updateUserInterface() {
+            if (currentUser) {
+                // Update wallet balance
+                document.getElementById('walletBalance').textContent = `$${currentUser.walletBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                
+                // Update pay handle
+                document.getElementById('payHandle').textContent = currentUser.payHandle;
+                document.getElementById('cardPayHandle').textContent = currentUser.payHandle;
+                document.getElementById('receivePayHandle').textContent = currentUser.payHandle;
+                document.getElementById('qrPayText').textContent = `Scan to pay ${currentUser.payHandle}`;
+                
+                // Update navigation
+                document.getElementById('navWelcome').textContent = `Welcome, ${currentUser.name.split(' ')[0]}`;
+                document.getElementById('profileInitial').textContent = currentUser.name.charAt(0).toUpperCase();
+                
+                // Update referral code
+                document.getElementById('referralCodeDisplay').textContent = currentUser.referralCode;
+            }
+        }
+
+        // Modal Functions
+        function showSendMoney() {
+            document.getElementById('sendMoneyModal').classList.remove('hidden');
+        }
+
+        function closeSendMoney() {
+            document.getElementById('sendMoneyModal').classList.add('hidden');
+        }
+
+        function showReceiveMoney() {
+            document.getElementById('receiveMoneyModal').classList.remove('hidden');
+        }
+
+        function closeReceiveMoney() {
+            document.getElementById('receiveMoneyModal').classList.add('hidden');
+        }
+
+        function showQRCode() {
+            document.getElementById('qrModal').classList.remove('hidden');
+            generateQRCode();
+        }
+
+        function closeQRModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+            document.getElementById('qrcode').innerHTML = '';
+        }
+
+        function showKYCStatus() {
+            document.getElementById('kycModal').classList.remove('hidden');
+        }
+
+        function closeKYCModal() {
+            document.getElementById('kycModal').classList.add('hidden');
+        }
+
+        function showMobileRecharge() {
+            document.getElementById('rechargeModal').classList.remove('hidden');
+        }
+
+        function closeRechargeModal() {
+            document.getElementById('rechargeModal').classList.add('hidden');
+        }
+
+        function showReferrals() {
+            document.getElementById('referralModal').classList.remove('hidden');
+        }
+
+        function closeReferralModal() {
+            document.getElementById('referralModal').classList.add('hidden');
+        }
+        
+        function showPaymentCard() {
+            document.getElementById('paymentCardModal').classList.remove('hidden');
+            generatePaymentCardQR();
+        }
+        
+        function closePaymentCard() {
+            document.getElementById('paymentCardModal').classList.add('hidden');
+            document.getElementById('paymentCardQR').innerHTML = '';
+        }
+
+        function showPINEntry(action) {
+            currentAction = action;
+            document.getElementById('pinModal').classList.remove('hidden');
+            // Focus first PIN input
+            document.querySelector('.pin-input').focus();
+        }
+
+        function closePINModal() {
+            document.getElementById('pinModal').classList.add('hidden');
+            // Clear PIN inputs
+            document.querySelectorAll('.pin-input').forEach(input => input.value = '');
+        }
+
+        // QR Code Generation
+        function generateQRCode() {
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            
+            if (!currentUser) {
+                showErrorMessage('Please login to generate QR code');
+                return;
+            }
+            
+            const qrData = currentUser.qrPayload;
+            
+            QRCode.toCanvas(qrContainer, qrData, {
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff'
+            }, function (error) {
+                if (error) console.error(error);
+            });
+        }
+        
+        function generatePaymentCardQR() {
+            const qrContainer = document.getElementById('paymentCardQR');
+            qrContainer.innerHTML = '';
+            
+            if (!currentUser) {
+                showErrorMessage('Please login to generate payment card');
+                return;
+            }
+            
+            const qrData = currentUser.qrPayload;
+            
+            QRCode.toCanvas(qrContainer, qrData, {
+                width: 150,
+                height: 150,
+                colorDark: '#000000',
+                colorLight: '#ffffff'
+            }, function (error) {
+                if (error) console.error(error);
+            });
+        }
+
+        function generatePaymentQR() {
+            if (!currentUser) {
+                showErrorMessage('Please login to generate payment QR');
+                return;
+            }
+            
+            const amount = document.querySelector('#receiveMoneyModal input[type="number"]').value;
+            let qrData = currentUser.qrPayload;
+            if (amount) {
+                qrData += `&amount=${amount}`;
+            }
+            
+            closeReceiveMoney();
+            showQRCode();
+        }
+
+        // PIN Input Handling
+        function movePINFocus(input, index) {
+            if (input.value.length === 1 && index < 5) {
+                document.querySelectorAll('.pin-input')[index + 1].focus();
+            }
+            
+            // Check if all PIN fields are filled
+            const pinInputs = document.querySelectorAll('.pin-input');
+            const allFilled = Array.from(pinInputs).every(input => input.value.length === 1);
+            
+            if (allFilled) {
+                // Auto-verify after a short delay
+                setTimeout(() => {
+                    verifyPIN();
+                }, 500);
+            }
+        }
+
+        function verifyPIN() {
+            const pinInputs = document.querySelectorAll('.pin-input');
+            const pin = Array.from(pinInputs).map(input => input.value).join('');
+            
+            if (pin.length === 6) {
+                // Simulate PIN verification
+                closePINModal();
+                
+                if (currentAction === 'send') {
+                    closeSendMoney();
+                    showSuccessMessage('Money sent successfully!');
+                    addTransaction('Sent to cereus_user#1234', '-$25.00', 'now');
+                } else if (currentAction === 'recharge') {
+                    closeRechargeModal();
+                    showSuccessMessage(`Mobile recharged with $${selectedRechargeAmount}!`);
+                    addTransaction('Mobile Recharge', `-$${selectedRechargeAmount}.00`, 'now');
+                }
+            }
+        }
+
+        // Recharge Amount Selection
+        function selectRechargeAmount(amount) {
+            selectedRechargeAmount = amount;
+            // Highlight selected amount
+            document.querySelectorAll('#rechargeModal button').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-50');
+                btn.classList.add('border-gray-300');
+            });
+            event.target.classList.remove('border-gray-300');
+            event.target.classList.add('border-purple-500', 'bg-purple-50');
+        }
+
+        // Transaction Management
+        function addTransaction(description, amount, time) {
+            const transactionsList = document.getElementById('transactionsList');
+            const isPositive = amount.startsWith('+');
+            const icon = isPositive ? '↓' : '↑';
+            const colorClass = isPositive ? 'green' : 'red';
+            
+            const transactionHTML = `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-${colorClass}-100 rounded-full flex items-center justify-center">
+                            <span class="text-${colorClass}-600 text-sm">${icon}</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800">${description}</p>
+                            <p class="text-sm text-gray-500">Transaction completed</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-${colorClass}-600">${amount}</p>
+                        <p class="text-xs text-gray-500">${time}</p>
+                    </div>
+                </div>
+            `;
+            
+            transactionsList.insertAdjacentHTML('afterbegin', transactionHTML);
+            
+            // Update balance (simplified)
+            const currentBalance = parseFloat(document.getElementById('walletBalance').textContent.replace('$', '').replace(',', ''));
+            const transactionAmount = parseFloat(amount.replace('$', '').replace('+', '').replace('-', ''));
+            const newBalance = isPositive ? currentBalance + transactionAmount : currentBalance - transactionAmount;
+            document.getElementById('walletBalance').textContent = `$${newBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+        }
+
+        // Success Message
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50';
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+        
+        // Error Message
+        function showErrorMessage(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg z-50';
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 3000);
+        }
+
+        // Share Functions
+        function shareQR() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Pay me with CereusPay',
+                    text: 'Scan this QR code to send me money instantly!',
+                    url: window.location.href
+                });
+            } else {
+                showSuccessMessage('QR code copied to clipboard!');
+            }
+        }
+
+        function shareReferral() {
+            if (!currentUser) {
+                showErrorMessage('Please login to share referral code');
+                return;
+            }
+            
+            const referralCode = currentUser.referralCode;
+            const message = `Join CereusPay with my referral code ${referralCode} and we both get $5! Download the app now.`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Join CereusPay',
+                    text: message
+                });
+            } else {
+                navigator.clipboard.writeText(message);
+                showSuccessMessage('Referral message copied to clipboard!');
+            }
+        }
+
+        // Scan to Pay (Camera simulation)
+        function showScanToPay() {
+            showSuccessMessage('Camera feature would open here for QR scanning');
+        }
+
+        // Card Functions
+        function downloadCard() {
+            // Convert payment card to image and download
+            const card = document.querySelector('#paymentCardModal .bg-white.border-4');
+            showSuccessMessage('Payment card downloaded successfully!');
+        }
+        
+        function shareCard() {
+            if (!currentUser) {
+                showErrorMessage('Please login to share payment card');
+                return;
+            }
+            
+            const payHandle = currentUser.payHandle;
+            const message = `Pay me instantly with CereusPay! My handle: ${payHandle}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'CereusPay Payment Card',
+                    text: message
+                });
+            } else {
+                navigator.clipboard.writeText(message);
+                showSuccessMessage('Payment card details copied to clipboard!');
+            }
+        }
+
+        // Profile
+        function showProfile() {
+            const profileOptions = [
+                'Account Settings',
+                'Security & PIN',
+                'Transaction Limits',
+                'Help & Support',
+                'Logout'
+            ];
+            
+            if (confirm('Profile Menu:\n1. Account Settings\n2. Security & PIN\n3. Transaction Limits\n4. Help & Support\n5. Logout\n\nClick OK to logout or Cancel to stay')) {
+                logout();
+            }
+        }
+
+        // US Phone Number Validation
+        function validateUSPhone(phone) {
+            // Basic US phone validation
+            const usPhoneRegex = /^(\+1|1)?[-.\s]?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})$/;
+            return usPhoneRegex.test(phone);
+        }
+        
+        // Enhanced Mobile Recharge with US validation
+        function processRecharge() {
+            const phoneInput = document.querySelector('#rechargeModal input[type="tel"]');
+            const phone = phoneInput.value;
+            
+            if (!validateUSPhone(phone)) {
+                showErrorMessage('Please enter a valid US phone number');
+                return false;
+            }
+            
+            if (selectedRechargeAmount === 0) {
+                showErrorMessage('Please select a recharge amount');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is already logged in
+            if (checkAuth()) {
+                showMainApp();
+            } else {
+                showLoginScreen();
+            }
+            
+            // Add some initial animation to login screen
+            setTimeout(() => {
+                const loginCard = document.querySelector('#loginScreen .bg-white');
+                if (loginCard) {
+                    loginCard.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        loginCard.style.transform = 'scale(1)';
+                    }, 200);
+                }
+            }, 500);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c4d25a90311bb0',t:'MTc1NDcxNzAwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
