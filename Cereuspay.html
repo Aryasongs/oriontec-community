@@ -12,6 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.10.44/bundle/libphonenumber-js.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -615,6 +616,381 @@
             );
         };
 
+        // QR Scan Component
+        const QRScanScreen = ({ user, onBack, audioContext }) => {
+            const videoRef = useRef(null);
+            const canvasRef = useRef(null);
+            const [scanning, setScanning] = useState(false);
+            const [error, setError] = useState('');
+            const [scannedData, setScannedData] = useState(null);
+            const [amount, setAmount] = useState('');
+            const [memo, setMemo] = useState('');
+            const [pin, setPin] = useState('');
+            const [processing, setProcessing] = useState(false);
+            const [success, setSuccess] = useState(false);
+            const scanIntervalRef = useRef(null);
+
+            useEffect(() => {
+                startCamera();
+                return () => {
+                    stopCamera();
+                };
+            }, []);
+
+            const startCamera = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'environment' }
+                    });
+                    
+                    if (videoRef.current) {
+                        videoRef.current.srcObject = stream;
+                        videoRef.current.play();
+                        setScanning(true);
+                        startScanning();
+                    }
+                } catch (error) {
+                    setError('Camera access denied. Please allow camera permissions.');
+                }
+            };
+
+            const stopCamera = () => {
+                if (videoRef.current && videoRef.current.srcObject) {
+                    const tracks = videoRef.current.srcObject.getTracks();
+                    tracks.forEach(track => track.stop());
+                }
+                if (scanIntervalRef.current) {
+                    clearInterval(scanIntervalRef.current);
+                }
+                setScanning(false);
+            };
+
+            const startScanning = () => {
+                scanIntervalRef.current = setInterval(() => {
+                    if (videoRef.current && canvasRef.current && scanning) {
+                        const video = videoRef.current;
+                        const canvas = canvasRef.current;
+                        const context = canvas.getContext('2d');
+                        
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+                        
+                        if (qrCode) {
+                            handleQRDetected(qrCode.data);
+                        }
+                    }
+                }, 300);
+            };
+
+            const handleQRDetected = (data) => {
+                try {
+                    // Check if it's a CereusPay QR code
+                    if (data.startsWith('cereuspay://pay?')) {
+                        const url = new URL(data);
+                        const handle = url.searchParams.get('handle');
+                        const qrAmount = url.searchParams.get('amount');
+                        const qrMemo = url.searchParams.get('memo');
+                        
+                        if (handle) {
+                            setScannedData({
+                                handle: handle,
+                                amount: qrAmount || '',
+                                memo: qrMemo || ''
+                            });
+                            setAmount(qrAmount || '');
+                            setMemo(qrMemo || '');
+                            stopCamera();
+                        }
+                    } else {
+                        setError('Invalid QR code. Please scan a CereusPay payment QR code.');
+                        setTimeout(() => setError(''), 3000);
+                    }
+                } catch (error) {
+                    setError('Invalid QR code format.');
+                    setTimeout(() => setError(''), 3000);
+                }
+            };
+
+            const handlePayment = async (e) => {
+                e.preventDefault();
+                setProcessing(true);
+                setError('');
+
+                try {
+                    // Validate amount
+                    const sendAmount = parseFloat(amount);
+                    if (sendAmount <= 0 || sendAmount > user.balance) {
+                        throw new Error('Invalid amount or insufficient balance');
+                    }
+
+                    // Verify PIN
+                    if (!user.pinSet) {
+                        throw new Error('Please set your UPI PIN first');
+                    }
+                    
+                    const hashedPin = await hashPIN(pin, user.salt);
+                    if (hashedPin !== user.pinHash) {
+                        throw new Error('Invalid PIN');
+                    }
+
+                    // Find recipient by handle
+                    const recipientDoc = await db.collection('users').where('payHandle', '==', scannedData.handle).get();
+
+                    if (recipientDoc.empty) {
+                        throw new Error('Recipient not found');
+                    }
+
+                    const recipientData = recipientDoc.docs[0].data();
+                    const recipientId = recipientDoc.docs[0].id;
+
+                    // Check if trying to pay self
+                    if (recipientId === user.uid) {
+                        throw new Error('Cannot send money to yourself');
+                    }
+
+                    // Process transaction
+                    const transactionId = Date.now().toString();
+                    
+                    // Update balances
+                    await db.collection('users').doc(user.uid).update({
+                        balance: firebase.firestore.FieldValue.increment(-sendAmount)
+                    });
+                    
+                    await db.collection('users').doc(recipientId).update({
+                        balance: firebase.firestore.FieldValue.increment(sendAmount)
+                    });
+
+                    // Record transactions
+                    const transactionData = {
+                        amount: sendAmount,
+                        currency: 'USD',
+                        type: 'send',
+                        status: 'completed',
+                        counterparty: recipientData.payHandle,
+                        memo: memo,
+                        method: 'qr_scan',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+
+                    await db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId).set(transactionData);
+                    
+                    await db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId).set({
+                        ...transactionData,
+                        type: 'receive',
+                        counterparty: user.payHandle
+                    });
+
+                    // Play success sound
+                    if (audioContext) {
+                        audioContext.playSuccessSound();
+                    }
+
+                    setSuccess(true);
+                    setTimeout(() => {
+                        onBack();
+                    }, 2000);
+
+                } catch (error) {
+                    setError(error.message);
+                }
+                setProcessing(false);
+            };
+
+            if (success) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                        <div className="text-center success-animation">
+                            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <h2 className="text-2xl font-bold text-green-600 mb-2">Payment Sent!</h2>
+                            <p className="text-gray-600">{formatCurrency(parseFloat(amount))} sent via QR scan</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (scannedData) {
+                return (
+                    <div className="min-h-screen bg-gray-50 py-6 px-4">
+                        <div className="max-w-md mx-auto">
+                            <div className="flex items-center mb-6">
+                                <button onClick={() => {
+                                    setScannedData(null);
+                                    setAmount('');
+                                    setMemo('');
+                                    setPin('');
+                                    startCamera();
+                                }} className="mr-4 p-2 hover:bg-gray-200 rounded-full">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <h1 className="text-2xl font-bold">Confirm Payment</h1>
+                            </div>
+
+                            <div className="bg-white rounded-lg shadow p-6">
+                                <div className="mb-4 p-3 bg-green-50 rounded-lg">
+                                    <div className="flex items-center">
+                                        <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span className="text-sm text-green-800 font-medium">QR Code Scanned Successfully</span>
+                                    </div>
+                                </div>
+
+                                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                                    <p className="text-sm text-blue-800">
+                                        Balance: {formatCurrency(user.balance)}
+                                    </p>
+                                    <p className="text-sm text-blue-600 mt-1">
+                                        Paying to: {scannedData.handle}
+                                    </p>
+                                </div>
+
+                                {error && (
+                                    <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded">
+                                        {error}
+                                    </div>
+                                )}
+
+                                <form onSubmit={handlePayment} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Amount (USD)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0.01"
+                                            required
+                                            value={amount}
+                                            onChange={(e) => setAmount(e.target.value)}
+                                            placeholder="0.00"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Memo (Optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={memo}
+                                            onChange={(e) => setMemo(e.target.value)}
+                                            placeholder="What's this for?"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            6-Digit PIN
+                                        </label>
+                                        <input
+                                            type="password"
+                                            maxLength="6"
+                                            required
+                                            value={pin}
+                                            onChange={(e) => setPin(e.target.value)}
+                                            placeholder="••••••"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="w-full py-3 px-4 bg-brand-blue text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                    >
+                                        {processing ? (
+                                            <div className="flex items-center justify-center">
+                                                <div className="loading-spinner mr-2"></div>
+                                                Processing...
+                                            </div>
+                                        ) : (
+                                            `Pay ${amount ? formatCurrency(parseFloat(amount)) : '$0.00'}`
+                                        )}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    <div className="max-w-md mx-auto">
+                        <div className="flex items-center p-4">
+                            <button onClick={onBack} className="mr-4 p-2 hover:bg-gray-200 rounded-full">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <h1 className="text-2xl font-bold">Scan QR Code</h1>
+                        </div>
+
+                        <div className="relative">
+                            <video
+                                ref={videoRef}
+                                className="w-full h-96 object-cover bg-black"
+                                playsInline
+                                muted
+                            />
+                            <canvas ref={canvasRef} className="hidden" />
+                            
+                            {/* Scanning overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-64 h-64 border-2 border-white rounded-lg relative">
+                                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-500 rounded-tl-lg"></div>
+                                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-500 rounded-tr-lg"></div>
+                                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-500 rounded-bl-lg"></div>
+                                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-500 rounded-br-lg"></div>
+                                    
+                                    {scanning && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="w-full h-1 bg-blue-500 opacity-75 animate-pulse"></div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4">
+                            {error && (
+                                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded">
+                                    {error}
+                                </div>
+                            )}
+                            
+                            <div className="bg-white rounded-lg p-4 shadow-sm">
+                                <div className="flex items-center mb-3">
+                                    <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span className="font-medium text-gray-800">How to scan</span>
+                                </div>
+                                <ul className="text-sm text-gray-600 space-y-1">
+                                    <li>• Point your camera at a CereusPay QR code</li>
+                                    <li>• Make sure the QR code is within the frame</li>
+                                    <li>• Hold steady until the code is detected</li>
+                                    <li>• Only CereusPay payment QR codes are supported</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // Transaction History Component
         const TransactionHistory = ({ user, onBack }) => {
             const [transactions, setTransactions] = useState([]);
@@ -741,6 +1117,526 @@
             );
         };
 
+        // Profile Screen Component
+        const ProfileScreen = ({ user, userData, onBack, onUpdate }) => {
+            const [activeTab, setActiveTab] = useState('profile');
+            const [loading, setLoading] = useState(false);
+            const [success, setSuccess] = useState('');
+            const [error, setError] = useState('');
+            
+            // Profile form state
+            const [profileData, setProfileData] = useState({
+                fullName: userData?.fullName || '',
+                phone: userData?.phone || '',
+                address: userData?.address || '',
+                city: userData?.city || '',
+                state: userData?.state || '',
+                zipCode: userData?.zipCode || ''
+            });
+
+            // KYC form state
+            const [kycData, setKycData] = useState({
+                panNumber: userData?.panNumber || '',
+                aadharNumber: userData?.aadharNumber || '',
+                dateOfBirth: userData?.dateOfBirth || '',
+                occupation: userData?.occupation || ''
+            });
+
+            const handleProfileUpdate = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+
+                try {
+                    await db.collection('users').doc(user.uid).update({
+                        ...profileData,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    setSuccess('Profile updated successfully!');
+                    onUpdate();
+                    setTimeout(() => setSuccess(''), 3000);
+                } catch (error) {
+                    setError('Failed to update profile: ' + error.message);
+                }
+                setLoading(false);
+            };
+
+            const handleKYCSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+
+                try {
+                    await db.collection('users').doc(user.uid).update({
+                        ...kycData,
+                        kycStatus: 'submitted',
+                        kycSubmittedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    // Simulate approval after 3 seconds for demo
+                    setTimeout(async () => {
+                        await db.collection('users').doc(user.uid).update({
+                            kycStatus: 'approved',
+                            kycApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        onUpdate();
+                    }, 3000);
+
+                    setSuccess('KYC documents submitted successfully! Approval typically takes 24-48 hours.');
+                    onUpdate();
+                    setTimeout(() => setSuccess(''), 5000);
+                } catch (error) {
+                    setError('Failed to submit KYC: ' + error.message);
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 py-6 px-4">
+                    <div className="max-w-md mx-auto">
+                        <div className="flex items-center mb-6">
+                            <button onClick={onBack} className="mr-4 p-2 hover:bg-gray-200 rounded-full">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <h1 className="text-2xl font-bold">Profile & KYC</h1>
+                        </div>
+
+                        {/* Tab Navigation */}
+                        <div className="flex mb-6 bg-white rounded-lg p-1 shadow-sm">
+                            <button
+                                onClick={() => setActiveTab('profile')}
+                                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                                    activeTab === 'profile'
+                                        ? 'bg-brand-blue text-white'
+                                        : 'text-gray-600 hover:text-gray-800'
+                                }`}
+                            >
+                                Profile
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('kyc')}
+                                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                                    activeTab === 'kyc'
+                                        ? 'bg-brand-blue text-white'
+                                        : 'text-gray-600 hover:text-gray-800'
+                                }`}
+                            >
+                                KYC Verification
+                            </button>
+                        </div>
+
+                        {success && (
+                            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-600 rounded">
+                                {success}
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded">
+                                {error}
+                            </div>
+                        )}
+
+                        {/* Profile Tab */}
+                        {activeTab === 'profile' && (
+                            <div className="bg-white rounded-lg shadow p-6">
+                                <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
+                                
+                                <form onSubmit={handleProfileUpdate} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Full Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={profileData.fullName}
+                                            onChange={(e) => setProfileData({...profileData, fullName: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Phone Number
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={profileData.phone}
+                                            onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Address
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={profileData.address}
+                                            onChange={(e) => setProfileData({...profileData, address: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                City
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={profileData.city}
+                                                onChange={(e) => setProfileData({...profileData, city: e.target.value})}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                State
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={profileData.state}
+                                                onChange={(e) => setProfileData({...profileData, state: e.target.value})}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            ZIP Code
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={profileData.zipCode}
+                                            onChange={(e) => setProfileData({...profileData, zipCode: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full py-3 px-4 bg-brand-blue text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                    >
+                                        {loading ? (
+                                            <div className="flex items-center justify-center">
+                                                <div className="loading-spinner mr-2"></div>
+                                                Updating...
+                                            </div>
+                                        ) : (
+                                            'Update Profile'
+                                        )}
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+
+                        {/* KYC Tab */}
+                        {activeTab === 'kyc' && (
+                            <div className="bg-white rounded-lg shadow p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-lg font-semibold">KYC Verification</h2>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                        userData?.kycStatus === 'approved' 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : userData?.kycStatus === 'submitted'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : 'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                        {userData?.kycStatus === 'approved' ? 'Verified' : 
+                                         userData?.kycStatus === 'submitted' ? 'Under Review' : 'Pending'}
+                                    </span>
+                                </div>
+
+                                {userData?.kycStatus === 'approved' ? (
+                                    <div className="text-center py-8">
+                                        <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-green-600 mb-2">KYC Verified!</h3>
+                                        <p className="text-gray-600">Your account is fully verified and all features are unlocked.</p>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleKYCSubmit} className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                PAN Number
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={kycData.panNumber}
+                                                onChange={(e) => setKycData({...kycData, panNumber: e.target.value.toUpperCase()})}
+                                                placeholder="ABCDE1234F"
+                                                maxLength="10"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Aadhar Number
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={kycData.aadharNumber}
+                                                onChange={(e) => setKycData({...kycData, aadharNumber: e.target.value})}
+                                                placeholder="1234 5678 9012"
+                                                maxLength="12"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Date of Birth
+                                            </label>
+                                            <input
+                                                type="date"
+                                                required
+                                                value={kycData.dateOfBirth}
+                                                onChange={(e) => setKycData({...kycData, dateOfBirth: e.target.value})}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Occupation
+                                            </label>
+                                            <select
+                                                required
+                                                value={kycData.occupation}
+                                                onChange={(e) => setKycData({...kycData, occupation: e.target.value})}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                <option value="">Select Occupation</option>
+                                                <option value="student">Student</option>
+                                                <option value="employed">Employed</option>
+                                                <option value="self-employed">Self Employed</option>
+                                                <option value="business">Business Owner</option>
+                                                <option value="retired">Retired</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="bg-blue-50 p-4 rounded-lg">
+                                            <div className="flex items-start">
+                                                <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <div className="text-sm text-blue-800">
+                                                    <p className="font-medium mb-1">KYC Requirements:</p>
+                                                    <ul className="list-disc list-inside space-y-1">
+                                                        <li>Valid PAN card number</li>
+                                                        <li>Valid Aadhar card number</li>
+                                                        <li>Accurate personal information</li>
+                                                        <li>Verification typically takes 24-48 hours</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={loading || userData?.kycStatus === 'submitted'}
+                                            className="w-full py-3 px-4 bg-brand-blue text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                        >
+                                            {loading ? (
+                                                <div className="flex items-center justify-center">
+                                                    <div className="loading-spinner mr-2"></div>
+                                                    Submitting...
+                                                </div>
+                                            ) : userData?.kycStatus === 'submitted' ? (
+                                                'KYC Under Review'
+                                            ) : (
+                                                'Submit KYC Documents'
+                                            )}
+                                        </button>
+                                    </form>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // PIN Setup Screen Component
+        const PINSetupScreen = ({ user, onBack, onPINSet }) => {
+            const [pin, setPin] = useState('');
+            const [confirmPin, setConfirmPin] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const [success, setSuccess] = useState(false);
+
+            const handlePINSetup = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+
+                try {
+                    if (pin !== confirmPin) {
+                        throw new Error('PINs do not match');
+                    }
+
+                    if (pin.length !== 6) {
+                        throw new Error('PIN must be exactly 6 digits');
+                    }
+
+                    if (!/^\d+$/.test(pin)) {
+                        throw new Error('PIN must contain only numbers');
+                    }
+
+                    // Generate salt and hash PIN
+                    const salt = generateSalt();
+                    const hashedPin = await hashPIN(pin, salt);
+
+                    // Update user document
+                    await db.collection('users').doc(user.uid).update({
+                        pinHash: hashedPin,
+                        salt: salt,
+                        pinSet: true,
+                        pinSetAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    setSuccess(true);
+                    setTimeout(() => {
+                        onPINSet();
+                    }, 2000);
+
+                } catch (error) {
+                    setError(error.message);
+                }
+                setLoading(false);
+            };
+
+            if (success) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                        <div className="text-center success-animation">
+                            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <h2 className="text-2xl font-bold text-green-600 mb-2">PIN Set Successfully!</h2>
+                            <p className="text-gray-600">Your UPI PIN has been created securely</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50 py-6 px-4">
+                    <div className="max-w-md mx-auto">
+                        <div className="flex items-center mb-6">
+                            <button onClick={onBack} className="mr-4 p-2 hover:bg-gray-200 rounded-full">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <h1 className="text-2xl font-bold">Set UPI PIN</h1>
+                        </div>
+
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <div className="mb-6">
+                                <div className="flex items-center mb-3">
+                                    <svg className="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                    <h2 className="text-lg font-semibold">Create Your 6-Digit PIN</h2>
+                                </div>
+                                <p className="text-sm text-gray-600">
+                                    This PIN will be used to authorize all your transactions. Keep it secure and don't share it with anyone.
+                                </p>
+                            </div>
+
+                            {error && (
+                                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded">
+                                    {error}
+                                </div>
+                            )}
+
+                            <form onSubmit={handlePINSetup} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Enter 6-Digit PIN
+                                    </label>
+                                    <input
+                                        type="password"
+                                        maxLength="6"
+                                        required
+                                        value={pin}
+                                        onChange={(e) => setPin(e.target.value)}
+                                        placeholder="••••••"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg tracking-widest"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Confirm PIN
+                                    </label>
+                                    <input
+                                        type="password"
+                                        maxLength="6"
+                                        required
+                                        value={confirmPin}
+                                        onChange={(e) => setConfirmPin(e.target.value)}
+                                        placeholder="••••••"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg tracking-widest"
+                                    />
+                                </div>
+
+                                <div className="bg-yellow-50 p-4 rounded-lg">
+                                    <div className="flex items-start">
+                                        <svg className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                        <div className="text-sm text-yellow-800">
+                                            <p className="font-medium mb-1">Security Tips:</p>
+                                            <ul className="list-disc list-inside space-y-1">
+                                                <li>Use a unique 6-digit combination</li>
+                                                <li>Don't use obvious patterns (123456, 111111)</li>
+                                                <li>Don't share your PIN with anyone</li>
+                                                <li>You can change your PIN anytime in settings</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading || pin.length !== 6 || confirmPin.length !== 6}
+                                    className="w-full py-3 px-4 bg-brand-blue text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                >
+                                    {loading ? (
+                                        <div className="flex items-center justify-center">
+                                            <div className="loading-spinner mr-2"></div>
+                                            Setting PIN...
+                                        </div>
+                                    ) : (
+                                        'Set PIN'
+                                    )}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // Main App Component
         const CereusPayApp = () => {
             const [user, setUser] = useState(null);
@@ -853,6 +1749,16 @@
                 );
             }
 
+            if (currentScreen === 'qr-scan') {
+                return (
+                    <QRScanScreen
+                        user={userData}
+                        onBack={() => setCurrentScreen('home')}
+                        audioContext={audioContext}
+                    />
+                );
+            }
+
             if (currentScreen === 'receive') {
                 return (
                     <div className="min-h-screen bg-gray-50 py-6 px-4">
@@ -915,16 +1821,28 @@
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="grid grid-cols-3 gap-3 mb-6">
                             <button
                                 onClick={() => setCurrentScreen('send')}
                                 className="bg-brand-blue text-white p-4 rounded-lg hover:bg-blue-700 transition-colors"
                             >
                                 <div className="text-center">
-                                    <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                     </svg>
-                                    <span className="font-medium">Send Money</span>
+                                    <span className="font-medium text-sm">Send</span>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setCurrentScreen('qr-scan')}
+                                className="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition-colors"
+                            >
+                                <div className="text-center">
+                                    <svg className="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                    </svg>
+                                    <span className="font-medium text-sm">Scan QR</span>
                                 </div>
                             </button>
 
@@ -933,10 +1851,10 @@
                                 className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors"
                             >
                                 <div className="text-center">
-                                    <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                                     </svg>
-                                    <span className="font-medium">Receive</span>
+                                    <span className="font-medium text-sm">Receive</span>
                                 </div>
                             </button>
                         </div>
@@ -1058,5 +1976,5 @@
         // Render the app
         ReactDOM.render(<CereusPayApp />, document.getElementById('root'));
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c4fbcdd50991d3',t:'MTc1NDcxODcwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c50219c09d5492',t:'MTc1NDcxODk2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
