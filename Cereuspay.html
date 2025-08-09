@@ -89,6 +89,14 @@
         const db = firebase.firestore();
         const functions = firebase.functions();
 
+        // Configure Firestore settings for better offline support
+        db.settings({
+            cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+        });
+        db.enablePersistence().catch((err) => {
+            console.log('Firestore persistence error:', err);
+        });
+
         // Audio for payment notifications
         const createAudioContext = () => {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -148,8 +156,8 @@
         const generateQRCode = async (payload) => {
             try {
                 const qrDataURL = await QRCode.toDataURL(payload, {
-                    width: 256,
-                    height: 256,
+                    width: 300,
+                    height: 300,
                     margin: 2,
                     color: {
                         dark: '#000000',
@@ -160,16 +168,31 @@
                 return qrDataURL;
             } catch (error) {
                 console.error('QR Code generation failed:', error);
-                // Fallback QR code generation
+                // Create fallback placeholder image
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = 256;
-                canvas.height = 256;
+                canvas.width = 300;
+                canvas.height = 300;
+                
+                // White background
                 ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, 256, 256);
-                ctx.fillStyle = '#000000';
-                ctx.font = '12px Arial';
-                ctx.fillText('QR Code', 100, 128);
+                ctx.fillRect(0, 0, 300, 300);
+                
+                // Gray border
+                ctx.strokeStyle = '#E5E7EB';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(1, 1, 298, 298);
+                
+                // QR Code text
+                ctx.fillStyle = '#6B7280';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('QR Code', 150, 140);
+                
+                // Subtitle
+                ctx.font = '14px Arial';
+                ctx.fillText('Unable to generate', 150, 170);
+                
                 return canvas.toDataURL();
             }
         };
@@ -220,24 +243,80 @@
         const PaymentCard = ({ user }) => {
             const [qrCode, setQrCode] = useState(null);
             const [generating, setGenerating] = useState(false);
+            const [error, setError] = useState(null);
 
             useEffect(() => {
                 const generateQR = async () => {
-                    if (user?.payHandle && !qrCode && !generating) {
+                    // Skip if already generating or no user data
+                    if (generating || !user) return;
+
+                    // Case 1: QR code already exists in user data
+                    if (user.qrCode) {
+                        setQrCode(user.qrCode);
+                        setError(null);
+                        return;
+                    }
+
+                    // Case 2: QR payload exists but no QR code
+                    if (user.qrPayload) {
+                        setGenerating(true);
+                        try {
+                            const generatedQR = await generateQRCode(user.qrPayload);
+                            setQrCode(generatedQR);
+                            setError(null);
+                            
+                            // Optionally save to Firestore for future use
+                            if (user.uid) {
+                                try {
+                                    await db.collection('users').doc(user.uid).update({
+                                        qrCode: generatedQR
+                                    });
+                                } catch (dbError) {
+                                    console.log('Could not save QR to database:', dbError);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Failed to generate QR from payload:', error);
+                            setError('QR generation failed');
+                        }
+                        setGenerating(false);
+                        return;
+                    }
+
+                    // Case 3: Only payHandle exists, generate payload and QR
+                    if (user.payHandle) {
                         setGenerating(true);
                         try {
                             const qrPayload = generateQRPayload(user.payHandle);
                             const generatedQR = await generateQRCode(qrPayload);
                             setQrCode(generatedQR);
+                            setError(null);
+                            
+                            // Save both payload and QR to Firestore for future use
+                            if (user.uid) {
+                                try {
+                                    await db.collection('users').doc(user.uid).update({
+                                        qrPayload: qrPayload,
+                                        qrCode: generatedQR
+                                    });
+                                } catch (dbError) {
+                                    console.log('Could not save QR data to database:', dbError);
+                                }
+                            }
                         } catch (error) {
-                            console.error('Failed to generate QR code:', error);
+                            console.error('Failed to generate QR from payHandle:', error);
+                            setError('QR generation failed');
                         }
                         setGenerating(false);
+                        return;
                     }
+
+                    // Case 4: No data available for QR generation
+                    setError('No payment handle available');
                 };
 
                 generateQR();
-            }, [user?.payHandle, qrCode, generating]);
+            }, [user, generating]); // Trigger on any user change
 
             return (
                 <div className="payment-card w-full max-w-sm mx-auto p-6 rounded-lg">
@@ -250,16 +329,32 @@
                     {/* QR Code */}
                     <div className="qr-container mb-4">
                         {qrCode ? (
-                            <img src={qrCode} alt="Payment QR Code" className="w-full h-auto max-w-64 mx-auto" />
+                            <img 
+                                src={qrCode} 
+                                alt="Payment QR Code" 
+                                className="w-full h-auto max-w-72 mx-auto rounded-lg" 
+                            />
                         ) : (
-                            <div className="w-64 h-64 bg-gray-200 flex items-center justify-center mx-auto rounded-lg">
+                            <div className="w-72 h-72 bg-gray-200 flex items-center justify-center mx-auto rounded-lg">
                                 {generating ? (
                                     <div className="text-center">
                                         <div className="loading-spinner mx-auto mb-2"></div>
                                         <span className="text-gray-500 text-sm">Generating QR...</span>
                                     </div>
+                                ) : error ? (
+                                    <div className="text-center">
+                                        <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                        <span className="text-gray-500 text-sm">{error}</span>
+                                    </div>
                                 ) : (
-                                    <span className="text-gray-500">QR Code</span>
+                                    <div className="text-center">
+                                        <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                        </svg>
+                                        <span className="text-gray-500 text-sm">Loading QR Code...</span>
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -323,8 +418,8 @@
                         const isSpecialAccount = email === 'sdozera@gmail.com';
                         const initialBalance = isSpecialAccount ? 27083 : 0;
                         
-                        // Create user profile
-                        await db.collection('users').doc(user.uid).set({
+                        // Create user profile with retry mechanism
+                        const userData = {
                             email: email,
                             phone: phone,
                             username: username,
@@ -335,15 +430,39 @@
                             kycStatus: 'pending',
                             balance: initialBalance,
                             salt: salt,
+                            uid: user.uid,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
+                        };
 
-                        // Create wallet
-                        await db.collection('wallets').doc(user.uid).set({
+                        try {
+                            await db.collection('users').doc(user.uid).set(userData);
+                        } catch (dbError) {
+                            console.error('Initial user creation failed, retrying...', dbError);
+                            // Retry without server timestamp
+                            await db.collection('users').doc(user.uid).set({
+                                ...userData,
+                                createdAt: new Date()
+                            });
+                        }
+
+                        // Create wallet with retry mechanism
+                        const walletData = {
                             balance: initialBalance,
                             currency: 'USD',
+                            userId: user.uid,
                             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                        });
+                        };
+
+                        try {
+                            await db.collection('wallets').doc(user.uid).set(walletData);
+                        } catch (dbError) {
+                            console.error('Initial wallet creation failed, retrying...', dbError);
+                            // Retry without server timestamp
+                            await db.collection('wallets').doc(user.uid).set({
+                                ...walletData,
+                                lastUpdated: new Date()
+                            });
+                        }
 
                         // Generate referral code
                         const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -502,33 +621,71 @@
                     // Simulate transaction processing
                     const transactionId = Date.now().toString();
                     
-                    // Update balances (simplified for demo)
-                    await db.collection('users').doc(user.uid).update({
+                    // Use Firestore batch for atomic transactions
+                    const batch = db.batch();
+                    
+                    // Update sender balance
+                    const senderRef = db.collection('users').doc(user.uid);
+                    batch.update(senderRef, {
                         balance: firebase.firestore.FieldValue.increment(-sendAmount)
                     });
                     
-                    await db.collection('users').doc(recipientId).update({
+                    // Update recipient balance
+                    const recipientRef = db.collection('users').doc(recipientId);
+                    batch.update(recipientRef, {
                         balance: firebase.firestore.FieldValue.increment(sendAmount)
                     });
 
-                    // Record transactions
-                    const transactionData = {
+                    // Record sender transaction
+                    const senderTxnRef = db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId);
+                    const senderTransactionData = {
                         amount: sendAmount,
                         currency: 'USD',
                         type: 'send',
                         status: 'completed',
                         counterparty: recipientData.payHandle,
                         memo: memo,
+                        transactionId: transactionId,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     };
-
-                    await db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId).set(transactionData);
+                    batch.set(senderTxnRef, senderTransactionData);
                     
-                    await db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId).set({
-                        ...transactionData,
+                    // Record recipient transaction
+                    const recipientTxnRef = db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId);
+                    const recipientTransactionData = {
+                        ...senderTransactionData,
                         type: 'receive',
                         counterparty: user.payHandle
-                    });
+                    };
+                    batch.set(recipientTxnRef, recipientTransactionData);
+
+                    // Execute batch transaction
+                    try {
+                        await batch.commit();
+                    } catch (batchError) {
+                        console.error('Batch transaction failed, trying individual updates...', batchError);
+                        
+                        // Fallback to individual updates
+                        await db.collection('users').doc(user.uid).update({
+                            balance: firebase.firestore.FieldValue.increment(-sendAmount)
+                        });
+                        
+                        await db.collection('users').doc(recipientId).update({
+                            balance: firebase.firestore.FieldValue.increment(sendAmount)
+                        });
+
+                        // Record transactions with current timestamp
+                        const currentTime = new Date();
+                        await db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId).set({
+                            ...senderTransactionData,
+                            timestamp: currentTime
+                        });
+                        
+                        await db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId).set({
+                            ...recipientTransactionData,
+                            timestamp: currentTime
+                        });
+                    }
 
                     // Play success sound
                     if (audioContext) {
@@ -2076,5 +2233,5 @@
         // Render the app
         ReactDOM.render(<CereusPayApp />, document.getElementById('root'));
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c5061b401e7b2f',t:'MTc1NDcxOTEyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c5117292b584b9',t:'MTc1NDcxOTU5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
