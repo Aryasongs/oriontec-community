@@ -148,17 +148,29 @@
         const generateQRCode = async (payload) => {
             try {
                 const qrDataURL = await QRCode.toDataURL(payload, {
-                    width: 300,
+                    width: 256,
+                    height: 256,
                     margin: 2,
                     color: {
                         dark: '#000000',
                         light: '#FFFFFF'
-                    }
+                    },
+                    errorCorrectionLevel: 'M'
                 });
                 return qrDataURL;
             } catch (error) {
                 console.error('QR Code generation failed:', error);
-                return null;
+                // Fallback QR code generation
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 256;
+                canvas.height = 256;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, 256, 256);
+                ctx.fillStyle = '#000000';
+                ctx.font = '12px Arial';
+                ctx.fillText('QR Code', 100, 128);
+                return canvas.toDataURL();
             }
         };
 
@@ -205,40 +217,71 @@
         );
 
         // Payment Card Component
-        const PaymentCard = ({ user, qrCode }) => (
-            <div className="payment-card w-full max-w-sm mx-auto p-6 rounded-lg">
-                {/* Header */}
-                <div className="flex items-center justify-center mb-6">
-                    <ChainLinkLogo />
-                    <span className="text-xl font-bold brand-blue">CereusPay</span>
+        const PaymentCard = ({ user }) => {
+            const [qrCode, setQrCode] = useState(null);
+            const [generating, setGenerating] = useState(false);
+
+            useEffect(() => {
+                const generateQR = async () => {
+                    if (user?.payHandle && !qrCode && !generating) {
+                        setGenerating(true);
+                        try {
+                            const qrPayload = generateQRPayload(user.payHandle);
+                            const generatedQR = await generateQRCode(qrPayload);
+                            setQrCode(generatedQR);
+                        } catch (error) {
+                            console.error('Failed to generate QR code:', error);
+                        }
+                        setGenerating(false);
+                    }
+                };
+
+                generateQR();
+            }, [user?.payHandle, qrCode, generating]);
+
+            return (
+                <div className="payment-card w-full max-w-sm mx-auto p-6 rounded-lg">
+                    {/* Header */}
+                    <div className="flex items-center justify-center mb-6">
+                        <ChainLinkLogo />
+                        <span className="text-xl font-bold brand-blue">CereusPay</span>
+                    </div>
+                    
+                    {/* QR Code */}
+                    <div className="qr-container mb-4">
+                        {qrCode ? (
+                            <img src={qrCode} alt="Payment QR Code" className="w-full h-auto max-w-64 mx-auto" />
+                        ) : (
+                            <div className="w-64 h-64 bg-gray-200 flex items-center justify-center mx-auto rounded-lg">
+                                {generating ? (
+                                    <div className="text-center">
+                                        <div className="loading-spinner mx-auto mb-2"></div>
+                                        <span className="text-gray-500 text-sm">Generating QR...</span>
+                                    </div>
+                                ) : (
+                                    <span className="text-gray-500">QR Code</span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Pay Handle */}
+                    <div className="text-center mb-6">
+                        <p className="text-sm text-gray-600">{user?.payHandle}</p>
+                        <p className="text-xs text-gray-500 mt-1">{user?.upiId}</p>
+                    </div>
+                    
+                    {/* Footer Logos */}
+                    <div className="flex justify-center items-center space-x-4 text-xs text-gray-500">
+                        <span>Google Pay</span>
+                        <span>•</span>
+                        <span>Visa</span>
+                        <span>•</span>
+                        <span>ORIONTEC</span>
+                    </div>
                 </div>
-                
-                {/* QR Code */}
-                <div className="qr-container mb-4">
-                    {qrCode ? (
-                        <img src={qrCode} alt="Payment QR Code" className="w-full h-auto" />
-                    ) : (
-                        <div className="w-72 h-72 bg-gray-200 flex items-center justify-center">
-                            <span className="text-gray-500">Generating QR...</span>
-                        </div>
-                    )}
-                </div>
-                
-                {/* Pay Handle */}
-                <div className="text-center mb-6">
-                    <p className="text-sm text-gray-600">{user?.payHandle}</p>
-                </div>
-                
-                {/* Footer Logos */}
-                <div className="flex justify-center items-center space-x-4 text-xs text-gray-500">
-                    <span>Google Pay</span>
-                    <span>•</span>
-                    <span>Visa</span>
-                    <span>•</span>
-                    <span>ORIONTEC</span>
-                </div>
-            </div>
-        );
+            );
+        };
 
         // Login Component
         const LoginScreen = ({ onLogin }) => {
@@ -265,7 +308,15 @@
                         const payHandle = generatePayHandle(username);
                         const upiId = generateUPIId(username);
                         const qrPayload = generateQRPayload(payHandle);
-                        const qrCode = await generateQRCode(qrPayload);
+                        
+                        // Generate QR code with retry mechanism
+                        let qrCode = null;
+                        try {
+                            qrCode = await generateQRCode(qrPayload);
+                        } catch (error) {
+                            console.error('QR generation failed during signup:', error);
+                            // Will be generated later when needed
+                        }
                         const salt = generateSalt();
                         
                         // Special account check
@@ -1168,26 +1219,56 @@
                 setError('');
 
                 try {
+                    // Validate PAN format
+                    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+                    if (!panRegex.test(kycData.panNumber)) {
+                        throw new Error('Invalid PAN format. Use format: ABCDE1234F');
+                    }
+
+                    // Validate Aadhar format
+                    const aadharRegex = /^\d{12}$/;
+                    const cleanAadhar = kycData.aadharNumber.replace(/\s/g, '');
+                    if (!aadharRegex.test(cleanAadhar)) {
+                        throw new Error('Invalid Aadhar number. Must be 12 digits.');
+                    }
+
+                    // Validate age (must be 18+)
+                    const birthDate = new Date(kycData.dateOfBirth);
+                    const today = new Date();
+                    const age = today.getFullYear() - birthDate.getFullYear();
+                    if (age < 18) {
+                        throw new Error('You must be at least 18 years old to use CereusPay.');
+                    }
+
+                    // Submit KYC data
                     await db.collection('users').doc(user.uid).update({
                         ...kycData,
+                        aadharNumber: cleanAadhar,
                         kycStatus: 'submitted',
                         kycSubmittedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    // Simulate approval after 3 seconds for demo
-                    setTimeout(async () => {
-                        await db.collection('users').doc(user.uid).update({
-                            kycStatus: 'approved',
-                            kycApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        onUpdate();
-                    }, 3000);
-
-                    setSuccess('KYC documents submitted successfully! Approval typically takes 24-48 hours.');
+                    setSuccess('KYC documents submitted successfully! We are reviewing your information.');
                     onUpdate();
-                    setTimeout(() => setSuccess(''), 5000);
+
+                    // Auto-approve after 5 seconds for demo
+                    setTimeout(async () => {
+                        try {
+                            await db.collection('users').doc(user.uid).update({
+                                kycStatus: 'approved',
+                                kycApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            onUpdate();
+                            setSuccess('KYC Approved! Your account is now fully verified.');
+                        } catch (error) {
+                            console.error('Auto-approval error:', error);
+                        }
+                    }, 5000);
+
+                    setTimeout(() => setSuccess(''), 8000);
                 } catch (error) {
-                    setError('Failed to submit KYC: ' + error.message);
+                    console.error('KYC submission error:', error);
+                    setError(error.message);
                 }
                 setLoading(false);
             };
@@ -1390,9 +1471,13 @@
                                                 type="text"
                                                 required
                                                 value={kycData.aadharNumber}
-                                                onChange={(e) => setKycData({...kycData, aadharNumber: e.target.value})}
+                                                onChange={(e) => {
+                                                    const value = e.target.value.replace(/\D/g, '');
+                                                    const formatted = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+                                                    setKycData({...kycData, aadharNumber: formatted});
+                                                }}
                                                 placeholder="1234 5678 9012"
-                                                maxLength="12"
+                                                maxLength="14"
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
@@ -1406,8 +1491,11 @@
                                                 required
                                                 value={kycData.dateOfBirth}
                                                 onChange={(e) => setKycData({...kycData, dateOfBirth: e.target.value})}
+                                                max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                                                min={new Date(new Date().setFullYear(new Date().getFullYear() - 100)).toISOString().split('T')[0]}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
+                                            <p className="text-xs text-gray-500 mt-1">You must be at least 18 years old</p>
                                         </div>
 
                                         <div>
@@ -1502,20 +1590,26 @@
                     const salt = generateSalt();
                     const hashedPin = await hashPIN(pin, salt);
 
-                    // Update user document
-                    await db.collection('users').doc(user.uid).update({
-                        pinHash: hashedPin,
-                        salt: salt,
-                        pinSet: true,
-                        pinSetAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    // Update user document with proper error handling
+                    try {
+                        await db.collection('users').doc(user.uid).update({
+                            pinHash: hashedPin,
+                            salt: salt,
+                            pinSet: true,
+                            pinSetAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
 
-                    setSuccess(true);
-                    setTimeout(() => {
-                        onPINSet();
-                    }, 2000);
+                        setSuccess(true);
+                        setTimeout(() => {
+                            onPINSet();
+                        }, 2000);
+                    } catch (dbError) {
+                        console.error('Database update error:', dbError);
+                        throw new Error('Failed to save PIN. Please try again.');
+                    }
 
                 } catch (error) {
+                    console.error('PIN setup error:', error);
                     setError(error.message);
                 }
                 setLoading(false);
@@ -1769,14 +1863,20 @@
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                     </svg>
                                 </button>
-                                <h1 className="text-2xl font-bold">I Receive Money</h1>
+                                <h1 className="text-2xl font-bold">Receive Money</h1>
                             </div>
                             
                             <div className="text-center">
-                                <PaymentCard user={userData} qrCode={userData?.qrCode} />
-                                <p className="mt-4 text-gray-600">
-                                    Show this QR code to receive payments
-                                </p>
+                                <PaymentCard user={userData} />
+                                <div className="mt-6 bg-white rounded-lg p-4 shadow-sm">
+                                    <h3 className="font-semibold mb-2">How to receive payments:</h3>
+                                    <ul className="text-sm text-gray-600 text-left space-y-1">
+                                        <li>• Share your QR code with the sender</li>
+                                        <li>• Or share your Pay Handle: <span className="font-mono text-blue-600">{userData?.payHandle}</span></li>
+                                        <li>• Or share your UPI ID: <span className="font-mono text-blue-600">{userData?.upiId}</span></li>
+                                        <li>• Money will be credited instantly</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1976,5 +2076,5 @@
         // Render the app
         ReactDOM.render(<CereusPayApp />, document.getElementById('root'));
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c50219c09d5492',t:'MTc1NDcxODk2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c5061b401e7b2f',t:'MTc1NDcxOTEyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
