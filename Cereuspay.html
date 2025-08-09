@@ -524,8 +524,12 @@
                 try {
                     // Validate amount
                     const sendAmount = parseFloat(amount);
-                    if (sendAmount <= 0 || sendAmount > user.balance) {
-                        throw new Error('Invalid amount or insufficient balance');
+                    if (isNaN(sendAmount) || sendAmount <= 0) {
+                        throw new Error('Please enter a valid amount');
+                    }
+                    
+                    if (sendAmount > user.balance) {
+                        throw new Error('Insufficient balance');
                     }
 
                     // Verify PIN
@@ -533,98 +537,164 @@
                         throw new Error('Please set your UPI PIN first');
                     }
                     
+                    if (!pin || pin.length !== 6) {
+                        throw new Error('Please enter your 6-digit PIN');
+                    }
+                    
                     const hashedPin = await hashPIN(pin, user.salt);
                     if (hashedPin !== user.pinHash) {
                         throw new Error('Invalid PIN');
                     }
 
-                    // Find recipient
+                    // Validate recipient format
+                    if (!recipient || recipient.trim() === '') {
+                        throw new Error('Please enter recipient handle or UPI ID');
+                    }
+
+                    // Find recipient with better error handling
                     let recipientDoc;
-                    if (recipient.includes('@cereuspay')) {
-                        recipientDoc = await db.collection('users').where('upiId', '==', recipient).get();
-                    } else {
-                        recipientDoc = await db.collection('users').where('payHandle', '==', recipient).get();
+                    let recipientData;
+                    let recipientId;
+
+                    try {
+                        if (recipient.includes('@cereuspay')) {
+                            recipientDoc = await db.collection('users').where('upiId', '==', recipient.trim()).get();
+                        } else {
+                            recipientDoc = await db.collection('users').where('payHandle', '==', recipient.trim()).get();
+                        }
+
+                        if (recipientDoc.empty) {
+                            throw new Error('Recipient not found. Please check the handle or UPI ID.');
+                        }
+
+                        recipientData = recipientDoc.docs[0].data();
+                        recipientId = recipientDoc.docs[0].id;
+
+                        // Check if trying to send to self
+                        if (recipientId === user.uid) {
+                            throw new Error('Cannot send money to yourself');
+                        }
+
+                    } catch (dbError) {
+                        console.error('Database query error:', dbError);
+                        throw new Error('Failed to find recipient. Please try again.');
                     }
 
-                    if (recipientDoc.empty) {
-                        throw new Error('Recipient not found');
-                    }
-
-                    const recipientData = recipientDoc.docs[0].data();
-                    const recipientId = recipientDoc.docs[0].id;
-
-                    // Simulate transaction processing
-                    const transactionId = Date.now().toString();
+                    // Generate unique transaction ID
+                    const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                     
-                    // Use Firestore batch for atomic transactions
-                    const batch = db.batch();
-                    
-                    // Update sender balance
-                    const senderRef = db.collection('users').doc(user.uid);
-                    batch.update(senderRef, {
-                        balance: firebase.firestore.FieldValue.increment(-sendAmount)
-                    });
-                    
-                    // Update recipient balance
-                    const recipientRef = db.collection('users').doc(recipientId);
-                    batch.update(recipientRef, {
-                        balance: firebase.firestore.FieldValue.increment(sendAmount)
-                    });
-
-                    // Record sender transaction
-                    const senderTxnRef = db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId);
+                    // Prepare transaction data
+                    const currentTime = new Date();
                     const senderTransactionData = {
                         amount: sendAmount,
                         currency: 'USD',
                         type: 'send',
                         status: 'completed',
-                        counterparty: recipientData.payHandle,
-                        memo: memo,
+                        counterparty: recipientData.payHandle || recipientData.upiId,
+                        memo: memo || '',
                         transactionId: transactionId,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        timestamp: currentTime,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     };
-                    batch.set(senderTxnRef, senderTransactionData);
-                    
-                    // Record recipient transaction
-                    const recipientTxnRef = db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId);
+
                     const recipientTransactionData = {
                         ...senderTransactionData,
                         type: 'receive',
-                        counterparty: user.payHandle
+                        counterparty: user.payHandle || user.upiId
                     };
-                    batch.set(recipientTxnRef, recipientTransactionData);
 
-                    // Execute batch transaction
+                    // Execute transaction with proper error handling
                     try {
-                        await batch.commit();
-                    } catch (batchError) {
-                        console.error('Batch transaction failed, trying individual updates...', batchError);
+                        // Use batch for atomic operations
+                        const batch = db.batch();
                         
-                        // Fallback to individual updates
-                        await db.collection('users').doc(user.uid).update({
+                        // Update sender balance
+                        const senderRef = db.collection('users').doc(user.uid);
+                        batch.update(senderRef, {
                             balance: firebase.firestore.FieldValue.increment(-sendAmount)
                         });
                         
-                        await db.collection('users').doc(recipientId).update({
+                        // Update recipient balance
+                        const recipientRef = db.collection('users').doc(recipientId);
+                        batch.update(recipientRef, {
                             balance: firebase.firestore.FieldValue.increment(sendAmount)
                         });
 
-                        // Record transactions with current timestamp
-                        const currentTime = new Date();
-                        await db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId).set({
-                            ...senderTransactionData,
-                            timestamp: currentTime
-                        });
+                        // Ensure wallet collections exist
+                        const senderWalletRef = db.collection('wallets').doc(user.uid);
+                        batch.set(senderWalletRef, {
+                            balance: firebase.firestore.FieldValue.increment(-sendAmount),
+                            currency: 'USD',
+                            userId: user.uid,
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+
+                        const recipientWalletRef = db.collection('wallets').doc(recipientId);
+                        batch.set(recipientWalletRef, {
+                            balance: firebase.firestore.FieldValue.increment(sendAmount),
+                            currency: 'USD',
+                            userId: recipientId,
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+
+                        // Record transactions
+                        const senderTxnRef = db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId);
+                        batch.set(senderTxnRef, senderTransactionData);
                         
-                        await db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId).set({
-                            ...recipientTransactionData,
-                            timestamp: currentTime
-                        });
+                        const recipientTxnRef = db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId);
+                        batch.set(recipientTxnRef, recipientTransactionData);
+
+                        // Commit batch
+                        await batch.commit();
+                        console.log('Transaction completed successfully');
+
+                    } catch (batchError) {
+                        console.error('Batch transaction failed:', batchError);
+                        
+                        // Fallback to individual operations
+                        try {
+                            // Update balances individually
+                            await db.collection('users').doc(user.uid).update({
+                                balance: firebase.firestore.FieldValue.increment(-sendAmount)
+                            });
+                            
+                            await db.collection('users').doc(recipientId).update({
+                                balance: firebase.firestore.FieldValue.increment(sendAmount)
+                            });
+
+                            // Create/update wallet documents
+                            await db.collection('wallets').doc(user.uid).set({
+                                balance: firebase.firestore.FieldValue.increment(-sendAmount),
+                                currency: 'USD',
+                                userId: user.uid,
+                                lastUpdated: currentTime
+                            }, { merge: true });
+
+                            await db.collection('wallets').doc(recipientId).set({
+                                balance: firebase.firestore.FieldValue.increment(sendAmount),
+                                currency: 'USD',
+                                userId: recipientId,
+                                lastUpdated: currentTime
+                            }, { merge: true });
+
+                            // Record transactions
+                            await db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId).set(senderTransactionData);
+                            await db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId).set(recipientTransactionData);
+                            
+                            console.log('Fallback transaction completed successfully');
+                        } catch (fallbackError) {
+                            console.error('Fallback transaction also failed:', fallbackError);
+                            throw new Error('Transaction failed. Please try again later.');
+                        }
                     }
 
                     // Play success sound
                     if (audioContext) {
-                        audioContext.playSuccessSound();
+                        try {
+                            audioContext.playSuccessSound();
+                        } catch (audioError) {
+                            console.log('Audio playback failed:', audioError);
+                        }
                     }
 
                     setSuccess(true);
@@ -633,7 +703,8 @@
                     }, 2000);
 
                 } catch (error) {
-                    setError(error.message);
+                    console.error('Send money error:', error);
+                    setError(error.message || 'Transaction failed. Please try again.');
                 }
                 setLoading(false);
             };
@@ -866,8 +937,12 @@
                 try {
                     // Validate amount
                     const sendAmount = parseFloat(amount);
-                    if (sendAmount <= 0 || sendAmount > user.balance) {
-                        throw new Error('Invalid amount or insufficient balance');
+                    if (isNaN(sendAmount) || sendAmount <= 0) {
+                        throw new Error('Please enter a valid amount');
+                    }
+                    
+                    if (sendAmount > user.balance) {
+                        throw new Error('Insufficient balance');
                     }
 
                     // Verify PIN
@@ -875,61 +950,155 @@
                         throw new Error('Please set your UPI PIN first');
                     }
                     
+                    if (!pin || pin.length !== 6) {
+                        throw new Error('Please enter your 6-digit PIN');
+                    }
+                    
                     const hashedPin = await hashPIN(pin, user.salt);
                     if (hashedPin !== user.pinHash) {
                         throw new Error('Invalid PIN');
                     }
 
-                    // Find recipient by handle
-                    const recipientDoc = await db.collection('users').where('payHandle', '==', scannedData.handle).get();
+                    // Find recipient by handle with error handling
+                    let recipientDoc;
+                    let recipientData;
+                    let recipientId;
 
-                    if (recipientDoc.empty) {
-                        throw new Error('Recipient not found');
+                    try {
+                        recipientDoc = await db.collection('users').where('payHandle', '==', scannedData.handle).get();
+
+                        if (recipientDoc.empty) {
+                            throw new Error('Recipient not found. QR code may be invalid.');
+                        }
+
+                        recipientData = recipientDoc.docs[0].data();
+                        recipientId = recipientDoc.docs[0].id;
+
+                        // Check if trying to pay self
+                        if (recipientId === user.uid) {
+                            throw new Error('Cannot send money to yourself');
+                        }
+                    } catch (dbError) {
+                        console.error('Database query error:', dbError);
+                        throw new Error('Failed to find recipient. Please try again.');
                     }
 
-                    const recipientData = recipientDoc.docs[0].data();
-                    const recipientId = recipientDoc.docs[0].id;
-
-                    // Check if trying to pay self
-                    if (recipientId === user.uid) {
-                        throw new Error('Cannot send money to yourself');
-                    }
-
-                    // Process transaction
-                    const transactionId = Date.now().toString();
+                    // Generate unique transaction ID
+                    const transactionId = `qr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                     
-                    // Update balances
-                    await db.collection('users').doc(user.uid).update({
-                        balance: firebase.firestore.FieldValue.increment(-sendAmount)
-                    });
-                    
-                    await db.collection('users').doc(recipientId).update({
-                        balance: firebase.firestore.FieldValue.increment(sendAmount)
-                    });
-
-                    // Record transactions
-                    const transactionData = {
+                    // Prepare transaction data
+                    const currentTime = new Date();
+                    const senderTransactionData = {
                         amount: sendAmount,
                         currency: 'USD',
                         type: 'send',
                         status: 'completed',
                         counterparty: recipientData.payHandle,
-                        memo: memo,
+                        memo: memo || '',
                         method: 'qr_scan',
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        transactionId: transactionId,
+                        timestamp: currentTime,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     };
 
-                    await db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId).set(transactionData);
-                    
-                    await db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId).set({
-                        ...transactionData,
+                    const recipientTransactionData = {
+                        ...senderTransactionData,
                         type: 'receive',
                         counterparty: user.payHandle
-                    });
+                    };
+
+                    // Execute transaction with proper error handling
+                    try {
+                        // Use batch for atomic operations
+                        const batch = db.batch();
+                        
+                        // Update sender balance
+                        const senderRef = db.collection('users').doc(user.uid);
+                        batch.update(senderRef, {
+                            balance: firebase.firestore.FieldValue.increment(-sendAmount)
+                        });
+                        
+                        // Update recipient balance
+                        const recipientRef = db.collection('users').doc(recipientId);
+                        batch.update(recipientRef, {
+                            balance: firebase.firestore.FieldValue.increment(sendAmount)
+                        });
+
+                        // Ensure wallet collections exist
+                        const senderWalletRef = db.collection('wallets').doc(user.uid);
+                        batch.set(senderWalletRef, {
+                            balance: firebase.firestore.FieldValue.increment(-sendAmount),
+                            currency: 'USD',
+                            userId: user.uid,
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+
+                        const recipientWalletRef = db.collection('wallets').doc(recipientId);
+                        batch.set(recipientWalletRef, {
+                            balance: firebase.firestore.FieldValue.increment(sendAmount),
+                            currency: 'USD',
+                            userId: recipientId,
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+
+                        // Record transactions
+                        const senderTxnRef = db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId);
+                        batch.set(senderTxnRef, senderTransactionData);
+                        
+                        const recipientTxnRef = db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId);
+                        batch.set(recipientTxnRef, recipientTransactionData);
+
+                        // Commit batch
+                        await batch.commit();
+                        console.log('QR payment completed successfully');
+
+                    } catch (batchError) {
+                        console.error('Batch transaction failed:', batchError);
+                        
+                        // Fallback to individual operations
+                        try {
+                            // Update balances individually
+                            await db.collection('users').doc(user.uid).update({
+                                balance: firebase.firestore.FieldValue.increment(-sendAmount)
+                            });
+                            
+                            await db.collection('users').doc(recipientId).update({
+                                balance: firebase.firestore.FieldValue.increment(sendAmount)
+                            });
+
+                            // Create/update wallet documents
+                            await db.collection('wallets').doc(user.uid).set({
+                                balance: firebase.firestore.FieldValue.increment(-sendAmount),
+                                currency: 'USD',
+                                userId: user.uid,
+                                lastUpdated: currentTime
+                            }, { merge: true });
+
+                            await db.collection('wallets').doc(recipientId).set({
+                                balance: firebase.firestore.FieldValue.increment(sendAmount),
+                                currency: 'USD',
+                                userId: recipientId,
+                                lastUpdated: currentTime
+                            }, { merge: true });
+
+                            // Record transactions
+                            await db.collection('wallets').doc(user.uid).collection('transactions').doc(transactionId).set(senderTransactionData);
+                            await db.collection('wallets').doc(recipientId).collection('transactions').doc(transactionId).set(recipientTransactionData);
+                            
+                            console.log('Fallback QR payment completed successfully');
+                        } catch (fallbackError) {
+                            console.error('Fallback transaction also failed:', fallbackError);
+                            throw new Error('Payment failed. Please try again later.');
+                        }
+                    }
 
                     // Play success sound
                     if (audioContext) {
-                        audioContext.playSuccessSound();
+                        try {
+                            audioContext.playSuccessSound();
+                        } catch (audioError) {
+                            console.log('Audio playback failed:', audioError);
+                        }
                     }
 
                     setSuccess(true);
@@ -938,7 +1107,8 @@
                     }, 2000);
 
                 } catch (error) {
-                    setError(error.message);
+                    console.error('QR payment error:', error);
+                    setError(error.message || 'Payment failed. Please try again.');
                 }
                 setProcessing(false);
             };
@@ -2168,5 +2338,5 @@
         // Render the app
         ReactDOM.render(<CereusPayApp />, document.getElementById('root'));
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c526ac67dd3a22',t:'MTc1NDcyMDQ2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c5297ea1d459ff',t:'MTc1NDcyMDU3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
