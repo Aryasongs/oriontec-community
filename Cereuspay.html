@@ -150,10 +150,52 @@
         };
 
         const generateQRPayload = (handle, amount = '', memo = '') => {
+            if (!handle || typeof handle !== 'string' || handle.trim() === '') {
+                return null;
+            }
             return `cereuspay://pay?handle=${handle}&amount=${amount}&memo=${memo}`;
         };
 
+        const getFallbackQR = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 300;
+            canvas.height = 300;
+            
+            // White background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, 300, 300);
+            
+            // Gray border
+            ctx.strokeStyle = '#E5E7EB';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, 298, 298);
+            
+            // QR Code text
+            ctx.fillStyle = '#6B7280';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('QR Code', 150, 140);
+            
+            // Subtitle
+            ctx.font = '14px Arial';
+            ctx.fillText('Unable to generate', 150, 170);
+            
+            return canvas.toDataURL();
+        };
+
         const generateQRCode = async (payload) => {
+            // Validate payload before generating QR
+            if (!payload || typeof payload !== 'string' || payload.trim() === '') {
+                throw new Error('Invalid QR payload');
+            }
+
+            // Check if QR Code library is loaded
+            if (!window.QRCode || typeof window.QRCode.toDataURL !== 'function') {
+                console.error('QR Code library not loaded yet.');
+                throw new Error('QR Code library not available');
+            }
+
             try {
                 const qrDataURL = await QRCode.toDataURL(payload, {
                     width: 300,
@@ -168,32 +210,7 @@
                 return qrDataURL;
             } catch (error) {
                 console.error('QR Code generation failed:', error);
-                // Create fallback placeholder image
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 300;
-                canvas.height = 300;
-                
-                // White background
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, 300, 300);
-                
-                // Gray border
-                ctx.strokeStyle = '#E5E7EB';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(1, 1, 298, 298);
-                
-                // QR Code text
-                ctx.fillStyle = '#6B7280';
-                ctx.font = 'bold 24px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('QR Code', 150, 140);
-                
-                // Subtitle
-                ctx.font = '14px Arial';
-                ctx.fillText('Unable to generate', 150, 170);
-                
-                return canvas.toDataURL();
+                throw error;
             }
         };
 
@@ -242,81 +259,22 @@
         // Payment Card Component
         const PaymentCard = ({ user }) => {
             const [qrCode, setQrCode] = useState(null);
-            const [generating, setGenerating] = useState(false);
-            const [error, setError] = useState(null);
 
             useEffect(() => {
-                const generateQR = async () => {
-                    // Skip if already generating or no user data
-                    if (generating || !user) return;
+                if (!user) return;
+                if (qrCode) return; // Don't regenerate if we already have a QR code
 
-                    // Case 1: QR code already exists in user data
-                    if (user.qrCode) {
-                        setQrCode(user.qrCode);
-                        setError(null);
-                        return;
-                    }
+                // Try to get QR payload from user data or generate it
+                const qrPayload = user.qrPayload || generateQRPayload(user.payHandle);
+                if (!qrPayload) return;
 
-                    // Case 2: QR payload exists but no QR code
-                    if (user.qrPayload) {
-                        setGenerating(true);
-                        try {
-                            const generatedQR = await generateQRCode(user.qrPayload);
-                            setQrCode(generatedQR);
-                            setError(null);
-                            
-                            // Optionally save to Firestore for future use
-                            if (user.uid) {
-                                try {
-                                    await db.collection('users').doc(user.uid).update({
-                                        qrCode: generatedQR
-                                    });
-                                } catch (dbError) {
-                                    console.log('Could not save QR to database:', dbError);
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Failed to generate QR from payload:', error);
-                            setError('QR generation failed');
-                        }
-                        setGenerating(false);
-                        return;
-                    }
-
-                    // Case 3: Only payHandle exists, generate payload and QR
-                    if (user.payHandle) {
-                        setGenerating(true);
-                        try {
-                            const qrPayload = generateQRPayload(user.payHandle);
-                            const generatedQR = await generateQRCode(qrPayload);
-                            setQrCode(generatedQR);
-                            setError(null);
-                            
-                            // Save both payload and QR to Firestore for future use
-                            if (user.uid) {
-                                try {
-                                    await db.collection('users').doc(user.uid).update({
-                                        qrPayload: qrPayload,
-                                        qrCode: generatedQR
-                                    });
-                                } catch (dbError) {
-                                    console.log('Could not save QR data to database:', dbError);
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Failed to generate QR from payHandle:', error);
-                            setError('QR generation failed');
-                        }
-                        setGenerating(false);
-                        return;
-                    }
-
-                    // Case 4: No data available for QR generation
-                    setError('No payment handle available');
-                };
-
-                generateQR();
-            }, [user, generating]); // Trigger on any user change
+                generateQRCode(qrPayload)
+                    .then(setQrCode)
+                    .catch(err => {
+                        console.error('QR generation failed:', err);
+                        setQrCode(getFallbackQR());
+                    });
+            }, [user]); // Only depend on user, not qrCode or generating
 
             return (
                 <div className="payment-card w-full max-w-sm mx-auto p-6 rounded-lg">
@@ -336,26 +294,12 @@
                             />
                         ) : (
                             <div className="w-72 h-72 bg-gray-200 flex items-center justify-center mx-auto rounded-lg">
-                                {generating ? (
-                                    <div className="text-center">
-                                        <div className="loading-spinner mx-auto mb-2"></div>
-                                        <span className="text-gray-500 text-sm">Generating QR...</span>
-                                    </div>
-                                ) : error ? (
-                                    <div className="text-center">
-                                        <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                        <span className="text-gray-500 text-sm">{error}</span>
-                                    </div>
-                                ) : (
-                                    <div className="text-center">
-                                        <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                                        </svg>
-                                        <span className="text-gray-500 text-sm">Loading QR Code...</span>
-                                    </div>
-                                )}
+                                <div className="text-center">
+                                    <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                    <span className="text-gray-500 text-sm">QR Code Unavailable</span>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -404,29 +348,20 @@
                         const upiId = generateUPIId(username);
                         const qrPayload = generateQRPayload(payHandle);
                         
-                        // Generate QR code with retry mechanism
-                        let qrCode = null;
-                        try {
-                            qrCode = await generateQRCode(qrPayload);
-                        } catch (error) {
-                            console.error('QR generation failed during signup:', error);
-                            // Will be generated later when needed
-                        }
                         const salt = generateSalt();
                         
                         // Special account check
                         const isSpecialAccount = email === 'sdozera@gmail.com';
                         const initialBalance = isSpecialAccount ? 27083 : 0;
                         
-                        // Create user profile with retry mechanism
+                        // Create user profile with retry mechanism - ALWAYS include payHandle and qrPayload
                         const userData = {
                             email: email,
                             phone: phone,
                             username: username,
                             payHandle: payHandle,
                             upiId: upiId,
-                            qrCode: qrCode,
-                            qrPayload: qrPayload,
+                            qrPayload: qrPayload, // Always set this in signup
                             kycStatus: 'pending',
                             balance: initialBalance,
                             salt: salt,
@@ -2233,5 +2168,5 @@
         // Render the app
         ReactDOM.render(<CereusPayApp />, document.getElementById('root'));
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c5117292b584b9',t:'MTc1NDcxOTU5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c526ac67dd3a22',t:'MTc1NDcyMDQ2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
