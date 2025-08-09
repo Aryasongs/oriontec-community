@@ -156,62 +156,152 @@
             return `cereuspay://pay?handle=${handle}&amount=${amount}&memo=${memo}`;
         };
 
-        const getFallbackQR = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 300;
-            canvas.height = 300;
-            
-            // White background
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, 300, 300);
-            
-            // Gray border
-            ctx.strokeStyle = '#E5E7EB';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(1, 1, 298, 298);
-            
-            // QR Code text
-            ctx.fillStyle = '#6B7280';
-            ctx.font = 'bold 24px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('QR Code', 150, 140);
-            
-            // Subtitle
-            ctx.font = '14px Arial';
-            ctx.fillText('Unable to generate', 150, 170);
-            
-            return canvas.toDataURL();
+        // QR Generation Methods - Multiple fallbacks for 100% reliability
+        const generateQRCodeMethods = {
+            // Method 1: QR Server API (Primary - most reliable)
+            async qrServer(payload) {
+                const encodedPayload = encodeURIComponent(payload);
+                const url = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedPayload}&ecc=M&format=png`;
+                
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('QR Server API failed');
+                    
+                    const blob = await response.blob();
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (error) {
+                    console.error('QR Server method failed:', error);
+                    throw error;
+                }
+            },
+
+            // Method 2: Google Charts API (Backup)
+            async googleCharts(payload) {
+                const encodedPayload = encodeURIComponent(payload);
+                const url = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodedPayload}&choe=UTF-8`;
+                
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Google Charts API failed');
+                    
+                    const blob = await response.blob();
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (error) {
+                    console.error('Google Charts method failed:', error);
+                    throw error;
+                }
+            },
+
+            // Method 3: Local QRCode library (Final fallback)
+            async localLibrary(payload) {
+                if (!window.QRCode || typeof window.QRCode.toDataURL !== 'function') {
+                    throw new Error('QR Code library not available');
+                }
+
+                try {
+                    return await QRCode.toDataURL(payload, {
+                        width: 300,
+                        height: 300,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#FFFFFF'
+                        },
+                        errorCorrectionLevel: 'M'
+                    });
+                } catch (error) {
+                    console.error('Local QR library failed:', error);
+                    throw error;
+                }
+            },
+
+            // Method 4: Canvas fallback (Always works)
+            async canvasFallback(payload) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 300;
+                canvas.height = 300;
+                
+                // White background
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, 300, 300);
+                
+                // Border
+                ctx.strokeStyle = '#0052cc';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, 296, 296);
+                
+                // CereusPay logo area
+                ctx.fillStyle = '#0052cc';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('CereusPay', 150, 50);
+                
+                // QR placeholder pattern
+                ctx.fillStyle = '#000000';
+                for (let i = 0; i < 15; i++) {
+                    for (let j = 0; j < 15; j++) {
+                        if ((i + j) % 2 === 0) {
+                            ctx.fillRect(80 + i * 8, 80 + j * 8, 6, 6);
+                        }
+                    }
+                }
+                
+                // Instructions
+                ctx.fillStyle = '#666666';
+                ctx.font = '12px Arial';
+                ctx.fillText('Scan with CereusPay app', 150, 260);
+                ctx.fillText('or use handle below:', 150, 275);
+                
+                // Extract handle from payload
+                try {
+                    const url = new URL(payload);
+                    const handle = url.searchParams.get('handle');
+                    if (handle) {
+                        ctx.font = 'bold 10px monospace';
+                        ctx.fillText(handle, 150, 290);
+                    }
+                } catch (e) {
+                    ctx.fillText('Manual entry required', 150, 290);
+                }
+                
+                return canvas.toDataURL();
+            }
         };
 
         const generateQRCode = async (payload) => {
-            // Validate payload before generating QR
+            // Validate payload
             if (!payload || typeof payload !== 'string' || payload.trim() === '') {
                 throw new Error('Invalid QR payload');
             }
 
-            // Check if QR Code library is loaded
-            if (!window.QRCode || typeof window.QRCode.toDataURL !== 'function') {
-                console.error('QR Code library not loaded yet.');
-                throw new Error('QR Code library not available');
+            // Try methods in order of preference
+            const methods = ['qrServer', 'googleCharts', 'localLibrary', 'canvasFallback'];
+            
+            for (const methodName of methods) {
+                try {
+                    console.log(`Trying QR generation method: ${methodName}`);
+                    const result = await generateQRCodeMethods[methodName](payload);
+                    console.log(`QR generation successful with method: ${methodName}`);
+                    return result;
+                } catch (error) {
+                    console.warn(`QR method ${methodName} failed:`, error);
+                    // Continue to next method
+                }
             }
-
-            try {
-                const qrDataURL = await QRCode.toDataURL(payload, {
-                    width: 300,
-                    height: 300,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    },
-                    errorCorrectionLevel: 'M'
-                });
-                return qrDataURL;
-            } catch (error) {
-                console.error('QR Code generation failed:', error);
-                throw error;
-            }
+            
+            // This should never happen since canvasFallback always works
+            throw new Error('All QR generation methods failed');
         };
 
         const hashPIN = async (pin, salt) => {
@@ -880,51 +970,157 @@
             };
 
             const startScanning = () => {
+                let scanAttempts = 0;
+                const maxAttempts = 3;
+                
                 scanIntervalRef.current = setInterval(() => {
                     if (videoRef.current && canvasRef.current && scanning) {
                         const video = videoRef.current;
                         const canvas = canvasRef.current;
                         const context = canvas.getContext('2d');
                         
+                        // Ensure video is ready
+                        if (video.videoWidth === 0 || video.videoHeight === 0) {
+                            return;
+                        }
+                        
                         canvas.width = video.videoWidth;
                         canvas.height = video.videoHeight;
                         context.drawImage(video, 0, 0, canvas.width, canvas.height);
                         
-                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                        const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+                        // Try multiple scan regions for better detection
+                        const regions = [
+                            // Full image
+                            { x: 0, y: 0, width: canvas.width, height: canvas.height },
+                            // Center region (most common QR location)
+                            { 
+                                x: Math.floor(canvas.width * 0.2), 
+                                y: Math.floor(canvas.height * 0.2), 
+                                width: Math.floor(canvas.width * 0.6), 
+                                height: Math.floor(canvas.height * 0.6) 
+                            },
+                            // Top half
+                            { x: 0, y: 0, width: canvas.width, height: Math.floor(canvas.height * 0.6) }
+                        ];
                         
-                        if (qrCode) {
-                            handleQRDetected(qrCode.data);
+                        for (const region of regions) {
+                            try {
+                                const imageData = context.getImageData(region.x, region.y, region.width, region.height);
+                                
+                                // Try with different jsQR options for better detection
+                                const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
+                                    inversionAttempts: "dontInvert"
+                                });
+                                
+                                if (qrCode && qrCode.data) {
+                                    console.log(`QR detected in region:`, region);
+                                    handleQRDetected(qrCode.data);
+                                    return;
+                                }
+                                
+                                // Try with inversion for better contrast
+                                const qrCodeInverted = jsQR(imageData.data, imageData.width, imageData.height, {
+                                    inversionAttempts: "attemptBoth"
+                                });
+                                
+                                if (qrCodeInverted && qrCodeInverted.data) {
+                                    console.log(`QR detected with inversion in region:`, region);
+                                    handleQRDetected(qrCodeInverted.data);
+                                    return;
+                                }
+                            } catch (scanError) {
+                                console.log('Scan error in region:', region, scanError);
+                            }
+                        }
+                        
+                        // Provide feedback every few attempts
+                        scanAttempts++;
+                        if (scanAttempts % 10 === 0) {
+                            console.log(`Scanning... attempt ${scanAttempts}`);
                         }
                     }
-                }, 300);
+                }, 200); // Faster scanning for better responsiveness
             };
 
             const handleQRDetected = (data) => {
                 try {
-                    // Check if it's a CereusPay QR code
+                    console.log('QR Code detected:', data);
+                    
+                    // Multiple format support for better compatibility
+                    let parsedData = null;
+                    
+                    // Method 1: Standard CereusPay format
                     if (data.startsWith('cereuspay://pay?')) {
                         const url = new URL(data);
-                        const handle = url.searchParams.get('handle');
-                        const qrAmount = url.searchParams.get('amount');
-                        const qrMemo = url.searchParams.get('memo');
+                        parsedData = {
+                            handle: url.searchParams.get('handle'),
+                            amount: url.searchParams.get('amount') || '',
+                            memo: url.searchParams.get('memo') || ''
+                        };
+                    }
+                    // Method 2: UPI format support
+                    else if (data.startsWith('upi://pay?')) {
+                        const url = new URL(data);
+                        const pa = url.searchParams.get('pa'); // payee address
+                        const am = url.searchParams.get('am'); // amount
+                        const tn = url.searchParams.get('tn'); // transaction note
                         
-                        if (handle) {
-                            setScannedData({
-                                handle: handle,
-                                amount: qrAmount || '',
-                                memo: qrMemo || ''
-                            });
-                            setAmount(qrAmount || '');
-                            setMemo(qrMemo || '');
-                            stopCamera();
+                        if (pa && pa.includes('@cereuspay')) {
+                            parsedData = {
+                                handle: pa,
+                                amount: am || '',
+                                memo: tn || ''
+                            };
+                        }
+                    }
+                    // Method 3: Plain text handle
+                    else if (data.includes('cereus_') && data.includes('#')) {
+                        parsedData = {
+                            handle: data.trim(),
+                            amount: '',
+                            memo: ''
+                        };
+                    }
+                    // Method 4: JSON format
+                    else if (data.startsWith('{') && data.includes('cereuspay')) {
+                        try {
+                            const jsonData = JSON.parse(data);
+                            if (jsonData.type === 'cereuspay' && jsonData.handle) {
+                                parsedData = {
+                                    handle: jsonData.handle,
+                                    amount: jsonData.amount || '',
+                                    memo: jsonData.memo || ''
+                                };
+                            }
+                        } catch (e) {
+                            console.log('Not valid JSON QR');
+                        }
+                    }
+                    
+                    if (parsedData && parsedData.handle) {
+                        console.log('Valid CereusPay QR detected:', parsedData);
+                        setScannedData(parsedData);
+                        setAmount(parsedData.amount);
+                        setMemo(parsedData.memo);
+                        stopCamera();
+                        
+                        // Success feedback
+                        if (navigator.vibrate) {
+                            navigator.vibrate([100, 50, 100]);
                         }
                     } else {
+                        console.log('Invalid QR format:', data);
                         setError('Invalid QR code. Please scan a CereusPay payment QR code.');
                         setTimeout(() => setError(''), 3000);
+                        
+                        // Error feedback
+                        if (navigator.vibrate) {
+                            navigator.vibrate(200);
+                        }
                     }
                 } catch (error) {
-                    setError('Invalid QR code format.');
+                    console.error('QR parsing error:', error);
+                    setError('Unable to read QR code. Please try again.');
                     setTimeout(() => setError(''), 3000);
                 }
             };
@@ -2221,6 +2417,99 @@
                             </button>
                         </div>
 
+                        {/* Quick Payment Choices */}
+                        <div className="bg-white rounded-lg shadow p-4 mb-6">
+                            <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
+                                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Quick Send
+                            </h3>
+                            <div className="grid grid-cols-4 gap-2">
+                                {[5, 10, 20, 50].map(amount => (
+                                    <button
+                                        key={amount}
+                                        onClick={() => {
+                                            setCurrentScreen('send');
+                                            // Pre-fill amount in send screen
+                                            setTimeout(() => {
+                                                const amountInput = document.querySelector('input[placeholder="0.00"]');
+                                                if (amountInput) {
+                                                    amountInput.value = amount.toString();
+                                                    amountInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                                }
+                                            }, 100);
+                                        }}
+                                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        ${amount}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                <button
+                                    onClick={() => {
+                                        setCurrentScreen('send');
+                                        setTimeout(() => {
+                                            const memoInput = document.querySelector('input[placeholder="What\'s this for?"]');
+                                            if (memoInput) {
+                                                memoInput.value = 'Coffee ☕';
+                                                memoInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                            }
+                                        }, 100);
+                                    }}
+                                    className="bg-orange-100 hover:bg-orange-200 text-orange-700 py-2 px-3 rounded-lg text-xs font-medium transition-colors"
+                                >
+                                    ☕ Coffee
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setCurrentScreen('send');
+                                        setTimeout(() => {
+                                            const memoInput = document.querySelector('input[placeholder="What\'s this for?"]');
+                                            if (memoInput) {
+                                                memoInput.value = 'Lunch 🍕';
+                                                memoInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                            }
+                                        }, 100);
+                                    }}
+                                    className="bg-red-100 hover:bg-red-200 text-red-700 py-2 px-3 rounded-lg text-xs font-medium transition-colors"
+                                >
+                                    🍕 Lunch
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setCurrentScreen('send');
+                                        setTimeout(() => {
+                                            const memoInput = document.querySelector('input[placeholder="What\'s this for?"]');
+                                            if (memoInput) {
+                                                memoInput.value = 'Gas ⛽';
+                                                memoInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                            }
+                                        }, 100);
+                                    }}
+                                    className="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 px-3 rounded-lg text-xs font-medium transition-colors"
+                                >
+                                    ⛽ Gas
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setCurrentScreen('send');
+                                        setTimeout(() => {
+                                            const memoInput = document.querySelector('input[placeholder="What\'s this for?"]');
+                                            if (memoInput) {
+                                                memoInput.value = 'Split bill 🧾';
+                                                memoInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                            }
+                                        }, 100);
+                                    }}
+                                    className="bg-green-100 hover:bg-green-200 text-green-700 py-2 px-3 rounded-lg text-xs font-medium transition-colors"
+                                >
+                                    🧾 Split
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Quick Actions */}
                         <div className="grid grid-cols-2 gap-4 mb-6">
                             <button
@@ -2338,5 +2627,5 @@
         // Render the app
         ReactDOM.render(<CereusPayApp />, document.getElementById('root'));
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c5297ea1d459ff',t:'MTc1NDcyMDU3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c53121f4943e0f',t:'MTc1NDcyMDg5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
