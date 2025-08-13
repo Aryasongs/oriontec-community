@@ -358,6 +358,7 @@
         </div>
 
         <div class="controls">
+            <button class="btn btn-secondary" id="testVoiceButton">Test Voice</button>
             <button class="btn btn-secondary" id="resetButton">Reset Interview</button>
         </div>
     </div>
@@ -463,6 +464,12 @@
                 this.resetButton.addEventListener('click', () => {
                     this.resetInterview();
                 });
+
+                // Test voice button
+                const testVoiceButton = document.getElementById('testVoiceButton');
+                testVoiceButton.addEventListener('click', () => {
+                    this.testVoice();
+                });
             }
 
             createFloatingParticles() {
@@ -497,43 +504,105 @@
             }
 
             speak(text) {
-                if (this.synthesis) {
-                    this.synthesis.cancel();
+                console.log('Speaking:', text); // Debug log
+                
+                if (!this.synthesis) {
+                    console.error('Speech synthesis not available');
+                    this.addToTranscript(`Astra: ${text}`, 'ai-message');
+                    return;
+                }
+
+                // Cancel any ongoing speech
+                this.synthesis.cancel();
+                
+                // Wait a moment for cancel to complete
+                setTimeout(() => {
                     this.isSpeaking = true;
                     this.aiAvatar.innerHTML = '<div class="pulse-ring"></div><div class="speaking-animation"></div><div class="ai-face">🗣️</div>';
                     
                     const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.rate = 0.9;
-                    utterance.pitch = 1.1;
+                    utterance.rate = 0.8;
+                    utterance.pitch = 1.2;
                     utterance.volume = 1;
+                    utterance.lang = 'en-US';
                     
-                    // Try to use a female voice
+                    // Get available voices and select the best female voice
                     const voices = this.synthesis.getVoices();
-                    const femaleVoice = voices.find(voice => 
-                        voice.name.includes('Female') || 
-                        voice.name.includes('Samantha') || 
-                        voice.name.includes('Karen') ||
-                        voice.name.includes('Moira')
-                    );
-                    if (femaleVoice) {
-                        utterance.voice = femaleVoice;
+                    console.log('Available voices:', voices.map(v => v.name)); // Debug log
+                    
+                    const preferredVoices = [
+                        'Google UK English Female',
+                        'Microsoft Zira Desktop',
+                        'Samantha',
+                        'Karen',
+                        'Moira',
+                        'Fiona',
+                        'Tessa'
+                    ];
+                    
+                    let selectedVoice = null;
+                    for (const preferred of preferredVoices) {
+                        selectedVoice = voices.find(voice => voice.name.includes(preferred));
+                        if (selectedVoice) break;
+                    }
+                    
+                    // Fallback to any female voice
+                    if (!selectedVoice) {
+                        selectedVoice = voices.find(voice => 
+                            voice.name.toLowerCase().includes('female') ||
+                            voice.name.toLowerCase().includes('woman') ||
+                            (voice.gender && voice.gender === 'female')
+                        );
+                    }
+                    
+                    // Final fallback to any English voice
+                    if (!selectedVoice) {
+                        selectedVoice = voices.find(voice => voice.lang.startsWith('en'));
+                    }
+                    
+                    if (selectedVoice) {
+                        utterance.voice = selectedVoice;
+                        console.log('Using voice:', selectedVoice.name);
+                    } else {
+                        console.log('Using default voice');
                     }
 
+                    utterance.onstart = () => {
+                        console.log('Speech started');
+                    };
+
                     utterance.onend = () => {
+                        console.log('Speech ended');
                         this.isSpeaking = false;
                         this.aiAvatar.innerHTML = '<div class="pulse-ring"></div><div class="ai-face">🤖</div>';
                         
                         // Auto-start listening after AI speaks (except for final message)
                         if (!text.includes("sleep now")) {
                             setTimeout(() => {
-                                this.startListening();
-                            }, 500);
+                                if (!this.isListening) {
+                                    this.startListening();
+                                }
+                            }, 1000);
                         }
                     };
 
-                    this.synthesis.speak(utterance);
+                    utterance.onerror = (event) => {
+                        console.error('Speech synthesis error:', event);
+                        this.isSpeaking = false;
+                        this.aiAvatar.innerHTML = '<div class="pulse-ring"></div><div class="ai-face">🤖</div>';
+                    };
+
+                    try {
+                        this.synthesis.speak(utterance);
+                        console.log('Speech synthesis started');
+                    } catch (error) {
+                        console.error('Error starting speech:', error);
+                        this.isSpeaking = false;
+                        this.aiAvatar.innerHTML = '<div class="pulse-ring"></div><div class="ai-face">🤖</div>';
+                    }
+                    
                     this.addToTranscript(`Astra: ${text}`, 'ai-message');
-                }
+                }, 100);
             }
 
             addToTranscript(message, className) {
@@ -732,6 +801,25 @@
                 });
             }
 
+            testVoice() {
+                console.log('Testing voice...');
+                const testMessage = "Hello! This is Astra AI testing my voice. Can you hear me clearly?";
+                
+                // Force voice loading
+                const voices = speechSynthesis.getVoices();
+                console.log('Available voices for test:', voices.length);
+                
+                if (voices.length === 0) {
+                    // Try to trigger voice loading
+                    speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+                    setTimeout(() => {
+                        this.speak(testMessage);
+                    }, 100);
+                } else {
+                    this.speak(testMessage);
+                }
+            }
+
             resetInterview() {
                 this.currentUser = null;
                 this.currentQuestionIndex = 0;
@@ -750,16 +838,39 @@
         }
 
         // Initialize the AI when the page loads
+        let astraInstance = null;
+        
+        function initializeAstra() {
+            if (!astraInstance) {
+                astraInstance = new AstraAI();
+            }
+        }
+        
+        // Multiple initialization attempts to ensure voices are loaded
         window.addEventListener('load', () => {
+            // Try immediate initialization
+            setTimeout(initializeAstra, 100);
+            
             // Wait for voices to load
             if (speechSynthesis.onvoiceschanged !== undefined) {
-                speechSynthesis.onvoiceschanged = () => {
-                    new AstraAI();
-                };
-            } else {
-                new AstraAI();
+                speechSynthesis.onvoiceschanged = initializeAstra;
             }
+            
+            // Fallback initialization after 2 seconds
+            setTimeout(() => {
+                if (!astraInstance) {
+                    console.log('Fallback initialization');
+                    initializeAstra();
+                }
+            }, 2000);
         });
+        
+        // Also try on user interaction
+        document.addEventListener('click', () => {
+            if (!astraInstance) {
+                initializeAstra();
+            }
+        }, { once: true });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96e7737e61eb54b0',t:'MTc1NTA4MDEyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96e7758667cc49a6',t:'MTc1NTA4MDIwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
