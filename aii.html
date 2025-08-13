@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Voice Interviewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .ai-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .ai-avatar.speaking {
+            animation: speaking 0.8s infinite alternate, colorWave 2s infinite;
+        }
+
+        @keyframes speaking {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        @keyframes colorWave {
+            0% { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+            25% { background: linear-gradient(45deg, #fa709a, #fee140); }
+            50% { background: linear-gradient(45deg, #a8edea, #fed6e3); }
+            75% { background: linear-gradient(45deg, #ffecd2, #fcb69f); }
+            100% { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .status {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .status h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .status p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .transcript {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            max-height: 400px;
+            overflow-y: auto;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .transcript h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 20px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .ai-message {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            margin-right: auto;
+        }
+
+        .user-message {
+            background: #e9ecef;
+            color: #333;
+            margin-left: auto;
+        }
+
+        .listening {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 10px 0;
+            animation: listeningPulse 1.5s infinite;
+        }
+
+        @keyframes listeningPulse {
+            0% { 
+                opacity: 1; 
+                transform: scale(1);
+                background: linear-gradient(45deg, #28a745, #20c997);
+            }
+            50% { 
+                opacity: 0.7; 
+                transform: scale(1.05);
+                background: linear-gradient(45deg, #20c997, #17a2b8);
+            }
+            100% { 
+                opacity: 1; 
+                transform: scale(1);
+                background: linear-gradient(45deg, #28a745, #20c997);
+            }
+        }
+
+        .progress {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="ai-avatar" id="aiAvatar">🤖</div>
+        <h1>AI Voice Interviewer</h1>
+        <p class="subtitle">Say your badge number to begin the interview</p>
+        
+        <div class="status" id="statusPanel">
+            <h3>Ready to Start</h3>
+            <p>Click "Start Listening" and say your badge number to begin</p>
+        </div>
+
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" onclick="startInterview()">Start Listening</button>
+            <button id="stopBtn" onclick="stopListening()" disabled>Stop Listening</button>
+            <button id="repeatBtn" onclick="repeatQuestion()" disabled>Repeat Question</button>
+        </div>
+
+        <div class="transcript" id="transcript">
+            <h3>Interview Transcript</h3>
+            <div id="messages"></div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5-7ODvVwWNeCEihvtHvPXmRecDaEsDJI",
+            authDomain: "game-e12a6.firebaseapp.com",
+            databaseURL: "https://game-e12a6-default-rtdb.firebaseio.com",
+            projectId: "game-e12a6",
+            storageBucket: "game-e12a6.firebasestorage.app",
+            messagingSenderId: "907247974950",
+            appId: "1:907247974950:web:bd79b4c4850ce9c33204e7"
+        };
+
+        // Interview system state
+        let recognition;
+        let synthesis = window.speechSynthesis;
+        let currentUser = null;
+        let currentQuestionIndex = 0;
+        let isListening = false;
+        let currentQuestion = '';
+
+        // User profiles and questions
+        const userProfiles = {
+            'BDG101086': {
+                name: 'Jasmeen',
+                status: 'processing',
+                questions: [
+                    { q: "Where are you from?", a: null }, // Open-ended
+                    { q: "What is your age?", a: null }, // Open-ended
+                    { q: "What are the primary colors in design?", a: "red blue yellow" },
+                    { q: "What does RGB stand for?", a: "red green blue" },
+                    { q: "What is the difference between serif and sans-serif fonts?", a: "serif has decorative strokes sans serif does not" }
+                ]
+            },
+            'BDG626316': {
+                name: 'Anmol',
+                status: 'review',
+                questions: [
+                    { q: "Where are you from?", a: null }, // Open-ended
+                    { q: "What is your age?", a: null }, // Open-ended
+                    { q: "What does HTML stand for?", a: "hypertext markup language" },
+                    { q: "What are the three main web technologies?", a: "html css javascript" },
+                    { q: "What is the difference between margin and padding in CSS?", a: "margin is outside padding is inside" }
+                ]
+            }
+        };
+
+        // Initialize speech recognition
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+            } else if ('SpeechRecognition' in window) {
+                recognition = new SpeechRecognition();
+            } else {
+                alert('Speech recognition not supported in this browser. Please use Chrome or Edge.');
+                return false;
+            }
+
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isListening = true;
+                updateUI();
+                showListening();
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.toLowerCase().trim();
+                addMessage(transcript, 'user');
+                processUserInput(transcript);
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                hideListening();
+                if (event.error === 'no-speech') {
+                    speak("I couldn't hear you clearly. Could you please speak a bit louder?");
+                } else if (event.error === 'network') {
+                    speak("There seems to be a connection issue. Please try again.");
+                } else {
+                    speak("I'm having trouble understanding. Could you please repeat that?");
+                }
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                updateUI();
+                hideListening();
+            };
+
+            return true;
+        }
+
+        // Text-to-speech function
+        function speak(text) {
+            synthesis.cancel(); // Cancel any ongoing speech
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.8; // Slower, more natural pace
+            utterance.pitch = 1.3; // Higher pitch for friendlier sound
+            utterance.volume = 1;
+            
+            // Try to use the most natural female voice available
+            const voices = synthesis.getVoices();
+            const preferredVoices = voices.filter(voice => 
+                voice.lang.startsWith('en') && 
+                (voice.name.includes('Female') || 
+                 voice.name.includes('Samantha') || 
+                 voice.name.includes('Karen') ||
+                 voice.name.includes('Zira') ||
+                 voice.name.includes('Google') ||
+                 voice.name.includes('Microsoft'))
+            );
+            
+            if (preferredVoices.length > 0) {
+                utterance.voice = preferredVoices[0];
+            }
+
+            utterance.onstart = function() {
+                document.getElementById('aiAvatar').classList.add('speaking');
+            };
+
+            utterance.onend = function() {
+                document.getElementById('aiAvatar').classList.remove('speaking');
+                // Auto-start listening after AI speaks (except for final message)
+                if (currentUser && currentQuestionIndex < userProfiles[currentUser].questions.length) {
+                    setTimeout(() => {
+                        if (!isListening) {
+                            startListening();
+                        }
+                    }, 500);
+                }
+            };
+
+            synthesis.speak(utterance);
+            addMessage(text, 'ai');
+        }
+
+        // Process user input
+        function processUserInput(input) {
+            if (!currentUser) {
+                // Check for badge number
+                if (input.includes('101086') || input.includes('bdg101086')) {
+                    currentUser = 'BDG101086';
+                    initializeInterview();
+                } else if (input.includes('626316') || input.includes('bdg626316')) {
+                    currentUser = 'BDG626316';
+                    initializeInterview();
+                } else {
+                    speak("I didn't recognize that badge number. Please say your badge number clearly.");
+                    setTimeout(startListening, 2000);
+                }
+            } else {
+                // Process answer
+                processAnswer(input);
+            }
+        }
+
+        // Initialize interview for recognized user
+        function initializeInterview() {
+            const profile = userProfiles[currentUser];
+            const greeting = `Hi ${profile.name}, I am checking... your application is in ${profile.status}. Let's start some questions.`;
+            
+            updateStatus(`Interview Started - ${profile.name}`, `Application status: ${profile.status}`);
+            updateProgress(0);
+            
+            speak(greeting);
+            
+            setTimeout(() => {
+                askNextQuestion();
+            }, 3000);
+        }
+
+        // Ask the next question
+        function askNextQuestion() {
+            if (currentQuestionIndex < userProfiles[currentUser].questions.length) {
+                currentQuestion = userProfiles[currentUser].questions[currentQuestionIndex].q;
+                speak(currentQuestion);
+                updateProgress((currentQuestionIndex / userProfiles[currentUser].questions.length) * 100);
+            } else {
+                finishInterview();
+            }
+        }
+
+        // Process user's answer
+        function processAnswer(answer) {
+            const question = userProfiles[currentUser].questions[currentQuestionIndex];
+            
+            if (question.a === null) {
+                // Open-ended question (location, age)
+                speak("Thank you for your answer.");
+            } else {
+                // Check answer
+                const correctAnswer = question.a.toLowerCase();
+                const userAnswer = answer.toLowerCase();
+                
+                if (userAnswer.includes(correctAnswer) || correctAnswer.includes(userAnswer)) {
+                    speak("Correct.");
+                } else {
+                    speak(`Incorrect. The correct answer is ${question.a}.`);
+                }
+            }
+            
+            currentQuestionIndex++;
+            
+            setTimeout(() => {
+                askNextQuestion();
+            }, 2000);
+        }
+
+        // Finish the interview
+        function finishInterview() {
+            const finalMessage = "Thanks for attending me. I am going to sleep now. Your report has been sent to the team.";
+            speak(finalMessage);
+            
+            updateStatus("Interview Complete", "Thank you for participating!");
+            updateProgress(100);
+            
+            // Reset for next interview
+            setTimeout(() => {
+                resetInterview();
+            }, 5000);
+        }
+
+        // Reset interview state
+        function resetInterview() {
+            currentUser = null;
+            currentQuestionIndex = 0;
+            currentQuestion = '';
+            updateStatus("Ready for Next Interview", "Say your badge number to begin");
+            updateProgress(0);
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        // UI helper functions
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function updateStatus(title, description) {
+            document.getElementById('statusPanel').innerHTML = `
+                <h3>${title}</h3>
+                <p>${description}</p>
+            `;
+        }
+
+        function updateProgress(percentage) {
+            document.getElementById('progressBar').style.width = percentage + '%';
+        }
+
+        function showListening() {
+            const statusPanel = document.getElementById('statusPanel');
+            statusPanel.innerHTML = `
+                <h3>Listening...</h3>
+                <p class="listening">🎤 Speak now</p>
+            `;
+        }
+
+        function hideListening() {
+            if (!currentUser) {
+                updateStatus("Ready to Start", "Click 'Start Listening' and say your badge number");
+            } else {
+                updateStatus(`Interview in Progress`, `Question ${currentQuestionIndex + 1} of ${userProfiles[currentUser].questions.length}`);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('startBtn').disabled = isListening || currentUser !== null;
+            document.getElementById('stopBtn').disabled = !isListening;
+            document.getElementById('repeatBtn').disabled = !currentUser || currentQuestion === '';
+        }
+
+        // Control functions
+        function startInterview() {
+            if (initSpeechRecognition()) {
+                startListening();
+            }
+        }
+
+        function startListening() {
+            if (recognition && !isListening) {
+                recognition.start();
+            }
+        }
+
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+        }
+
+        function repeatQuestion() {
+            if (currentQuestion) {
+                speak(currentQuestion);
+            }
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            // Load voices
+            if (synthesis.onvoiceschanged !== undefined) {
+                synthesis.onvoiceschanged = function() {
+                    // Voices loaded
+                };
+            }
+            
+            updateUI();
+            
+            // Welcome message
+            setTimeout(() => {
+                speak("Welcome to the AI Voice Interviewer. Please click Start Listening and say your badge number to begin.");
+            }, 1000);
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96e756f510d680b6',t:'MTc1NTA3ODk1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
