@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open World Battle Royale</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+            color: white;
+            orientation: landscape;
+        }
+
+        @media screen and (orientation: portrait) {
+            .rotate-message {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                color: white;
+                font-size: 24px;
+                text-align: center;
+            }
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            display: block;
+            touch-action: none;
+            background: #2d5016;
+        }
+
+        /* UI Elements */
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .ui-overlay > * {
+            pointer-events: auto;
+        }
+
+        /* Top HUD */
+        .top-hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .health-bar {
+            background: rgba(0,0,0,0.8);
+            padding: 8px;
+            border-radius: 8px;
+            min-width: 120px;
+            border: 2px solid #444;
+        }
+
+        .health-fill {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .health-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa44, #44ff44);
+            width: 100%;
+            transition: width 0.3s;
+        }
+
+        .ammo-display {
+            background: rgba(0,0,0,0.8);
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid #444;
+            min-width: 100px;
+        }
+
+        .mini-map {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            height: 100px;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Mobile Controls */
+        .joystick-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 100px;
+            height: 100px;
+        }
+
+        .joystick-base {
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .joystick-knob {
+            width: 35px;
+            height: 35px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s;
+        }
+
+        .action-buttons {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:active {
+            background: rgba(255,255,255,0.3);
+            transform: scale(0.95);
+        }
+
+        .fire-area {
+            position: absolute;
+            bottom: 150px;
+            right: 20px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,0,0,0.1);
+            border: 2px solid rgba(255,0,0,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #ff6666;
+        }
+
+        /* Inventory */
+        .inventory {
+            position: absolute;
+            bottom: 20px;
+            left: 150px;
+            right: 150px;
+            height: 80px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            gap: 10px;
+            overflow-x: auto;
+            border: 2px solid #444;
+        }
+
+        .inventory-slot {
+            min-width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 10px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .inventory-slot.active {
+            border-color: #00ff00;
+            background: rgba(0,255,0,0.2);
+        }
+
+        .inventory-slot.has-item {
+            border-color: #ffaa00;
+            background: rgba(255,170,0,0.2);
+        }
+
+        /* Game States */
+        .game-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .menu-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: #ff6b6b;
+        }
+
+        .menu-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            padding: 12px 25px;
+            margin: 8px;
+            border-radius: 20px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .kill-feed {
+            position: absolute;
+            top: 120px;
+            right: 10px;
+            max-width: 200px;
+        }
+
+        .kill-message {
+            background: rgba(0,0,0,0.8);
+            padding: 6px 10px;
+            margin: 3px 0;
+            border-radius: 4px;
+            font-size: 12px;
+            animation: slideIn 0.5s ease-out;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .interaction-prompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            border: 2px solid #ffaa00;
+            display: none;
+        }
+
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff6b6b;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+            z-index: 50;
+        }
+
+        @media (max-height: 500px) {
+            .menu-title { font-size: 24px; }
+            .menu-btn { font-size: 14px; padding: 10px 20px; }
+            .joystick-container { width: 80px; height: 80px; }
+            .action-btn { width: 40px; height: 40px; font-size: 8px; }
+            .fire-area { width: 100px; height: 100px; }
+            .inventory { height: 60px; }
+            .inventory-slot { min-width: 50px; height: 50px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="rotate-message" style="display: none;">
+        <div>📱➡️📱</div>
+        <div>Please rotate your device to landscape mode</div>
+        <div>for the best gaming experience!</div>
+    </div>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="ui-overlay">
+            <!-- Top HUD -->
+            <div class="top-hud">
+                <div class="health-bar">
+                    <div>❤️ <span id="healthText">100</span></div>
+                    <div class="health-fill">
+                        <div class="health-inner" id="healthBar"></div>
+                    </div>
+                </div>
+                <div class="ammo-display">
+                    <div id="ammoCount">30/90</div>
+                    <div style="font-size: 10px;" id="weaponName">AK-47</div>
+                </div>
+            </div>
+
+            <!-- Mini Map -->
+            <div class="mini-map">
+                <canvas id="miniMapCanvas" width="150" height="100"></canvas>
+            </div>
+
+            <!-- Mobile Controls -->
+            <div class="joystick-container">
+                <div class="joystick-base">
+                    <div class="joystick-knob" id="joystickKnob"></div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn" id="jumpBtn">🦘</button>
+                <button class="action-btn" id="crouchBtn">🦆</button>
+                <button class="action-btn" id="reloadBtn">🔄</button>
+                <button class="action-btn" id="interactBtn">🤏</button>
+            </div>
+
+            <div class="fire-area" id="fireArea">
+                🎯 FIRE
+            </div>
+
+            <!-- Inventory -->
+            <div class="inventory" id="inventory">
+                <div class="inventory-slot active" data-slot="0">
+                    <div>🔫</div>
+                    <div>AK-47</div>
+                </div>
+                <div class="inventory-slot" data-slot="1">
+                    <div>📦</div>
+                    <div>Empty</div>
+                </div>
+                <div class="inventory-slot" data-slot="2">
+                    <div>📦</div>
+                    <div>Empty</div>
+                </div>
+                <div class="inventory-slot" data-slot="3">
+                    <div>📦</div>
+                    <div>Empty</div>
+                </div>
+                <div class="inventory-slot" data-slot="4">
+                    <div>📦</div>
+                    <div>Empty</div>
+                </div>
+            </div>
+
+            <!-- Kill Feed -->
+            <div class="kill-feed" id="killFeed"></div>
+
+            <!-- Interaction Prompt -->
+            <div class="interaction-prompt" id="interactionPrompt">
+                Press 🤏 to pick up item
+            </div>
+        </div>
+
+        <!-- Game Menu -->
+        <div class="game-menu" id="gameMenu">
+            <h1 class="menu-title">🌍 OPEN WORLD BATTLEGROUND</h1>
+            <button class="menu-btn" id="soloBtn">🤖 SOLO SURVIVAL</button>
+            <button class="menu-btn" id="playBtn">👥 MULTIPLAYER</button>
+            <button class="menu-btn" id="joinRoomBtn">🌐 JOIN ROOM</button>
+        </div>
+
+        <!-- Countdown -->
+        <div class="countdown" id="countdown" style="display: none;"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+        // Check orientation
+        function checkOrientation() {
+            const rotateMsg = document.querySelector('.rotate-message');
+            if (window.innerHeight > window.innerWidth) {
+                rotateMsg.style.display = 'flex';
+            } else {
+                rotateMsg.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('orientationchange', checkOrientation);
+        window.addEventListener('resize', checkOrientation);
+        checkOrientation();
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5-7ODvVwNeCEihvtHvPXmRecDaEsDJI",
+            authDomain: "game-e12a6.firebaseapp.com",
+            databaseURL: "https://game-e12a6-default-rtdb.firebaseio.com",
+            projectId: "game-e12a6",
+            storageBucket: "game-e12a6.firebasestorage.app",
+            messagingSenderId: "907247974950",
+            appId: "1:907247974950:web:bd79b4c4850ce9c33204e7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+
+        // Game Variables
+        let canvas, ctx, miniMapCanvas, miniMapCtx;
+        let gameState = 'menu';
+        let playerId = null;
+        let currentRoom = null;
+        let gameData = {};
+        let bots = [];
+        let bullets = [];
+        let gameMode = 'solo';
+        let camera = { x: 0, y: 0 };
+
+        // World size - much larger for open world
+        const WORLD_WIDTH = 4000;
+        const WORLD_HEIGHT = 3000;
+        const CANVAS_WIDTH = window.innerWidth;
+        const CANVAS_HEIGHT = window.innerHeight;
+
+        // Game objects
+        let houses = [];
+        let lootItems = [];
+        let trees = [];
+        let rocks = [];
+
+        // Weapon database - 100+ weapons
+        const WEAPONS = {
+            // Assault Rifles
+            'AK-47': { damage: 30, fireRate: 150, ammo: 30, range: 300, rarity: 'common', emoji: '🔫', sound: 'rifle' },
+            'M4A4': { damage: 28, fireRate: 120, ammo: 30, range: 320, rarity: 'common', emoji: '🔫', sound: 'rifle' },
+            'SCAR-L': { damage: 32, fireRate: 180, ammo: 30, range: 310, rarity: 'uncommon', emoji: '🔫', sound: 'rifle' },
+            'AUG': { damage: 35, fireRate: 160, ammo: 30, range: 330, rarity: 'rare', emoji: '🔫', sound: 'rifle' },
+            'FAMAS': { damage: 29, fireRate: 140, ammo: 25, range: 290, rarity: 'common', emoji: '🔫', sound: 'rifle' },
+            'Groza': { damage: 40, fireRate: 200, ammo: 30, range: 280, rarity: 'legendary', emoji: '🔫', sound: 'rifle' },
+            
+            // SMGs
+            'UMP45': { damage: 22, fireRate: 100, ammo: 25, range: 150, rarity: 'common', emoji: '🔫', sound: 'smg' },
+            'Vector': { damage: 20, fireRate: 80, ammo: 25, range: 120, rarity: 'rare', emoji: '🔫', sound: 'smg' },
+            'MP5': { damage: 24, fireRate: 90, ammo: 30, range: 140, rarity: 'uncommon', emoji: '🔫', sound: 'smg' },
+            'P90': { damage: 18, fireRate: 70, ammo: 50, range: 130, rarity: 'rare', emoji: '🔫', sound: 'smg' },
+            'Uzi': { damage: 19, fireRate: 85, ammo: 25, range: 110, rarity: 'common', emoji: '🔫', sound: 'smg' },
+            
+            // Sniper Rifles
+            'AWM': { damage: 120, fireRate: 1200, ammo: 5, range: 800, rarity: 'legendary', emoji: '🎯', sound: 'sniper' },
+            'Kar98k': { damage: 90, fireRate: 1000, ammo: 5, range: 700, rarity: 'rare', emoji: '🎯', sound: 'sniper' },
+            'M24': { damage: 100, fireRate: 1100, ammo: 5, range: 750, rarity: 'rare', emoji: '🎯', sound: 'sniper' },
+            'VSS': { damage: 35, fireRate: 300, ammo: 10, range: 400, rarity: 'uncommon', emoji: '🎯', sound: 'sniper' },
+            'Win94': { damage: 80, fireRate: 900, ammo: 8, range: 600, rarity: 'common', emoji: '🎯', sound: 'sniper' },
+            
+            // Pistols
+            'Glock': { damage: 20, fireRate: 200, ammo: 17, range: 100, rarity: 'common', emoji: '🔫', sound: 'pistol' },
+            'P1911': { damage: 25, fireRate: 250, ammo: 7, range: 120, rarity: 'common', emoji: '🔫', sound: 'pistol' },
+            'Desert Eagle': { damage: 45, fireRate: 400, ammo: 7, range: 150, rarity: 'rare', emoji: '🔫', sound: 'pistol' },
+            'P92': { damage: 22, fireRate: 220, ammo: 15, range: 110, rarity: 'common', emoji: '🔫', sound: 'pistol' },
+            'R1895': { damage: 35, fireRate: 350, ammo: 7, range: 140, rarity: 'uncommon', emoji: '🔫', sound: 'pistol' },
+            
+            // Shotguns
+            'S686': { damage: 80, fireRate: 800, ammo: 2, range: 80, rarity: 'common', emoji: '💥', sound: 'shotgun' },
+            'S1897': { damage: 75, fireRate: 700, ammo: 5, range: 90, rarity: 'common', emoji: '💥', sound: 'shotgun' },
+            'S12K': { damage: 70, fireRate: 300, ammo: 5, range: 85, rarity: 'uncommon', emoji: '💥', sound: 'shotgun' },
+            'DBS': { damage: 85, fireRate: 900, ammo: 14, range: 95, rarity: 'rare', emoji: '💥', sound: 'shotgun' },
+            
+            // LMGs
+            'M249': { damage: 35, fireRate: 180, ammo: 100, range: 400, rarity: 'legendary', emoji: '🔫', sound: 'lmg' },
+            'DP-28': { damage: 38, fireRate: 200, ammo: 47, range: 380, rarity: 'rare', emoji: '🔫', sound: 'lmg' },
+            
+            // Special Weapons
+            'Crossbow': { damage: 100, fireRate: 2000, ammo: 1, range: 300, rarity: 'rare', emoji: '🏹', sound: 'special' },
+            'Pan': { damage: 50, fireRate: 500, ammo: 999, range: 30, rarity: 'meme', emoji: '🍳', sound: 'melee' },
+            'Machete': { damage: 60, fireRate: 400, ammo: 999, range: 35, rarity: 'uncommon', emoji: '🔪', sound: 'melee' },
+            'Crowbar': { damage: 45, fireRate: 450, ammo: 999, range: 32, rarity: 'common', emoji: '🔧', sound: 'melee' },
+            
+            // Futuristic Weapons
+            'Plasma Rifle': { damage: 50, fireRate: 100, ammo: 20, range: 350, rarity: 'legendary', emoji: '⚡', sound: 'energy' },
+            'Laser Gun': { damage: 40, fireRate: 80, ammo: 25, range: 400, rarity: 'legendary', emoji: '🔴', sound: 'energy' },
+            'Rail Gun': { damage: 150, fireRate: 1500, ammo: 3, range: 900, rarity: 'mythic', emoji: '⚡', sound: 'energy' },
+            
+            // More weapons to reach 100+
+            'AK-74': { damage: 31, fireRate: 155, ammo: 30, range: 305, rarity: 'common', emoji: '🔫', sound: 'rifle' },
+            'M16A4': { damage: 33, fireRate: 170, ammo: 30, range: 325, rarity: 'uncommon', emoji: '🔫', sound: 'rifle' },
+            'G36C': { damage: 29, fireRate: 145, ammo: 30, range: 295, rarity: 'common', emoji: '🔫', sound: 'rifle' },
+            'FAMAS G2': { damage: 30, fireRate: 150, ammo: 25, range: 300, rarity: 'uncommon', emoji: '🔫', sound: 'rifle' },
+            'TAR-21': { damage: 34, fireRate: 165, ammo: 30, range: 315, rarity: 'rare', emoji: '🔫', sound: 'rifle' },
+            'QBZ-95': { damage: 28, fireRate: 140, ammo: 30, range: 290, rarity: 'common', emoji: '🔫', sound: 'rifle' },
+            'Type 95': { damage: 32, fireRate: 160, ammo: 30, range: 310, rarity: 'uncommon', emoji: '🔫', sound: 'rifle' },
+            'AN-94': { damage: 36, fireRate: 175, ammo: 30, range: 320, rarity: 'rare', emoji: '🔫', sound: 'rifle' },
+            'AEK-971': { damage: 31, fireRate: 150, ammo: 30, range: 300, rarity: 'uncommon', emoji: '🔫', sound: 'rifle' },
+            'F2000': { damage: 30, fireRate: 155, ammo: 30, range: 305, rarity: 'uncommon', emoji: '🔫', sound: 'rifle' },
+            
+            // More SMGs
+            'MP7': { damage: 21, fireRate: 85, ammo: 20, range: 125, rarity: 'uncommon', emoji: '🔫', sound: 'smg' },
+            'PP-19': { damage: 23, fireRate: 95, ammo: 53, range: 135, rarity: 'uncommon', emoji: '🔫', sound: 'smg' },
+            'Skorpion': { damage: 18, fireRate: 75, ammo: 20, range: 100, rarity: 'common', emoji: '🔫', sound: 'smg' },
+            'MAC-10': { damage: 19, fireRate: 80, ammo: 30, range: 105, rarity: 'common', emoji: '🔫', sound: 'smg' },
+            'TMP': { damage: 20, fireRate: 85, ammo: 30, range: 115, rarity: 'common', emoji: '🔫', sound: 'smg' },
+            'MP9': { damage: 22, fireRate: 90, ammo: 25, range: 120, rarity: 'uncommon', emoji: '🔫', sound: 'smg' },
+            'Spectre': { damage: 25, fireRate: 100, ammo: 30, range: 140, rarity: 'rare', emoji: '🔫', sound: 'smg' },
+            'P90 TR': { damage: 19, fireRate: 75, ammo: 50, range: 135, rarity: 'rare', emoji: '🔫', sound: 'smg' },
+            
+            // More Snipers
+            'Barrett M82': { damage: 140, fireRate: 1400, ammo: 10, range: 850, rarity: 'mythic', emoji: '🎯', sound: 'sniper' },
+            'CheyTac M200': { damage: 130, fireRate: 1300, ammo: 7, range: 900, rarity: 'legendary', emoji: '🎯', sound: 'sniper' },
+            'Dragunov': { damage: 85, fireRate: 800, ammo: 10, range: 650, rarity: 'rare', emoji: '🎯', sound: 'sniper' },
+            'M40A3': { damage: 95, fireRate: 950, ammo: 5, range: 700, rarity: 'rare', emoji: '🎯', sound: 'sniper' },
+            'R700': { damage: 88, fireRate: 900, ammo: 4, range: 680, rarity: 'uncommon', emoji: '🎯', sound: 'sniper' },
+            'L96A1': { damage: 105, fireRate: 1050, ammo: 5, range: 720, rarity: 'rare', emoji: '🎯', sound: 'sniper' },
+            'PSG-1': { damage: 75, fireRate: 600, ammo: 20, range: 550, rarity: 'uncommon', emoji: '🎯', sound: 'sniper' },
+            'WA2000': { damage: 110, fireRate: 1200, ammo: 6, range: 780, rarity: 'legendary', emoji: '🎯', sound: 'sniper' },
+            
+            // Exotic Weapons
+            'Golden AK': { damage: 45, fireRate: 120, ammo: 30, range: 350, rarity: 'mythic', emoji: '🏆', sound: 'rifle' },
+            'Diamond M4': { damage: 42, fireRate: 100, ammo: 30, range: 370, rarity: 'mythic', emoji: '💎', sound: 'rifle' },
+            'Fire Dragon': { damage: 55, fireRate: 200, ammo: 25, range: 300, rarity: 'mythic', emoji: '🐉', sound: 'special' },
+            'Ice Breaker': { damage: 60, fireRate: 250, ammo: 20, range: 280, rarity: 'mythic', emoji: '❄️', sound: 'special' },
+            'Thunder Strike': { damage: 65, fireRate: 300, ammo: 15, range: 320, rarity: 'mythic', emoji: '⚡', sound: 'special' },
+            'Shadow Blade': { damage: 80, fireRate: 350, ammo: 999, range: 40, rarity: 'mythic', emoji: '🗡️', sound: 'melee' },
+            'Phoenix Wing': { damage: 70, fireRate: 150, ammo: 12, range: 400, rarity: 'mythic', emoji: '🔥', sound: 'special' },
+            'Void Reaper': { damage: 90, fireRate: 400, ammo: 8, range: 250, rarity: 'mythic', emoji: '🌑', sound: 'special' },
+            
+            // More standard weapons to reach 100+
+            'M1 Garand': { damage: 55, fireRate: 500, ammo: 8, range: 400, rarity: 'uncommon', emoji: '🔫', sound: 'rifle' },
+            'Thompson': { damage: 28, fireRate: 120, ammo: 30, range: 160, rarity: 'uncommon', emoji: '🔫', sound: 'smg' },
+            'STG44': { damage: 35, fireRate: 180, ammo: 30, range: 280, rarity: 'rare', emoji: '🔫', sound: 'rifle' },
+            'PPSH-41': { damage: 25, fireRate: 100, ammo: 71, range: 150, rarity: 'uncommon', emoji: '🔫', sound: 'smg' },
+            'MG42': { damage: 40, fireRate: 150, ammo: 50, range: 450, rarity: 'legendary', emoji: '🔫', sound: 'lmg' },
+            'Luger P08': { damage: 30, fireRate: 300, ammo: 8, range: 130, rarity: 'uncommon', emoji: '🔫', sound: 'pistol' },
+            'Webley': { damage: 40, fireRate: 400, ammo: 6, range: 140, rarity: 'rare', emoji: '🔫', sound: 'pistol' },
+            'Mosin Nagant': { damage: 85, fireRate: 1000, ammo: 5, range: 650, rarity: 'uncommon', emoji: '🎯', sound: 'sniper' },
+            'Lee Enfield': { damage: 80, fireRate: 900, ammo: 10, range: 600, rarity: 'common', emoji: '🎯', sound: 'sniper' },
+            'Springfield': { damage: 90, fireRate: 1100, ammo: 5, range: 700, rarity: 'uncommon', emoji: '🎯', sound: 'sniper' }
+        };
+
+        // Player Data
+        let player = {
+            x: WORLD_WIDTH / 2,
+            y: WORLD_HEIGHT / 2,
+            health: 100,
+            maxHealth: 100,
+            ammo: 30,
+            totalAmmo: 90,
+            weapon: 'AK-47',
+            kills: 0,
+            isAlive: true,
+            angle: 0,
+            name: 'Player',
+            speed: 4,
+            lastShot: 0,
+            inventory: ['AK-47', null, null, null, null],
+            currentSlot: 0,
+            isInHouse: false,
+            nearbyItems: []
+        };
+
+        // Game Settings
+        let safeZone = { x: WORLD_WIDTH/2, y: WORLD_HEIGHT/2, radius: Math.min(WORLD_WIDTH, WORLD_HEIGHT) * 0.3 };
+        let gameStartTime = 0;
+
+        // Audio Context
+        let audioContext;
+        let sounds = {};
+
+        // Controls
+        let joystickActive = false;
+        let joystickData = { x: 0, y: 0 };
+        let keys = {};
+
+        // House Class
+        class House {
+            constructor(x, y, width, height, type = 'normal') {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.type = type;
+                this.rooms = this.generateRooms();
+                this.loot = this.generateLoot();
+                this.doors = this.generateDoors();
+            }
+
+            generateRooms() {
+                const rooms = [];
+                const roomCount = 2 + Math.floor(Math.random() * 4); // 2-5 rooms
+                
+                for (let i = 0; i < roomCount; i++) {
+                    rooms.push({
+                        x: this.x + Math.random() * (this.width - 60),
+                        y: this.y + Math.random() * (this.height - 60),
+                        width: 40 + Math.random() * 80,
+                        height: 40 + Math.random() * 80
+                    });
+                }
+                return rooms;
+            }
+
+            generateLoot() {
+                const loot = [];
+                const lootCount = 3 + Math.floor(Math.random() * 8); // 3-10 items per house
+                
+                for (let i = 0; i < lootCount; i++) {
+                    const weaponNames = Object.keys(WEAPONS);
+                    const randomWeapon = weaponNames[Math.floor(Math.random() * weaponNames.length)];
+                    
+                    loot.push({
+                        x: this.x + 20 + Math.random() * (this.width - 40),
+                        y: this.y + 20 + Math.random() * (this.height - 40),
+                        type: 'weapon',
+                        item: randomWeapon,
+                        picked: false
+                    });
+                }
+                
+                // Add ammo and health items
+                for (let i = 0; i < 3; i++) {
+                    loot.push({
+                        x: this.x + 20 + Math.random() * (this.width - 40),
+                        y: this.y + 20 + Math.random() * (this.height - 40),
+                        type: Math.random() > 0.5 ? 'ammo' : 'health',
+                        item: Math.random() > 0.5 ? 'ammo_box' : 'med_kit',
+                        picked: false
+                    });
+                }
+                
+                return loot;
+            }
+
+            generateDoors() {
+                return [
+                    { x: this.x + this.width/2, y: this.y, width: 20, height: 5 }, // Top door
+                    { x: this.x, y: this.y + this.height/2, width: 5, height: 20 }, // Left door
+                    { x: this.x + this.width - 5, y: this.y + this.height/2, width: 5, height: 20 }, // Right door
+                    { x: this.x + this.width/2, y: this.y + this.height - 5, width: 20, height: 5 } // Bottom door
+                ];
+            }
+
+            isPlayerInside(playerX, playerY) {
+                return playerX >= this.x && playerX <= this.x + this.width &&
+                       playerY >= this.y && playerY <= this.y + this.height;
+            }
+
+            draw(ctx, cameraX, cameraY) {
+                const screenX = this.x - cameraX;
+                const screenY = this.y - cameraY;
+                
+                // House exterior
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(screenX, screenY, this.width, this.height);
+                
+                // House outline
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(screenX, screenY, this.width, this.height);
+                
+                // Roof
+                ctx.fillStyle = '#A0522D';
+                ctx.beginPath();
+                ctx.moveTo(screenX - 10, screenY);
+                ctx.lineTo(screenX + this.width/2, screenY - 20);
+                ctx.lineTo(screenX + this.width + 10, screenY);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Windows
+                ctx.fillStyle = '#87CEEB';
+                ctx.fillRect(screenX + 20, screenY + 20, 25, 25);
+                ctx.fillRect(screenX + this.width - 45, screenY + 20, 25, 25);
+                
+                // Window frames
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(screenX + 20, screenY + 20, 25, 25);
+                ctx.strokeRect(screenX + this.width - 45, screenY + 20, 25, 25);
+                
+                // Doors
+                this.doors.forEach(door => {
+                    ctx.fillStyle = '#654321';
+                    ctx.fillRect(screenX + door.x - this.x, screenY + door.y - this.y, door.width, door.height);
+                });
+                
+                // Interior rooms (if player is inside)
+                if (this.isPlayerInside(player.x, player.y)) {
+                    ctx.fillStyle = 'rgba(139, 69, 19, 0.3)';
+                    ctx.fillRect(screenX + 5, screenY + 5, this.width - 10, this.height - 10);
+                    
+                    this.rooms.forEach(room => {
+                        ctx.strokeStyle = '#654321';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(screenX + room.x - this.x, screenY + room.y - this.y, room.width, room.height);
+                    });
+                }
+                
+                // Draw loot items
+                this.loot.forEach(loot => {
+                    if (!loot.picked) {
+                        const lootScreenX = loot.x - cameraX;
+                        const lootScreenY = loot.y - cameraY;
+                        
+                        // Loot glow effect
+                        ctx.shadowColor = this.getLootColor(loot.type);
+                        ctx.shadowBlur = 10;
+                        
+                        ctx.fillStyle = this.getLootColor(loot.type);
+                        ctx.beginPath();
+                        ctx.arc(lootScreenX, lootScreenY, 8, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.shadowBlur = 0;
+                        
+                        // Loot icon
+                        ctx.fillStyle = 'white';
+                        ctx.font = '16px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(this.getLootEmoji(loot), lootScreenX, lootScreenY + 5);
+                    }
+                });
+            }
+
+            getLootColor(type) {
+                switch(type) {
+                    case 'weapon': return '#FFD700';
+                    case 'ammo': return '#FFA500';
+                    case 'health': return '#FF6B6B';
+                    default: return '#FFFFFF';
+                }
+            }
+
+            getLootEmoji(loot) {
+                if (loot.type === 'weapon') {
+                    return WEAPONS[loot.item]?.emoji || '🔫';
+                } else if (loot.type === 'ammo') {
+                    return '📦';
+                } else if (loot.type === 'health') {
+                    return '🏥';
+                }
+                return '❓';
+            }
+        }
+
+        // Bot Class (Enhanced)
+        class Bot {
+            constructor(x, y, name) {
+                this.x = x;
+                this.y = y;
+                this.health = 100;
+                this.maxHealth = 100;
+                this.weapon = this.getRandomWeapon();
+                this.ammo = WEAPONS[this.weapon].ammo;
+                this.kills = 0;
+                this.isAlive = true;
+                this.angle = 0;
+                this.name = name;
+                this.speed = 2 + Math.random() * 2;
+                this.accuracy = 0.6 + Math.random() * 0.4;
+                this.aggressiveness = Math.random();
+                this.lastShot = 0;
+                this.target = null;
+                this.state = 'patrol';
+                this.patrolTarget = { x: Math.random() * WORLD_WIDTH, y: Math.random() * WORLD_HEIGHT };
+                this.lastStateChange = Date.now();
+                this.inventory = [this.weapon, null, null, null, null];
+                this.currentSlot = 0;
+                this.isInHouse = false;
+                this.pathfinding = [];
+                this.lastPathUpdate = 0;
+            }
+
+            getRandomWeapon() {
+                const weaponNames = Object.keys(WEAPONS);
+                const rarityWeights = {
+                    'common': 0.4,
+                    'uncommon': 0.3,
+                    'rare': 0.2,
+                    'legendary': 0.08,
+                    'mythic': 0.02
+                };
+                
+                const availableWeapons = weaponNames.filter(name => {
+                    const rarity = WEAPONS[name].rarity;
+                    return Math.random() < rarityWeights[rarity];
+                });
+                
+                return availableWeapons[Math.floor(Math.random() * availableWeapons.length)] || 'AK-47';
+            }
+
+            update() {
+                if (!this.isAlive) return;
+
+                // Check if in house
+                this.checkHouseStatus();
+                
+                // Find targets
+                this.findTarget();
+                
+                // AI State Machine
+                switch(this.state) {
+                    case 'patrol':
+                        this.patrol();
+                        break;
+                    case 'chase':
+                        this.chase();
+                        break;
+                    case 'attack':
+                        this.attack();
+                        break;
+                    case 'flee':
+                        this.flee();
+                        break;
+                    case 'loot':
+                        this.loot();
+                        break;
+                }
+
+                // Keep in world bounds
+                this.x = Math.max(20, Math.min(WORLD_WIDTH - 20, this.x));
+                this.y = Math.max(20, Math.min(WORLD_HEIGHT - 20, this.y));
+
+                // Safe zone damage
+                this.checkSafeZoneDamage();
+            }
+
+            checkHouseStatus() {
+                this.isInHouse = false;
+                houses.forEach(house => {
+                    if (house.isPlayerInside(this.x, this.y)) {
+                        this.isInHouse = true;
+                    }
+                });
+            }
+
+            patrol() {
+                // Move towards patrol target or loot
+                const nearbyLoot = this.findNearbyLoot();
+                if (nearbyLoot.length > 0 && Math.random() < 0.3) {
+                    this.state = 'loot';
+                    return;
+                }
+
+                const dx = this.patrolTarget.x - this.x;
+                const dy = this.patrolTarget.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 100) {
+                    // Choose new patrol target, prefer safe zone or houses
+                    if (Math.random() < 0.6 && houses.length > 0) {
+                        const randomHouse = houses[Math.floor(Math.random() * houses.length)];
+                        this.patrolTarget = {
+                            x: randomHouse.x + randomHouse.width / 2,
+                            y: randomHouse.y + randomHouse.height / 2
+                        };
+                    } else {
+                        const angle = Math.random() * Math.PI * 2;
+                        const radius = safeZone.radius * 0.8;
+                        this.patrolTarget = {
+                            x: safeZone.x + Math.cos(angle) * radius,
+                            y: safeZone.y + Math.sin(angle) * radius
+                        };
+                    }
+                }
+
+                this.moveTowards(this.patrolTarget.x, this.patrolTarget.y, this.speed * 0.7);
+
+                if (this.target) {
+                    this.state = 'chase';
+                }
+            }
+
+            loot() {
+                const nearbyLoot = this.findNearbyLoot();
+                if (nearbyLoot.length === 0) {
+                    this.state = 'patrol';
+                    return;
+                }
+
+                const closestLoot = nearbyLoot[0];
+                this.moveTowards(closestLoot.x, closestLoot.y, this.speed);
+
+                const distance = this.getDistance({ x: closestLoot.x, y: closestLoot.y });
+                if (distance < 30) {
+                    this.pickupLoot(closestLoot);
+                    this.state = 'patrol';
+                }
+            }
+
+            findNearbyLoot() {
+                const nearby = [];
+                houses.forEach(house => {
+                    house.loot.forEach(loot => {
+                        if (!loot.picked) {
+                            const distance = Math.sqrt(
+                                Math.pow(loot.x - this.x, 2) + 
+                                Math.pow(loot.y - this.y, 2)
+                            );
+                            if (distance < 200) {
+                                nearby.push({ ...loot, distance });
+                            }
+                        }
+                    });
+                });
+                return nearby.sort((a, b) => a.distance - b.distance);
+            }
+
+            pickupLoot(loot) {
+                if (loot.type === 'weapon') {
+                    // Find empty slot or replace current weapon
+                    for (let i = 0; i < this.inventory.length; i++) {
+                        if (!this.inventory[i]) {
+                            this.inventory[i] = loot.item;
+                            break;
+                        }
+                    }
+                    // If no empty slot, replace current weapon
+                    if (this.inventory.every(slot => slot !== null)) {
+                        this.inventory[this.currentSlot] = loot.item;
+                        this.weapon = loot.item;
+                        this.ammo = WEAPONS[this.weapon].ammo;
+                    }
+                } else if (loot.type === 'health') {
+                    this.health = Math.min(this.maxHealth, this.health + 50);
+                } else if (loot.type === 'ammo') {
+                    this.ammo = Math.min(WEAPONS[this.weapon].ammo * 3, this.ammo + 30);
+                }
+
+                // Mark loot as picked
+                houses.forEach(house => {
+                    house.loot.forEach(houseLoot => {
+                        if (houseLoot.x === loot.x && houseLoot.y === loot.y) {
+                            houseLoot.picked = true;
+                        }
+                    });
+                });
+            }
+
+            chase() {
+                if (!this.target || !this.target.isAlive) {
+                    this.state = 'patrol';
+                    return;
+                }
+
+                const distance = this.getDistance(this.target);
+                
+                if (distance < 200) {
+                    this.state = 'attack';
+                } else if (distance > 500) {
+                    this.state = 'patrol';
+                } else {
+                    this.moveTowards(this.target.x, this.target.y, this.speed * 1.2);
+                }
+            }
+
+            attack() {
+                if (!this.target || !this.target.isAlive) {
+                    this.state = 'patrol';
+                    return;
+                }
+
+                const distance = this.getDistance(this.target);
+                
+                if (distance > 300) {
+                    this.state = 'chase';
+                    return;
+                }
+
+                if (this.health < 30 && this.aggressiveness < 0.6) {
+                    this.state = 'flee';
+                    return;
+                }
+
+                // Aim at target with prediction
+                const dx = this.target.x - this.x;
+                const dy = this.target.y - this.y;
+                this.angle = Math.atan2(dy, dx);
+
+                // Advanced movement - strafe and take cover
+                const strafeAngle = this.angle + (Math.random() > 0.5 ? Math.PI/2 : -Math.PI/2);
+                const strafeX = this.x + Math.cos(strafeAngle) * this.speed * 0.8;
+                const strafeY = this.y + Math.sin(strafeAngle) * this.speed * 0.8;
+                
+                // Check for cover (houses)
+                let foundCover = false;
+                houses.forEach(house => {
+                    if (this.getDistance({ x: house.x + house.width/2, y: house.y + house.height/2 }) < 150) {
+                        this.moveTowards(house.x + house.width/2, house.y + house.height/2, this.speed * 0.5);
+                        foundCover = true;
+                    }
+                });
+
+                if (!foundCover) {
+                    this.moveTowards(strafeX, strafeY, this.speed * 0.6);
+                }
+
+                // Shoot
+                const now = Date.now();
+                const fireRate = WEAPONS[this.weapon].fireRate;
+                if (now - this.lastShot > fireRate && this.ammo > 0) {
+                    if (Math.random() < this.accuracy) {
+                        this.shoot();
+                    }
+                }
+            }
+
+            flee() {
+                if (!this.target) {
+                    this.state = 'patrol';
+                    return;
+                }
+
+                const dx = this.x - this.target.x;
+                const dy = this.y - this.target.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 400 || this.health > 60) {
+                    this.state = 'patrol';
+                    return;
+                }
+
+                // Run towards nearest house or safe zone
+                let fleeTarget = { x: safeZone.x, y: safeZone.y };
+                let minDistance = this.getDistance(fleeTarget);
+
+                houses.forEach(house => {
+                    const houseCenter = { x: house.x + house.width/2, y: house.y + house.height/2 };
+                    const houseDist = this.getDistance(houseCenter);
+                    if (houseDist < minDistance) {
+                        fleeTarget = houseCenter;
+                        minDistance = houseDist;
+                    }
+                });
+
+                this.moveTowards(fleeTarget.x, fleeTarget.y, this.speed * 1.5);
+
+                // Shoot while fleeing occasionally
+                if (Math.random() < 0.2 && this.ammo > 0) {
+                    this.angle = Math.atan2(-dy, -dx);
+                    this.shoot();
+                }
+            }
+
+            findTarget() {
+                let nearestDistance = Infinity;
+                let nearestTarget = null;
+
+                // Check player
+                if (player.isAlive) {
+                    const distance = this.getDistance(player);
+                    if (distance < 400 && distance < nearestDistance) {
+                        nearestDistance = distance;
+                        nearestTarget = player;
+                    }
+                }
+
+                // Check other bots
+                bots.forEach(bot => {
+                    if (bot !== this && bot.isAlive) {
+                        const distance = this.getDistance(bot);
+                        if (distance < 300 && distance < nearestDistance) {
+                            nearestDistance = distance;
+                            nearestTarget = bot;
+                        }
+                    }
+                });
+
+                this.target = nearestTarget;
+            }
+
+            moveTowards(targetX, targetY, speed) {
+                const dx = targetX - this.x;
+                const dy = targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    this.x += (dx / distance) * speed;
+                    this.y += (dy / distance) * speed;
+                }
+            }
+
+            getDistance(target) {
+                const dx = target.x - this.x;
+                const dy = target.y - this.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            shoot() {
+                const now = Date.now();
+                this.lastShot = now;
+                this.ammo--;
+
+                const weapon = WEAPONS[this.weapon];
+                
+                // Create bullet with weapon properties
+                bullets.push({
+                    x: this.x,
+                    y: this.y,
+                    dx: Math.cos(this.angle) * 12,
+                    dy: Math.sin(this.angle) * 12,
+                    owner: this,
+                    damage: weapon.damage,
+                    life: weapon.range / 12,
+                    color: this.getBulletColor()
+                });
+
+                sounds.shoot?.();
+
+                // Reload if empty
+                if (this.ammo <= 0) {
+                    setTimeout(() => {
+                        this.ammo = weapon.ammo;
+                    }, 2000 + Math.random() * 1000);
+                }
+            }
+
+            getBulletColor() {
+                const weapon = WEAPONS[this.weapon];
+                switch(weapon.sound) {
+                    case 'energy': return '#00FFFF';
+                    case 'special': return '#FF00FF';
+                    case 'sniper': return '#FFD700';
+                    default: return '#FFFF00';
+                }
+            }
+
+            checkSafeZoneDamage() {
+                const distanceFromCenter = Math.sqrt(
+                    Math.pow(this.x - safeZone.x, 2) + 
+                    Math.pow(this.y - safeZone.y, 2)
+                );
+                
+                if (distanceFromCenter > safeZone.radius) {
+                    this.health -= 3;
+                    if (this.health <= 0) {
+                        this.isAlive = false;
+                        addKillFeed(`💀 ${this.name} died to zone`);
+                    }
+                }
+            }
+
+            takeDamage(damage) {
+                this.health -= damage;
+                if (this.health <= 0) {
+                    this.isAlive = false;
+                    addKillFeed(`💀 ${this.name} was eliminated`);
+                }
+            }
+
+            draw(ctx, cameraX, cameraY) {
+                if (!this.isAlive) return;
+
+                const screenX = this.x - cameraX;
+                const screenY = this.y - cameraY;
+
+                ctx.save();
+                ctx.translate(screenX, screenY);
+                ctx.rotate(this.angle);
+                
+                // Bot body with state colors
+                let botColor = '#ff6b6b';
+                if (this.state === 'chase') botColor = '#ffa500';
+                else if (this.state === 'attack') botColor = '#ff0000';
+                else if (this.state === 'flee') botColor = '#ffff00';
+                else if (this.state === 'loot') botColor = '#00ff00';
+                
+                // Body
+                ctx.fillStyle = botColor;
+                ctx.fillRect(-15, -10, 30, 20);
+                
+                // Head
+                ctx.fillStyle = '#ffdbac';
+                ctx.beginPath();
+                ctx.arc(0, -15, 8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Weapon
+                ctx.fillStyle = '#333';
+                const weaponLength = WEAPONS[this.weapon].range / 10;
+                ctx.fillRect(15, -2, Math.min(weaponLength, 30), 4);
+                
+                ctx.restore();
+                
+                // Health bar
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(screenX - 20, screenY - 35, 40, 6);
+                ctx.fillStyle = this.health > 60 ? '#00ff00' : this.health > 30 ? '#ffaa00' : '#ff0000';
+                ctx.fillRect(screenX - 20, screenY - 35, (this.health / this.maxHealth) * 40, 6);
+                
+                // Name and weapon
+                ctx.fillStyle = 'white';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.name, screenX, screenY - 40);
+                ctx.font = '8px Arial';
+                ctx.fillText(this.weapon, screenX, screenY + 35);
+            }
+        }
+
+        // Initialize Game
+        function initGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            miniMapCanvas = document.getElementById('miniMapCanvas');
+            miniMapCtx = miniMapCanvas.getContext('2d');
+            
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+
+            generateWorld();
+            setupAudio();
+            setupControls();
+            setupFirebase();
+            
+            gameLoop();
+        }
+
+        // Generate Open World
+        function generateWorld() {
+            houses = [];
+            trees = [];
+            rocks = [];
+            
+            // Generate houses
+            for (let i = 0; i < 25; i++) {
+                const x = 100 + Math.random() * (WORLD_WIDTH - 300);
+                const y = 100 + Math.random() * (WORLD_HEIGHT - 300);
+                const width = 80 + Math.random() * 120;
+                const height = 80 + Math.random() * 120;
+                
+                // Check for overlap with existing houses
+                let overlap = false;
+                houses.forEach(house => {
+                    if (x < house.x + house.width + 50 && x + width > house.x - 50 &&
+                        y < house.y + house.height + 50 && y + height > house.y - 50) {
+                        overlap = true;
+                    }
+                });
+                
+                if (!overlap) {
+                    houses.push(new House(x, y, width, height));
+                }
+            }
+            
+            // Generate trees
+            for (let i = 0; i < 200; i++) {
+                trees.push({
+                    x: Math.random() * WORLD_WIDTH,
+                    y: Math.random() * WORLD_HEIGHT,
+                    size: 15 + Math.random() * 25
+                });
+            }
+            
+            // Generate rocks
+            for (let i = 0; i < 100; i++) {
+                rocks.push({
+                    x: Math.random() * WORLD_WIDTH,
+                    y: Math.random() * WORLD_HEIGHT,
+                    size: 10 + Math.random() * 20
+                });
+            }
+        }
+
+        // Audio Setup
+        function setupAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                sounds.shoot = createSound(300, 0.1, 'square');
+                sounds.reload = createSound(200, 0.3, 'sine');
+                sounds.pickup = createSound(500, 0.2, 'triangle');
+                sounds.hit = createSound(150, 0.2, 'sawtooth');
+            } catch (e) {
+                console.log('Audio not supported');
+            }
+        }
+
+        function createSound(frequency, duration, type = 'sine') {
+            return () => {
+                if (!audioContext) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            };
+        }
+
+        // Firebase Setup
+        function setupFirebase() {
+            const provider = new GoogleAuthProvider();
+            
+            signInWithPopup(auth, provider).then((result) => {
+                const user = result.user;
+                player.name = user.displayName || 'Player';
+                console.log('Signed in with Google:', user.displayName);
+            }).catch((error) => {
+                console.log('Google sign-in failed, using anonymous');
+                player.name = 'Guest_' + Math.floor(Math.random() * 1000);
+            });
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    playerId = user.uid;
+                }
+            });
+        }
+
+        // Controls Setup
+        function setupControls() {
+            const joystickBase = document.querySelector('.joystick-base');
+            const joystickKnob = document.getElementById('joystickKnob');
+            const fireArea = document.getElementById('fireArea');
+
+            // Joystick Controls
+            let joystickRect = joystickBase.getBoundingClientRect();
+            
+            function updateJoystick(clientX, clientY) {
+                const centerX = joystickRect.left + joystickRect.width / 2;
+                const centerY = joystickRect.top + joystickRect.height / 2;
+                
+                let deltaX = clientX - centerX;
+                let deltaY = clientY - centerY;
+                
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                const maxDistance = joystickRect.width / 2 - 20;
+                
+                if (distance > maxDistance) {
+                    deltaX = (deltaX / distance) * maxDistance;
+                    deltaY = (deltaY / distance) * maxDistance;
+                }
+                
+                joystickKnob.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                
+                joystickData.x = deltaX / maxDistance;
+                joystickData.y = deltaY / maxDistance;
+            }
+
+            joystickBase.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                joystickActive = true;
+                joystickRect = joystickBase.getBoundingClientRect();
+            });
+
+            joystickBase.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (joystickActive) {
+                    const touch = e.touches[0];
+                    updateJoystick(touch.clientX, touch.clientY);
+                }
+            });
+
+            joystickBase.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                joystickActive = false;
+                joystickKnob.style.transform = 'translate(0px, 0px)';
+                joystickData.x = 0;
+                joystickData.y = 0;
+            });
+
+            // Fire Area
+            fireArea.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (gameState === 'playing') {
+                    shoot();
+                }
+            });
+
+            // Action Buttons
+            document.getElementById('reloadBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (gameState === 'playing') {
+                    reload();
+                }
+            });
+
+            document.getElementById('interactBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (gameState === 'playing') {
+                    interact();
+                }
+            });
+
+            // Inventory slots
+            document.querySelectorAll('.inventory-slot').forEach((slot, index) => {
+                slot.addEventListener('click', () => {
+                    if (player.inventory[index]) {
+                        switchWeapon(index);
+                    }
+                });
+            });
+
+            // Menu Buttons
+            document.getElementById('soloBtn').addEventListener('click', startSoloGame);
+            document.getElementById('playBtn').addEventListener('click', startGame);
+            document.getElementById('joinRoomBtn').addEventListener('click', joinRandomRoom);
+        }
+
+        // Game Functions
+        function startSoloGame() {
+            gameMode = 'solo';
+            gameState = 'waiting';
+            document.getElementById('gameMenu').style.display = 'none';
+            
+            spawnBots();
+            setTimeout(() => {
+                if (gameState === 'waiting') {
+                    startCountdown();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            gameMode = 'multiplayer';
+            gameState = 'waiting';
+            document.getElementById('gameMenu').style.display = 'none';
+            
+            spawnBots(5);
+            setTimeout(() => {
+                if (gameState === 'waiting') {
+                    startCountdown();
+                }
+            }, 2000);
+        }
+
+        function spawnBots(count = 15) {
+            bots = [];
+            const botNames = [
+                'CyberKiller', 'DeathMachine', 'SniperGod', 'RushMaster', 'CampKing',
+                'HeadHunter', 'StealthNinja', 'BulletStorm', 'ZoneRunner', 'FragMaster',
+                'TacticalBot', 'RageQueen', 'SilentKill', 'BloodHound', 'WarMachine',
+                'GhostRider', 'IronSight', 'QuickScope', 'BoomStick', 'NightCrawler'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                let spawnX, spawnY;
+                let attempts = 0;
+                
+                do {
+                    spawnX = 100 + Math.random() * (WORLD_WIDTH - 200);
+                    spawnY = 100 + Math.random() * (WORLD_HEIGHT - 200);
+                    attempts++;
+                } while (attempts < 50 && Math.sqrt(Math.pow(spawnX - player.x, 2) + Math.pow(spawnY - player.y, 2)) < 200);
+                
+                const bot = new Bot(spawnX, spawnY, botNames[i % botNames.length]);
+                bots.push(bot);
+            }
+
+            addKillFeed(`🤖 ${count} bots joined the battle!`);
+        }
+
+        function startCountdown() {
+            const countdownEl = document.getElementById('countdown');
+            countdownEl.style.display = 'block';
+            
+            let count = 3;
+            countdownEl.textContent = count;
+            
+            const countInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownEl.textContent = count;
+                } else {
+                    countdownEl.textContent = 'FIGHT!';
+                    setTimeout(() => {
+                        countdownEl.style.display = 'none';
+                        gameState = 'playing';
+                        gameStartTime = Date.now();
+                        startSafeZoneShrink();
+                    }, 1000);
+                    clearInterval(countInterval);
+                }
+            }, 1000);
+        }
+
+        function startSafeZoneShrink() {
+            const shrinkInterval = setInterval(() => {
+                if (gameState !== 'playing') {
+                    clearInterval(shrinkInterval);
+                    return;
+                }
+                
+                safeZone.radius *= 0.85;
+                
+                // Damage players outside safe zone
+                const distanceFromCenter = Math.sqrt(
+                    Math.pow(player.x - safeZone.x, 2) + 
+                    Math.pow(player.y - safeZone.y, 2)
+                );
+                
+                if (distanceFromCenter > safeZone.radius) {
+                    takeDamage(8);
+                }
+                
+                if (safeZone.radius < 100) {
+                    clearInterval(shrinkInterval);
+                }
+            }, 20000); // Every 20 seconds
+        }
+
+        function shoot() {
+            const now = Date.now();
+            const weapon = WEAPONS[player.weapon];
+            
+            if (player.ammo <= 0 || now - player.lastShot < weapon.fireRate) {
+                if (player.ammo <= 0) sounds.hit?.();
+                return;
+            }
+            
+            player.lastShot = now;
+            player.ammo--;
+            updateAmmoDisplay();
+            sounds.shoot?.();
+            
+            // Create bullet
+            bullets.push({
+                x: player.x,
+                y: player.y,
+                dx: Math.cos(player.angle) * 15,
+                dy: Math.sin(player.angle) * 15,
+                owner: player,
+                damage: weapon.damage,
+                life: weapon.range / 15,
+                color: '#FFFF00'
+            });
+            
+            createMuzzleFlash();
+        }
+
+        function reload() {
+            const weapon = WEAPONS[player.weapon];
+            if (player.totalAmmo <= 0 || player.ammo >= weapon.ammo) return;
+            
+            const ammoNeeded = weapon.ammo - player.ammo;
+            const ammoToReload = Math.min(ammoNeeded, player.totalAmmo);
+            
+            player.ammo += ammoToReload;
+            player.totalAmmo -= ammoToReload;
+            
+            updateAmmoDisplay();
+            sounds.reload?.();
+        }
+
+        function interact() {
+            // Check for nearby loot
+            player.nearbyItems = [];
+            
+            houses.forEach(house => {
+                if (house.isPlayerInside(player.x, player.y)) {
+                    house.loot.forEach(loot => {
+                        if (!loot.picked) {
+                            const distance = Math.sqrt(
+                                Math.pow(loot.x - player.x, 2) + 
+                                Math.pow(loot.y - player.y, 2)
+                            );
+                            if (distance < 50) {
+                                player.nearbyItems.push(loot);
+                            }
+                        }
+                    });
+                }
+            });
+
+            if (player.nearbyItems.length > 0) {
+                const item = player.nearbyItems[0];
+                pickupItem(item);
+            }
+        }
+
+        function pickupItem(item) {
+            if (item.type === 'weapon') {
+                // Find empty slot or replace current weapon
+                let placed = false;
+                for (let i = 0; i < player.inventory.length; i++) {
+                    if (!player.inventory[i]) {
+                        player.inventory[i] = item.item;
+                        placed = true;
+                        break;
+                    }
+                }
+                
+                if (!placed) {
+                    // Replace current weapon
+                    player.inventory[player.currentSlot] = item.item;
+                    player.weapon = item.item;
+                    const weapon = WEAPONS[player.weapon];
+                    player.ammo = weapon.ammo;
+                    player.totalAmmo = weapon.ammo * 2;
+                }
+                
+                addKillFeed(`📦 Picked up ${item.item}`);
+            } else if (item.type === 'health') {
+                player.health = Math.min(player.maxHealth, player.health + 75);
+                updateHealthDisplay();
+                addKillFeed(`🏥 Health restored`);
+            } else if (item.type === 'ammo') {
+                player.totalAmmo = Math.min(300, player.totalAmmo + 60);
+                updateAmmoDisplay();
+                addKillFeed(`📦 Ammo collected`);
+            }
+
+            // Mark item as picked
+            houses.forEach(house => {
+                house.loot.forEach(loot => {
+                    if (loot.x === item.x && loot.y === item.y) {
+                        loot.picked = true;
+                    }
+                });
+            });
+
+            updateInventoryDisplay();
+            sounds.pickup?.();
+        }
+
+        function switchWeapon(slot) {
+            if (player.inventory[slot]) {
+                player.currentSlot = slot;
+                player.weapon = player.inventory[slot];
+                const weapon = WEAPONS[player.weapon];
+                
+                // Keep current ammo if same weapon type
+                if (player.ammo <= 0) {
+                    player.ammo = weapon.ammo;
+                }
+                
+                updateAmmoDisplay();
+                updateInventoryDisplay();
+                sounds.pickup?.();
+            }
+        }
+
+        function takeDamage(damage) {
+            player.health -= damage;
+            if (player.health <= 0) {
+                player.health = 0;
+                player.isAlive = false;
+                gameOver();
+            }
+            updateHealthDisplay();
+            sounds.hit?.();
+        }
+
+        function gameOver(won = false) {
+            gameState = 'gameOver';
+            
+            const resultMsg = won ? '🏆 WINNER WINNER CHICKEN DINNER!' : '💀 GAME OVER';
+            addKillFeed(resultMsg);
+            addKillFeed(`Kills: ${player.kills} | Bots Remaining: ${bots.filter(b => b.isAlive).length}`);
+            
+            setTimeout(() => {
+                document.getElementById('gameMenu').style.display = 'flex';
+                resetGame();
+            }, 5000);
+        }
+
+        function resetGame() {
+            // Reset player
+            player = {
+                x: WORLD_WIDTH / 2,
+                y: WORLD_HEIGHT / 2,
+                health: 100,
+                maxHealth: 100,
+                ammo: 30,
+                totalAmmo: 90,
+                weapon: 'AK-47',
+                kills: 0,
+                isAlive: true,
+                angle: 0,
+                name: player.name || 'Player',
+                speed: 4,
+                lastShot: 0,
+                inventory: ['AK-47', null, null, null, null],
+                currentSlot: 0,
+                isInHouse: false,
+                nearbyItems: []
+            };
+            
+            bots = [];
+            bullets = [];
+            
+            safeZone = { 
+                x: WORLD_WIDTH/2, 
+                y: WORLD_HEIGHT/2, 
+                radius: Math.min(WORLD_WIDTH, WORLD_HEIGHT) * 0.3
+            };
+            
+            gameState = 'menu';
+            gameMode = 'solo';
+            
+            // Regenerate world loot
+            houses.forEach(house => {
+                house.loot.forEach(loot => {
+                    loot.picked = false;
+                });
+            });
+            
+            updateHealthDisplay();
+            updateAmmoDisplay();
+            updateInventoryDisplay();
+            
+            document.getElementById('killFeed').innerHTML = '';
+        }
+
+        // Update Functions
+        function updateHealthDisplay() {
+            document.getElementById('healthText').textContent = player.health;
+            document.getElementById('healthBar').style.width = (player.health / player.maxHealth) * 100 + '%';
+        }
+
+        function updateAmmoDisplay() {
+            const weapon = WEAPONS[player.weapon];
+            document.getElementById('ammoCount').textContent = `${player.ammo}/${player.totalAmmo}`;
+            document.getElementById('weaponName').textContent = player.weapon;
+        }
+
+        function updateInventoryDisplay() {
+            const slots = document.querySelectorAll('.inventory-slot');
+            slots.forEach((slot, index) => {
+                const item = player.inventory[index];
+                slot.classList.remove('active', 'has-item');
+                
+                if (index === player.currentSlot) {
+                    slot.classList.add('active');
+                }
+                
+                if (item) {
+                    slot.classList.add('has-item');
+                    const weapon = WEAPONS[item];
+                    slot.innerHTML = `<div>${weapon.emoji}</div><div>${item.split('-')[0]}</div>`;
+                } else {
+                    slot.innerHTML = `<div>📦</div><div>Empty</div>`;
+                }
+            });
+        }
+
+        function createMuzzleFlash() {
+            const flash = document.createElement('div');
+            flash.style.position = 'absolute';
+            flash.style.width = '15px';
+            flash.style.height = '15px';
+            flash.style.background = 'radial-gradient(circle, #ffff00, #ff6600)';
+            flash.style.borderRadius = '50%';
+            flash.style.right = '80px';
+            flash.style.bottom = '210px';
+            flash.style.pointerEvents = 'none';
+            flash.style.zIndex = '20';
+            
+            document.querySelector('.ui-overlay').appendChild(flash);
+            
+            setTimeout(() => {
+                flash.remove();
+            }, 100);
+        }
+
+        function addKillFeed(message) {
+            const killFeed = document.getElementById('killFeed');
+            const killMsg = document.createElement('div');
+            killMsg.className = 'kill-message';
+            killMsg.textContent = message;
+            
+            killFeed.appendChild(killMsg);
+            
+            setTimeout(() => {
+                killMsg.remove();
+            }, 6000);
+        }
+
+        function updateCamera() {
+            // Follow player with smooth camera
+            const targetX = player.x - CANVAS_WIDTH / 2;
+            const targetY = player.y - CANVAS_HEIGHT / 2;
+            
+            camera.x += (targetX - camera.x) * 0.1;
+            camera.y += (targetY - camera.y) * 0.1;
+            
+            // Keep camera in world bounds
+            camera.x = Math.max(0, Math.min(WORLD_WIDTH - CANVAS_WIDTH, camera.x));
+            camera.y = Math.max(0, Math.min(WORLD_HEIGHT - CANVAS_HEIGHT, camera.y));
+        }
+
+        function updateInteractionPrompt() {
+            const prompt = document.getElementById('interactionPrompt');
+            
+            if (player.nearbyItems.length > 0) {
+                const item = player.nearbyItems[0];
+                prompt.textContent = `Press 🤏 to pick up ${item.item}`;
+                prompt.style.display = 'block';
+            } else {
+                prompt.style.display = 'none';
+            }
+        }
+
+        // Game Loop
+        function gameLoop() {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            if (gameState !== 'playing') return;
+            
+            // Update camera
+            updateCamera();
+            
+            // Update player position based on joystick
+            if (joystickActive && player.isAlive) {
+                const newX = player.x + joystickData.x * player.speed;
+                const newY = player.y + joystickData.y * player.speed;
+                
+                // Check collision with houses (simplified)
+                let canMove = true;
+                houses.forEach(house => {
+                    if (newX >= house.x - 20 && newX <= house.x + house.width + 20 &&
+                        newY >= house.y - 20 && newY <= house.y + house.height + 20) {
+                        // Allow entry through doors
+                        const inDoor = house.doors.some(door => 
+                            newX >= door.x - 10 && newX <= door.x + door.width + 10 &&
+                            newY >= door.y - 10 && newY <= door.y + door.height + 10
+                        );
+                        
+                        if (!inDoor && !house.isPlayerInside(player.x, player.y)) {
+                            canMove = false;
+                        }
+                    }
+                });
+                
+                if (canMove) {
+                    player.x = Math.max(20, Math.min(WORLD_WIDTH - 20, newX));
+                    player.y = Math.max(20, Math.min(WORLD_HEIGHT - 20, newY));
+                }
+                
+                // Update angle based on movement
+                if (joystickData.x !== 0 || joystickData.y !== 0) {
+                    player.angle = Math.atan2(joystickData.y, joystickData.x);
+                }
+            }
+
+            // Check if player is in house
+            player.isInHouse = false;
+            player.nearbyItems = [];
+            
+            houses.forEach(house => {
+                if (house.isPlayerInside(player.x, player.y)) {
+                    player.isInHouse = true;
+                    
+                    // Check for nearby loot
+                    house.loot.forEach(loot => {
+                        if (!loot.picked) {
+                            const distance = Math.sqrt(
+                                Math.pow(loot.x - player.x, 2) + 
+                                Math.pow(loot.y - player.y, 2)
+                            );
+                            if (distance < 50) {
+                                player.nearbyItems.push(loot);
+                            }
+                        }
+                    });
+                }
+            });
+
+            updateInteractionPrompt();
+
+            // Update bots
+            bots.forEach(bot => bot.update());
+
+            // Update bullets
+            updateBullets();
+
+            // Check safe zone damage for player
+            checkSafeZoneDamage();
+
+            // Check win condition
+            checkWinCondition();
+        }
+
+        function updateBullets() {
+            bullets = bullets.filter(bullet => {
+                bullet.x += bullet.dx;
+                bullet.y += bullet.dy;
+                bullet.life--;
+
+                // Remove bullets that are expired
+                if (bullet.life <= 0) {
+                    return false;
+                }
+
+                // Check collision with player
+                if (bullet.owner !== player && player.isAlive) {
+                    const dx = bullet.x - player.x;
+                    const dy = bullet.y - player.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < 25) {
+                        takeDamage(bullet.damage);
+                        if (!player.isAlive && bullet.owner.name) {
+                            addKillFeed(`💀 ${player.name} was killed by ${bullet.owner.name}`);
+                            if (bullet.owner.kills !== undefined) bullet.owner.kills++;
+                        }
+                        return false;
+                    }
+                }
+
+                // Check collision with bots
+                bots.forEach(bot => {
+                    if (bullet.owner !== bot && bot.isAlive) {
+                        const dx = bullet.x - bot.x;
+                        const dy = bullet.y - bot.y;
+                        if (Math.sqrt(dx * dx + dy * dy) < 25) {
+                            bot.takeDamage(bullet.damage);
+                            if (!bot.isAlive) {
+                                if (bullet.owner === player) {
+                                    player.kills++;
+                                    addKillFeed(`🎯 You eliminated ${bot.name}`);
+                                } else if (bullet.owner.name) {
+                                    addKillFeed(`💀 ${bot.name} was killed by ${bullet.owner.name}`);
+                                    if (bullet.owner.kills !== undefined) bullet.owner.kills++;
+                                }
+                            }
+                            bullets.splice(bullets.indexOf(bullet), 1);
+                        }
+                    }
+                });
+
+                // Check collision with houses (simplified)
+                let hitHouse = false;
+                houses.forEach(house => {
+                    if (bullet.x >= house.x && bullet.x <= house.x + house.width &&
+                        bullet.y >= house.y && bullet.y <= house.y + house.height) {
+                        hitHouse = true;
+                    }
+                });
+
+                if (hitHouse) return false;
+
+                return true;
+            });
+        }
+
+        function checkSafeZoneDamage() {
+            if (!player.isAlive) return;
+            
+            const distanceFromCenter = Math.sqrt(
+                Math.pow(player.x - safeZone.x, 2) + 
+                Math.pow(player.y - safeZone.y, 2)
+            );
+            
+            if (distanceFromCenter > safeZone.radius) {
+                takeDamage(5);
+                if (!player.isAlive) {
+                    addKillFeed(`💀 ${player.name} died to the zone`);
+                }
+            }
+        }
+
+        function checkWinCondition() {
+            const aliveBots = bots.filter(bot => bot.isAlive).length;
+            
+            if (player.isAlive && aliveBots === 0) {
+                addKillFeed(`🏆 WINNER WINNER CHICKEN DINNER!`);
+                setTimeout(() => gameOver(true), 2000);
+            } else if (!player.isAlive && aliveBots > 0) {
+                setTimeout(() => gameOver(false), 2000);
+            }
+        }
+
+        function render() {
+            // Clear canvas
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            if (gameState !== 'playing') return;
+            
+            // Draw world background pattern
+            drawWorldBackground();
+            
+            // Draw environment
+            drawEnvironment();
+            
+            // Draw safe zone
+            drawSafeZone();
+            
+            // Draw bullets
+            drawBullets();
+            
+            // Draw bots
+            bots.forEach(bot => bot.draw(ctx, camera.x, camera.y));
+            
+            // Draw player
+            drawPlayer();
+            
+            // Draw mini map
+            drawMiniMap();
+        }
+
+        function drawWorldBackground() {
+            // Draw grass texture
+            ctx.fillStyle = '#4a7c59';
+            for (let x = 0; x < CANVAS_WIDTH; x += 50) {
+                for (let y = 0; y < CANVAS_HEIGHT; y += 50) {
+                    if ((x + y) % 100 === 0) {
+                        ctx.fillRect(x, y, 25, 25);
+                    }
+                }
+            }
+        }
+
+        function drawEnvironment() {
+            // Draw trees
+            trees.forEach(tree => {
+                const screenX = tree.x - camera.x;
+                const screenY = tree.y - camera.y;
+                
+                if (screenX > -50 && screenX < CANVAS_WIDTH + 50 && 
+                    screenY > -50 && screenY < CANVAS_HEIGHT + 50) {
+                    
+                    // Tree trunk
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(screenX - 5, screenY, 10, tree.size);
+                    
+                    // Tree leaves
+                    ctx.fillStyle = '#228B22';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY - tree.size/2, tree.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
+            // Draw rocks
+            rocks.forEach(rock => {
+                const screenX = rock.x - camera.x;
+                const screenY = rock.y - camera.y;
+                
+                if (screenX > -50 && screenX < CANVAS_WIDTH + 50 && 
+                    screenY > -50 && screenY < CANVAS_HEIGHT + 50) {
+                    
+                    ctx.fillStyle = '#696969';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, rock.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#2F4F4F';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            });
+            
+            // Draw houses
+            houses.forEach(house => {
+                const screenX = house.x - camera.x;
+                const screenY = house.y - camera.y;
+                
+                if (screenX > -house.width && screenX < CANVAS_WIDTH + house.width && 
+                    screenY > -house.height && screenY < CANVAS_HEIGHT + house.height) {
+                    house.draw(ctx, camera.x, camera.y);
+                }
+            });
+        }
+
+        function drawSafeZone() {
+            const screenX = safeZone.x - camera.x;
+            const screenY = safeZone.y - camera.y;
+            
+            // Safe zone circle
+            ctx.strokeStyle = safeZone.radius < 200 ? '#ff0000' : '#00ff00';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([15, 10]);
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, safeZone.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Safe zone warning
+            if (safeZone.radius < 300) {
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, safeZone.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawBullets() {
+            bullets.forEach(bullet => {
+                const screenX = bullet.x - camera.x;
+                const screenY = bullet.y - camera.y;
+                
+                // Bullet glow
+                ctx.shadowColor = bullet.color;
+                ctx.shadowBlur = 8;
+                
+                ctx.fillStyle = bullet.color;
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.shadowBlur = 0;
+                
+                // Bullet trail
+                ctx.strokeStyle = bullet.color;
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.6;
+                ctx.beginPath();
+                ctx.moveTo(screenX, screenY);
+                ctx.lineTo(screenX - bullet.dx * 3, screenY - bullet.dy * 3);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            });
+        }
+
+        function drawPlayer() {
+            if (!player.isAlive) return;
+
+            const screenX = player.x - camera.x;
+            const screenY = player.y - camera.y;
+
+            ctx.save();
+            ctx.translate(screenX, screenY);
+            ctx.rotate(player.angle);
+            
+            // Player body
+            ctx.fillStyle = '#4a90e2';
+            ctx.fillRect(-18, -12, 36, 24);
+            
+            // Player head
+            ctx.fillStyle = '#ffdbac';
+            ctx.beginPath();
+            ctx.arc(0, -18, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Player weapon
+            const weapon = WEAPONS[player.weapon];
+            ctx.fillStyle = '#333';
+            const weaponLength = Math.min(weapon.range / 8, 35);
+            ctx.fillRect(18, -3, weaponLength, 6);
+            
+            // Weapon details
+            ctx.fillStyle = '#666';
+            ctx.fillRect(18 + weaponLength - 5, -5, 8, 10);
+            
+            ctx.restore();
+            
+            // Player name
+            ctx.fillStyle = 'white';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.strokeText(player.name, screenX, screenY - 35);
+            ctx.fillText(player.name, screenX, screenY - 35);
+            
+            // Current weapon name
+            ctx.font = '10px Arial';
+            ctx.strokeText(player.weapon, screenX, screenY + 45);
+            ctx.fillText(player.weapon, screenX, screenY + 45);
+        }
+
+        function drawMiniMap() {
+            miniMapCtx.fillStyle = '#2d5016';
+            miniMapCtx.fillRect(0, 0, 150, 100);
+            
+            const scaleX = 150 / WORLD_WIDTH;
+            const scaleY = 100 / WORLD_HEIGHT;
+            
+            // Draw safe zone on minimap
+            miniMapCtx.strokeStyle = safeZone.radius < 200 ? '#ff0000' : '#00ff00';
+            miniMapCtx.lineWidth = 2;
+            miniMapCtx.beginPath();
+            miniMapCtx.arc(
+                safeZone.x * scaleX, 
+                safeZone.y * scaleY, 
+                safeZone.radius * scaleX, 
+                0, Math.PI * 2
+            );
+            miniMapCtx.stroke();
+            
+            // Draw houses on minimap
+            miniMapCtx.fillStyle = '#8B4513';
+            houses.forEach(house => {
+                miniMapCtx.fillRect(
+                    house.x * scaleX,
+                    house.y * scaleY,
+                    house.width * scaleX,
+                    house.height * scaleY
+                );
+            });
+            
+            // Draw player on minimap
+            if (player.isAlive) {
+                miniMapCtx.fillStyle = '#4a90e2';
+                miniMapCtx.beginPath();
+                miniMapCtx.arc(player.x * scaleX, player.y * scaleY, 3, 0, Math.PI * 2);
+                miniMapCtx.fill();
+            }
+            
+            // Draw bots on minimap
+            miniMapCtx.fillStyle = '#ff6b6b';
+            bots.forEach(bot => {
+                if (bot.isAlive) {
+                    miniMapCtx.beginPath();
+                    miniMapCtx.arc(bot.x * scaleX, bot.y * scaleY, 2, 0, Math.PI * 2);
+                    miniMapCtx.fill();
+                }
+            });
+        }
+
+        function joinRandomRoom() {
+            addKillFeed('🔍 Searching for players...');
+            setTimeout(() => {
+                startGame();
+            }, 2000);
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initGame);
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            checkOrientation();
+        });
+
+        // Prevent context menu on long press
+        window.addEventListener('contextmenu', (e) => e.preventDefault());
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96e5724fc7261c4f',t:'MTc1NTA1OTEwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
