@@ -1630,10 +1630,10 @@
                                     <span class="font-semibold text-sm">${buzz.originalBuzz.author.displayName}</span>
                                     <span class="text-gray-500 text-xs">@${buzz.originalBuzz.author.email.split('@')[0]}</span>
                                 </div>
-                                <p class="text-gray-800">${formatBuzzText(buzz.originalBuzz.text)}</p>
+                                <p class="text-gray-800">${formatPostText(buzz.originalBuzz.text)}</p>
                             </div>
                         ` : `
-                            <p class="mt-2 text-gray-800">${formatBuzzText(buzz.text)}</p>
+                            <p class="mt-2 text-gray-800">${formatPostText(buzz.text)}</p>
                         `}
                         
                         ${buzz.location ? `
@@ -1647,34 +1647,34 @@
                         
                         <div class="flex items-center justify-between mt-3">
                             <div class="flex items-center space-x-6 text-gray-500">
-                                <button onclick="showComments('${postId}')" class="flex items-center space-x-1 hover:text-green-500 transition-colors">
+                                <button onclick="showComments('${buzzId}')" class="flex items-center space-x-1 hover:text-green-500 transition-colors">
                                     <i class="far fa-comment"></i>
                                     <span>${commentCount}</span>
                                 </button>
-                                <button onclick="toggleLike('${postId}')" class="flex items-center space-x-1 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}" id="like-btn-${postId}">
+                                <button onclick="toggleLike('${buzzId}')" class="flex items-center space-x-1 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}" id="like-btn-${buzzId}">
                                     <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
-                                    <span class="like-count-${postId}">${likeCount}</span>
+                                    <span class="like-count-${buzzId}">${likeCount}</span>
                                 </button>
-                                <button onclick="rebuzz('${postId}')" class="hover:text-green-500 transition-colors" title="Rebuzz">
+                                <button onclick="rebuzz('${buzzId}')" class="hover:text-green-500 transition-colors" title="Rebuzz">
                                     <i class="fas fa-retweet"></i>
                                 </button>
-                                <button onclick="shareBuzz('${postId}', '${post.author.email.split('@')[0]}')" class="hover:text-blue-500 transition-colors" title="Share">
+                                <button onclick="shareBuzz('${buzzId}', '${buzz.author.email.split('@')[0]}')" class="hover:text-blue-500 transition-colors" title="Share">
                                     <i class="fas fa-share"></i>
                                 </button>
                             </div>
                             
                             <div class="buzz-actions flex items-center space-x-2">
-                                <button onclick="saveBuzz('${postId}')" class="hover:text-purple-500 transition-colors text-xs" title="Save">
+                                <button onclick="saveBuzz('${buzzId}')" class="hover:text-purple-500 transition-colors text-xs" title="Save">
                                     <i class="far fa-bookmark"></i>
                                 </button>
-                                <button onclick="markInterested('${postId}', true)" class="hover:text-green-500 transition-colors text-xs" title="Interested">
+                                <button onclick="markInterested('${buzzId}', true)" class="hover:text-green-500 transition-colors text-xs" title="Interested">
                                     <i class="fas fa-thumbs-up"></i>
                                 </button>
-                                <button onclick="markInterested('${postId}', false)" class="hover:text-red-500 transition-colors text-xs" title="Not Interested">
+                                <button onclick="markInterested('${buzzId}', false)" class="hover:text-red-500 transition-colors text-xs" title="Not Interested">
                                     <i class="fas fa-thumbs-down"></i>
                                 </button>
-                                ${isOwnPost ? `<button onclick="deleteBuzz('${postId}')" class="hover:text-red-500 transition-colors text-xs" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
-                                ${!isOwnPost ? `<button onclick="reportBuzz('${postId}')" class="hover:text-yellow-500 transition-colors text-xs" title="Report"><i class="fas fa-flag"></i></button>` : ''}
+                                ${isOwnBuzz ? `<button onclick="deleteBuzz('${buzzId}')" class="hover:text-red-500 transition-colors text-xs" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
+                                ${!isOwnBuzz ? `<button onclick="reportBuzz('${buzzId}')" class="hover:text-yellow-500 transition-colors text-xs" title="Report"><i class="fas fa-flag"></i></button>` : ''}
                             </div>
                         </div>
                         
@@ -1690,7 +1690,7 @@
                 </div>
             `;
             
-            return postDiv;
+            return buzzDiv;
         }
 
         function savePost(postId) {
@@ -1728,15 +1728,15 @@
             return `${diffDays}d`;
         }
 
-        function toggleLike(postId) {
+        function toggleLike(buzzId) {
             if (!currentUser) return;
             
-            const postRef = db.collection('posts').doc(postId);
+            const buzzRef = db.collection('posts').doc(buzzId);
             
-            postRef.get().then((doc) => {
+            buzzRef.get().then((doc) => {
                 if (doc.exists) {
-                    const post = doc.data();
-                    const likes = post.likes || [];
+                    const buzz = doc.data();
+                    const likes = buzz.likes || [];
                     const isLiked = likes.includes(currentUser.uid);
                     
                     let newLikes;
@@ -1745,7 +1745,7 @@
                     } else {
                         newLikes = [...likes, currentUser.uid];
                         // Add like animation
-                        const likeBtn = document.getElementById(`like-btn-${postId}`);
+                        const likeBtn = document.getElementById(`like-btn-${buzzId}`);
                         if (likeBtn) {
                             likeBtn.classList.add('like-animation');
                             setTimeout(() => likeBtn.classList.remove('like-animation'), 600);
@@ -1760,33 +1760,36 @@
                             setTimeout(() => heart.remove(), 1000);
                         }
                         
-                        // Create notification for post author
-                        if (post.author.uid !== currentUser.uid) {
-                            createNotification(post.author.uid, 'like', {
-                                postId: postId,
-                                postText: post.text.substring(0, 50) + '...'
+                        // Create notification for buzz author
+                        if (buzz.author.uid !== currentUser.uid) {
+                            createNotification(buzz.author.uid, 'like', {
+                                buzzId: buzzId,
+                                buzzText: buzz.text.substring(0, 50) + '...'
                             });
                         }
                     }
                     
-                    postRef.update({ likes: newLikes });
+                    buzzRef.update({ likes: newLikes });
                 }
             });
         }
 
-        function deletePost(postId) {
-            if (confirm('Are you sure you want to delete this post?')) {
-                db.collection('posts').doc(postId).delete().then(() => {
+        function deleteBuzz(buzzId) {
+            if (confirm('Are you sure you want to delete this buzz?')) {
+                db.collection('posts').doc(buzzId).delete().then(() => {
+                    showToast('Buzz deleted', 'success');
                     loadFeed();
+                }).catch((error) => {
+                    showToast('Failed to delete buzz', 'error');
                 });
             }
         }
 
         // Comments functions
-        function showComments(postId) {
-            currentPostId = postId;
+        function showComments(buzzId) {
+            currentPostId = buzzId;
             document.getElementById('commentsModal').classList.remove('hidden');
-            loadComments(postId);
+            loadComments(buzzId);
         }
 
         function closeComments() {
@@ -1794,8 +1797,8 @@
             currentPostId = null;
         }
 
-        function loadComments(postId) {
-            const unsubscribe = db.collection('posts').doc(postId).collection('comments')
+        function loadComments(buzzId) {
+            const unsubscribe = db.collection('posts').doc(buzzId).collection('comments')
                 .orderBy('timestamp', 'desc')
                 .onSnapshot((querySnapshot) => {
                     const commentsContainer = document.getElementById('commentsContainer');
@@ -1864,20 +1867,20 @@
             db.collection('posts').doc(currentPostId).collection('comments').add(comment).then(() => {
                 document.getElementById('commentInput').value = '';
                 
-                // Update comment count in main post
+                // Update comment count in main buzz
                 db.collection('posts').doc(currentPostId).get().then((doc) => {
                     if (doc.exists) {
-                        const post = doc.data();
-                        const comments = post.comments || [];
+                        const buzz = doc.data();
+                        const comments = buzz.comments || [];
                         db.collection('posts').doc(currentPostId).update({
                             comments: [...comments, comment]
                         });
                         
-                        // Create notification for post author
-                        if (post.author.uid !== currentUser.uid) {
-                            createNotification(post.author.uid, 'comment', {
-                                postId: currentPostId,
-                                postText: post.text.substring(0, 50) + '...',
+                        // Create notification for buzz author
+                        if (buzz.author.uid !== currentUser.uid) {
+                            createNotification(buzz.author.uid, 'comment', {
+                                buzzId: currentPostId,
+                                buzzText: buzz.text.substring(0, 50) + '...',
                                 commentText: commentText
                             });
                         }
@@ -2998,7 +3001,7 @@
             const text = e.target.value;
             const count = text.length;
             const countElement = document.getElementById('characterCount');
-            const postButton = document.getElementById('postButton');
+            const buzzButton = document.getElementById('buzzButton');
             const composer = document.getElementById('postComposer');
             
             countElement.textContent = `${count}/280`;
@@ -3015,7 +3018,7 @@
                 countElement.classList.remove('danger');
             }
             
-            postButton.disabled = count === 0 || count > 280;
+            buzzButton.disabled = count === 0 || count > 280;
             
             if (count > 0) {
                 composer.classList.add('focused');
@@ -3038,7 +3041,7 @@
 
         document.getElementById('postText').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && e.ctrlKey) {
-                createPost();
+                createBuzz();
             }
         });
 
@@ -3077,5 +3080,5 @@
             selectTemplate(1); // Set default story template
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef901fe1fb8985',t:'MTc1NTE2NTE4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef9b1011fb596a',t:'MTc1NTE2NTYzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
