@@ -5,14 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Oriobuzz - Social Media Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Disable zoom on mobile */
+        /* Font and base styles */
         * {
+            font-family: 'Inter', sans-serif;
             touch-action: manipulation;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -20,6 +24,38 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+        }
+        
+
+        
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .buzz-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        
+        .buzz-card:hover {
+            border-left-color: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+        }
+        
+        .buzz-actions {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .buzz-card:hover .buzz-actions {
+            opacity: 1;
         }
         
         input, textarea {
@@ -288,6 +324,7 @@
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
+
     <!-- Firebase Configuration -->
     <script>
         const firebaseConfig = {
@@ -422,7 +459,7 @@
                 </div>
                 <div class="flex-1">
                     <div class="relative">
-                        <textarea id="postText" placeholder="What's happening?" 
+                        <textarea id="postText" placeholder="What's buzzing?" 
                                   class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" 
                                   rows="3" maxlength="280"></textarea>
                         <div id="typingIndicator" class="hidden typing-indicator absolute bottom-2 right-2">
@@ -482,8 +519,8 @@
                         
                         <div class="flex items-center space-x-3">
                             <span id="characterCount" class="text-sm text-gray-500 character-count">0/280</span>
-                            <button onclick="createPost()" id="postButton" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50" disabled>
-                                Post
+                            <button onclick="createBuzz()" id="buzzButton" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50" disabled>
+                                Buzz
                             </button>
                         </div>
                     </div>
@@ -957,6 +994,59 @@
         </div>
     </div>
 
+    <!-- Buzz Share Modal -->
+    <div id="buzzShareModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-t-3xl fixed bottom-0 left-0 right-0 slide-up">
+            <div class="p-4 border-b">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeBuzzShareModal()" class="text-xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h2 class="text-xl font-bold">Share Buzz</h2>
+                    <div></div>
+                </div>
+            </div>
+            
+            <div class="p-4 space-y-4">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-sm text-gray-600 mb-2">Buzz Link:</p>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="buzzShareLink" readonly class="flex-1 p-2 bg-white border rounded text-sm">
+                        <button onclick="copyBuzzLink()" class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="shareToWhatsApp()" class="flex items-center justify-center space-x-2 bg-green-500 text-white p-3 rounded-lg hover:bg-green-600">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>WhatsApp</span>
+                    </button>
+                    <button onclick="shareToTwitter()" class="flex items-center justify-center space-x-2 bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600">
+                        <i class="fab fa-twitter"></i>
+                        <span>Twitter</span>
+                    </button>
+                    <button onclick="shareToFacebook()" class="flex items-center justify-center space-x-2 bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700">
+                        <i class="fab fa-facebook"></i>
+                        <span>Facebook</span>
+                    </button>
+                    <button onclick="shareToTelegram()" class="flex items-center justify-center space-x-2 bg-blue-400 text-white p-3 rounded-lg hover:bg-blue-500">
+                        <i class="fab fa-telegram"></i>
+                        <span>Telegram</span>
+                    </button>
+                </div>
+                
+                <div class="text-center">
+                    <button onclick="shareNative()" class="text-green-500 hover:text-green-600 text-sm">
+                        <i class="fas fa-share-alt mr-1"></i>
+                        More sharing options
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Post Scheduler Modal -->
     <div id="scheduleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
         <div class="bg-white rounded-t-3xl fixed bottom-0 left-0 right-0 slide-up">
@@ -1007,6 +1097,62 @@
         let savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
         let isTyping = false;
         let typingTimeout = null;
+
+        let currentBuzzShareId = null;
+        let currentBuzzShareUsername = null;
+        let userInterests = JSON.parse(localStorage.getItem('user_interests') || '{}');
+        let savedBuzzes = JSON.parse(localStorage.getItem('saved_buzzes') || '[]');
+        
+        // Security and Content Guidelines
+        const SECURITY_RULES = {
+            maxBuzzLength: 280,
+            maxDailyBuzzes: 100,
+            maxFollowsPerHour: 50,
+            bannedWords: ['spam', 'scam', 'fake', 'hate'],
+            rateLimitWindow: 60000, // 1 minute
+            maxActionsPerMinute: 30
+        };
+        
+        let userActionCount = 0;
+        let lastActionTime = Date.now();
+        
+        // Content moderation
+        function moderateContent(text) {
+            const lowerText = text.toLowerCase();
+            for (const word of SECURITY_RULES.bannedWords) {
+                if (lowerText.includes(word)) {
+                    return { allowed: false, reason: 'Contains inappropriate content' };
+                }
+            }
+            
+            if (text.length > SECURITY_RULES.maxBuzzLength) {
+                return { allowed: false, reason: 'Content too long' };
+            }
+            
+            // Check for excessive caps
+            const capsRatio = (text.match(/[A-Z]/g) || []).length / text.length;
+            if (capsRatio > 0.7 && text.length > 10) {
+                return { allowed: false, reason: 'Excessive use of capital letters' };
+            }
+            
+            return { allowed: true };
+        }
+        
+        // Rate limiting
+        function checkRateLimit() {
+            const now = Date.now();
+            if (now - lastActionTime > SECURITY_RULES.rateLimitWindow) {
+                userActionCount = 0;
+                lastActionTime = now;
+            }
+            
+            userActionCount++;
+            if (userActionCount > SECURITY_RULES.maxActionsPerMinute) {
+                return { allowed: false, reason: 'Too many actions. Please slow down.' };
+            }
+            
+            return { allowed: true };
+        }
 
         // Authentication functions
         function signInWithGoogle() {
@@ -1134,14 +1280,39 @@
             loadTrendingHashtags();
             updateNavigation('home');
         }
+        
 
-        // Post functions
-        function createPost() {
-            const postText = document.getElementById('postText').value.trim();
-            if (!postText || !currentUser) return;
 
-            const post = {
-                text: postText,
+        // Buzz functions
+        function createBuzz() {
+            const buzzText = document.getElementById('postText').value.trim();
+            if (!buzzText || !currentUser) return;
+
+            // Security checks
+            const rateCheck = checkRateLimit();
+            if (!rateCheck.allowed) {
+                showToast(rateCheck.reason, 'error');
+                return;
+            }
+
+            const contentCheck = moderateContent(buzzText);
+            if (!contentCheck.allowed) {
+                showToast(contentCheck.reason, 'error');
+                return;
+            }
+
+            // Check daily buzz limit
+            const today = new Date().toDateString();
+            const dailyBuzzes = JSON.parse(localStorage.getItem('daily_buzzes') || '{}');
+            const todayCount = dailyBuzzes[today] || 0;
+            
+            if (todayCount >= SECURITY_RULES.maxDailyBuzzes) {
+                showToast('Daily buzz limit reached. Try again tomorrow.', 'error');
+                return;
+            }
+
+            const buzz = {
+                text: buzzText,
                 author: {
                     uid: currentUser.uid,
                     displayName: currentUser.displayName,
@@ -1153,28 +1324,38 @@
                 retweets: [],
                 mood: currentMood,
                 privacy: postPrivacy,
-                location: currentLocation
+                location: currentLocation,
+                buzzId: generateBuzzId(),
+                type: 'buzz'
             };
 
-            db.collection('posts').add(post).then(() => {
+            db.collection('posts').add(buzz).then((docRef) => {
+                // Update daily count
+                dailyBuzzes[today] = todayCount + 1;
+                localStorage.setItem('daily_buzzes', JSON.stringify(dailyBuzzes));
+                
                 document.getElementById('postText').value = '';
                 document.getElementById('characterCount').textContent = '0/280';
-                document.getElementById('postButton').disabled = true;
-                resetPostComposer();
+                document.getElementById('buzzButton').disabled = true;
+                resetBuzzComposer();
                 loadFeed();
                 
                 // Create notification for followers
-                createNotificationForFollowers('new_post', post);
+                createNotificationForFollowers('new_buzz', buzz);
                 
                 // Show success message
-                showToast('Post shared successfully!', 'success');
+                showToast('Buzz shared successfully!', 'success');
             }).catch((error) => {
-                console.error('Error creating post:', error);
-                showToast('Failed to share post. Please try again.', 'error');
+                console.error('Error creating buzz:', error);
+                showToast('Failed to share buzz. Please try again.', 'error');
             });
         }
+        
+        function generateBuzzId() {
+            return 'buzz_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
 
-        function resetPostComposer() {
+        function resetBuzzComposer() {
             currentLocation = null;
             document.getElementById('locationTag').classList.add('hidden');
             document.getElementById('postComposer').classList.remove('focused');
@@ -1182,6 +1363,186 @@
             // Reset mood selector
             document.getElementById('moodSelector').classList.add('hidden');
             document.getElementById('privacySelector').classList.add('hidden');
+        }
+        
+        // New buzz functions
+        function rebuzz(buzzId) {
+            const rateCheck = checkRateLimit();
+            if (!rateCheck.allowed) {
+                showToast(rateCheck.reason, 'error');
+                return;
+            }
+            
+            db.collection('posts').doc(buzzId).get().then((doc) => {
+                if (doc.exists) {
+                    const originalBuzz = doc.data();
+                    const rebuzz = {
+                        text: `Rebuzzed: ${originalBuzz.text}`,
+                        originalBuzz: {
+                            id: buzzId,
+                            author: originalBuzz.author,
+                            text: originalBuzz.text
+                        },
+                        author: {
+                            uid: currentUser.uid,
+                            displayName: currentUser.displayName,
+                            email: currentUser.email
+                        },
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        likes: [],
+                        comments: [],
+                        retweets: [],
+                        type: 'rebuzz',
+                        buzzId: generateBuzzId()
+                    };
+                    
+                    db.collection('posts').add(rebuzz).then(() => {
+                        showToast('Rebuzzed successfully!', 'success');
+                        loadFeed();
+                        
+                        // Notify original author
+                        if (originalBuzz.author.uid !== currentUser.uid) {
+                            createNotification(originalBuzz.author.uid, 'rebuzz', {
+                                buzzId: buzzId,
+                                buzzText: originalBuzz.text.substring(0, 50) + '...'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        
+        function shareBuzz(buzzId, username) {
+            currentBuzzShareId = buzzId;
+            currentBuzzShareUsername = username;
+            
+            const shareLink = `${window.location.origin}/#buzz/${buzzId}`;
+            document.getElementById('buzzShareLink').value = shareLink;
+            document.getElementById('buzzShareModal').classList.remove('hidden');
+        }
+        
+        function closeBuzzShareModal() {
+            document.getElementById('buzzShareModal').classList.add('hidden');
+        }
+        
+        function copyBuzzLink() {
+            const linkInput = document.getElementById('buzzShareLink');
+            linkInput.select();
+            document.execCommand('copy');
+            showToast('Link copied to clipboard!', 'success');
+        }
+        
+        function shareToWhatsApp() {
+            const link = document.getElementById('buzzShareLink').value;
+            const text = `Check out this buzz on Oriobuzz: ${link}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+        
+        function shareToTwitter() {
+            const link = document.getElementById('buzzShareLink').value;
+            const text = `Check out this buzz on Oriobuzz`;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`, '_blank');
+        }
+        
+        function shareToFacebook() {
+            const link = document.getElementById('buzzShareLink').value;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`, '_blank');
+        }
+        
+        function shareToTelegram() {
+            const link = document.getElementById('buzzShareLink').value;
+            const text = `Check out this buzz on Oriobuzz: ${link}`;
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
+        }
+        
+        function shareNative() {
+            const link = document.getElementById('buzzShareLink').value;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this buzz on Oriobuzz',
+                    url: link
+                });
+            } else {
+                copyBuzzLink();
+            }
+        }
+        
+        function saveBuzz(buzzId) {
+            if (!savedBuzzes.includes(buzzId)) {
+                savedBuzzes.push(buzzId);
+                localStorage.setItem('saved_buzzes', JSON.stringify(savedBuzzes));
+                showToast('Buzz saved!', 'success');
+            } else {
+                showToast('Buzz already saved', 'info');
+            }
+        }
+        
+        function markInterested(buzzId, interested) {
+            const rateCheck = checkRateLimit();
+            if (!rateCheck.allowed) {
+                showToast(rateCheck.reason, 'error');
+                return;
+            }
+            
+            if (interested) {
+                userInterests[buzzId] = 'interested';
+                showToast('Marked as interested', 'success');
+            } else {
+                userInterests[buzzId] = 'not_interested';
+                showToast('Marked as not interested', 'info');
+            }
+            
+            localStorage.setItem('user_interests', JSON.stringify(userInterests));
+            
+            // This would be used for content recommendation algorithm
+            updateContentRecommendations();
+        }
+        
+        function updateContentRecommendations() {
+            // Analyze user interests for better content curation
+            const interests = Object.values(userInterests);
+            const interestedCount = interests.filter(i => i === 'interested').length;
+            const notInterestedCount = interests.filter(i => i === 'not_interested').length;
+            
+            console.log('User engagement:', { interestedCount, notInterestedCount });
+        }
+        
+        function deleteBuzz(buzzId) {
+            if (confirm('Are you sure you want to delete this buzz?')) {
+                db.collection('posts').doc(buzzId).delete().then(() => {
+                    showToast('Buzz deleted', 'success');
+                    loadFeed();
+                }).catch((error) => {
+                    showToast('Failed to delete buzz', 'error');
+                });
+            }
+        }
+        
+        function reportBuzz(buzzId) {
+            const reasons = [
+                'Spam or misleading',
+                'Harassment or hate speech',
+                'Violence or harmful content',
+                'Copyright infringement',
+                'Other'
+            ];
+            
+            const reason = prompt(`Why are you reporting this buzz?\n\n${reasons.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nEnter number (1-5):`);
+            
+            if (reason && reason >= 1 && reason <= 5) {
+                const report = {
+                    buzzId: buzzId,
+                    reportedBy: currentUser.uid,
+                    reason: reasons[reason - 1],
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                db.collection('reports').add(report).then(() => {
+                    showToast('Buzz reported successfully', 'success');
+                }).catch(() => {
+                    showToast('Failed to report buzz', 'error');
+                });
+            }
         }
 
         function loadFeed() {
@@ -1193,33 +1554,33 @@
                     feedContainer.innerHTML = '';
                     
                     querySnapshot.forEach((doc) => {
-                        const post = doc.data();
-                        const postElement = createPostElement(doc.id, post);
-                        feedContainer.appendChild(postElement);
+                        const buzz = doc.data();
+                        const buzzElement = createBuzzElement(doc.id, buzz);
+                        feedContainer.appendChild(buzzElement);
                     });
                 });
             
             unsubscribeListeners.push(unsubscribe);
         }
 
-        function createPostElement(postId, post) {
-            const postDiv = document.createElement('div');
-            postDiv.className = 'bg-white border-b border-gray-200 p-4 post-item';
+        function createBuzzElement(buzzId, buzz) {
+            const buzzDiv = document.createElement('div');
+            buzzDiv.className = 'bg-white border-b border-gray-200 p-4 buzz-card';
             
-            const initial = post.author.displayName ? post.author.displayName.charAt(0).toUpperCase() : 'U';
-            const isLiked = post.likes && post.likes.includes(currentUser.uid);
-            const likeCount = post.likes ? post.likes.length : 0;
-            const commentCount = post.comments ? post.comments.length : 0;
-            const isOwnPost = post.author.uid === currentUser.uid;
-            const isBlocked = blockedUsers.includes(post.author.uid);
+            const initial = buzz.author.displayName ? buzz.author.displayName.charAt(0).toUpperCase() : 'U';
+            const isLiked = buzz.likes && buzz.likes.includes(currentUser.uid);
+            const likeCount = buzz.likes ? buzz.likes.length : 0;
+            const commentCount = buzz.comments ? buzz.comments.length : 0;
+            const isOwnBuzz = buzz.author.uid === currentUser.uid;
+            const isBlocked = blockedUsers.includes(buzz.author.uid);
             
-            // Don't show blocked users' posts
-            if (isBlocked && !isOwnPost) {
+            // Don't show blocked users' buzzes
+            if (isBlocked && !isOwnBuzz) {
                 return document.createElement('div');
             }
             
             // Privacy check
-            if (post.privacy === 'private' && !isOwnPost) {
+            if (buzz.privacy === 'private' && !isOwnBuzz) {
                 return document.createElement('div');
             }
             
@@ -1230,56 +1591,91 @@
                 'sad': '😢'
             };
             
-            const privacyIcon = post.privacy === 'public' ? 'fas fa-globe' : 
-                              post.privacy === 'followers' ? 'fas fa-users' : 'fas fa-lock';
+            const privacyIcon = buzz.privacy === 'public' ? 'fas fa-globe' : 
+                              buzz.privacy === 'followers' ? 'fas fa-users' : 'fas fa-lock';
             
-            postDiv.innerHTML = `
+            // Check if this is a rebuzz
+            const isRebuzz = buzz.type === 'rebuzz';
+            
+            buzzDiv.innerHTML = `
+                ${isRebuzz ? `
+                    <div class="flex items-center text-gray-500 text-sm mb-2">
+                        <i class="fas fa-retweet mr-2"></i>
+                        <span>${buzz.author.displayName} rebuzzed</span>
+                    </div>
+                ` : ''}
+                
                 <div class="flex space-x-3">
                     <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold relative">
                         ${initial}
-                        ${post.mood ? `<div class="mood-indicator mood-${post.mood}" title="${post.mood}"></div>` : ''}
+                        ${buzz.mood ? `<div class="mood-indicator mood-${buzz.mood}" title="${buzz.mood}"></div>` : ''}
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center space-x-2">
-                            <h3 class="font-semibold">${post.author.displayName || 'User'}</h3>
-                            <span class="text-gray-500 text-sm">@${post.author.email.split('@')[0]}</span>
+                            <h3 class="font-semibold">${buzz.author.displayName || 'User'}</h3>
+                            <span class="text-gray-500 text-sm">@${buzz.author.email.split('@')[0]}</span>
                             <span class="text-gray-500 text-sm">·</span>
-                            <span class="text-gray-500 text-sm">${formatTimestamp(post.timestamp)}</span>
-                            <i class="${privacyIcon} text-gray-400 text-xs" title="${post.privacy}"></i>
-                            ${post.mood ? `<span class="text-sm" title="${post.mood}">${moodEmoji[post.mood] || ''}</span>` : ''}
+                            <span class="text-gray-500 text-sm">${formatTimestamp(buzz.timestamp)}</span>
+                            <i class="${privacyIcon} text-gray-400 text-xs" title="${buzz.privacy}"></i>
+                            ${buzz.mood ? `<span class="text-sm" title="${buzz.mood}">${moodEmoji[buzz.mood] || ''}</span>` : ''}
                             
-                            <div class="post-actions ml-auto flex space-x-2">
-                                ${!isOwnPost ? `<button onclick="blockUser('${post.author.uid}')" class="text-red-500 hover:text-red-700" title="Block user"><i class="fas fa-ban text-xs"></i></button>` : ''}
-                                ${isOwnPost ? `<button onclick="deletePost('${postId}')" class="text-red-500 hover:text-red-700" title="Delete post"><i class="fas fa-trash text-xs"></i></button>` : ''}
+                            <div class="buzz-actions ml-auto flex space-x-2">
+                                ${!isOwnBuzz ? `<button onclick="blockUser('${buzz.author.uid}')" class="text-red-500 hover:text-red-700" title="Block user"><i class="fas fa-ban text-xs"></i></button>` : ''}
                             </div>
                         </div>
                         
-                        <p class="mt-2 text-gray-800">${formatPostText(post.text)}</p>
+                        ${isRebuzz && buzz.originalBuzz ? `
+                            <div class="mt-2 p-3 border-l-4 border-green-200 bg-gray-50 rounded">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <span class="font-semibold text-sm">${buzz.originalBuzz.author.displayName}</span>
+                                    <span class="text-gray-500 text-xs">@${buzz.originalBuzz.author.email.split('@')[0]}</span>
+                                </div>
+                                <p class="text-gray-800">${formatBuzzText(buzz.originalBuzz.text)}</p>
+                            </div>
+                        ` : `
+                            <p class="mt-2 text-gray-800">${formatBuzzText(buzz.text)}</p>
+                        `}
                         
-                        ${post.location ? `
+                        ${buzz.location ? `
                             <div class="mt-2">
                                 <span class="location-tag">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    ${post.location}
+                                    ${buzz.location}
                                 </span>
                             </div>
                         ` : ''}
                         
-                        <div class="flex items-center space-x-6 mt-3 text-gray-500">
-                            <button onclick="showComments('${postId}')" class="flex items-center space-x-1 hover:text-green-500 transition-colors">
-                                <i class="far fa-comment"></i>
-                                <span>${commentCount}</span>
-                            </button>
-                            <button onclick="toggleLike('${postId}')" class="flex items-center space-x-1 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}" id="like-btn-${postId}">
-                                <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
-                                <span class="like-count-${postId}">${likeCount}</span>
-                            </button>
-                            <button onclick="sharePost('${postId}')" class="hover:text-blue-500 transition-colors">
-                                <i class="fas fa-share"></i>
-                            </button>
-                            <button onclick="savePost('${postId}')" class="hover:text-purple-500 transition-colors">
-                                <i class="far fa-bookmark"></i>
-                            </button>
+                        <div class="flex items-center justify-between mt-3">
+                            <div class="flex items-center space-x-6 text-gray-500">
+                                <button onclick="showComments('${postId}')" class="flex items-center space-x-1 hover:text-green-500 transition-colors">
+                                    <i class="far fa-comment"></i>
+                                    <span>${commentCount}</span>
+                                </button>
+                                <button onclick="toggleLike('${postId}')" class="flex items-center space-x-1 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}" id="like-btn-${postId}">
+                                    <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
+                                    <span class="like-count-${postId}">${likeCount}</span>
+                                </button>
+                                <button onclick="rebuzz('${postId}')" class="hover:text-green-500 transition-colors" title="Rebuzz">
+                                    <i class="fas fa-retweet"></i>
+                                </button>
+                                <button onclick="shareBuzz('${postId}', '${post.author.email.split('@')[0]}')" class="hover:text-blue-500 transition-colors" title="Share">
+                                    <i class="fas fa-share"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="buzz-actions flex items-center space-x-2">
+                                <button onclick="saveBuzz('${postId}')" class="hover:text-purple-500 transition-colors text-xs" title="Save">
+                                    <i class="far fa-bookmark"></i>
+                                </button>
+                                <button onclick="markInterested('${postId}', true)" class="hover:text-green-500 transition-colors text-xs" title="Interested">
+                                    <i class="fas fa-thumbs-up"></i>
+                                </button>
+                                <button onclick="markInterested('${postId}', false)" class="hover:text-red-500 transition-colors text-xs" title="Not Interested">
+                                    <i class="fas fa-thumbs-down"></i>
+                                </button>
+                                ${isOwnPost ? `<button onclick="deleteBuzz('${postId}')" class="hover:text-red-500 transition-colors text-xs" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
+                                ${!isOwnPost ? `<button onclick="reportBuzz('${postId}')" class="hover:text-yellow-500 transition-colors text-xs" title="Report"><i class="fas fa-flag"></i></button>` : ''}
+                            </div>
                         </div>
                         
                         ${(likeCount > 0 || commentCount > 0) ? `
@@ -2681,5 +3077,5 @@
             selectTemplate(1); // Set default story template
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef8752e5651bb6',t:'MTc1NTE2NDgyMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef901fe1fb8985',t:'MTc1NTE2NTE4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
