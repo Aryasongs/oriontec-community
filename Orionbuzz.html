@@ -24,6 +24,17 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        body {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
         }
         
         .skeleton {
@@ -38,22 +49,38 @@
         }
         
         .buzz-card {
-            transition: all 0.3s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border-left: 4px solid transparent;
+            transform: translateZ(0);
+            will-change: transform, box-shadow;
         }
         
-        .buzz-card:hover {
+        .buzz-card:active {
+            transform: scale(0.98);
             border-left-color: #10b981;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
         }
         
-        .buzz-actions {
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        @media (hover: hover) {
+            .buzz-card:hover {
+                border-left-color: #10b981;
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+            }
+            
+            .buzz-actions {
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .buzz-card:hover .buzz-actions {
+                opacity: 1;
+            }
         }
         
-        .buzz-card:hover .buzz-actions {
-            opacity: 1;
+        @media (hover: none) {
+            .buzz-actions {
+                opacity: 1;
+            }
         }
         
         input, textarea {
@@ -80,6 +107,36 @@
             100% { transform: scale(1); }
         }
         
+        /* Mobile-optimized button styles */
+        .mobile-btn {
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateZ(0);
+            will-change: transform, background-color;
+        }
+        
+        .mobile-btn:active {
+            transform: scale(0.95);
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        
+        .mobile-btn-primary {
+            background: linear-gradient(135deg, #10b981, #ec4899);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .mobile-btn-primary:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+        
         .floating-heart {
             animation: floatUp 1s ease-out forwards;
             position: absolute;
@@ -93,12 +150,18 @@
         }
         
         .slide-up {
-            animation: slideUp 0.3s ease-out;
+            animation: slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         
         @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from { 
+                transform: translateY(100%); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
         }
         
         .fade-in {
@@ -108,6 +171,25 @@
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
+        }
+        
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .modal-content {
+            transform: translateZ(0);
+            will-change: transform;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            border-radius: 20px 20px 0 0;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
         }
         
         .story-ring {
@@ -367,6 +449,85 @@
             from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+        
+        /* Responsive spacing and typography */
+        @media (max-width: 640px) {
+            .container-mobile {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            
+            .text-responsive {
+                font-size: 16px;
+                line-height: 1.5;
+            }
+            
+            .buzz-card {
+                margin-bottom: 8px;
+                border-radius: 16px;
+                padding: 16px;
+            }
+            
+            .nav-mobile {
+                padding: 12px 16px;
+                border-radius: 0;
+            }
+            
+            .modal-mobile {
+                border-radius: 24px 24px 0 0;
+                max-height: 90vh;
+            }
+        }
+        
+        /* Smooth scrolling for mobile */
+        .scroll-smooth {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Pull-to-refresh indicator */
+        .pull-indicator {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #10b981;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(-60px);
+            transition: all 0.3s ease;
+        }
+        
+        .pull-indicator.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Improved touch targets */
+        .touch-target {
+            min-height: 48px;
+            min-width: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Swipe gestures */
+        .swipeable {
+            touch-action: pan-x;
+        }
+        
+        /* Loading states */
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -421,55 +582,62 @@
     <!-- Main App Container -->
     <div id="mainApp" class="hidden min-h-screen bg-gray-50">
         <!-- Top Navigation -->
-        <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-            <div class="flex items-center justify-between p-4">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center">
-                        <i class="fas fa-comments text-white text-sm"></i>
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 nav-mobile">
+            <div class="flex items-center justify-between container-mobile">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                        <i class="fas fa-comments text-white text-lg"></i>
                     </div>
-                    <h1 class="text-xl font-bold bg-gradient-to-r from-green-500 to-pink-500 bg-clip-text text-transparent">Oriobuzz</h1>
-                    <div class="activity-indicator ml-2"></div>
+                    <div>
+                        <h1 class="text-xl font-bold bg-gradient-to-r from-green-500 to-pink-500 bg-clip-text text-transparent">Oriobuzz</h1>
+                        <div class="activity-indicator"></div>
+                    </div>
                 </div>
                 
                 <!-- Search Bar -->
-                <div class="flex-1 max-w-md mx-4">
+                <div class="flex-1 max-w-sm mx-4">
                     <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Search users, hashtags..." 
-                               class="w-full bg-gray-100 rounded-full py-2 px-4 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500">
-                        <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
-                        <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-times text-sm"></i>
+                        <input type="text" id="searchInput" placeholder="Search..." 
+                               class="w-full bg-gray-100 rounded-full py-3 px-4 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all text-responsive">
+                        <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                        <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 touch-target">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
                 
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1">
                     <!-- Location -->
-                    <button onclick="detectLocation()" class="text-gray-600 hover:text-green-500 transition-colors">
-                        <i class="fas fa-map-marker-alt text-lg"></i>
+                    <button onclick="detectLocation()" class="mobile-btn text-gray-600 hover:text-green-500">
+                        <i class="fas fa-map-marker-alt"></i>
                     </button>
                     
                     <!-- Profile -->
-                    <button onclick="showProfile()" class="relative">
-                        <div class="w-8 h-8 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    <button onclick="showProfile()" class="relative mobile-btn">
+                        <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold shadow-md">
                             <span id="userInitial">U</span>
                             <div id="onlineStatus" class="online-indicator"></div>
                         </div>
-                        <div id="notificationBadge" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full notification-badge"></div>
+                        <div id="notificationBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full notification-badge flex items-center justify-center">
+                            <span class="text-xs text-white font-bold">!</span>
+                        </div>
                     </button>
                 </div>
             </div>
         </nav>
 
         <!-- Stories Section -->
-        <div class="bg-white border-b border-gray-200 p-4">
-            <div class="flex space-x-4 overflow-x-auto pb-2">
+        <div class="bg-white border-b border-gray-200 container-mobile py-4">
+            <div class="flex space-x-4 overflow-x-auto pb-2 scroll-smooth">
                 <!-- Add Story Button -->
                 <div class="flex-shrink-0 text-center">
-                    <button onclick="showStoryCreator()" class="w-16 h-16 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl relative">
+                    <button onclick="showStoryCreator()" class="w-18 h-18 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl relative shadow-lg mobile-btn-primary">
                         <i class="fas fa-plus"></i>
+                        <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
+                            <i class="fas fa-plus text-green-500 text-xs"></i>
+                        </div>
                     </button>
-                    <p class="text-xs mt-1 text-gray-600">Your Story</p>
+                    <p class="text-xs mt-2 text-gray-600 font-medium">Your Story</p>
                 </div>
                 
                 <!-- Stories -->
@@ -491,16 +659,16 @@
         </div>
 
         <!-- Post Composer -->
-        <div class="bg-white border-b border-gray-200 p-4 post-composer" id="postComposer">
-            <div class="flex space-x-3">
-                <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold relative">
+        <div class="bg-white border-b border-gray-200 container-mobile py-4 post-composer" id="postComposer">
+            <div class="flex space-x-4">
+                <div class="w-12 h-12 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold relative shadow-md">
                     <span id="composerUserInitial">U</span>
                     <div class="mood-indicator mood-happy" id="currentMood"></div>
                 </div>
                 <div class="flex-1">
                     <div class="relative">
-                        <textarea id="postText" placeholder="What's buzzing?" 
-                                  class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" 
+                        <textarea id="postText" placeholder="What's buzzing today?" 
+                                  class="w-full resize-none border-none outline-none text-lg placeholder-gray-500 text-responsive min-h-[80px]" 
                                   rows="3" maxlength="280"></textarea>
                         <div id="typingIndicator" class="hidden typing-indicator absolute bottom-2 right-2">
                             <div class="typing-dot"></div>
@@ -510,53 +678,53 @@
                     </div>
                     
                     <!-- Post Options -->
-                    <div class="flex items-center justify-between mt-3">
-                        <div class="flex space-x-2">
+                    <div class="flex items-center justify-between mt-4">
+                        <div class="flex space-x-1">
                             <!-- Mood Selector -->
                             <div class="relative">
-                                <button onclick="showMoodSelector()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
+                                <button onclick="showMoodSelector()" class="mobile-btn text-green-500">
                                     <i class="fas fa-smile"></i>
                                 </button>
-                                <div id="moodSelector" class="hidden absolute top-full left-0 bg-white border rounded-lg shadow-lg p-2 z-10">
-                                    <button onclick="setMood('happy')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">😊 Happy</button>
-                                    <button onclick="setMood('excited')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">🎉 Excited</button>
-                                    <button onclick="setMood('love')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">❤️ Love</button>
-                                    <button onclick="setMood('sad')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">😢 Sad</button>
+                                <div id="moodSelector" class="hidden absolute top-full left-0 bg-white border rounded-xl shadow-lg p-3 z-10 modal-content">
+                                    <button onclick="setMood('happy')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">😊 Happy</button>
+                                    <button onclick="setMood('excited')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">🎉 Excited</button>
+                                    <button onclick="setMood('love')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">❤️ Love</button>
+                                    <button onclick="setMood('sad')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">😢 Sad</button>
                                 </div>
                             </div>
                             
-                            <button onclick="addLocation()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
+                            <button onclick="addLocation()" class="mobile-btn text-green-500">
                                 <i class="fas fa-map-marker-alt"></i>
                             </button>
-                            <button onclick="addHashtag()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
+                            <button onclick="addHashtag()" class="mobile-btn text-green-500">
                                 <i class="fas fa-hashtag"></i>
                             </button>
-                            <button onclick="addMention()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
+                            <button onclick="addMention()" class="mobile-btn text-green-500">
                                 <i class="fas fa-at"></i>
                             </button>
                             
                             <!-- Privacy Selector -->
                             <div class="relative">
-                                <button onclick="showPrivacySelector()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
+                                <button onclick="showPrivacySelector()" class="mobile-btn text-green-500">
                                     <i class="fas fa-globe" id="privacyIcon"></i>
                                 </button>
-                                <div id="privacySelector" class="hidden absolute top-full left-0 bg-white border rounded-lg shadow-lg p-2 z-10">
-                                    <button onclick="setPrivacy('public')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">
-                                        <i class="fas fa-globe mr-2"></i>Public
+                                <div id="privacySelector" class="hidden absolute top-full left-0 bg-white border rounded-xl shadow-lg p-3 z-10 modal-content">
+                                    <button onclick="setPrivacy('public')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                        <i class="fas fa-globe mr-3"></i>Public
                                     </button>
-                                    <button onclick="setPrivacy('followers')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">
-                                        <i class="fas fa-users mr-2"></i>Followers
+                                    <button onclick="setPrivacy('followers')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                        <i class="fas fa-users mr-3"></i>Followers
                                     </button>
-                                    <button onclick="setPrivacy('private')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">
-                                        <i class="fas fa-lock mr-2"></i>Private
+                                    <button onclick="setPrivacy('private')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                        <i class="fas fa-lock mr-3"></i>Private
                                     </button>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="flex items-center space-x-3">
-                            <span id="characterCount" class="text-sm text-gray-500 character-count">0/280</span>
-                            <button onclick="createBuzz()" id="buzzButton" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50" disabled>
+                        <div class="flex items-center space-x-4">
+                            <span id="characterCount" class="text-sm text-gray-500 character-count font-medium">0/280</span>
+                            <button onclick="createBuzz()" id="buzzButton" class="mobile-btn-primary px-6 py-3 rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                                 Buzz
                             </button>
                         </div>
@@ -576,46 +744,52 @@
             </div>
         </div>
 
+        <!-- Pull to Refresh Indicator -->
+        <div id="pullIndicator" class="pull-indicator">
+            <i class="fas fa-arrow-down mr-2"></i>
+            <span>Pull to refresh</span>
+        </div>
+
         <!-- Feed -->
-        <div id="feedContainer" class="pb-20">
+        <div id="feedContainer" class="pb-24 scroll-smooth" style="scroll-padding-top: 100px;">
             <!-- Posts will be populated here -->
         </div>
 
         <!-- Bottom Navigation -->
-        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-            <div class="flex justify-around py-2">
-                <button onclick="showFeed()" class="flex flex-col items-center py-2 px-4 text-green-500" id="homeBtn">
-                    <i class="fas fa-home text-xl"></i>
-                    <span class="text-xs">Home</span>
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 backdrop-filter backdrop-blur-lg bg-opacity-95">
+            <div class="flex justify-around py-3 safe-area-inset-bottom">
+                <button onclick="showFeed()" class="flex flex-col items-center py-2 px-4 text-green-500 mobile-btn rounded-xl" id="homeBtn">
+                    <i class="fas fa-home text-xl mb-1"></i>
+                    <span class="text-xs font-medium">Home</span>
                 </button>
-                <button onclick="showSearch()" class="flex flex-col items-center py-2 px-4 text-gray-400" id="searchBtn">
-                    <i class="fas fa-search text-xl"></i>
-                    <span class="text-xs">Search</span>
+                <button onclick="showSearch()" class="flex flex-col items-center py-2 px-4 text-gray-400 mobile-btn rounded-xl" id="searchBtn">
+                    <i class="fas fa-search text-xl mb-1"></i>
+                    <span class="text-xs font-medium">Search</span>
                 </button>
-                <button onclick="showNotifications()" class="flex flex-col items-center py-2 px-4 text-gray-400 relative" id="notificationsBtn">
-                    <i class="fas fa-bell text-xl"></i>
-                    <span class="text-xs">Notifications</span>
-                    <div id="notificationDot" class="hidden absolute top-1 right-3 w-2 h-2 bg-red-500 rounded-full"></div>
+                <button onclick="showNotifications()" class="flex flex-col items-center py-2 px-4 text-gray-400 relative mobile-btn rounded-xl" id="notificationsBtn">
+                    <i class="fas fa-bell text-xl mb-1"></i>
+                    <span class="text-xs font-medium">Alerts</span>
+                    <div id="notificationDot" class="hidden absolute top-1 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
                 </button>
-                <button onclick="showProfile()" class="flex flex-col items-center py-2 px-4 text-gray-400" id="profileBtn">
-                    <i class="fas fa-user text-xl"></i>
-                    <span class="text-xs">Profile</span>
+                <button onclick="showProfile()" class="flex flex-col items-center py-2 px-4 text-gray-400 mobile-btn rounded-xl" id="profileBtn">
+                    <i class="fas fa-user text-xl mb-1"></i>
+                    <span class="text-xs font-medium">Profile</span>
                 </button>
             </div>
         </nav>
     </div>
 
     <!-- Profile Modal -->
-    <div id="profileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-        <div class="bg-white h-full overflow-y-auto">
+    <div id="profileModal" class="hidden fixed inset-0 modal-backdrop z-50">
+        <div class="bg-white h-full overflow-y-auto modal-content modal-mobile">
             <!-- Profile Header -->
-            <div class="bg-gradient-to-r from-green-500 to-pink-500 p-4 text-white relative">
-                <div class="flex items-center justify-between mb-4">
-                    <button onclick="closeProfile()" class="text-white text-xl">
-                        <i class="fas fa-arrow-left"></i>
+            <div class="bg-gradient-to-r from-green-500 to-pink-500 container-mobile py-6 text-white relative">
+                <div class="flex items-center justify-between mb-6">
+                    <button onclick="closeProfile()" class="text-white mobile-btn">
+                        <i class="fas fa-arrow-left text-xl"></i>
                     </button>
-                    <button onclick="showSettings()" class="text-white">
-                        <i class="fas fa-cog"></i>
+                    <button onclick="showSettings()" class="text-white mobile-btn">
+                        <i class="fas fa-cog text-xl"></i>
                     </button>
                 </div>
                 
@@ -2159,6 +2333,99 @@
             }, 3000);
         }
 
+        // Mobile touch interactions
+        let startY = 0;
+        let currentY = 0;
+        let pullDistance = 0;
+        let isPulling = false;
+        
+        function initializePullToRefresh() {
+            const feedContainer = document.getElementById('feedContainer');
+            const pullIndicator = document.getElementById('pullIndicator');
+            
+            feedContainer.addEventListener('touchstart', (e) => {
+                if (feedContainer.scrollTop === 0) {
+                    startY = e.touches[0].clientY;
+                    isPulling = true;
+                }
+            }, { passive: true });
+            
+            feedContainer.addEventListener('touchmove', (e) => {
+                if (!isPulling) return;
+                
+                currentY = e.touches[0].clientY;
+                pullDistance = currentY - startY;
+                
+                if (pullDistance > 0 && feedContainer.scrollTop === 0) {
+                    e.preventDefault();
+                    
+                    if (pullDistance > 60) {
+                        pullIndicator.classList.add('active');
+                        pullIndicator.innerHTML = '<i class="fas fa-sync-alt mr-2"></i><span>Release to refresh</span>';
+                    } else {
+                        pullIndicator.classList.remove('active');
+                        pullIndicator.innerHTML = '<i class="fas fa-arrow-down mr-2"></i><span>Pull to refresh</span>';
+                    }
+                    
+                    feedContainer.style.transform = `translateY(${Math.min(pullDistance * 0.5, 30)}px)`;
+                }
+            }, { passive: false });
+            
+            feedContainer.addEventListener('touchend', () => {
+                if (isPulling && pullDistance > 60) {
+                    pullIndicator.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i><span>Refreshing...</span>';
+                    
+                    setTimeout(() => {
+                        loadFeed();
+                        pullIndicator.classList.remove('active');
+                        pullIndicator.innerHTML = '<i class="fas fa-arrow-down mr-2"></i><span>Pull to refresh</span>';
+                        feedContainer.style.transform = '';
+                        showToast('Feed refreshed!', 'success');
+                    }, 1000);
+                } else {
+                    pullIndicator.classList.remove('active');
+                    feedContainer.style.transform = '';
+                }
+                
+                isPulling = false;
+                pullDistance = 0;
+            }, { passive: true });
+        }
+        
+        // Haptic feedback for mobile
+        function hapticFeedback(type = 'light') {
+            if (navigator.vibrate) {
+                switch(type) {
+                    case 'light':
+                        navigator.vibrate(10);
+                        break;
+                    case 'medium':
+                        navigator.vibrate(20);
+                        break;
+                    case 'heavy':
+                        navigator.vibrate([30, 10, 30]);
+                        break;
+                }
+            }
+        }
+        
+        // Enhanced mobile interactions
+        function addMobileInteractions() {
+            // Add haptic feedback to buttons
+            document.querySelectorAll('.mobile-btn, .mobile-btn-primary').forEach(btn => {
+                btn.addEventListener('touchstart', () => hapticFeedback('light'), { passive: true });
+            });
+            
+            // Smooth scroll to top on nav tap
+            document.getElementById('homeBtn').addEventListener('dblclick', () => {
+                document.getElementById('feedContainer').scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+                hapticFeedback('medium');
+            });
+        }
+
         // Event listeners
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const value = e.target.value;
@@ -2240,7 +2507,33 @@
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Oriobuzz app initialized with Firestore integration');
+            
+            // Initialize mobile features
+            initializePullToRefresh();
+            addMobileInteractions();
+            
+            // Add viewport meta tag for better mobile experience
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+            }
+            
+            // Prevent zoom on input focus (iOS)
+            document.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('focus', () => {
+                    input.style.fontSize = '16px';
+                });
+                input.addEventListener('blur', () => {
+                    input.style.fontSize = '';
+                });
+            });
+            
+            // Add safe area support
+            if (CSS.supports('padding: env(safe-area-inset-top)')) {
+                document.body.style.paddingTop = 'env(safe-area-inset-top)';
+                document.body.style.paddingBottom = 'env(safe-area-inset-bottom)';
+            }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96efd2faa1ae5496',t:'MTc1NTE2NzkyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96efdbd2857f598f',t:'MTc1NTE2ODI4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
