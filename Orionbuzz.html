@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .story-template-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .story-template-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
@@ -23,12 +24,15 @@
         
         @keyframes likeHeart {
             0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
+            50% { transform: scale(1.3); color: #ef4444; }
             100% { transform: scale(1); }
         }
         
         .floating-heart {
             animation: floatUp 1s ease-out forwards;
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
         }
         
         @keyframes floatUp {
@@ -55,7 +59,7 @@
         }
         
         .story-ring {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+            background: linear-gradient(45deg, #10b981, #ec4899, #8b5cf6, #06b6d4);
             background-size: 300% 300%;
             animation: gradientShift 3s ease infinite;
         }
@@ -64,6 +68,32 @@
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
+        }
+        
+        .notification-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .post-grid-item {
+            transition: transform 0.2s ease;
+        }
+        
+        .post-grid-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .profile-image-placeholder {
+            background: linear-gradient(135deg, #10b981, #ec4899);
+        }
+        
+        .coming-soon-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
@@ -86,26 +116,29 @@
     </script>
 
     <!-- Login Screen -->
-    <div id="loginScreen" class="min-h-screen bg-gradient-to-br from-pink-400 via-purple-500 to-green-400 flex items-center justify-center p-4">
+    <div id="loginScreen" class="min-h-screen bg-gradient-to-br from-green-400 via-pink-500 to-purple-600 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
             <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-500 to-green-500 bg-clip-text text-transparent">Oriobuzz</h1>
+                <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-comments text-white text-3xl"></i>
+                </div>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-green-500 to-pink-500 bg-clip-text text-transparent">Oriobuzz</h1>
                 <p class="text-gray-600 mt-2">Connect, Share, Discover</p>
             </div>
             
             <div class="space-y-4">
                 <button onclick="signInWithGoogle()" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
-                    <span>🔍</span>
+                    <i class="fab fa-google"></i>
                     <span>Continue with Google</span>
                 </button>
                 
                 <button onclick="signInWithTwitter()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
-                    <span>🐦</span>
+                    <i class="fab fa-twitter"></i>
                     <span>Continue with Twitter</span>
                 </button>
                 
                 <button onclick="signInWithGitHub()" class="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
-                    <span>⚡</span>
+                    <i class="fab fa-github"></i>
                     <span>Continue with GitHub</span>
                 </button>
             </div>
@@ -117,19 +150,27 @@
         <!-- Top Navigation -->
         <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
             <div class="flex items-center justify-between p-4">
-                <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-green-500 bg-clip-text text-transparent">Oriobuzz</h1>
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-comments text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-green-500 to-pink-500 bg-clip-text text-transparent">Oriobuzz</h1>
+                </div>
                 
                 <!-- Search Bar -->
                 <div class="flex-1 max-w-md mx-4">
                     <div class="relative">
                         <input type="text" id="searchInput" placeholder="Search users, hashtags..." 
-                               class="w-full bg-gray-100 rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-pink-500">
-                        <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                               class="w-full bg-gray-100 rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
                     </div>
                 </div>
                 
-                <button onclick="showProfile()" class="w-8 h-8 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
-                    <span id="userInitial">U</span>
+                <button onclick="showProfile()" class="relative">
+                    <div class="w-8 h-8 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        <span id="userInitial">U</span>
+                    </div>
+                    <div id="notificationBadge" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full notification-badge"></div>
                 </button>
             </div>
         </nav>
@@ -139,8 +180,8 @@
             <div class="flex space-x-4 overflow-x-auto pb-2">
                 <!-- Add Story Button -->
                 <div class="flex-shrink-0 text-center">
-                    <button onclick="showStoryCreator()" class="w-16 h-16 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white text-2xl">
-                        +
+                    <button onclick="showStoryCreator()" class="w-16 h-16 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl relative">
+                        <i class="fas fa-plus"></i>
                     </button>
                     <p class="text-xs mt-1 text-gray-600">Your Story</p>
                 </div>
@@ -154,31 +195,38 @@
 
         <!-- Trending Hashtags -->
         <div class="bg-white border-b border-gray-200 p-4">
-            <h3 class="font-semibold text-gray-800 mb-2">Trending</h3>
+            <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
+                <i class="fas fa-fire text-orange-500 mr-2"></i>
+                Trending
+            </h3>
             <div class="flex flex-wrap gap-2" id="trendingHashtags">
-                <span class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm">#oriobuzz</span>
-                <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">#trending</span>
-                <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm">#social</span>
+                <!-- Trending hashtags will be populated here -->
             </div>
         </div>
 
-        <!-- Tweet Composer -->
+        <!-- Post Composer -->
         <div class="bg-white border-b border-gray-200 p-4">
             <div class="flex space-x-3">
-                <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
                     <span id="composerUserInitial">U</span>
                 </div>
                 <div class="flex-1">
-                    <textarea id="tweetText" placeholder="What's happening?" 
+                    <textarea id="postText" placeholder="What's happening?" 
                               class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" 
                               rows="3"></textarea>
                     <div class="flex items-center justify-between mt-3">
-                        <div class="flex space-x-4 text-pink-500">
-                            <button onclick="addLocation()" class="hover:bg-pink-50 p-2 rounded-full">📍</button>
-                            <button onclick="addHashtag()" class="hover:bg-pink-50 p-2 rounded-full">#</button>
-                            <button onclick="addMention()" class="hover:bg-pink-50 p-2 rounded-full">@</button>
+                        <div class="flex space-x-4 text-green-500">
+                            <button onclick="addLocation()" class="hover:bg-green-50 p-2 rounded-full transition-colors">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </button>
+                            <button onclick="addHashtag()" class="hover:bg-green-50 p-2 rounded-full transition-colors">
+                                <i class="fas fa-hashtag"></i>
+                            </button>
+                            <button onclick="addMention()" class="hover:bg-green-50 p-2 rounded-full transition-colors">
+                                <i class="fas fa-at"></i>
+                            </button>
                         </div>
-                        <button onclick="postTweet()" class="bg-gradient-to-r from-pink-500 to-green-500 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity">
+                        <button onclick="createPost()" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity">
                             Post
                         </button>
                     </div>
@@ -188,26 +236,27 @@
 
         <!-- Feed -->
         <div id="feedContainer" class="pb-20">
-            <!-- Tweets will be populated here -->
+            <!-- Posts will be populated here -->
         </div>
 
         <!-- Bottom Navigation -->
         <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
             <div class="flex justify-around py-2">
-                <button onclick="showFeed()" class="flex flex-col items-center py-2 px-4 text-pink-500">
-                    <span class="text-xl">🏠</span>
+                <button onclick="showFeed()" class="flex flex-col items-center py-2 px-4 text-green-500" id="homeBtn">
+                    <i class="fas fa-home text-xl"></i>
                     <span class="text-xs">Home</span>
                 </button>
-                <button onclick="showSearch()" class="flex flex-col items-center py-2 px-4 text-gray-400">
-                    <span class="text-xl">🔍</span>
+                <button onclick="showSearch()" class="flex flex-col items-center py-2 px-4 text-gray-400" id="searchBtn">
+                    <i class="fas fa-search text-xl"></i>
                     <span class="text-xs">Search</span>
                 </button>
-                <button onclick="showNotifications()" class="flex flex-col items-center py-2 px-4 text-gray-400">
-                    <span class="text-xl">🔔</span>
+                <button onclick="showNotifications()" class="flex flex-col items-center py-2 px-4 text-gray-400 relative" id="notificationsBtn">
+                    <i class="fas fa-bell text-xl"></i>
                     <span class="text-xs">Notifications</span>
+                    <div id="notificationDot" class="hidden absolute top-1 right-3 w-2 h-2 bg-red-500 rounded-full"></div>
                 </button>
-                <button onclick="showProfile()" class="flex flex-col items-center py-2 px-4 text-gray-400">
-                    <span class="text-xl">👤</span>
+                <button onclick="showProfile()" class="flex flex-col items-center py-2 px-4 text-gray-400" id="profileBtn">
+                    <i class="fas fa-user text-xl"></i>
                     <span class="text-xs">Profile</span>
                 </button>
             </div>
@@ -218,22 +267,38 @@
     <div id="profileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
         <div class="bg-white h-full overflow-y-auto">
             <!-- Profile Header -->
-            <div class="bg-gradient-to-r from-pink-500 to-green-500 p-4 text-white">
+            <div class="bg-gradient-to-r from-green-500 to-pink-500 p-4 text-white relative">
                 <div class="flex items-center justify-between mb-4">
-                    <button onclick="closeProfile()" class="text-white text-xl">←</button>
-                    <button onclick="showSettings()" class="text-white">⚙️</button>
+                    <button onclick="closeProfile()" class="text-white text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <button onclick="showSettings()" class="text-white">
+                        <i class="fas fa-cog"></i>
+                    </button>
                 </div>
                 
                 <div class="flex items-center space-x-4">
-                    <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl font-bold">
-                        <span id="profileUserInitial">U</span>
+                    <div class="relative">
+                        <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl font-bold">
+                            <span id="profileUserInitial">U</span>
+                        </div>
+                        <!-- Coming Soon Overlay for Profile Picture -->
+                        <div class="absolute inset-0 coming-soon-overlay rounded-full flex items-center justify-center">
+                            <div class="text-center">
+                                <i class="fas fa-camera text-white text-sm mb-1"></i>
+                                <p class="text-white text-xs">Coming Soon</p>
+                            </div>
+                        </div>
                     </div>
                     <div>
-                        <h2 id="profileUsername" class="text-xl font-bold">Username</h2>
+                        <div class="flex items-center">
+                            <h2 id="profileUsername" class="text-xl font-bold mr-2">Username</h2>
+                            <i id="verifiedBadge" class="fas fa-check-circle text-green-400 hidden"></i>
+                        </div>
                         <p id="profileHandle" class="opacity-80">@username</p>
                         <div class="flex items-center mt-1">
-                            <span id="verifiedBadge" class="hidden text-green-400 mr-2">✓</span>
-                            <span id="profileLocation" class="text-sm opacity-80">📍 Location</span>
+                            <i class="fas fa-map-marker-alt text-sm opacity-80 mr-1"></i>
+                            <span id="profileLocation" class="text-sm opacity-80">Location</span>
                         </div>
                     </div>
                 </div>
@@ -243,28 +308,40 @@
                         <p class="font-bold text-lg" id="postsCount">0</p>
                         <p class="text-sm opacity-80">Posts</p>
                     </div>
-                    <div class="text-center">
+                    <button onclick="showFollowers()" class="text-center">
                         <p class="font-bold text-lg" id="followersCount">0</p>
                         <p class="text-sm opacity-80">Followers</p>
-                    </div>
-                    <div class="text-center">
+                    </button>
+                    <button onclick="showFollowing()" class="text-center">
                         <p class="font-bold text-lg" id="followingCount">0</p>
                         <p class="text-sm opacity-80">Following</p>
-                    </div>
+                    </button>
                 </div>
             </div>
             
             <!-- Coming Soon Image Feature -->
             <div class="p-4 bg-gray-50 border-b">
-                <div class="bg-white rounded-lg p-4 text-center">
-                    <div class="text-4xl mb-2">🖼️</div>
-                    <p class="text-gray-600 font-semibold">Image Feature</p>
+                <div class="bg-white rounded-lg p-4 text-center relative">
+                    <div class="text-4xl mb-2">
+                        <i class="fas fa-images text-gray-400"></i>
+                    </div>
+                    <p class="text-gray-600 font-semibold">Image Gallery</p>
                     <p class="text-sm text-gray-500">Coming Soon</p>
+                    <div class="absolute inset-0 coming-soon-overlay rounded-lg flex items-center justify-center">
+                        <div class="text-center">
+                            <i class="fas fa-clock text-white text-2xl mb-2"></i>
+                            <p class="text-white font-semibold">Coming Soon</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             
             <!-- Profile Grid -->
             <div class="p-4">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-th text-green-500 mr-2"></i>
+                    Posts
+                </h3>
                 <div class="grid grid-cols-3 gap-1" id="profileGrid">
                     <!-- User's posts will be displayed here -->
                 </div>
@@ -274,10 +351,12 @@
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-        <div class="bg-white h-full overflow-y-auto">
+        <div class="bg-white h-full overflow-y-auto slide-up">
             <div class="p-4 border-b">
                 <div class="flex items-center justify-between">
-                    <button onclick="closeSettings()" class="text-xl">←</button>
+                    <button onclick="closeSettings()" class="text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
                     <h2 class="text-xl font-bold">Settings</h2>
                     <div></div>
                 </div>
@@ -285,20 +364,51 @@
             
             <div class="p-4 space-y-4">
                 <div class="bg-gray-50 rounded-lg p-4">
-                    <h3 class="font-semibold mb-2">Profile Settings</h3>
-                    <input type="text" id="usernameInput" placeholder="Username" class="w-full p-2 border rounded-lg mb-2">
-                    <input type="text" id="locationInput" placeholder="Location" class="w-full p-2 border rounded-lg mb-2">
-                    <button onclick="updateProfile()" class="bg-pink-500 text-white px-4 py-2 rounded-lg">Update Profile</button>
+                    <h3 class="font-semibold mb-3 flex items-center">
+                        <i class="fas fa-user-edit text-green-500 mr-2"></i>
+                        Profile Settings
+                    </h3>
+                    <input type="text" id="usernameInput" placeholder="Display Name" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <input type="text" id="locationInput" placeholder="Location" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <button onclick="updateProfile()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-save mr-2"></i>Update Profile
+                    </button>
                 </div>
                 
                 <div class="bg-gray-50 rounded-lg p-4">
-                    <h3 class="font-semibold mb-2">Verification</h3>
-                    <p class="text-sm text-gray-600 mb-2">Apply for verified badge</p>
-                    <input type="file" id="idUpload" accept="image/*" class="mb-2">
-                    <button onclick="applyForVerification()" class="bg-green-500 text-white px-4 py-2 rounded-lg">Submit for Verification</button>
+                    <h3 class="font-semibold mb-3 flex items-center">
+                        <i class="fas fa-certificate text-blue-500 mr-2"></i>
+                        Verification
+                    </h3>
+                    <p class="text-sm text-gray-600 mb-3">Apply for verified badge by submitting your national ID</p>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload National ID</label>
+                        <input type="file" id="idUpload" accept="image/*" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <button onclick="applyForVerification()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-upload mr-2"></i>Submit for Verification
+                    </button>
+                    <div id="verificationStatus" class="mt-2 text-sm"></div>
                 </div>
                 
-                <button onclick="signOut()" class="w-full bg-red-500 text-white py-3 rounded-lg">Sign Out</button>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold mb-3 flex items-center">
+                        <i class="fas fa-palette text-purple-500 mr-2"></i>
+                        Theme
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setTheme('green-pink')" class="p-3 rounded-lg bg-gradient-to-r from-green-500 to-pink-500 text-white">
+                            Green & Pink
+                        </button>
+                        <button onclick="setTheme('blue-purple')" class="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                            Blue & Purple
+                        </button>
+                    </div>
+                </div>
+                
+                <button onclick="signOut()" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
+                </button>
             </div>
         </div>
     </div>
@@ -308,9 +418,13 @@
         <div class="bg-white h-full">
             <div class="p-4 border-b">
                 <div class="flex items-center justify-between">
-                    <button onclick="closeStoryCreator()" class="text-xl">←</button>
+                    <button onclick="closeStoryCreator()" class="text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
                     <h2 class="text-xl font-bold">Create Story</h2>
-                    <button onclick="publishStory()" class="bg-pink-500 text-white px-4 py-2 rounded-lg">Share</button>
+                    <button onclick="publishStory()" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-share mr-1"></i>Share
+                    </button>
                 </div>
             </div>
             
@@ -340,8 +454,12 @@
     <!-- Story Viewer Modal -->
     <div id="storyViewerModal" class="hidden fixed inset-0 bg-black z-50">
         <div class="relative h-full">
-            <button onclick="closeStoryViewer()" class="absolute top-4 right-4 text-white text-2xl z-10">×</button>
-            <button onclick="reportStory()" class="absolute top-4 left-4 text-white z-10">🚨</button>
+            <button onclick="closeStoryViewer()" class="absolute top-4 right-4 text-white text-2xl z-10">
+                <i class="fas fa-times"></i>
+            </button>
+            <button onclick="reportStory()" class="absolute top-4 left-4 text-white z-10">
+                <i class="fas fa-flag"></i>
+            </button>
             
             <div id="storyViewerContent" class="w-full h-full flex items-center justify-center">
                 <!-- Story content will be displayed here -->
@@ -349,7 +467,9 @@
             
             <div class="absolute bottom-4 left-4 right-4 text-white">
                 <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full"></div>
+                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <span id="storyAuthorInitial">U</span>
+                    </div>
                     <span id="storyAuthor" class="font-semibold">Username</span>
                     <span id="storyTime" class="text-sm opacity-70">2h</span>
                 </div>
@@ -362,7 +482,9 @@
         <div class="bg-white h-full overflow-y-auto slide-up">
             <div class="p-4 border-b sticky top-0 bg-white">
                 <div class="flex items-center justify-between">
-                    <button onclick="closeComments()" class="text-xl">←</button>
+                    <button onclick="closeComments()" class="text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
                     <h2 class="text-xl font-bold">Comments</h2>
                     <div></div>
                 </div>
@@ -376,9 +498,51 @@
             <div class="sticky bottom-0 bg-white border-t p-4">
                 <div class="flex space-x-2">
                     <input type="text" id="commentInput" placeholder="Add a comment..." 
-                           class="flex-1 p-2 border rounded-full px-4">
-                    <button onclick="postComment()" class="bg-pink-500 text-white px-4 py-2 rounded-full">Post</button>
+                           class="flex-1 p-3 border rounded-full px-4 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <button onclick="postComment()" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-4 py-2 rounded-full">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Followers/Following Modal -->
+    <div id="followModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b sticky top-0 bg-white">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeFollowModal()" class="text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 id="followModalTitle" class="text-xl font-bold">Followers</h2>
+                    <div></div>
+                </div>
+            </div>
+            
+            <div id="followList" class="p-4 space-y-3">
+                <!-- Follow list will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notificationsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b sticky top-0 bg-white">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeNotifications()" class="text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-bold">Notifications</h2>
+                    <button onclick="markAllNotificationsRead()" class="text-green-500 text-sm">
+                        Mark all read
+                    </button>
+                </div>
+            </div>
+            
+            <div id="notificationsList" class="p-4 space-y-3">
+                <!-- Notifications will be populated here -->
             </div>
         </div>
     </div>
@@ -386,9 +550,10 @@
     <script>
         // Global variables
         let currentUser = null;
-        let currentTweetId = null;
+        let currentPostId = null;
         let selectedTemplate = 1;
         let currentStoryId = null;
+        let unsubscribeListeners = [];
 
         // Authentication functions
         function signInWithGoogle() {
@@ -428,6 +593,10 @@
         }
 
         function signOut() {
+            // Unsubscribe from all listeners
+            unsubscribeListeners.forEach(unsubscribe => unsubscribe());
+            unsubscribeListeners = [];
+            
             auth.signOut().then(() => {
                 currentUser = null;
                 document.getElementById('loginScreen').classList.remove('hidden');
@@ -446,7 +615,7 @@
                 document.getElementById('profileUsername').textContent = currentUser.displayName || 'User';
                 document.getElementById('profileHandle').textContent = `@${currentUser.email.split('@')[0]}`;
                 
-                // Create user document if it doesn't exist
+                // Create/update user document
                 db.collection('users').doc(currentUser.uid).set({
                     displayName: currentUser.displayName,
                     email: currentUser.email,
@@ -455,8 +624,12 @@
                     verified: false,
                     followers: [],
                     following: [],
-                    location: ''
+                    location: '',
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
+                
+                // Setup real-time listeners
+                setupNotificationListener();
             }
         }
 
@@ -466,15 +639,16 @@
             loadFeed();
             loadStories();
             loadTrendingHashtags();
+            updateNavigation('home');
         }
 
-        // Tweet functions
-        function postTweet() {
-            const tweetText = document.getElementById('tweetText').value.trim();
-            if (!tweetText || !currentUser) return;
+        // Post functions
+        function createPost() {
+            const postText = document.getElementById('postText').value.trim();
+            if (!postText || !currentUser) return;
 
-            const tweet = {
-                text: tweetText,
+            const post = {
+                text: postText,
                 author: {
                     uid: currentUser.uid,
                     displayName: currentUser.displayName,
@@ -486,84 +660,90 @@
                 retweets: []
             };
 
-            db.collection('tweets').add(tweet).then(() => {
-                document.getElementById('tweetText').value = '';
+            db.collection('posts').add(post).then(() => {
+                document.getElementById('postText').value = '';
                 loadFeed();
+                
+                // Create notification for followers
+                createNotificationForFollowers('new_post', post);
             });
         }
 
         function loadFeed() {
-            db.collection('tweets').orderBy('timestamp', 'desc').limit(20).get().then((querySnapshot) => {
-                const feedContainer = document.getElementById('feedContainer');
-                feedContainer.innerHTML = '';
-                
-                querySnapshot.forEach((doc) => {
-                    const tweet = doc.data();
-                    const tweetElement = createTweetElement(doc.id, tweet);
-                    feedContainer.appendChild(tweetElement);
+            const unsubscribe = db.collection('posts')
+                .orderBy('timestamp', 'desc')
+                .limit(20)
+                .onSnapshot((querySnapshot) => {
+                    const feedContainer = document.getElementById('feedContainer');
+                    feedContainer.innerHTML = '';
+                    
+                    querySnapshot.forEach((doc) => {
+                        const post = doc.data();
+                        const postElement = createPostElement(doc.id, post);
+                        feedContainer.appendChild(postElement);
+                    });
                 });
-            });
+            
+            unsubscribeListeners.push(unsubscribe);
         }
 
-        function createTweetElement(tweetId, tweet) {
-            const tweetDiv = document.createElement('div');
-            tweetDiv.className = 'bg-white border-b border-gray-200 p-4';
+        function createPostElement(postId, post) {
+            const postDiv = document.createElement('div');
+            postDiv.className = 'bg-white border-b border-gray-200 p-4';
             
-            const initial = tweet.author.displayName ? tweet.author.displayName.charAt(0).toUpperCase() : 'U';
-            const isLiked = tweet.likes && tweet.likes.includes(currentUser.uid);
-            const likeCount = tweet.likes ? tweet.likes.length : 0;
-            const commentCount = tweet.comments ? tweet.comments.length : 0;
+            const initial = post.author.displayName ? post.author.displayName.charAt(0).toUpperCase() : 'U';
+            const isLiked = post.likes && post.likes.includes(currentUser.uid);
+            const likeCount = post.likes ? post.likes.length : 0;
+            const commentCount = post.comments ? post.comments.length : 0;
+            const isOwnPost = post.author.uid === currentUser.uid;
             
-            tweetDiv.innerHTML = `
+            postDiv.innerHTML = `
                 <div class="flex space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                    <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
                         ${initial}
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center space-x-2">
-                            <h3 class="font-semibold">${tweet.author.displayName || 'User'}</h3>
-                            <span class="text-gray-500 text-sm">@${tweet.author.email.split('@')[0]}</span>
+                            <h3 class="font-semibold">${post.author.displayName || 'User'}</h3>
+                            <span class="text-gray-500 text-sm">@${post.author.email.split('@')[0]}</span>
                             <span class="text-gray-500 text-sm">·</span>
-                            <span class="text-gray-500 text-sm">${formatTimestamp(tweet.timestamp)}</span>
+                            <span class="text-gray-500 text-sm">${formatTimestamp(post.timestamp)}</span>
+                            ${isOwnPost ? '<button onclick="deletePost(\'' + postId + '\')" class="text-red-500 hover:text-red-700 ml-2"><i class="fas fa-trash text-sm"></i></button>' : ''}
                         </div>
-                        <p class="mt-2 text-gray-800">${formatTweetText(tweet.text)}</p>
+                        <p class="mt-2 text-gray-800">${formatPostText(post.text)}</p>
                         <div class="flex items-center space-x-6 mt-3 text-gray-500">
-                            <button onclick="showComments('${tweetId}')" class="flex items-center space-x-1 hover:text-pink-500 transition-colors">
-                                <span>💬</span>
+                            <button onclick="showComments('${postId}')" class="flex items-center space-x-1 hover:text-green-500 transition-colors">
+                                <i class="far fa-comment"></i>
                                 <span>${commentCount}</span>
                             </button>
-                            <button onclick="toggleLike('${tweetId}')" class="flex items-center space-x-1 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}">
-                                <span class="like-btn-${tweetId}">${isLiked ? '❤️' : '🤍'}</span>
-                                <span class="like-count-${tweetId}">${likeCount}</span>
+                            <button onclick="toggleLike('${postId}')" class="flex items-center space-x-1 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}" id="like-btn-${postId}">
+                                <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
+                                <span class="like-count-${postId}">${likeCount}</span>
                             </button>
-                            <button onclick="retweet('${tweetId}')" class="flex items-center space-x-1 hover:text-green-500 transition-colors">
-                                <span>🔄</span>
-                                <span>0</span>
-                            </button>
-                            <button onclick="shareTweet('${tweetId}')" class="hover:text-blue-500 transition-colors">
-                                <span>📤</span>
+                            <button onclick="sharePost('${postId}')" class="hover:text-blue-500 transition-colors">
+                                <i class="fas fa-share"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             `;
             
-            return tweetDiv;
+            return postDiv;
         }
 
-        function formatTweetText(text) {
+        function formatPostText(text) {
             // Format hashtags
-            text = text.replace(/#(\w+)/g, '<span class="text-pink-500 font-semibold">#$1</span>');
+            text = text.replace(/#(\w+)/g, '<span class="text-green-500 font-semibold cursor-pointer" onclick="searchHashtag(\'#$1\')">#$1</span>');
             // Format mentions
-            text = text.replace(/@(\w+)/g, '<span class="text-blue-500 font-semibold">@$1</span>');
+            text = text.replace(/@(\w+)/g, '<span class="text-blue-500 font-semibold cursor-pointer" onclick="searchMention(\'@$1\')">@$1</span>');
             return text;
         }
 
         function formatTimestamp(timestamp) {
             if (!timestamp) return 'now';
             const now = new Date();
-            const tweetTime = timestamp.toDate();
-            const diffMs = now - tweetTime;
+            const postTime = timestamp.toDate();
+            const diffMs = now - postTime;
             const diffMins = Math.floor(diffMs / 60000);
             const diffHours = Math.floor(diffMs / 3600000);
             const diffDays = Math.floor(diffMs / 86400000);
@@ -574,15 +754,15 @@
             return `${diffDays}d`;
         }
 
-        function toggleLike(tweetId) {
+        function toggleLike(postId) {
             if (!currentUser) return;
             
-            const tweetRef = db.collection('tweets').doc(tweetId);
+            const postRef = db.collection('posts').doc(postId);
             
-            tweetRef.get().then((doc) => {
+            postRef.get().then((doc) => {
                 if (doc.exists) {
-                    const tweet = doc.data();
-                    const likes = tweet.likes || [];
+                    const post = doc.data();
+                    const likes = post.likes || [];
                     const isLiked = likes.includes(currentUser.uid);
                     
                     let newLikes;
@@ -591,60 +771,70 @@
                     } else {
                         newLikes = [...likes, currentUser.uid];
                         // Add like animation
-                        const likeBtn = document.querySelector(`.like-btn-${tweetId}`);
+                        const likeBtn = document.getElementById(`like-btn-${postId}`);
                         if (likeBtn) {
                             likeBtn.classList.add('like-animation');
                             setTimeout(() => likeBtn.classList.remove('like-animation'), 600);
                             
                             // Create floating heart
                             const heart = document.createElement('div');
-                            heart.innerHTML = '❤️';
-                            heart.className = 'absolute text-red-500 text-xl floating-heart pointer-events-none';
+                            heart.innerHTML = '<i class="fas fa-heart text-red-500"></i>';
+                            heart.className = 'floating-heart text-xl';
                             heart.style.left = likeBtn.offsetLeft + 'px';
                             heart.style.top = likeBtn.offsetTop + 'px';
                             likeBtn.parentElement.appendChild(heart);
                             setTimeout(() => heart.remove(), 1000);
                         }
+                        
+                        // Create notification for post author
+                        if (post.author.uid !== currentUser.uid) {
+                            createNotification(post.author.uid, 'like', {
+                                postId: postId,
+                                postText: post.text.substring(0, 50) + '...'
+                            });
+                        }
                     }
                     
-                    tweetRef.update({ likes: newLikes }).then(() => {
-                        // Update UI
-                        const likeBtnElement = document.querySelector(`.like-btn-${tweetId}`);
-                        const likeCountElement = document.querySelector(`.like-count-${tweetId}`);
-                        
-                        if (likeBtnElement && likeCountElement) {
-                            likeBtnElement.textContent = !isLiked ? '❤️' : '🤍';
-                            likeCountElement.textContent = newLikes.length;
-                            likeBtnElement.parentElement.classList.toggle('text-red-500', !isLiked);
-                        }
-                    });
+                    postRef.update({ likes: newLikes });
                 }
             });
         }
 
+        function deletePost(postId) {
+            if (confirm('Are you sure you want to delete this post?')) {
+                db.collection('posts').doc(postId).delete().then(() => {
+                    loadFeed();
+                });
+            }
+        }
+
         // Comments functions
-        function showComments(tweetId) {
-            currentTweetId = tweetId;
+        function showComments(postId) {
+            currentPostId = postId;
             document.getElementById('commentsModal').classList.remove('hidden');
-            loadComments(tweetId);
+            loadComments(postId);
         }
 
         function closeComments() {
             document.getElementById('commentsModal').classList.add('hidden');
-            currentTweetId = null;
+            currentPostId = null;
         }
 
-        function loadComments(tweetId) {
-            db.collection('tweets').doc(tweetId).collection('comments').orderBy('timestamp', 'desc').get().then((querySnapshot) => {
-                const commentsContainer = document.getElementById('commentsContainer');
-                commentsContainer.innerHTML = '';
-                
-                querySnapshot.forEach((doc) => {
-                    const comment = doc.data();
-                    const commentElement = createCommentElement(doc.id, comment);
-                    commentsContainer.appendChild(commentElement);
+        function loadComments(postId) {
+            const unsubscribe = db.collection('posts').doc(postId).collection('comments')
+                .orderBy('timestamp', 'desc')
+                .onSnapshot((querySnapshot) => {
+                    const commentsContainer = document.getElementById('commentsContainer');
+                    commentsContainer.innerHTML = '';
+                    
+                    querySnapshot.forEach((doc) => {
+                        const comment = doc.data();
+                        const commentElement = createCommentElement(doc.id, comment);
+                        commentsContainer.appendChild(commentElement);
+                    });
                 });
-            });
+            
+            unsubscribeListeners.push(unsubscribe);
         }
 
         function createCommentElement(commentId, comment) {
@@ -654,24 +844,26 @@
             const initial = comment.author.displayName ? comment.author.displayName.charAt(0).toUpperCase() : 'U';
             const isLiked = comment.likes && comment.likes.includes(currentUser.uid);
             const likeCount = comment.likes ? comment.likes.length : 0;
+            const isOwnComment = comment.author.uid === currentUser.uid;
             
             commentDiv.innerHTML = `
-                <div class="w-8 h-8 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div class="w-8 h-8 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold text-sm">
                     ${initial}
                 </div>
                 <div class="flex-1">
                     <div class="flex items-center space-x-2">
                         <h4 class="font-semibold text-sm">${comment.author.displayName || 'User'}</h4>
                         <span class="text-gray-500 text-xs">${formatTimestamp(comment.timestamp)}</span>
+                        ${isOwnComment ? '<button onclick="deleteComment(\'' + commentId + '\')" class="text-red-500 hover:text-red-700 ml-2"><i class="fas fa-trash text-xs"></i></button>' : ''}
                     </div>
                     <p class="mt-1 text-sm text-gray-800">${comment.text}</p>
                     <div class="flex items-center space-x-4 mt-2">
                         <button onclick="toggleCommentLike('${commentId}')" class="flex items-center space-x-1 text-xs hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : 'text-gray-500'}">
-                            <span>${isLiked ? '❤️' : '🤍'}</span>
+                            <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
                             <span>${likeCount}</span>
                         </button>
-                        <button onclick="replyToComment('${commentId}')" class="text-xs text-gray-500 hover:text-pink-500 transition-colors">
-                            Reply
+                        <button onclick="replyToComment('${commentId}')" class="text-xs text-gray-500 hover:text-green-500 transition-colors">
+                            <i class="fas fa-reply mr-1"></i>Reply
                         </button>
                     </div>
                 </div>
@@ -682,7 +874,7 @@
 
         function postComment() {
             const commentText = document.getElementById('commentInput').value.trim();
-            if (!commentText || !currentUser || !currentTweetId) return;
+            if (!commentText || !currentUser || !currentPostId) return;
 
             const comment = {
                 text: commentText,
@@ -695,27 +887,35 @@
                 likes: []
             };
 
-            db.collection('tweets').doc(currentTweetId).collection('comments').add(comment).then(() => {
+            db.collection('posts').doc(currentPostId).collection('comments').add(comment).then(() => {
                 document.getElementById('commentInput').value = '';
-                loadComments(currentTweetId);
                 
-                // Update comment count in main tweet
-                db.collection('tweets').doc(currentTweetId).get().then((doc) => {
+                // Update comment count in main post
+                db.collection('posts').doc(currentPostId).get().then((doc) => {
                     if (doc.exists) {
-                        const tweet = doc.data();
-                        const comments = tweet.comments || [];
-                        db.collection('tweets').doc(currentTweetId).update({
+                        const post = doc.data();
+                        const comments = post.comments || [];
+                        db.collection('posts').doc(currentPostId).update({
                             comments: [...comments, comment]
                         });
+                        
+                        // Create notification for post author
+                        if (post.author.uid !== currentUser.uid) {
+                            createNotification(post.author.uid, 'comment', {
+                                postId: currentPostId,
+                                postText: post.text.substring(0, 50) + '...',
+                                commentText: commentText
+                            });
+                        }
                     }
                 });
             });
         }
 
         function toggleCommentLike(commentId) {
-            if (!currentUser || !currentTweetId) return;
+            if (!currentUser || !currentPostId) return;
             
-            const commentRef = db.collection('tweets').doc(currentTweetId).collection('comments').doc(commentId);
+            const commentRef = db.collection('posts').doc(currentPostId).collection('comments').doc(commentId);
             
             commentRef.get().then((doc) => {
                 if (doc.exists) {
@@ -727,11 +927,15 @@
                         ? likes.filter(uid => uid !== currentUser.uid)
                         : [...likes, currentUser.uid];
                     
-                    commentRef.update({ likes: newLikes }).then(() => {
-                        loadComments(currentTweetId);
-                    });
+                    commentRef.update({ likes: newLikes });
                 }
             });
+        }
+
+        function deleteComment(commentId) {
+            if (confirm('Are you sure you want to delete this comment?')) {
+                db.collection('posts').doc(currentPostId).collection('comments').doc(commentId).delete();
+            }
         }
 
         // Story functions
@@ -751,10 +955,10 @@
             
             // Update template selection UI
             document.querySelectorAll('[data-template]').forEach(btn => {
-                btn.classList.remove('border-pink-500');
+                btn.classList.remove('border-green-500');
                 btn.classList.add('border-transparent');
             });
-            document.querySelector(`[data-template="${templateNumber}"]`).classList.add('border-pink-500');
+            document.querySelector(`[data-template="${templateNumber}"]`).classList.add('border-green-500');
         }
 
         function publishStory() {
@@ -776,6 +980,9 @@
             db.collection('stories').add(story).then(() => {
                 closeStoryCreator();
                 loadStories();
+                
+                // Create notification for followers
+                createNotificationForFollowers('new_story', story);
             });
         }
 
@@ -808,7 +1015,7 @@
             storyDiv.innerHTML = `
                 <div class="w-16 h-16 story-ring rounded-full p-0.5">
                     <div class="w-full h-full bg-white rounded-full flex items-center justify-center">
-                        <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                        <div class="w-12 h-12 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
                             ${initial}
                         </div>
                     </div>
@@ -830,6 +1037,8 @@
                 </div>
             `;
             
+            const initial = story.author.displayName ? story.author.displayName.charAt(0).toUpperCase() : 'U';
+            document.getElementById('storyAuthorInitial').textContent = initial;
             document.getElementById('storyAuthor').textContent = story.author.displayName || 'User';
             document.getElementById('storyTime').textContent = formatTimestamp(story.timestamp);
             
@@ -875,8 +1084,8 @@
         function loadUserProfile() {
             if (!currentUser) return;
             
-            // Load user's tweets for profile grid
-            db.collection('tweets')
+            // Load user's posts for profile grid
+            db.collection('posts')
                 .where('author.uid', '==', currentUser.uid)
                 .orderBy('timestamp', 'desc')
                 .get()
@@ -887,11 +1096,22 @@
                     document.getElementById('postsCount').textContent = querySnapshot.size;
                     
                     querySnapshot.forEach((doc) => {
-                        const tweet = doc.data();
+                        const post = doc.data();
                         const gridItem = document.createElement('div');
-                        gridItem.className = 'aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-xs p-2 cursor-pointer hover:opacity-80 transition-opacity';
-                        gridItem.textContent = tweet.text.substring(0, 50) + (tweet.text.length > 50 ? '...' : '');
-                        gridItem.onclick = () => showTweetDetail(doc.id, tweet);
+                        gridItem.className = 'aspect-square bg-gray-200 rounded-lg flex flex-col items-center justify-center text-xs p-2 cursor-pointer hover:opacity-80 transition-opacity post-grid-item';
+                        
+                        const likeCount = post.likes ? post.likes.length : 0;
+                        const commentCount = post.comments ? post.comments.length : 0;
+                        
+                        gridItem.innerHTML = `
+                            <p class="text-center text-gray-700 mb-2 line-clamp-3">${post.text.substring(0, 50)}${post.text.length > 50 ? '...' : ''}</p>
+                            <div class="flex space-x-2 text-gray-500">
+                                <span><i class="far fa-heart"></i> ${likeCount}</span>
+                                <span><i class="far fa-comment"></i> ${commentCount}</span>
+                            </div>
+                        `;
+                        
+                        gridItem.onclick = () => showPostDetail(doc.id, post);
                         profileGrid.appendChild(gridItem);
                     });
                 });
@@ -908,12 +1128,79 @@
                     }
                     
                     if (userData.location) {
-                        document.getElementById('profileLocation').textContent = `📍 ${userData.location}`;
+                        document.getElementById('profileLocation').textContent = userData.location;
                     }
                 }
             });
         }
 
+        function showFollowers() {
+            document.getElementById('followModalTitle').textContent = 'Followers';
+            document.getElementById('followModal').classList.remove('hidden');
+            loadFollowList('followers');
+        }
+
+        function showFollowing() {
+            document.getElementById('followModalTitle').textContent = 'Following';
+            document.getElementById('followModal').classList.remove('hidden');
+            loadFollowList('following');
+        }
+
+        function closeFollowModal() {
+            document.getElementById('followModal').classList.add('hidden');
+        }
+
+        function loadFollowList(type) {
+            db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const userIds = userData[type] || [];
+                    const followList = document.getElementById('followList');
+                    followList.innerHTML = '';
+                    
+                    if (userIds.length === 0) {
+                        followList.innerHTML = '<p class="text-center text-gray-500">No users found</p>';
+                        return;
+                    }
+                    
+                    userIds.forEach(userId => {
+                        db.collection('users').doc(userId).get().then((userDoc) => {
+                            if (userDoc.exists) {
+                                const user = userDoc.data();
+                                const userElement = createFollowUserElement(userId, user);
+                                followList.appendChild(userElement);
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
+        function createFollowUserElement(userId, user) {
+            const userDiv = document.createElement('div');
+            userDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+            
+            const initial = user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U';
+            
+            userDiv.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
+                        ${initial}
+                    </div>
+                    <div>
+                        <h4 class="font-semibold">${user.displayName || 'User'}</h4>
+                        <p class="text-sm text-gray-500">@${user.email.split('@')[0]}</p>
+                    </div>
+                </div>
+                <button onclick="toggleFollow('${userId}')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded-full text-sm transition-colors">
+                    Following
+                </button>
+            `;
+            
+            return userDiv;
+        }
+
+        // Settings functions
         function showSettings() {
             document.getElementById('settingsModal').classList.remove('hidden');
             
@@ -924,6 +1211,20 @@
                 if (doc.exists) {
                     const userData = doc.data();
                     document.getElementById('locationInput').value = userData.location || '';
+                    
+                    // Check verification status
+                    db.collection('verificationRequests')
+                        .where('userId', '==', currentUser.uid)
+                        .orderBy('timestamp', 'desc')
+                        .limit(1)
+                        .get()
+                        .then((querySnapshot) => {
+                            const statusDiv = document.getElementById('verificationStatus');
+                            if (!querySnapshot.empty) {
+                                const request = querySnapshot.docs[0].data();
+                                statusDiv.innerHTML = `<span class="text-blue-500">Status: ${request.status}</span>`;
+                            }
+                        });
                 }
             });
         }
@@ -979,75 +1280,294 @@
             }).then(() => {
                 alert('Verification request submitted! You will receive a response within 1-2 days.');
                 fileInput.value = '';
+                document.getElementById('verificationStatus').innerHTML = '<span class="text-blue-500">Status: pending</span>';
             }).catch((error) => {
                 console.error('Verification request error:', error);
                 alert('Failed to submit verification request. Please try again.');
             });
         }
 
+        function setTheme(theme) {
+            // This would update the CSS variables for theming
+            // For now, just show confirmation
+            alert(`Theme changed to ${theme}!`);
+        }
+
+        // Notification functions
+        function setupNotificationListener() {
+            const unsubscribe = db.collection('notifications')
+                .where('userId', '==', currentUser.uid)
+                .where('read', '==', false)
+                .onSnapshot((querySnapshot) => {
+                    const unreadCount = querySnapshot.size;
+                    const notificationBadge = document.getElementById('notificationBadge');
+                    const notificationDot = document.getElementById('notificationDot');
+                    
+                    if (unreadCount > 0) {
+                        notificationBadge.classList.remove('hidden');
+                        notificationDot.classList.remove('hidden');
+                    } else {
+                        notificationBadge.classList.add('hidden');
+                        notificationDot.classList.add('hidden');
+                    }
+                });
+            
+            unsubscribeListeners.push(unsubscribe);
+        }
+
+        function createNotification(userId, type, data) {
+            const notification = {
+                userId: userId,
+                type: type,
+                data: data,
+                from: {
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName,
+                    email: currentUser.email
+                },
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            };
+            
+            db.collection('notifications').add(notification);
+        }
+
+        function createNotificationForFollowers(type, data) {
+            db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const followers = userData.followers || [];
+                    
+                    followers.forEach(followerId => {
+                        createNotification(followerId, type, data);
+                    });
+                }
+            });
+        }
+
+        function showNotifications() {
+            document.getElementById('notificationsModal').classList.remove('hidden');
+            loadNotifications();
+            updateNavigation('notifications');
+        }
+
+        function closeNotifications() {
+            document.getElementById('notificationsModal').classList.add('hidden');
+        }
+
+        function loadNotifications() {
+            db.collection('notifications')
+                .where('userId', '==', currentUser.uid)
+                .orderBy('timestamp', 'desc')
+                .limit(50)
+                .get()
+                .then((querySnapshot) => {
+                    const notificationsList = document.getElementById('notificationsList');
+                    notificationsList.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        notificationsList.innerHTML = '<p class="text-center text-gray-500">No notifications yet</p>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const notification = doc.data();
+                        const notificationElement = createNotificationElement(doc.id, notification);
+                        notificationsList.appendChild(notificationElement);
+                    });
+                });
+        }
+
+        function createNotificationElement(notificationId, notification) {
+            const notificationDiv = document.createElement('div');
+            notificationDiv.className = `p-3 rounded-lg ${notification.read ? 'bg-gray-50' : 'bg-blue-50'} cursor-pointer hover:bg-gray-100 transition-colors`;
+            
+            let message = '';
+            let icon = '';
+            
+            switch (notification.type) {
+                case 'like':
+                    icon = '<i class="fas fa-heart text-red-500"></i>';
+                    message = `${notification.from.displayName} liked your post`;
+                    break;
+                case 'comment':
+                    icon = '<i class="fas fa-comment text-green-500"></i>';
+                    message = `${notification.from.displayName} commented on your post`;
+                    break;
+                case 'follow':
+                    icon = '<i class="fas fa-user-plus text-blue-500"></i>';
+                    message = `${notification.from.displayName} started following you`;
+                    break;
+                case 'new_post':
+                    icon = '<i class="fas fa-plus text-green-500"></i>';
+                    message = `${notification.from.displayName} shared a new post`;
+                    break;
+                case 'new_story':
+                    icon = '<i class="fas fa-circle text-purple-500"></i>';
+                    message = `${notification.from.displayName} shared a new story`;
+                    break;
+            }
+            
+            notificationDiv.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="text-xl">${icon}</div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium">${message}</p>
+                        <p class="text-xs text-gray-500">${formatTimestamp(notification.timestamp)}</p>
+                    </div>
+                    ${!notification.read ? '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>' : ''}
+                </div>
+            `;
+            
+            notificationDiv.onclick = () => {
+                markNotificationRead(notificationId);
+                // Handle notification click based on type
+                if (notification.type === 'like' || notification.type === 'comment') {
+                    closeNotifications();
+                    showComments(notification.data.postId);
+                }
+            };
+            
+            return notificationDiv;
+        }
+
+        function markNotificationRead(notificationId) {
+            db.collection('notifications').doc(notificationId).update({ read: true });
+        }
+
+        function markAllNotificationsRead() {
+            db.collection('notifications')
+                .where('userId', '==', currentUser.uid)
+                .where('read', '==', false)
+                .get()
+                .then((querySnapshot) => {
+                    const batch = db.batch();
+                    querySnapshot.forEach((doc) => {
+                        batch.update(doc.ref, { read: true });
+                    });
+                    return batch.commit();
+                })
+                .then(() => {
+                    loadNotifications();
+                });
+        }
+
         // Utility functions
         function loadTrendingHashtags() {
-            // This would typically analyze recent tweets for trending hashtags
-            // For demo purposes, we'll show static trending tags
-            const trendingContainer = document.getElementById('trendingHashtags');
-            const trends = ['#oriobuzz', '#trending', '#social', '#newfeature', '#community'];
-            
-            trendingContainer.innerHTML = trends.map(tag => 
-                `<span class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-pink-200 transition-colors" onclick="searchHashtag('${tag}')">${tag}</span>`
-            ).join('');
+            // Analyze recent posts for trending hashtags
+            db.collection('posts')
+                .where('timestamp', '>', new Date(Date.now() - 24 * 60 * 60 * 1000))
+                .get()
+                .then((querySnapshot) => {
+                    const hashtagCount = {};
+                    
+                    querySnapshot.forEach((doc) => {
+                        const post = doc.data();
+                        const hashtags = post.text.match(/#\w+/g) || [];
+                        hashtags.forEach(hashtag => {
+                            hashtagCount[hashtag] = (hashtagCount[hashtag] || 0) + 1;
+                        });
+                    });
+                    
+                    const trending = Object.entries(hashtagCount)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 5)
+                        .map(([hashtag]) => hashtag);
+                    
+                    const trendingContainer = document.getElementById('trendingHashtags');
+                    trendingContainer.innerHTML = trending.map(tag => 
+                        `<span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-200 transition-colors" onclick="searchHashtag('${tag}')">${tag}</span>`
+                    ).join('');
+                    
+                    // Add default trends if no trending hashtags
+                    if (trending.length === 0) {
+                        trendingContainer.innerHTML = `
+                            <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-200 transition-colors" onclick="searchHashtag('#oriobuzz')">#oriobuzz</span>
+                            <span class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-pink-200 transition-colors" onclick="searchHashtag('#trending')">#trending</span>
+                            <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-purple-200 transition-colors" onclick="searchHashtag('#social')">#social</span>
+                        `;
+                    }
+                });
         }
 
         function searchHashtag(hashtag) {
             document.getElementById('searchInput').value = hashtag;
             performSearch();
+            updateNavigation('search');
+        }
+
+        function searchMention(mention) {
+            document.getElementById('searchInput').value = mention;
+            performSearch();
+            updateNavigation('search');
         }
 
         function performSearch() {
-            const query = document.getElementById('searchInput').value.trim();
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
             if (!query) return;
             
-            // Search tweets containing the query
-            db.collection('tweets')
-                .where('text', '>=', query)
-                .where('text', '<=', query + '\uf8ff')
+            // Search posts containing the query
+            db.collection('posts')
                 .get()
                 .then((querySnapshot) => {
                     const feedContainer = document.getElementById('feedContainer');
-                    feedContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Search Results</div>';
+                    feedContainer.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-search mr-2"></i>Search Results</div>';
+                    
+                    let hasResults = false;
                     
                     querySnapshot.forEach((doc) => {
-                        const tweet = doc.data();
-                        const tweetElement = createTweetElement(doc.id, tweet);
-                        feedContainer.appendChild(tweetElement);
+                        const post = doc.data();
+                        if (post.text.toLowerCase().includes(query) || 
+                            post.author.displayName.toLowerCase().includes(query) ||
+                            post.author.email.toLowerCase().includes(query)) {
+                            const postElement = createPostElement(doc.id, post);
+                            feedContainer.appendChild(postElement);
+                            hasResults = true;
+                        }
                     });
                     
-                    if (querySnapshot.empty) {
-                        feedContainer.innerHTML = '<div class="p-4 text-center text-gray-500">No results found</div>';
+                    if (!hasResults) {
+                        feedContainer.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-search mr-2"></i>No results found</div>';
                     }
                 });
         }
 
         function addLocation() {
-            const currentText = document.getElementById('tweetText').value;
+            const currentText = document.getElementById('postText').value;
             const location = prompt('Add location:');
             if (location) {
-                document.getElementById('tweetText').value = currentText + ` 📍 ${location}`;
+                document.getElementById('postText').value = currentText + ` 📍 ${location}`;
             }
         }
 
         function addHashtag() {
-            const currentText = document.getElementById('tweetText').value;
+            const currentText = document.getElementById('postText').value;
             const hashtag = prompt('Add hashtag (without #):');
             if (hashtag) {
-                document.getElementById('tweetText').value = currentText + ` #${hashtag}`;
+                document.getElementById('postText').value = currentText + ` #${hashtag}`;
             }
         }
 
         function addMention() {
-            const currentText = document.getElementById('tweetText').value;
+            const currentText = document.getElementById('postText').value;
             const mention = prompt('Mention user (without @):');
             if (mention) {
-                document.getElementById('tweetText').value = currentText + ` @${mention}`;
+                document.getElementById('postText').value = currentText + ` @${mention}`;
+            }
+        }
+
+        function sharePost(postId) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this post on Oriobuzz',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                const url = window.location.href;
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Link copied to clipboard!');
+                });
             }
         }
 
@@ -1062,23 +1582,22 @@
             updateNavigation('search');
         }
 
-        function showNotifications() {
-            // Load notifications (placeholder)
-            alert('Notifications feature coming soon!');
-            updateNavigation('notifications');
-        }
-
         function updateNavigation(active) {
-            const navButtons = document.querySelectorAll('nav button');
-            navButtons.forEach(btn => {
-                btn.classList.remove('text-pink-500');
+            const navButtons = {
+                'home': document.getElementById('homeBtn'),
+                'search': document.getElementById('searchBtn'),
+                'notifications': document.getElementById('notificationsBtn'),
+                'profile': document.getElementById('profileBtn')
+            };
+            
+            Object.values(navButtons).forEach(btn => {
+                btn.classList.remove('text-green-500');
                 btn.classList.add('text-gray-400');
             });
             
-            // This would be more sophisticated in a real app
-            if (active === 'home') {
-                navButtons[0].classList.add('text-pink-500');
-                navButtons[0].classList.remove('text-gray-400');
+            if (navButtons[active]) {
+                navButtons[active].classList.add('text-green-500');
+                navButtons[active].classList.remove('text-gray-400');
             }
         }
 
@@ -1089,9 +1608,9 @@
             }
         });
 
-        document.getElementById('tweetText').addEventListener('keypress', function(e) {
+        document.getElementById('postText').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && e.ctrlKey) {
-                postTweet();
+                createPost();
             }
         });
 
@@ -1116,9 +1635,9 @@
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
-            // App is ready
             console.log('Oriobuzz app initialized');
+            selectTemplate(1); // Set default story template
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef6a31763459e7',t:'MTc1NTE2MzYzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef7f9ef5535958',t:'MTc1NTE2NDUwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
