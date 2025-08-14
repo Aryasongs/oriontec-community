@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriobuzz - Social Media Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <style>
+        .story-template-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .story-template-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .story-template-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .story-template-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .story-template-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .story-template-6 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        
+        .like-animation {
+            animation: likeHeart 0.6s ease-in-out;
+        }
+        
+        @keyframes likeHeart {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        
+        .floating-heart {
+            animation: floatUp 1s ease-out forwards;
+        }
+        
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+        
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .story-ring {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+            background-size: 300% 300%;
+            animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Firebase Configuration -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA2aDGTKSbkeFnG5aAPPVGkGk3-JOsfbDQ",
+            authDomain: "dozeranews.firebaseapp.com",
+            projectId: "dozeranews",
+            storageBucket: "dozeranews.firebasestorage.app",
+            messagingSenderId: "162732208376",
+            appId: "1:162732208376:web:6a0fe4df447b2e9a090b0d"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+    </script>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen bg-gradient-to-br from-pink-400 via-purple-500 to-green-400 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-500 to-green-500 bg-clip-text text-transparent">Oriobuzz</h1>
+                <p class="text-gray-600 mt-2">Connect, Share, Discover</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button onclick="signInWithGoogle()" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
+                    <span>🔍</span>
+                    <span>Continue with Google</span>
+                </button>
+                
+                <button onclick="signInWithTwitter()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
+                    <span>🐦</span>
+                    <span>Continue with Twitter</span>
+                </button>
+                
+                <button onclick="signInWithGitHub()" class="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
+                    <span>⚡</span>
+                    <span>Continue with GitHub</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="mainApp" class="hidden min-h-screen bg-gray-50">
+        <!-- Top Navigation -->
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+            <div class="flex items-center justify-between p-4">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-green-500 bg-clip-text text-transparent">Oriobuzz</h1>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-4">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search users, hashtags..." 
+                               class="w-full bg-gray-100 rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                    </div>
+                </div>
+                
+                <button onclick="showProfile()" class="w-8 h-8 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                    <span id="userInitial">U</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Stories Section -->
+        <div class="bg-white border-b border-gray-200 p-4">
+            <div class="flex space-x-4 overflow-x-auto pb-2">
+                <!-- Add Story Button -->
+                <div class="flex-shrink-0 text-center">
+                    <button onclick="showStoryCreator()" class="w-16 h-16 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white text-2xl">
+                        +
+                    </button>
+                    <p class="text-xs mt-1 text-gray-600">Your Story</p>
+                </div>
+                
+                <!-- Stories -->
+                <div id="storiesContainer" class="flex space-x-4">
+                    <!-- Stories will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Trending Hashtags -->
+        <div class="bg-white border-b border-gray-200 p-4">
+            <h3 class="font-semibold text-gray-800 mb-2">Trending</h3>
+            <div class="flex flex-wrap gap-2" id="trendingHashtags">
+                <span class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm">#oriobuzz</span>
+                <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">#trending</span>
+                <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm">#social</span>
+            </div>
+        </div>
+
+        <!-- Tweet Composer -->
+        <div class="bg-white border-b border-gray-200 p-4">
+            <div class="flex space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                    <span id="composerUserInitial">U</span>
+                </div>
+                <div class="flex-1">
+                    <textarea id="tweetText" placeholder="What's happening?" 
+                              class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" 
+                              rows="3"></textarea>
+                    <div class="flex items-center justify-between mt-3">
+                        <div class="flex space-x-4 text-pink-500">
+                            <button onclick="addLocation()" class="hover:bg-pink-50 p-2 rounded-full">📍</button>
+                            <button onclick="addHashtag()" class="hover:bg-pink-50 p-2 rounded-full">#</button>
+                            <button onclick="addMention()" class="hover:bg-pink-50 p-2 rounded-full">@</button>
+                        </div>
+                        <button onclick="postTweet()" class="bg-gradient-to-r from-pink-500 to-green-500 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity">
+                            Post
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feed -->
+        <div id="feedContainer" class="pb-20">
+            <!-- Tweets will be populated here -->
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+            <div class="flex justify-around py-2">
+                <button onclick="showFeed()" class="flex flex-col items-center py-2 px-4 text-pink-500">
+                    <span class="text-xl">🏠</span>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button onclick="showSearch()" class="flex flex-col items-center py-2 px-4 text-gray-400">
+                    <span class="text-xl">🔍</span>
+                    <span class="text-xs">Search</span>
+                </button>
+                <button onclick="showNotifications()" class="flex flex-col items-center py-2 px-4 text-gray-400">
+                    <span class="text-xl">🔔</span>
+                    <span class="text-xs">Notifications</span>
+                </button>
+                <button onclick="showProfile()" class="flex flex-col items-center py-2 px-4 text-gray-400">
+                    <span class="text-xl">👤</span>
+                    <span class="text-xs">Profile</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto">
+            <!-- Profile Header -->
+            <div class="bg-gradient-to-r from-pink-500 to-green-500 p-4 text-white">
+                <div class="flex items-center justify-between mb-4">
+                    <button onclick="closeProfile()" class="text-white text-xl">←</button>
+                    <button onclick="showSettings()" class="text-white">⚙️</button>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl font-bold">
+                        <span id="profileUserInitial">U</span>
+                    </div>
+                    <div>
+                        <h2 id="profileUsername" class="text-xl font-bold">Username</h2>
+                        <p id="profileHandle" class="opacity-80">@username</p>
+                        <div class="flex items-center mt-1">
+                            <span id="verifiedBadge" class="hidden text-green-400 mr-2">✓</span>
+                            <span id="profileLocation" class="text-sm opacity-80">📍 Location</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-4">
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="postsCount">0</p>
+                        <p class="text-sm opacity-80">Posts</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="followersCount">0</p>
+                        <p class="text-sm opacity-80">Followers</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="followingCount">0</p>
+                        <p class="text-sm opacity-80">Following</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Coming Soon Image Feature -->
+            <div class="p-4 bg-gray-50 border-b">
+                <div class="bg-white rounded-lg p-4 text-center">
+                    <div class="text-4xl mb-2">🖼️</div>
+                    <p class="text-gray-600 font-semibold">Image Feature</p>
+                    <p class="text-sm text-gray-500">Coming Soon</p>
+                </div>
+            </div>
+            
+            <!-- Profile Grid -->
+            <div class="p-4">
+                <div class="grid grid-cols-3 gap-1" id="profileGrid">
+                    <!-- User's posts will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto">
+            <div class="p-4 border-b">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeSettings()" class="text-xl">←</button>
+                    <h2 class="text-xl font-bold">Settings</h2>
+                    <div></div>
+                </div>
+            </div>
+            
+            <div class="p-4 space-y-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold mb-2">Profile Settings</h3>
+                    <input type="text" id="usernameInput" placeholder="Username" class="w-full p-2 border rounded-lg mb-2">
+                    <input type="text" id="locationInput" placeholder="Location" class="w-full p-2 border rounded-lg mb-2">
+                    <button onclick="updateProfile()" class="bg-pink-500 text-white px-4 py-2 rounded-lg">Update Profile</button>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold mb-2">Verification</h3>
+                    <p class="text-sm text-gray-600 mb-2">Apply for verified badge</p>
+                    <input type="file" id="idUpload" accept="image/*" class="mb-2">
+                    <button onclick="applyForVerification()" class="bg-green-500 text-white px-4 py-2 rounded-lg">Submit for Verification</button>
+                </div>
+                
+                <button onclick="signOut()" class="w-full bg-red-500 text-white py-3 rounded-lg">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Creator Modal -->
+    <div id="storyCreatorModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full">
+            <div class="p-4 border-b">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeStoryCreator()" class="text-xl">←</button>
+                    <h2 class="text-xl font-bold">Create Story</h2>
+                    <button onclick="publishStory()" class="bg-pink-500 text-white px-4 py-2 rounded-lg">Share</button>
+                </div>
+            </div>
+            
+            <!-- Template Selection -->
+            <div class="p-4 border-b">
+                <h3 class="font-semibold mb-2">Choose Template</h3>
+                <div class="flex space-x-2 overflow-x-auto">
+                    <button onclick="selectTemplate(1)" class="story-template-1 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="1"></button>
+                    <button onclick="selectTemplate(2)" class="story-template-2 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="2"></button>
+                    <button onclick="selectTemplate(3)" class="story-template-3 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="3"></button>
+                    <button onclick="selectTemplate(4)" class="story-template-4 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="4"></button>
+                    <button onclick="selectTemplate(5)" class="story-template-5 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="5"></button>
+                    <button onclick="selectTemplate(6)" class="story-template-6 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="6"></button>
+                </div>
+            </div>
+            
+            <!-- Story Preview -->
+            <div class="flex-1 p-4">
+                <div id="storyPreview" class="story-template-1 w-full h-96 rounded-lg flex items-center justify-center relative">
+                    <textarea id="storyText" placeholder="Write your story..." 
+                              class="bg-transparent text-white text-center text-xl font-bold resize-none border-none outline-none w-full h-full p-4 placeholder-white placeholder-opacity-70"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Viewer Modal -->
+    <div id="storyViewerModal" class="hidden fixed inset-0 bg-black z-50">
+        <div class="relative h-full">
+            <button onclick="closeStoryViewer()" class="absolute top-4 right-4 text-white text-2xl z-10">×</button>
+            <button onclick="reportStory()" class="absolute top-4 left-4 text-white z-10">🚨</button>
+            
+            <div id="storyViewerContent" class="w-full h-full flex items-center justify-center">
+                <!-- Story content will be displayed here -->
+            </div>
+            
+            <div class="absolute bottom-4 left-4 right-4 text-white">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full"></div>
+                    <span id="storyAuthor" class="font-semibold">Username</span>
+                    <span id="storyTime" class="text-sm opacity-70">2h</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div id="commentsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b sticky top-0 bg-white">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeComments()" class="text-xl">←</button>
+                    <h2 class="text-xl font-bold">Comments</h2>
+                    <div></div>
+                </div>
+            </div>
+            
+            <div id="commentsContainer" class="p-4 space-y-4">
+                <!-- Comments will be populated here -->
+            </div>
+            
+            <!-- Comment Input -->
+            <div class="sticky bottom-0 bg-white border-t p-4">
+                <div class="flex space-x-2">
+                    <input type="text" id="commentInput" placeholder="Add a comment..." 
+                           class="flex-1 p-2 border rounded-full px-4">
+                    <button onclick="postComment()" class="bg-pink-500 text-white px-4 py-2 rounded-full">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let currentTweetId = null;
+        let selectedTemplate = 1;
+        let currentStoryId = null;
+
+        // Authentication functions
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then((result) => {
+                currentUser = result.user;
+                initializeUser();
+                showMainApp();
+            }).catch((error) => {
+                console.error('Google sign-in error:', error);
+                alert('Sign-in failed. Please try again.');
+            });
+        }
+
+        function signInWithTwitter() {
+            const provider = new firebase.auth.TwitterAuthProvider();
+            auth.signInWithPopup(provider).then((result) => {
+                currentUser = result.user;
+                initializeUser();
+                showMainApp();
+            }).catch((error) => {
+                console.error('Twitter sign-in error:', error);
+                alert('Sign-in failed. Please try again.');
+            });
+        }
+
+        function signInWithGitHub() {
+            const provider = new firebase.auth.GithubAuthProvider();
+            auth.signInWithPopup(provider).then((result) => {
+                currentUser = result.user;
+                initializeUser();
+                showMainApp();
+            }).catch((error) => {
+                console.error('GitHub sign-in error:', error);
+                alert('Sign-in failed. Please try again.');
+            });
+        }
+
+        function signOut() {
+            auth.signOut().then(() => {
+                currentUser = null;
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+                closeSettings();
+            });
+        }
+
+        // Initialize user data
+        function initializeUser() {
+            if (currentUser) {
+                const initial = currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U';
+                document.getElementById('userInitial').textContent = initial;
+                document.getElementById('composerUserInitial').textContent = initial;
+                document.getElementById('profileUserInitial').textContent = initial;
+                document.getElementById('profileUsername').textContent = currentUser.displayName || 'User';
+                document.getElementById('profileHandle').textContent = `@${currentUser.email.split('@')[0]}`;
+                
+                // Create user document if it doesn't exist
+                db.collection('users').doc(currentUser.uid).set({
+                    displayName: currentUser.displayName,
+                    email: currentUser.email,
+                    photoURL: currentUser.photoURL,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    verified: false,
+                    followers: [],
+                    following: [],
+                    location: ''
+                }, { merge: true });
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            loadFeed();
+            loadStories();
+            loadTrendingHashtags();
+        }
+
+        // Tweet functions
+        function postTweet() {
+            const tweetText = document.getElementById('tweetText').value.trim();
+            if (!tweetText || !currentUser) return;
+
+            const tweet = {
+                text: tweetText,
+                author: {
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName,
+                    email: currentUser.email
+                },
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                likes: [],
+                comments: [],
+                retweets: []
+            };
+
+            db.collection('tweets').add(tweet).then(() => {
+                document.getElementById('tweetText').value = '';
+                loadFeed();
+            });
+        }
+
+        function loadFeed() {
+            db.collection('tweets').orderBy('timestamp', 'desc').limit(20).get().then((querySnapshot) => {
+                const feedContainer = document.getElementById('feedContainer');
+                feedContainer.innerHTML = '';
+                
+                querySnapshot.forEach((doc) => {
+                    const tweet = doc.data();
+                    const tweetElement = createTweetElement(doc.id, tweet);
+                    feedContainer.appendChild(tweetElement);
+                });
+            });
+        }
+
+        function createTweetElement(tweetId, tweet) {
+            const tweetDiv = document.createElement('div');
+            tweetDiv.className = 'bg-white border-b border-gray-200 p-4';
+            
+            const initial = tweet.author.displayName ? tweet.author.displayName.charAt(0).toUpperCase() : 'U';
+            const isLiked = tweet.likes && tweet.likes.includes(currentUser.uid);
+            const likeCount = tweet.likes ? tweet.likes.length : 0;
+            const commentCount = tweet.comments ? tweet.comments.length : 0;
+            
+            tweetDiv.innerHTML = `
+                <div class="flex space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                        ${initial}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2">
+                            <h3 class="font-semibold">${tweet.author.displayName || 'User'}</h3>
+                            <span class="text-gray-500 text-sm">@${tweet.author.email.split('@')[0]}</span>
+                            <span class="text-gray-500 text-sm">·</span>
+                            <span class="text-gray-500 text-sm">${formatTimestamp(tweet.timestamp)}</span>
+                        </div>
+                        <p class="mt-2 text-gray-800">${formatTweetText(tweet.text)}</p>
+                        <div class="flex items-center space-x-6 mt-3 text-gray-500">
+                            <button onclick="showComments('${tweetId}')" class="flex items-center space-x-1 hover:text-pink-500 transition-colors">
+                                <span>💬</span>
+                                <span>${commentCount}</span>
+                            </button>
+                            <button onclick="toggleLike('${tweetId}')" class="flex items-center space-x-1 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}">
+                                <span class="like-btn-${tweetId}">${isLiked ? '❤️' : '🤍'}</span>
+                                <span class="like-count-${tweetId}">${likeCount}</span>
+                            </button>
+                            <button onclick="retweet('${tweetId}')" class="flex items-center space-x-1 hover:text-green-500 transition-colors">
+                                <span>🔄</span>
+                                <span>0</span>
+                            </button>
+                            <button onclick="shareTweet('${tweetId}')" class="hover:text-blue-500 transition-colors">
+                                <span>📤</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return tweetDiv;
+        }
+
+        function formatTweetText(text) {
+            // Format hashtags
+            text = text.replace(/#(\w+)/g, '<span class="text-pink-500 font-semibold">#$1</span>');
+            // Format mentions
+            text = text.replace(/@(\w+)/g, '<span class="text-blue-500 font-semibold">@$1</span>');
+            return text;
+        }
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'now';
+            const now = new Date();
+            const tweetTime = timestamp.toDate();
+            const diffMs = now - tweetTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'now';
+            if (diffMins < 60) return `${diffMins}m`;
+            if (diffHours < 24) return `${diffHours}h`;
+            return `${diffDays}d`;
+        }
+
+        function toggleLike(tweetId) {
+            if (!currentUser) return;
+            
+            const tweetRef = db.collection('tweets').doc(tweetId);
+            
+            tweetRef.get().then((doc) => {
+                if (doc.exists) {
+                    const tweet = doc.data();
+                    const likes = tweet.likes || [];
+                    const isLiked = likes.includes(currentUser.uid);
+                    
+                    let newLikes;
+                    if (isLiked) {
+                        newLikes = likes.filter(uid => uid !== currentUser.uid);
+                    } else {
+                        newLikes = [...likes, currentUser.uid];
+                        // Add like animation
+                        const likeBtn = document.querySelector(`.like-btn-${tweetId}`);
+                        if (likeBtn) {
+                            likeBtn.classList.add('like-animation');
+                            setTimeout(() => likeBtn.classList.remove('like-animation'), 600);
+                            
+                            // Create floating heart
+                            const heart = document.createElement('div');
+                            heart.innerHTML = '❤️';
+                            heart.className = 'absolute text-red-500 text-xl floating-heart pointer-events-none';
+                            heart.style.left = likeBtn.offsetLeft + 'px';
+                            heart.style.top = likeBtn.offsetTop + 'px';
+                            likeBtn.parentElement.appendChild(heart);
+                            setTimeout(() => heart.remove(), 1000);
+                        }
+                    }
+                    
+                    tweetRef.update({ likes: newLikes }).then(() => {
+                        // Update UI
+                        const likeBtnElement = document.querySelector(`.like-btn-${tweetId}`);
+                        const likeCountElement = document.querySelector(`.like-count-${tweetId}`);
+                        
+                        if (likeBtnElement && likeCountElement) {
+                            likeBtnElement.textContent = !isLiked ? '❤️' : '🤍';
+                            likeCountElement.textContent = newLikes.length;
+                            likeBtnElement.parentElement.classList.toggle('text-red-500', !isLiked);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Comments functions
+        function showComments(tweetId) {
+            currentTweetId = tweetId;
+            document.getElementById('commentsModal').classList.remove('hidden');
+            loadComments(tweetId);
+        }
+
+        function closeComments() {
+            document.getElementById('commentsModal').classList.add('hidden');
+            currentTweetId = null;
+        }
+
+        function loadComments(tweetId) {
+            db.collection('tweets').doc(tweetId).collection('comments').orderBy('timestamp', 'desc').get().then((querySnapshot) => {
+                const commentsContainer = document.getElementById('commentsContainer');
+                commentsContainer.innerHTML = '';
+                
+                querySnapshot.forEach((doc) => {
+                    const comment = doc.data();
+                    const commentElement = createCommentElement(doc.id, comment);
+                    commentsContainer.appendChild(commentElement);
+                });
+            });
+        }
+
+        function createCommentElement(commentId, comment) {
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'flex space-x-3 p-3 bg-gray-50 rounded-lg';
+            
+            const initial = comment.author.displayName ? comment.author.displayName.charAt(0).toUpperCase() : 'U';
+            const isLiked = comment.likes && comment.likes.includes(currentUser.uid);
+            const likeCount = comment.likes ? comment.likes.length : 0;
+            
+            commentDiv.innerHTML = `
+                <div class="w-8 h-8 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    ${initial}
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2">
+                        <h4 class="font-semibold text-sm">${comment.author.displayName || 'User'}</h4>
+                        <span class="text-gray-500 text-xs">${formatTimestamp(comment.timestamp)}</span>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-800">${comment.text}</p>
+                    <div class="flex items-center space-x-4 mt-2">
+                        <button onclick="toggleCommentLike('${commentId}')" class="flex items-center space-x-1 text-xs hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : 'text-gray-500'}">
+                            <span>${isLiked ? '❤️' : '🤍'}</span>
+                            <span>${likeCount}</span>
+                        </button>
+                        <button onclick="replyToComment('${commentId}')" class="text-xs text-gray-500 hover:text-pink-500 transition-colors">
+                            Reply
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return commentDiv;
+        }
+
+        function postComment() {
+            const commentText = document.getElementById('commentInput').value.trim();
+            if (!commentText || !currentUser || !currentTweetId) return;
+
+            const comment = {
+                text: commentText,
+                author: {
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName,
+                    email: currentUser.email
+                },
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                likes: []
+            };
+
+            db.collection('tweets').doc(currentTweetId).collection('comments').add(comment).then(() => {
+                document.getElementById('commentInput').value = '';
+                loadComments(currentTweetId);
+                
+                // Update comment count in main tweet
+                db.collection('tweets').doc(currentTweetId).get().then((doc) => {
+                    if (doc.exists) {
+                        const tweet = doc.data();
+                        const comments = tweet.comments || [];
+                        db.collection('tweets').doc(currentTweetId).update({
+                            comments: [...comments, comment]
+                        });
+                    }
+                });
+            });
+        }
+
+        function toggleCommentLike(commentId) {
+            if (!currentUser || !currentTweetId) return;
+            
+            const commentRef = db.collection('tweets').doc(currentTweetId).collection('comments').doc(commentId);
+            
+            commentRef.get().then((doc) => {
+                if (doc.exists) {
+                    const comment = doc.data();
+                    const likes = comment.likes || [];
+                    const isLiked = likes.includes(currentUser.uid);
+                    
+                    const newLikes = isLiked 
+                        ? likes.filter(uid => uid !== currentUser.uid)
+                        : [...likes, currentUser.uid];
+                    
+                    commentRef.update({ likes: newLikes }).then(() => {
+                        loadComments(currentTweetId);
+                    });
+                }
+            });
+        }
+
+        // Story functions
+        function showStoryCreator() {
+            document.getElementById('storyCreatorModal').classList.remove('hidden');
+        }
+
+        function closeStoryCreator() {
+            document.getElementById('storyCreatorModal').classList.add('hidden');
+            document.getElementById('storyText').value = '';
+        }
+
+        function selectTemplate(templateNumber) {
+            selectedTemplate = templateNumber;
+            const preview = document.getElementById('storyPreview');
+            preview.className = `story-template-${templateNumber} w-full h-96 rounded-lg flex items-center justify-center relative`;
+            
+            // Update template selection UI
+            document.querySelectorAll('[data-template]').forEach(btn => {
+                btn.classList.remove('border-pink-500');
+                btn.classList.add('border-transparent');
+            });
+            document.querySelector(`[data-template="${templateNumber}"]`).classList.add('border-pink-500');
+        }
+
+        function publishStory() {
+            const storyText = document.getElementById('storyText').value.trim();
+            if (!storyText || !currentUser) return;
+
+            const story = {
+                text: storyText,
+                template: selectedTemplate,
+                author: {
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName,
+                    email: currentUser.email
+                },
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                views: []
+            };
+
+            db.collection('stories').add(story).then(() => {
+                closeStoryCreator();
+                loadStories();
+            });
+        }
+
+        function loadStories() {
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            
+            db.collection('stories')
+                .where('timestamp', '>', twentyFourHoursAgo)
+                .orderBy('timestamp', 'desc')
+                .get()
+                .then((querySnapshot) => {
+                    const storiesContainer = document.getElementById('storiesContainer');
+                    storiesContainer.innerHTML = '';
+                    
+                    querySnapshot.forEach((doc) => {
+                        const story = doc.data();
+                        const storyElement = createStoryElement(doc.id, story);
+                        storiesContainer.appendChild(storyElement);
+                    });
+                });
+        }
+
+        function createStoryElement(storyId, story) {
+            const storyDiv = document.createElement('div');
+            storyDiv.className = 'flex-shrink-0 text-center cursor-pointer';
+            storyDiv.onclick = () => viewStory(storyId, story);
+            
+            const initial = story.author.displayName ? story.author.displayName.charAt(0).toUpperCase() : 'U';
+            
+            storyDiv.innerHTML = `
+                <div class="w-16 h-16 story-ring rounded-full p-0.5">
+                    <div class="w-full h-full bg-white rounded-full flex items-center justify-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                            ${initial}
+                        </div>
+                    </div>
+                </div>
+                <p class="text-xs mt-1 text-gray-600 truncate w-16">${story.author.displayName || 'User'}</p>
+            `;
+            
+            return storyDiv;
+        }
+
+        function viewStory(storyId, story) {
+            currentStoryId = storyId;
+            document.getElementById('storyViewerModal').classList.remove('hidden');
+            
+            const storyContent = document.getElementById('storyViewerContent');
+            storyContent.innerHTML = `
+                <div class="story-template-${story.template} w-full h-full flex items-center justify-center text-white text-2xl font-bold p-8 text-center">
+                    ${story.text}
+                </div>
+            `;
+            
+            document.getElementById('storyAuthor').textContent = story.author.displayName || 'User';
+            document.getElementById('storyTime').textContent = formatTimestamp(story.timestamp);
+            
+            // Add view to story
+            if (!story.views.includes(currentUser.uid)) {
+                db.collection('stories').doc(storyId).update({
+                    views: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                });
+            }
+        }
+
+        function closeStoryViewer() {
+            document.getElementById('storyViewerModal').classList.add('hidden');
+            currentStoryId = null;
+        }
+
+        function reportStory() {
+            if (!currentStoryId || !currentUser) return;
+            
+            const report = {
+                storyId: currentStoryId,
+                reportedBy: currentUser.uid,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                reason: 'inappropriate_content'
+            };
+            
+            db.collection('reports').add(report).then(() => {
+                alert('Story reported successfully');
+                closeStoryViewer();
+            });
+        }
+
+        // Profile functions
+        function showProfile() {
+            document.getElementById('profileModal').classList.remove('hidden');
+            loadUserProfile();
+        }
+
+        function closeProfile() {
+            document.getElementById('profileModal').classList.add('hidden');
+        }
+
+        function loadUserProfile() {
+            if (!currentUser) return;
+            
+            // Load user's tweets for profile grid
+            db.collection('tweets')
+                .where('author.uid', '==', currentUser.uid)
+                .orderBy('timestamp', 'desc')
+                .get()
+                .then((querySnapshot) => {
+                    const profileGrid = document.getElementById('profileGrid');
+                    profileGrid.innerHTML = '';
+                    
+                    document.getElementById('postsCount').textContent = querySnapshot.size;
+                    
+                    querySnapshot.forEach((doc) => {
+                        const tweet = doc.data();
+                        const gridItem = document.createElement('div');
+                        gridItem.className = 'aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-xs p-2 cursor-pointer hover:opacity-80 transition-opacity';
+                        gridItem.textContent = tweet.text.substring(0, 50) + (tweet.text.length > 50 ? '...' : '');
+                        gridItem.onclick = () => showTweetDetail(doc.id, tweet);
+                        profileGrid.appendChild(gridItem);
+                    });
+                });
+            
+            // Load user data
+            db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    document.getElementById('followersCount').textContent = userData.followers ? userData.followers.length : 0;
+                    document.getElementById('followingCount').textContent = userData.following ? userData.following.length : 0;
+                    
+                    if (userData.verified) {
+                        document.getElementById('verifiedBadge').classList.remove('hidden');
+                    }
+                    
+                    if (userData.location) {
+                        document.getElementById('profileLocation').textContent = `📍 ${userData.location}`;
+                    }
+                }
+            });
+        }
+
+        function showSettings() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            
+            // Pre-fill current values
+            document.getElementById('usernameInput').value = currentUser.displayName || '';
+            
+            db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    document.getElementById('locationInput').value = userData.location || '';
+                }
+            });
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function updateProfile() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const location = document.getElementById('locationInput').value.trim();
+            
+            if (!currentUser) return;
+            
+            const updates = {};
+            if (username) updates.displayName = username;
+            if (location) updates.location = location;
+            
+            db.collection('users').doc(currentUser.uid).update(updates).then(() => {
+                alert('Profile updated successfully!');
+                if (username) {
+                    currentUser.displayName = username;
+                    initializeUser();
+                }
+                loadUserProfile();
+            });
+        }
+
+        function applyForVerification() {
+            const fileInput = document.getElementById('idUpload');
+            const file = fileInput.files[0];
+            
+            if (!file || !currentUser) {
+                alert('Please select an ID document');
+                return;
+            }
+            
+            const storageRef = storage.ref(`verification/${currentUser.uid}/${file.name}`);
+            
+            storageRef.put(file).then((snapshot) => {
+                return snapshot.ref.getDownloadURL();
+            }).then((downloadURL) => {
+                const verificationRequest = {
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    userName: currentUser.displayName,
+                    documentURL: downloadURL,
+                    status: 'pending',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                return db.collection('verificationRequests').add(verificationRequest);
+            }).then(() => {
+                alert('Verification request submitted! You will receive a response within 1-2 days.');
+                fileInput.value = '';
+            }).catch((error) => {
+                console.error('Verification request error:', error);
+                alert('Failed to submit verification request. Please try again.');
+            });
+        }
+
+        // Utility functions
+        function loadTrendingHashtags() {
+            // This would typically analyze recent tweets for trending hashtags
+            // For demo purposes, we'll show static trending tags
+            const trendingContainer = document.getElementById('trendingHashtags');
+            const trends = ['#oriobuzz', '#trending', '#social', '#newfeature', '#community'];
+            
+            trendingContainer.innerHTML = trends.map(tag => 
+                `<span class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-pink-200 transition-colors" onclick="searchHashtag('${tag}')">${tag}</span>`
+            ).join('');
+        }
+
+        function searchHashtag(hashtag) {
+            document.getElementById('searchInput').value = hashtag;
+            performSearch();
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+            
+            // Search tweets containing the query
+            db.collection('tweets')
+                .where('text', '>=', query)
+                .where('text', '<=', query + '\uf8ff')
+                .get()
+                .then((querySnapshot) => {
+                    const feedContainer = document.getElementById('feedContainer');
+                    feedContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Search Results</div>';
+                    
+                    querySnapshot.forEach((doc) => {
+                        const tweet = doc.data();
+                        const tweetElement = createTweetElement(doc.id, tweet);
+                        feedContainer.appendChild(tweetElement);
+                    });
+                    
+                    if (querySnapshot.empty) {
+                        feedContainer.innerHTML = '<div class="p-4 text-center text-gray-500">No results found</div>';
+                    }
+                });
+        }
+
+        function addLocation() {
+            const currentText = document.getElementById('tweetText').value;
+            const location = prompt('Add location:');
+            if (location) {
+                document.getElementById('tweetText').value = currentText + ` 📍 ${location}`;
+            }
+        }
+
+        function addHashtag() {
+            const currentText = document.getElementById('tweetText').value;
+            const hashtag = prompt('Add hashtag (without #):');
+            if (hashtag) {
+                document.getElementById('tweetText').value = currentText + ` #${hashtag}`;
+            }
+        }
+
+        function addMention() {
+            const currentText = document.getElementById('tweetText').value;
+            const mention = prompt('Mention user (without @):');
+            if (mention) {
+                document.getElementById('tweetText').value = currentText + ` @${mention}`;
+            }
+        }
+
+        // Navigation functions
+        function showFeed() {
+            loadFeed();
+            updateNavigation('home');
+        }
+
+        function showSearch() {
+            document.getElementById('searchInput').focus();
+            updateNavigation('search');
+        }
+
+        function showNotifications() {
+            // Load notifications (placeholder)
+            alert('Notifications feature coming soon!');
+            updateNavigation('notifications');
+        }
+
+        function updateNavigation(active) {
+            const navButtons = document.querySelectorAll('nav button');
+            navButtons.forEach(btn => {
+                btn.classList.remove('text-pink-500');
+                btn.classList.add('text-gray-400');
+            });
+            
+            // This would be more sophisticated in a real app
+            if (active === 'home') {
+                navButtons[0].classList.add('text-pink-500');
+                navButtons[0].classList.remove('text-gray-400');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        document.getElementById('tweetText').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                postTweet();
+            }
+        });
+
+        document.getElementById('commentInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                postComment();
+            }
+        });
+
+        // Auth state observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                initializeUser();
+                showMainApp();
+            } else {
+                currentUser = null;
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // App is ready
+            console.log('Oriobuzz app initialized');
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef6a31763459e7',t:'MTc1NTE2MzYzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
