@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Oriobuzz - Social Media Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -11,6 +11,24 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Disable zoom on mobile */
+        * {
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        input, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        
         .story-template-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .story-template-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
         .story-template-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
@@ -95,6 +113,178 @@
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(4px);
         }
+        
+        /* Custom Verified Badge */
+        .verified-badge {
+            background: linear-gradient(45deg, #10b981, #06b6d4);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            position: relative;
+        }
+        
+        .verified-badge::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, #10b981, #06b6d4, #8b5cf6);
+            border-radius: 50%;
+            z-index: -1;
+            animation: verifiedGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes verifiedGlow {
+            0% { opacity: 0.5; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+        
+        .online-indicator {
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            animation: onlinePulse 2s infinite;
+        }
+        
+        @keyframes onlinePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            space-x: 1;
+        }
+        
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        .post-composer {
+            transition: all 0.3s ease;
+        }
+        
+        .post-composer.focused {
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+        }
+        
+        .character-count {
+            transition: color 0.3s ease;
+        }
+        
+        .character-count.warning {
+            color: #f59e0b;
+        }
+        
+        .character-count.danger {
+            color: #ef4444;
+        }
+        
+        .blocked-user {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+        
+        .private-account {
+            position: relative;
+        }
+        
+        .private-account::after {
+            content: '🔒';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 12px;
+        }
+        
+        .location-tag {
+            background: linear-gradient(45deg, #10b981, #06b6d4);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .mood-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+        
+        .mood-happy { background: #10b981; }
+        .mood-sad { background: #6b7280; }
+        .mood-excited { background: #f59e0b; }
+        .mood-love { background: #ec4899; }
+        
+        .account-switcher {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .post-actions {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .post-item:hover .post-actions {
+            opacity: 1;
+        }
+        
+        .engagement-stats {
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 8px;
+        }
+        
+        .trending-topic {
+            background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+            border-left: 3px solid #10b981;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .activity-indicator {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: activityPulse 2s infinite;
+        }
+        
+        @keyframes activityPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -155,23 +345,42 @@
                         <i class="fas fa-comments text-white text-sm"></i>
                     </div>
                     <h1 class="text-xl font-bold bg-gradient-to-r from-green-500 to-pink-500 bg-clip-text text-transparent">Oriobuzz</h1>
+                    <div class="activity-indicator ml-2"></div>
                 </div>
                 
                 <!-- Search Bar -->
                 <div class="flex-1 max-w-md mx-4">
                     <div class="relative">
                         <input type="text" id="searchInput" placeholder="Search users, hashtags..." 
-                               class="w-full bg-gray-100 rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-green-500">
+                               class="w-full bg-gray-100 rounded-full py-2 px-4 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500">
                         <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+                        <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
                     </div>
                 </div>
                 
-                <button onclick="showProfile()" class="relative">
-                    <div class="w-8 h-8 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        <span id="userInitial">U</span>
-                    </div>
-                    <div id="notificationBadge" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full notification-badge"></div>
-                </button>
+                <div class="flex items-center space-x-2">
+                    <!-- Account Switcher -->
+                    <button onclick="showAccountSwitcher()" class="relative">
+                        <i class="fas fa-user-friends text-gray-600 text-lg"></i>
+                        <span id="accountCount" class="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">1</span>
+                    </button>
+                    
+                    <!-- Location -->
+                    <button onclick="detectLocation()" class="text-gray-600 hover:text-green-500 transition-colors">
+                        <i class="fas fa-map-marker-alt text-lg"></i>
+                    </button>
+                    
+                    <!-- Profile -->
+                    <button onclick="showProfile()" class="relative">
+                        <div class="w-8 h-8 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            <span id="userInitial">U</span>
+                            <div id="onlineStatus" class="online-indicator"></div>
+                        </div>
+                        <div id="notificationBadge" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full notification-badge"></div>
+                    </button>
+                </div>
             </div>
         </nav>
 
@@ -205,30 +414,89 @@
         </div>
 
         <!-- Post Composer -->
-        <div class="bg-white border-b border-gray-200 p-4">
+        <div class="bg-white border-b border-gray-200 p-4 post-composer" id="postComposer">
             <div class="flex space-x-3">
-                <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
+                <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold relative">
                     <span id="composerUserInitial">U</span>
+                    <div class="mood-indicator mood-happy" id="currentMood"></div>
                 </div>
                 <div class="flex-1">
-                    <textarea id="postText" placeholder="What's happening?" 
-                              class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" 
-                              rows="3"></textarea>
+                    <div class="relative">
+                        <textarea id="postText" placeholder="What's happening?" 
+                                  class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" 
+                                  rows="3" maxlength="280"></textarea>
+                        <div id="typingIndicator" class="hidden typing-indicator absolute bottom-2 right-2">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Post Options -->
                     <div class="flex items-center justify-between mt-3">
-                        <div class="flex space-x-4 text-green-500">
-                            <button onclick="addLocation()" class="hover:bg-green-50 p-2 rounded-full transition-colors">
+                        <div class="flex space-x-2">
+                            <!-- Mood Selector -->
+                            <div class="relative">
+                                <button onclick="showMoodSelector()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
+                                    <i class="fas fa-smile"></i>
+                                </button>
+                                <div id="moodSelector" class="hidden absolute top-full left-0 bg-white border rounded-lg shadow-lg p-2 z-10">
+                                    <button onclick="setMood('happy')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">😊 Happy</button>
+                                    <button onclick="setMood('excited')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">🎉 Excited</button>
+                                    <button onclick="setMood('love')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">❤️ Love</button>
+                                    <button onclick="setMood('sad')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">😢 Sad</button>
+                                </div>
+                            </div>
+                            
+                            <button onclick="addLocation()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
                                 <i class="fas fa-map-marker-alt"></i>
                             </button>
-                            <button onclick="addHashtag()" class="hover:bg-green-50 p-2 rounded-full transition-colors">
+                            <button onclick="addHashtag()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
                                 <i class="fas fa-hashtag"></i>
                             </button>
-                            <button onclick="addMention()" class="hover:bg-green-50 p-2 rounded-full transition-colors">
+                            <button onclick="addMention()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
                                 <i class="fas fa-at"></i>
                             </button>
+                            <button onclick="schedulePost()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
+                                <i class="fas fa-clock"></i>
+                            </button>
+                            
+                            <!-- Privacy Selector -->
+                            <div class="relative">
+                                <button onclick="showPrivacySelector()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
+                                    <i class="fas fa-globe" id="privacyIcon"></i>
+                                </button>
+                                <div id="privacySelector" class="hidden absolute top-full left-0 bg-white border rounded-lg shadow-lg p-2 z-10">
+                                    <button onclick="setPrivacy('public')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">
+                                        <i class="fas fa-globe mr-2"></i>Public
+                                    </button>
+                                    <button onclick="setPrivacy('followers')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">
+                                        <i class="fas fa-users mr-2"></i>Followers
+                                    </button>
+                                    <button onclick="setPrivacy('private')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">
+                                        <i class="fas fa-lock mr-2"></i>Private
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <button onclick="createPost()" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity">
-                            Post
-                        </button>
+                        
+                        <div class="flex items-center space-x-3">
+                            <span id="characterCount" class="text-sm text-gray-500 character-count">0/280</span>
+                            <button onclick="createPost()" id="postButton" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50" disabled>
+                                Post
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Location Tag -->
+                    <div id="locationTag" class="hidden mt-2">
+                        <span class="location-tag">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="locationText">Location</span>
+                            <button onclick="removeLocation()" class="ml-1 hover:text-red-300">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -293,7 +561,9 @@
                     <div>
                         <div class="flex items-center">
                             <h2 id="profileUsername" class="text-xl font-bold mr-2">Username</h2>
-                            <i id="verifiedBadge" class="fas fa-check-circle text-green-400 hidden"></i>
+                            <div id="verifiedBadge" class="verified-badge hidden">
+                                <i class="fas fa-check"></i>
+                            </div>
                         </div>
                         <p id="profileHandle" class="opacity-80">@username</p>
                         <div class="flex items-center mt-1">
@@ -393,6 +663,50 @@
                 
                 <div class="bg-gray-50 rounded-lg p-4">
                     <h3 class="font-semibold mb-3 flex items-center">
+                        <i class="fas fa-shield-alt text-red-500 mr-2"></i>
+                        Privacy & Security
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Private Account</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="privateAccount" class="sr-only peer" onchange="togglePrivateAccount()">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Show Online Status</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="showOnlineStatus" class="sr-only peer" checked onchange="toggleOnlineStatus()">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </div>
+                        <button onclick="showBlockedUsers()" class="w-full text-left p-2 hover:bg-gray-100 rounded">
+                            <i class="fas fa-ban mr-2 text-red-500"></i>Blocked Users
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold mb-3 flex items-center">
+                        <i class="fas fa-users text-blue-500 mr-2"></i>
+                        Account Management
+                    </h3>
+                    <div class="space-y-2">
+                        <button onclick="showAccountSwitcher()" class="w-full text-left p-2 hover:bg-gray-100 rounded">
+                            <i class="fas fa-exchange-alt mr-2"></i>Switch Account
+                        </button>
+                        <button onclick="addAccount()" class="w-full text-left p-2 hover:bg-gray-100 rounded">
+                            <i class="fas fa-plus mr-2"></i>Add Account
+                        </button>
+                        <button onclick="exportData()" class="w-full text-left p-2 hover:bg-gray-100 rounded">
+                            <i class="fas fa-download mr-2"></i>Export Data
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold mb-3 flex items-center">
                         <i class="fas fa-palette text-purple-500 mr-2"></i>
                         Theme
                     </h3>
@@ -403,6 +717,29 @@
                         <button onclick="setTheme('blue-purple')" class="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                             Blue & Purple
                         </button>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold mb-3 flex items-center">
+                        <i class="fas fa-bell text-yellow-500 mr-2"></i>
+                        Notifications
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Push Notifications</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="pushNotifications" class="sr-only peer" checked onchange="togglePushNotifications()">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Email Notifications</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="emailNotifications" class="sr-only peer" onchange="toggleEmailNotifications()">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 
@@ -547,6 +884,115 @@
         </div>
     </div>
 
+    <!-- Account Switcher Modal -->
+    <div id="accountSwitcherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b sticky top-0 bg-white">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeAccountSwitcher()" class="text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-bold">Switch Account</h2>
+                    <button onclick="addAccount()" class="text-green-500">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="accountsList" class="p-4 space-y-3 account-switcher">
+                <!-- Accounts will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Blocked Users Modal -->
+    <div id="blockedUsersModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b sticky top-0 bg-white">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeBlockedUsers()" class="text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-bold">Blocked Users</h2>
+                    <div></div>
+                </div>
+            </div>
+            
+            <div id="blockedUsersList" class="p-4 space-y-3">
+                <!-- Blocked users will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Picker Modal -->
+    <div id="locationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b sticky top-0 bg-white">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeLocationModal()" class="text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-bold">Add Location</h2>
+                    <button onclick="detectCurrentLocation()" class="text-green-500">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-4">
+                <input type="text" id="locationSearch" placeholder="Search for a location..." 
+                       class="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                
+                <div id="locationResults" class="space-y-2">
+                    <!-- Location results will be populated here -->
+                </div>
+                
+                <div class="mt-4">
+                    <h3 class="font-semibold mb-2">Recent Locations</h3>
+                    <div id="recentLocations" class="space-y-2">
+                        <!-- Recent locations will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Scheduler Modal -->
+    <div id="scheduleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-t-3xl fixed bottom-0 left-0 right-0 slide-up">
+            <div class="p-4 border-b">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeScheduleModal()" class="text-xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h2 class="text-xl font-bold">Schedule Post</h2>
+                    <button onclick="schedulePostConfirm()" class="text-green-500 font-semibold">
+                        Schedule
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input type="date" id="scheduleDate" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                    <input type="time" id="scheduleTime" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                
+                <div class="bg-blue-50 p-3 rounded-lg">
+                    <p class="text-sm text-blue-700">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Your post will be published automatically at the scheduled time.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global variables
         let currentUser = null;
@@ -554,6 +1000,13 @@
         let selectedTemplate = 1;
         let currentStoryId = null;
         let unsubscribeListeners = [];
+        let currentLocation = null;
+        let currentMood = 'happy';
+        let postPrivacy = 'public';
+        let blockedUsers = [];
+        let savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
+        let isTyping = false;
+        let typingTimeout = null;
 
         // Authentication functions
         function signInWithGoogle() {
@@ -625,12 +1078,52 @@
                     followers: [],
                     following: [],
                     location: '',
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+                    isPrivate: false,
+                    showOnlineStatus: true,
+                    blockedUsers: [],
+                    emailNotifications: false,
+                    pushNotifications: true
+                }, { merge: true }).then(() => {
+                    // Load user settings
+                    loadUserSettings();
+                });
                 
                 // Setup real-time listeners
                 setupNotificationListener();
+                
+                // Update account count
+                updateAccountCount();
             }
+        }
+
+        function loadUserSettings() {
+            db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    blockedUsers = userData.blockedUsers || [];
+                    
+                    // Update UI settings
+                    if (userData.isPrivate) {
+                        document.getElementById('privateAccount').checked = true;
+                    }
+                    if (userData.showOnlineStatus === false) {
+                        document.getElementById('showOnlineStatus').checked = false;
+                        document.getElementById('onlineStatus').classList.add('hidden');
+                    }
+                    if (userData.emailNotifications) {
+                        document.getElementById('emailNotifications').checked = true;
+                    }
+                    if (userData.pushNotifications === false) {
+                        document.getElementById('pushNotifications').checked = false;
+                    }
+                }
+            });
+        }
+
+        function updateAccountCount() {
+            const count = savedAccounts.length + 1; // +1 for current account
+            document.getElementById('accountCount').textContent = count;
         }
 
         function showMainApp() {
@@ -657,16 +1150,38 @@
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 likes: [],
                 comments: [],
-                retweets: []
+                retweets: [],
+                mood: currentMood,
+                privacy: postPrivacy,
+                location: currentLocation
             };
 
             db.collection('posts').add(post).then(() => {
                 document.getElementById('postText').value = '';
+                document.getElementById('characterCount').textContent = '0/280';
+                document.getElementById('postButton').disabled = true;
+                resetPostComposer();
                 loadFeed();
                 
                 // Create notification for followers
                 createNotificationForFollowers('new_post', post);
+                
+                // Show success message
+                showToast('Post shared successfully!', 'success');
+            }).catch((error) => {
+                console.error('Error creating post:', error);
+                showToast('Failed to share post. Please try again.', 'error');
             });
+        }
+
+        function resetPostComposer() {
+            currentLocation = null;
+            document.getElementById('locationTag').classList.add('hidden');
+            document.getElementById('postComposer').classList.remove('focused');
+            
+            // Reset mood selector
+            document.getElementById('moodSelector').classList.add('hidden');
+            document.getElementById('privacySelector').classList.add('hidden');
         }
 
         function loadFeed() {
@@ -689,18 +1204,40 @@
 
         function createPostElement(postId, post) {
             const postDiv = document.createElement('div');
-            postDiv.className = 'bg-white border-b border-gray-200 p-4';
+            postDiv.className = 'bg-white border-b border-gray-200 p-4 post-item';
             
             const initial = post.author.displayName ? post.author.displayName.charAt(0).toUpperCase() : 'U';
             const isLiked = post.likes && post.likes.includes(currentUser.uid);
             const likeCount = post.likes ? post.likes.length : 0;
             const commentCount = post.comments ? post.comments.length : 0;
             const isOwnPost = post.author.uid === currentUser.uid;
+            const isBlocked = blockedUsers.includes(post.author.uid);
+            
+            // Don't show blocked users' posts
+            if (isBlocked && !isOwnPost) {
+                return document.createElement('div');
+            }
+            
+            // Privacy check
+            if (post.privacy === 'private' && !isOwnPost) {
+                return document.createElement('div');
+            }
+            
+            const moodEmoji = {
+                'happy': '😊',
+                'excited': '🎉',
+                'love': '❤️',
+                'sad': '😢'
+            };
+            
+            const privacyIcon = post.privacy === 'public' ? 'fas fa-globe' : 
+                              post.privacy === 'followers' ? 'fas fa-users' : 'fas fa-lock';
             
             postDiv.innerHTML = `
                 <div class="flex space-x-3">
-                    <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
+                    <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold relative">
                         ${initial}
+                        ${post.mood ? `<div class="mood-indicator mood-${post.mood}" title="${post.mood}"></div>` : ''}
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center space-x-2">
@@ -708,9 +1245,26 @@
                             <span class="text-gray-500 text-sm">@${post.author.email.split('@')[0]}</span>
                             <span class="text-gray-500 text-sm">·</span>
                             <span class="text-gray-500 text-sm">${formatTimestamp(post.timestamp)}</span>
-                            ${isOwnPost ? '<button onclick="deletePost(\'' + postId + '\')" class="text-red-500 hover:text-red-700 ml-2"><i class="fas fa-trash text-sm"></i></button>' : ''}
+                            <i class="${privacyIcon} text-gray-400 text-xs" title="${post.privacy}"></i>
+                            ${post.mood ? `<span class="text-sm" title="${post.mood}">${moodEmoji[post.mood] || ''}</span>` : ''}
+                            
+                            <div class="post-actions ml-auto flex space-x-2">
+                                ${!isOwnPost ? `<button onclick="blockUser('${post.author.uid}')" class="text-red-500 hover:text-red-700" title="Block user"><i class="fas fa-ban text-xs"></i></button>` : ''}
+                                ${isOwnPost ? `<button onclick="deletePost('${postId}')" class="text-red-500 hover:text-red-700" title="Delete post"><i class="fas fa-trash text-xs"></i></button>` : ''}
+                            </div>
                         </div>
+                        
                         <p class="mt-2 text-gray-800">${formatPostText(post.text)}</p>
+                        
+                        ${post.location ? `
+                            <div class="mt-2">
+                                <span class="location-tag">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    ${post.location}
+                                </span>
+                            </div>
+                        ` : ''}
+                        
                         <div class="flex items-center space-x-6 mt-3 text-gray-500">
                             <button onclick="showComments('${postId}')" class="flex items-center space-x-1 hover:text-green-500 transition-colors">
                                 <i class="far fa-comment"></i>
@@ -723,12 +1277,36 @@
                             <button onclick="sharePost('${postId}')" class="hover:text-blue-500 transition-colors">
                                 <i class="fas fa-share"></i>
                             </button>
+                            <button onclick="savePost('${postId}')" class="hover:text-purple-500 transition-colors">
+                                <i class="far fa-bookmark"></i>
+                            </button>
                         </div>
+                        
+                        ${(likeCount > 0 || commentCount > 0) ? `
+                            <div class="engagement-stats mt-2">
+                                <div class="flex items-center space-x-4 text-xs text-gray-600">
+                                    ${likeCount > 0 ? `<span><i class="fas fa-heart text-red-500 mr-1"></i>${likeCount} likes</span>` : ''}
+                                    ${commentCount > 0 ? `<span><i class="fas fa-comment text-green-500 mr-1"></i>${commentCount} comments</span>` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
             
             return postDiv;
+        }
+
+        function savePost(postId) {
+            // Save post to user's saved posts
+            const savedPosts = JSON.parse(localStorage.getItem('saved_posts') || '[]');
+            if (!savedPosts.includes(postId)) {
+                savedPosts.push(postId);
+                localStorage.setItem('saved_posts', JSON.stringify(savedPosts));
+                showToast('Post saved!', 'success');
+            } else {
+                showToast('Post already saved', 'info');
+            }
         }
 
         function formatPostText(text) {
@@ -1601,10 +2179,464 @@
             }
         }
 
+        // New utility functions
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-white font-semibold ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            } slide-up`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function detectLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        // Use reverse geocoding to get location name
+                        fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=YOUR_API_KEY`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.results && data.results.length > 0) {
+                                    const location = data.results[0].formatted;
+                                    showToast(`Location detected: ${location}`, 'success');
+                                }
+                            })
+                            .catch(() => {
+                                showToast('Location detected successfully', 'success');
+                            });
+                    },
+                    (error) => {
+                        showToast('Location access denied', 'error');
+                    }
+                );
+            } else {
+                showToast('Geolocation not supported', 'error');
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            loadFeed();
+        }
+
+        function showAccountSwitcher() {
+            document.getElementById('accountSwitcherModal').classList.remove('hidden');
+            loadSavedAccounts();
+        }
+
+        function closeAccountSwitcher() {
+            document.getElementById('accountSwitcherModal').classList.add('hidden');
+        }
+
+        function loadSavedAccounts() {
+            const accountsList = document.getElementById('accountsList');
+            accountsList.innerHTML = '';
+            
+            // Current account
+            const currentAccountDiv = document.createElement('div');
+            currentAccountDiv.className = 'flex items-center justify-between p-3 bg-green-50 rounded-lg border-2 border-green-200';
+            currentAccountDiv.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
+                        ${currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div>
+                        <h4 class="font-semibold">${currentUser.displayName || 'User'}</h4>
+                        <p class="text-sm text-gray-500">${currentUser.email}</p>
+                    </div>
+                </div>
+                <div class="text-green-500 font-semibold text-sm">Current</div>
+            `;
+            accountsList.appendChild(currentAccountDiv);
+            
+            // Saved accounts
+            savedAccounts.forEach((account, index) => {
+                if (account.uid !== currentUser.uid) {
+                    const accountDiv = document.createElement('div');
+                    accountDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100';
+                    accountDiv.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
+                                ${account.displayName ? account.displayName.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">${account.displayName || 'User'}</h4>
+                                <p class="text-sm text-gray-500">${account.email}</p>
+                            </div>
+                        </div>
+                        <button onclick="removeAccount(${index})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    accountDiv.onclick = () => switchAccount(account);
+                    accountsList.appendChild(accountDiv);
+                }
+            });
+        }
+
+        function addAccount() {
+            // Save current account
+            const currentAccountData = {
+                uid: currentUser.uid,
+                displayName: currentUser.displayName,
+                email: currentUser.email,
+                photoURL: currentUser.photoURL
+            };
+            
+            if (!savedAccounts.find(acc => acc.uid === currentUser.uid)) {
+                savedAccounts.push(currentAccountData);
+                localStorage.setItem('oriobuzz_accounts', JSON.stringify(savedAccounts));
+            }
+            
+            // Sign out and show login
+            signOut();
+        }
+
+        function switchAccount(account) {
+            // This would require re-authentication in a real app
+            showToast('Account switching requires re-authentication', 'info');
+            closeAccountSwitcher();
+        }
+
+        function removeAccount(index) {
+            savedAccounts.splice(index, 1);
+            localStorage.setItem('oriobuzz_accounts', JSON.stringify(savedAccounts));
+            loadSavedAccounts();
+            showToast('Account removed', 'success');
+        }
+
+        function showBlockedUsers() {
+            document.getElementById('blockedUsersModal').classList.remove('hidden');
+            loadBlockedUsers();
+        }
+
+        function closeBlockedUsers() {
+            document.getElementById('blockedUsersModal').classList.add('hidden');
+        }
+
+        function loadBlockedUsers() {
+            const blockedUsersList = document.getElementById('blockedUsersList');
+            
+            if (blockedUsers.length === 0) {
+                blockedUsersList.innerHTML = '<p class="text-center text-gray-500">No blocked users</p>';
+                return;
+            }
+            
+            blockedUsersList.innerHTML = '';
+            blockedUsers.forEach((userId, index) => {
+                db.collection('users').doc(userId).get().then((doc) => {
+                    if (doc.exists) {
+                        const user = doc.data();
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+                        userDiv.innerHTML = `
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
+                                    ${user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">${user.displayName || 'User'}</h4>
+                                    <p class="text-sm text-gray-500">@${user.email.split('@')[0]}</p>
+                                </div>
+                            </div>
+                            <button onclick="unblockUser('${userId}')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded-full text-sm transition-colors">
+                                Unblock
+                            </button>
+                        `;
+                        blockedUsersList.appendChild(userDiv);
+                    }
+                });
+            });
+        }
+
+        function blockUser(userId) {
+            if (!blockedUsers.includes(userId)) {
+                blockedUsers.push(userId);
+                db.collection('users').doc(currentUser.uid).update({
+                    blockedUsers: blockedUsers
+                });
+                showToast('User blocked', 'success');
+            }
+        }
+
+        function unblockUser(userId) {
+            blockedUsers = blockedUsers.filter(id => id !== userId);
+            db.collection('users').doc(currentUser.uid).update({
+                blockedUsers: blockedUsers
+            });
+            loadBlockedUsers();
+            showToast('User unblocked', 'success');
+        }
+
+        // Post composer functions
+        function showMoodSelector() {
+            const selector = document.getElementById('moodSelector');
+            selector.classList.toggle('hidden');
+            document.getElementById('privacySelector').classList.add('hidden');
+        }
+
+        function setMood(mood) {
+            currentMood = mood;
+            const moodIndicator = document.getElementById('currentMood');
+            moodIndicator.className = `mood-indicator mood-${mood}`;
+            document.getElementById('moodSelector').classList.add('hidden');
+        }
+
+        function showPrivacySelector() {
+            const selector = document.getElementById('privacySelector');
+            selector.classList.toggle('hidden');
+            document.getElementById('moodSelector').classList.add('hidden');
+        }
+
+        function setPrivacy(privacy) {
+            postPrivacy = privacy;
+            const icon = document.getElementById('privacyIcon');
+            icon.className = privacy === 'public' ? 'fas fa-globe' : 
+                           privacy === 'followers' ? 'fas fa-users' : 'fas fa-lock';
+            document.getElementById('privacySelector').classList.add('hidden');
+        }
+
+        function schedulePost() {
+            document.getElementById('scheduleModal').classList.remove('hidden');
+            
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('scheduleDate').min = today;
+            document.getElementById('scheduleDate').value = today;
+            
+            // Set current time
+            const now = new Date();
+            const timeString = now.toTimeString().slice(0, 5);
+            document.getElementById('scheduleTime').value = timeString;
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('scheduleModal').classList.add('hidden');
+        }
+
+        function schedulePostConfirm() {
+            const date = document.getElementById('scheduleDate').value;
+            const time = document.getElementById('scheduleTime').value;
+            
+            if (!date || !time) {
+                showToast('Please select date and time', 'error');
+                return;
+            }
+            
+            const scheduledTime = new Date(`${date}T${time}`);
+            const now = new Date();
+            
+            if (scheduledTime <= now) {
+                showToast('Please select a future date and time', 'error');
+                return;
+            }
+            
+            // In a real app, this would schedule the post
+            showToast('Post scheduled successfully!', 'success');
+            closeScheduleModal();
+        }
+
+        function addLocation() {
+            document.getElementById('locationModal').classList.remove('hidden');
+            loadRecentLocations();
+        }
+
+        function closeLocationModal() {
+            document.getElementById('locationModal').classList.add('hidden');
+        }
+
+        function detectCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        // Simulate location name
+                        const locationName = `Current Location (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
+                        selectLocation(locationName);
+                        showToast('Current location added', 'success');
+                    },
+                    (error) => {
+                        showToast('Location access denied', 'error');
+                    }
+                );
+            } else {
+                showToast('Geolocation not supported', 'error');
+            }
+        }
+
+        function selectLocation(locationName) {
+            currentLocation = locationName;
+            document.getElementById('locationText').textContent = locationName;
+            document.getElementById('locationTag').classList.remove('hidden');
+            closeLocationModal();
+        }
+
+        function removeLocation() {
+            currentLocation = null;
+            document.getElementById('locationTag').classList.add('hidden');
+        }
+
+        function loadRecentLocations() {
+            const recentLocations = JSON.parse(localStorage.getItem('recent_locations') || '[]');
+            const container = document.getElementById('recentLocations');
+            
+            if (recentLocations.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">No recent locations</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            recentLocations.forEach(location => {
+                const locationDiv = document.createElement('div');
+                locationDiv.className = 'p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100';
+                locationDiv.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-map-marker-alt text-green-500 mr-2"></i>
+                        <span class="text-sm">${location}</span>
+                    </div>
+                `;
+                locationDiv.onclick = () => selectLocation(location);
+                container.appendChild(locationDiv);
+            });
+        }
+
+        function exportData() {
+            // Simulate data export
+            const userData = {
+                profile: {
+                    displayName: currentUser.displayName,
+                    email: currentUser.email,
+                    uid: currentUser.uid
+                },
+                exportDate: new Date().toISOString(),
+                note: 'This is a demo export. In a real app, this would contain all user data.'
+            };
+            
+            const dataStr = JSON.stringify(userData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'oriobuzz-data-export.json';
+            link.click();
+            
+            showToast('Data exported successfully!', 'success');
+        }
+
+        // Settings functions
+        function togglePrivateAccount() {
+            const isPrivate = document.getElementById('privateAccount').checked;
+            db.collection('users').doc(currentUser.uid).update({
+                isPrivate: isPrivate
+            });
+            showToast(isPrivate ? 'Account set to private' : 'Account set to public', 'success');
+        }
+
+        function toggleOnlineStatus() {
+            const showOnline = document.getElementById('showOnlineStatus').checked;
+            const onlineIndicator = document.getElementById('onlineStatus');
+            
+            if (showOnline) {
+                onlineIndicator.classList.remove('hidden');
+            } else {
+                onlineIndicator.classList.add('hidden');
+            }
+            
+            db.collection('users').doc(currentUser.uid).update({
+                showOnlineStatus: showOnline
+            });
+        }
+
+        function togglePushNotifications() {
+            const enabled = document.getElementById('pushNotifications').checked;
+            if (enabled && 'Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showToast('Push notifications enabled', 'success');
+                    }
+                });
+            }
+        }
+
+        function toggleEmailNotifications() {
+            const enabled = document.getElementById('emailNotifications').checked;
+            db.collection('users').doc(currentUser.uid).update({
+                emailNotifications: enabled
+            });
+            showToast(enabled ? 'Email notifications enabled' : 'Email notifications disabled', 'success');
+        }
+
         // Event listeners
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const value = e.target.value;
+            const clearBtn = document.getElementById('clearSearchBtn');
+            
+            if (value.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        });
+
         document.getElementById('searchInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 performSearch();
+            }
+        });
+
+        document.getElementById('postText').addEventListener('input', function(e) {
+            const text = e.target.value;
+            const count = text.length;
+            const countElement = document.getElementById('characterCount');
+            const postButton = document.getElementById('postButton');
+            const composer = document.getElementById('postComposer');
+            
+            countElement.textContent = `${count}/280`;
+            
+            if (count > 240) {
+                countElement.classList.add('warning');
+            } else {
+                countElement.classList.remove('warning');
+            }
+            
+            if (count > 270) {
+                countElement.classList.add('danger');
+            } else {
+                countElement.classList.remove('danger');
+            }
+            
+            postButton.disabled = count === 0 || count > 280;
+            
+            if (count > 0) {
+                composer.classList.add('focused');
+                
+                // Show typing indicator
+                if (!isTyping) {
+                    isTyping = true;
+                    document.getElementById('typingIndicator').classList.remove('hidden');
+                }
+                
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    isTyping = false;
+                    document.getElementById('typingIndicator').classList.add('hidden');
+                }, 1000);
+            } else {
+                composer.classList.remove('focused');
             }
         });
 
@@ -1617,6 +2649,16 @@
         document.getElementById('commentInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 postComment();
+            }
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#moodSelector') && !e.target.closest('[onclick="showMoodSelector()"]')) {
+                document.getElementById('moodSelector').classList.add('hidden');
+            }
+            if (!e.target.closest('#privacySelector') && !e.target.closest('[onclick="showPrivacySelector()"]')) {
+                document.getElementById('privacySelector').classList.add('hidden');
             }
         });
 
@@ -1639,5 +2681,5 @@
             selectTemplate(1); // Set default story template
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef7f9ef5535958',t:'MTc1NTE2NDUwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef8752e5651bb6',t:'MTc1NTE2NDgyMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
