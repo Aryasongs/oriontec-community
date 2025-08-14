@@ -26,8 +26,6 @@
             user-select: none;
         }
         
-
-        
         .skeleton {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
@@ -321,6 +319,54 @@
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.5; transform: scale(1.2); }
         }
+        
+        /* Skeleton loading states */
+        .skeleton-buzz {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .skeleton-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        .skeleton-text {
+            height: 16px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+        
+        .skeleton-text.short { width: 60%; }
+        .skeleton-text.medium { width: 80%; }
+        .skeleton-text.long { width: 100%; }
+        
+        .pulse-loading {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        
+        .route-transition {
+            animation: slideInUp 0.3s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -398,12 +444,6 @@
                 </div>
                 
                 <div class="flex items-center space-x-2">
-                    <!-- Account Switcher -->
-                    <button onclick="showAccountSwitcher()" class="relative">
-                        <i class="fas fa-user-friends text-gray-600 text-lg"></i>
-                        <span id="accountCount" class="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">1</span>
-                    </button>
-                    
                     <!-- Location -->
                     <button onclick="detectLocation()" class="text-gray-600 hover:text-green-500 transition-colors">
                         <i class="fas fa-map-marker-alt text-lg"></i>
@@ -493,9 +533,6 @@
                             </button>
                             <button onclick="addMention()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
                                 <i class="fas fa-at"></i>
-                            </button>
-                            <button onclick="schedulePost()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
-                                <i class="fas fa-clock"></i>
                             </button>
                             
                             <!-- Privacy Selector -->
@@ -587,13 +624,6 @@
                         <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl font-bold">
                             <span id="profileUserInitial">U</span>
                         </div>
-                        <!-- Coming Soon Overlay for Profile Picture -->
-                        <div class="absolute inset-0 coming-soon-overlay rounded-full flex items-center justify-center">
-                            <div class="text-center">
-                                <i class="fas fa-camera text-white text-sm mb-1"></i>
-                                <p class="text-white text-xs">Coming Soon</p>
-                            </div>
-                        </div>
                     </div>
                     <div>
                         <div class="flex items-center">
@@ -623,23 +653,6 @@
                         <p class="font-bold text-lg" id="followingCount">0</p>
                         <p class="text-sm opacity-80">Following</p>
                     </button>
-                </div>
-            </div>
-            
-            <!-- Coming Soon Image Feature -->
-            <div class="p-4 bg-gray-50 border-b">
-                <div class="bg-white rounded-lg p-4 text-center relative">
-                    <div class="text-4xl mb-2">
-                        <i class="fas fa-images text-gray-400"></i>
-                    </div>
-                    <p class="text-gray-600 font-semibold">Image Gallery</p>
-                    <p class="text-sm text-gray-500">Coming Soon</p>
-                    <div class="absolute inset-0 coming-soon-overlay rounded-lg flex items-center justify-center">
-                        <div class="text-center">
-                            <i class="fas fa-clock text-white text-2xl mb-2"></i>
-                            <p class="text-white font-semibold">Coming Soon</p>
-                        </div>
-                    </div>
                 </div>
             </div>
             
@@ -682,171 +695,9 @@
                     </button>
                 </div>
                 
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <h3 class="font-semibold mb-3 flex items-center">
-                        <i class="fas fa-certificate text-blue-500 mr-2"></i>
-                        Verification
-                    </h3>
-                    <p class="text-sm text-gray-600 mb-3">Apply for verified badge by submitting your national ID</p>
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload National ID</label>
-                        <input type="file" id="idUpload" accept="image/*" class="w-full p-2 border rounded-lg">
-                    </div>
-                    <button onclick="applyForVerification()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
-                        <i class="fas fa-upload mr-2"></i>Submit for Verification
-                    </button>
-                    <div id="verificationStatus" class="mt-2 text-sm"></div>
-                </div>
-                
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <h3 class="font-semibold mb-3 flex items-center">
-                        <i class="fas fa-shield-alt text-red-500 mr-2"></i>
-                        Privacy & Security
-                    </h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm">Private Account</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="privateAccount" class="sr-only peer" onchange="togglePrivateAccount()">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm">Show Online Status</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="showOnlineStatus" class="sr-only peer" checked onchange="toggleOnlineStatus()">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                        <button onclick="showBlockedUsers()" class="w-full text-left p-2 hover:bg-gray-100 rounded">
-                            <i class="fas fa-ban mr-2 text-red-500"></i>Blocked Users
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <h3 class="font-semibold mb-3 flex items-center">
-                        <i class="fas fa-users text-blue-500 mr-2"></i>
-                        Account Management
-                    </h3>
-                    <div class="space-y-2">
-                        <button onclick="showAccountSwitcher()" class="w-full text-left p-2 hover:bg-gray-100 rounded">
-                            <i class="fas fa-exchange-alt mr-2"></i>Switch Account
-                        </button>
-                        <button onclick="addAccount()" class="w-full text-left p-2 hover:bg-gray-100 rounded">
-                            <i class="fas fa-plus mr-2"></i>Add Account
-                        </button>
-                        <button onclick="exportData()" class="w-full text-left p-2 hover:bg-gray-100 rounded">
-                            <i class="fas fa-download mr-2"></i>Export Data
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <h3 class="font-semibold mb-3 flex items-center">
-                        <i class="fas fa-palette text-purple-500 mr-2"></i>
-                        Theme
-                    </h3>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="setTheme('green-pink')" class="p-3 rounded-lg bg-gradient-to-r from-green-500 to-pink-500 text-white">
-                            Green & Pink
-                        </button>
-                        <button onclick="setTheme('blue-purple')" class="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                            Blue & Purple
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <h3 class="font-semibold mb-3 flex items-center">
-                        <i class="fas fa-bell text-yellow-500 mr-2"></i>
-                        Notifications
-                    </h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm">Push Notifications</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="pushNotifications" class="sr-only peer" checked onchange="togglePushNotifications()">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm">Email Notifications</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="emailNotifications" class="sr-only peer" onchange="toggleEmailNotifications()">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
                 <button onclick="signOut()" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg transition-colors">
                     <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
                 </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Story Creator Modal -->
-    <div id="storyCreatorModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-        <div class="bg-white h-full">
-            <div class="p-4 border-b">
-                <div class="flex items-center justify-between">
-                    <button onclick="closeStoryCreator()" class="text-xl">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-xl font-bold">Create Story</h2>
-                    <button onclick="publishStory()" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-4 py-2 rounded-lg">
-                        <i class="fas fa-share mr-1"></i>Share
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Template Selection -->
-            <div class="p-4 border-b">
-                <h3 class="font-semibold mb-2">Choose Template</h3>
-                <div class="flex space-x-2 overflow-x-auto">
-                    <button onclick="selectTemplate(1)" class="story-template-1 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="1"></button>
-                    <button onclick="selectTemplate(2)" class="story-template-2 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="2"></button>
-                    <button onclick="selectTemplate(3)" class="story-template-3 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="3"></button>
-                    <button onclick="selectTemplate(4)" class="story-template-4 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="4"></button>
-                    <button onclick="selectTemplate(5)" class="story-template-5 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="5"></button>
-                    <button onclick="selectTemplate(6)" class="story-template-6 w-16 h-24 rounded-lg flex-shrink-0 border-2 border-transparent" data-template="6"></button>
-                </div>
-            </div>
-            
-            <!-- Story Preview -->
-            <div class="flex-1 p-4">
-                <div id="storyPreview" class="story-template-1 w-full h-96 rounded-lg flex items-center justify-center relative">
-                    <textarea id="storyText" placeholder="Write your story..." 
-                              class="bg-transparent text-white text-center text-xl font-bold resize-none border-none outline-none w-full h-full p-4 placeholder-white placeholder-opacity-70"></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Story Viewer Modal -->
-    <div id="storyViewerModal" class="hidden fixed inset-0 bg-black z-50">
-        <div class="relative h-full">
-            <button onclick="closeStoryViewer()" class="absolute top-4 right-4 text-white text-2xl z-10">
-                <i class="fas fa-times"></i>
-            </button>
-            <button onclick="reportStory()" class="absolute top-4 left-4 text-white z-10">
-                <i class="fas fa-flag"></i>
-            </button>
-            
-            <div id="storyViewerContent" class="w-full h-full flex items-center justify-center">
-                <!-- Story content will be displayed here -->
-            </div>
-            
-            <div class="absolute bottom-4 left-4 right-4 text-white">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <span id="storyAuthorInitial">U</span>
-                    </div>
-                    <span id="storyAuthor" class="font-semibold">Username</span>
-                    <span id="storyTime" class="text-sm opacity-70">2h</span>
-                </div>
             </div>
         </div>
     </div>
@@ -921,163 +772,75 @@
         </div>
     </div>
 
-    <!-- Account Switcher Modal -->
-    <div id="accountSwitcherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-        <div class="bg-white h-full overflow-y-auto slide-up">
-            <div class="p-4 border-b sticky top-0 bg-white">
-                <div class="flex items-center justify-between">
-                    <button onclick="closeAccountSwitcher()" class="text-xl">
+    <!-- Public Profile View Modal -->
+    <div id="publicProfileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto route-transition">
+            <!-- Public Profile Header -->
+            <div class="bg-gradient-to-r from-green-500 to-pink-500 p-4 text-white relative">
+                <div class="flex items-center justify-between mb-4">
+                    <button onclick="closePublicProfile()" class="text-white text-xl">
                         <i class="fas fa-arrow-left"></i>
                     </button>
-                    <h2 class="text-xl font-bold">Switch Account</h2>
-                    <button onclick="addAccount()" class="text-green-500">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div id="accountsList" class="p-4 space-y-3 account-switcher">
-                <!-- Accounts will be populated here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Blocked Users Modal -->
-    <div id="blockedUsersModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-        <div class="bg-white h-full overflow-y-auto slide-up">
-            <div class="p-4 border-b sticky top-0 bg-white">
-                <div class="flex items-center justify-between">
-                    <button onclick="closeBlockedUsers()" class="text-xl">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-xl font-bold">Blocked Users</h2>
-                    <div></div>
-                </div>
-            </div>
-            
-            <div id="blockedUsersList" class="p-4 space-y-3">
-                <!-- Blocked users will be populated here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Location Picker Modal -->
-    <div id="locationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-        <div class="bg-white h-full overflow-y-auto slide-up">
-            <div class="p-4 border-b sticky top-0 bg-white">
-                <div class="flex items-center justify-between">
-                    <button onclick="closeLocationModal()" class="text-xl">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-xl font-bold">Add Location</h2>
-                    <button onclick="detectCurrentLocation()" class="text-green-500">
-                        <i class="fas fa-crosshairs"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="p-4">
-                <input type="text" id="locationSearch" placeholder="Search for a location..." 
-                       class="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                
-                <div id="locationResults" class="space-y-2">
-                    <!-- Location results will be populated here -->
-                </div>
-                
-                <div class="mt-4">
-                    <h3 class="font-semibold mb-2">Recent Locations</h3>
-                    <div id="recentLocations" class="space-y-2">
-                        <!-- Recent locations will be populated here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Buzz Share Modal -->
-    <div id="buzzShareModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-        <div class="bg-white rounded-t-3xl fixed bottom-0 left-0 right-0 slide-up">
-            <div class="p-4 border-b">
-                <div class="flex items-center justify-between">
-                    <button onclick="closeBuzzShareModal()" class="text-xl">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <h2 class="text-xl font-bold">Share Buzz</h2>
-                    <div></div>
-                </div>
-            </div>
-            
-            <div class="p-4 space-y-4">
-                <div class="bg-gray-50 p-3 rounded-lg">
-                    <p class="text-sm text-gray-600 mb-2">Buzz Link:</p>
-                    <div class="flex items-center space-x-2">
-                        <input type="text" id="buzzShareLink" readonly class="flex-1 p-2 bg-white border rounded text-sm">
-                        <button onclick="copyBuzzLink()" class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600">
-                            <i class="fas fa-copy"></i>
+                    <div class="flex space-x-2">
+                        <button onclick="shareProfile()" class="text-white">
+                            <i class="fas fa-share"></i>
                         </button>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="shareToWhatsApp()" class="flex items-center justify-center space-x-2 bg-green-500 text-white p-3 rounded-lg hover:bg-green-600">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>WhatsApp</span>
-                    </button>
-                    <button onclick="shareToTwitter()" class="flex items-center justify-center space-x-2 bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600">
-                        <i class="fab fa-twitter"></i>
-                        <span>Twitter</span>
-                    </button>
-                    <button onclick="shareToFacebook()" class="flex items-center justify-center space-x-2 bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700">
-                        <i class="fab fa-facebook"></i>
-                        <span>Facebook</span>
-                    </button>
-                    <button onclick="shareToTelegram()" class="flex items-center justify-center space-x-2 bg-blue-400 text-white p-3 rounded-lg hover:bg-blue-500">
-                        <i class="fab fa-telegram"></i>
-                        <span>Telegram</span>
-                    </button>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl font-bold">
+                            <span id="publicProfileInitial">U</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center">
+                            <h2 id="publicProfileUsername" class="text-xl font-bold mr-2">Username</h2>
+                            <div id="publicVerifiedBadge" class="verified-badge hidden">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                        <p id="publicProfileHandle" class="opacity-80">@username</p>
+                        <div class="flex items-center mt-1">
+                            <i class="fas fa-map-marker-alt text-sm opacity-80 mr-1"></i>
+                            <span id="publicProfileLocation" class="text-sm opacity-80">Location</span>
+                        </div>
+                        <div class="flex items-center mt-1">
+                            <i class="fas fa-calendar text-sm opacity-80 mr-1"></i>
+                            <span id="publicProfileJoined" class="text-sm opacity-80">Joined</span>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="text-center">
-                    <button onclick="shareNative()" class="text-green-500 hover:text-green-600 text-sm">
-                        <i class="fas fa-share-alt mr-1"></i>
-                        More sharing options
-                    </button>
+                <div class="flex justify-between mt-4">
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="publicPostsCount">0</p>
+                        <p class="text-sm opacity-80">Buzzes</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="publicFollowersCount">0</p>
+                        <p class="text-sm opacity-80">Followers</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="publicFollowingCount">0</p>
+                        <p class="text-sm opacity-80">Following</p>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Post Scheduler Modal -->
-    <div id="scheduleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-        <div class="bg-white rounded-t-3xl fixed bottom-0 left-0 right-0 slide-up">
-            <div class="p-4 border-b">
-                <div class="flex items-center justify-between">
-                    <button onclick="closeScheduleModal()" class="text-xl">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <h2 class="text-xl font-bold">Schedule Post</h2>
-                    <button onclick="schedulePostConfirm()" class="text-green-500 font-semibold">
-                        Schedule
-                    </button>
+                
+                <div class="mt-4 flex space-x-2" id="publicProfileActions">
+                    <!-- Follow/Unfollow buttons will be added here -->
                 </div>
             </div>
             
-            <div class="p-4 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                    <input type="date" id="scheduleDate" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
-                    <input type="time" id="scheduleTime" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                </div>
-                
-                <div class="bg-blue-50 p-3 rounded-lg">
-                    <p class="text-sm text-blue-700">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Your post will be published automatically at the scheduled time.
-                    </p>
+            <!-- Public Profile Buzzes -->
+            <div class="p-4">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-comments text-green-500 mr-2"></i>
+                    Recent Buzzes
+                </h3>
+                <div id="publicProfileBuzzes">
+                    <!-- User's buzzes will be displayed here -->
                 </div>
             </div>
         </div>
@@ -1087,107 +850,54 @@
         // Global variables
         let currentUser = null;
         let currentPostId = null;
-        let selectedTemplate = 1;
-        let currentStoryId = null;
         let unsubscribeListeners = [];
         let currentLocation = null;
         let currentMood = 'happy';
         let postPrivacy = 'public';
-        let blockedUsers = [];
-        let savedAccounts = JSON.parse(localStorage.getItem('oriobuzz_accounts') || '[]');
         let isTyping = false;
         let typingTimeout = null;
-
-        let currentBuzzShareId = null;
-        let currentBuzzShareUsername = null;
-        let userInterests = JSON.parse(localStorage.getItem('user_interests') || '{}');
-        let savedBuzzes = JSON.parse(localStorage.getItem('saved_buzzes') || '[]');
-        
-        // Security and Content Guidelines
-        const SECURITY_RULES = {
-            maxBuzzLength: 280,
-            maxDailyBuzzes: 100,
-            maxFollowsPerHour: 50,
-            bannedWords: ['spam', 'scam', 'fake', 'hate'],
-            rateLimitWindow: 60000, // 1 minute
-            maxActionsPerMinute: 30
-        };
-        
-        let userActionCount = 0;
-        let lastActionTime = Date.now();
-        
-        // Content moderation
-        function moderateContent(text) {
-            const lowerText = text.toLowerCase();
-            for (const word of SECURITY_RULES.bannedWords) {
-                if (lowerText.includes(word)) {
-                    return { allowed: false, reason: 'Contains inappropriate content' };
-                }
-            }
-            
-            if (text.length > SECURITY_RULES.maxBuzzLength) {
-                return { allowed: false, reason: 'Content too long' };
-            }
-            
-            // Check for excessive caps
-            const capsRatio = (text.match(/[A-Z]/g) || []).length / text.length;
-            if (capsRatio > 0.7 && text.length > 10) {
-                return { allowed: false, reason: 'Excessive use of capital letters' };
-            }
-            
-            return { allowed: true };
-        }
-        
-        // Rate limiting
-        function checkRateLimit() {
-            const now = Date.now();
-            if (now - lastActionTime > SECURITY_RULES.rateLimitWindow) {
-                userActionCount = 0;
-                lastActionTime = now;
-            }
-            
-            userActionCount++;
-            if (userActionCount > SECURITY_RULES.maxActionsPerMinute) {
-                return { allowed: false, reason: 'Too many actions. Please slow down.' };
-            }
-            
-            return { allowed: true };
-        }
 
         // Authentication functions
         function signInWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
+            provider.addScope('email');
+            provider.addScope('profile');
+            
             auth.signInWithPopup(provider).then((result) => {
                 currentUser = result.user;
                 initializeUser();
                 showMainApp();
             }).catch((error) => {
                 console.error('Google sign-in error:', error);
-                alert('Sign-in failed. Please try again.');
+                showToast('Sign-in failed. Please try again.', 'error');
             });
         }
 
         function signInWithTwitter() {
             const provider = new firebase.auth.TwitterAuthProvider();
+            provider.addScope('email');
+            
             auth.signInWithPopup(provider).then((result) => {
                 currentUser = result.user;
                 initializeUser();
                 showMainApp();
             }).catch((error) => {
                 console.error('Twitter sign-in error:', error);
-                alert('Sign-in failed. Please try again.');
+                showToast('Sign-in failed. Please try again.', 'error');
             });
         }
 
         function signInWithGitHub() {
             const provider = new firebase.auth.GithubAuthProvider();
+            provider.addScope('user:email');
+            
             auth.signInWithPopup(provider).then((result) => {
                 currentUser = result.user;
                 initializeUser();
                 showMainApp();
             }).catch((error) => {
                 console.error('GitHub sign-in error:', error);
-                alert('Sign-in failed. Please try again.');
+                showToast('Sign-in failed. Please try again.', 'error');
             });
         }
 
@@ -1204,7 +914,7 @@
             });
         }
 
-        // Initialize user data
+        // Initialize user data in Firestore
         function initializeUser() {
             if (currentUser) {
                 const initial = currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U';
@@ -1214,109 +924,58 @@
                 document.getElementById('profileUsername').textContent = currentUser.displayName || 'User';
                 document.getElementById('profileHandle').textContent = `@${currentUser.email.split('@')[0]}`;
                 
-                // Create/update user document
-                db.collection('users').doc(currentUser.uid).set({
-                    displayName: currentUser.displayName,
+                // Create/update user document in Firestore
+                const userRef = db.collection('users').doc(currentUser.uid);
+                userRef.set({
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName || 'User',
                     email: currentUser.email,
-                    photoURL: currentUser.photoURL,
+                    photoURL: currentUser.photoURL || '',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp(),
                     verified: false,
                     followers: [],
                     following: [],
                     location: '',
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+                    bio: '',
                     isPrivate: false,
                     showOnlineStatus: true,
                     blockedUsers: [],
                     emailNotifications: false,
-                    pushNotifications: true
+                    pushNotifications: true,
+                    postsCount: 0,
+                    followersCount: 0,
+                    followingCount: 0
                 }, { merge: true }).then(() => {
-                    // Load user settings
-                    loadUserSettings();
+                    console.log('User data saved to Firestore');
+                    setupNotificationListener();
+                    loadUserProfile();
+                }).catch((error) => {
+                    console.error('Error saving user data:', error);
                 });
-                
-                // Setup real-time listeners
-                setupNotificationListener();
-                
-                // Update account count
-                updateAccountCount();
             }
-        }
-
-        function loadUserSettings() {
-            db.collection('users').doc(currentUser.uid).get().then((doc) => {
-                if (doc.exists) {
-                    const userData = doc.data();
-                    blockedUsers = userData.blockedUsers || [];
-                    
-                    // Update UI settings
-                    if (userData.isPrivate) {
-                        document.getElementById('privateAccount').checked = true;
-                    }
-                    if (userData.showOnlineStatus === false) {
-                        document.getElementById('showOnlineStatus').checked = false;
-                        document.getElementById('onlineStatus').classList.add('hidden');
-                    }
-                    if (userData.emailNotifications) {
-                        document.getElementById('emailNotifications').checked = true;
-                    }
-                    if (userData.pushNotifications === false) {
-                        document.getElementById('pushNotifications').checked = false;
-                    }
-                }
-            });
-        }
-
-        function updateAccountCount() {
-            const count = savedAccounts.length + 1; // +1 for current account
-            document.getElementById('accountCount').textContent = count;
         }
 
         function showMainApp() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             loadFeed();
-            loadStories();
             loadTrendingHashtags();
             updateNavigation('home');
         }
-        
 
-
-        // Buzz functions
+        // Buzz functions - All data stored in Firestore
         function createBuzz() {
             const buzzText = document.getElementById('postText').value.trim();
             if (!buzzText || !currentUser) return;
-
-            // Security checks
-            const rateCheck = checkRateLimit();
-            if (!rateCheck.allowed) {
-                showToast(rateCheck.reason, 'error');
-                return;
-            }
-
-            const contentCheck = moderateContent(buzzText);
-            if (!contentCheck.allowed) {
-                showToast(contentCheck.reason, 'error');
-                return;
-            }
-
-            // Check daily buzz limit
-            const today = new Date().toDateString();
-            const dailyBuzzes = JSON.parse(localStorage.getItem('daily_buzzes') || '{}');
-            const todayCount = dailyBuzzes[today] || 0;
-            
-            if (todayCount >= SECURITY_RULES.maxDailyBuzzes) {
-                showToast('Daily buzz limit reached. Try again tomorrow.', 'error');
-                return;
-            }
 
             const buzz = {
                 text: buzzText,
                 author: {
                     uid: currentUser.uid,
-                    displayName: currentUser.displayName,
-                    email: currentUser.email
+                    displayName: currentUser.displayName || 'User',
+                    email: currentUser.email,
+                    photoURL: currentUser.photoURL || ''
                 },
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 likes: [],
@@ -1326,24 +985,33 @@
                 privacy: postPrivacy,
                 location: currentLocation,
                 buzzId: generateBuzzId(),
-                type: 'buzz'
+                type: 'buzz',
+                likesCount: 0,
+                commentsCount: 0,
+                retweetsCount: 0
             };
 
+            // Save buzz to Firestore
             db.collection('posts').add(buzz).then((docRef) => {
-                // Update daily count
-                dailyBuzzes[today] = todayCount + 1;
-                localStorage.setItem('daily_buzzes', JSON.stringify(dailyBuzzes));
+                console.log('Buzz created with ID:', docRef.id);
                 
+                // Update user's posts count
+                db.collection('users').doc(currentUser.uid).update({
+                    postsCount: firebase.firestore.FieldValue.increment(1)
+                });
+                
+                // Clear form
                 document.getElementById('postText').value = '';
                 document.getElementById('characterCount').textContent = '0/280';
                 document.getElementById('buzzButton').disabled = true;
                 resetBuzzComposer();
-                loadFeed();
                 
                 // Create notification for followers
-                createNotificationForFollowers('new_buzz', buzz);
+                createNotificationForFollowers('new_buzz', {
+                    buzzId: docRef.id,
+                    buzzText: buzz.text.substring(0, 50) + '...'
+                });
                 
-                // Show success message
                 showToast('Buzz shared successfully!', 'success');
             }).catch((error) => {
                 console.error('Error creating buzz:', error);
@@ -1360,198 +1028,32 @@
             document.getElementById('locationTag').classList.add('hidden');
             document.getElementById('postComposer').classList.remove('focused');
             
-            // Reset mood selector
+            // Reset selectors
             document.getElementById('moodSelector').classList.add('hidden');
             document.getElementById('privacySelector').classList.add('hidden');
         }
-        
-        // New buzz functions
-        function rebuzz(buzzId) {
-            const rateCheck = checkRateLimit();
-            if (!rateCheck.allowed) {
-                showToast(rateCheck.reason, 'error');
-                return;
-            }
-            
-            db.collection('posts').doc(buzzId).get().then((doc) => {
-                if (doc.exists) {
-                    const originalBuzz = doc.data();
-                    const rebuzz = {
-                        text: `Rebuzzed: ${originalBuzz.text}`,
-                        originalBuzz: {
-                            id: buzzId,
-                            author: originalBuzz.author,
-                            text: originalBuzz.text
-                        },
-                        author: {
-                            uid: currentUser.uid,
-                            displayName: currentUser.displayName,
-                            email: currentUser.email
-                        },
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        likes: [],
-                        comments: [],
-                        retweets: [],
-                        type: 'rebuzz',
-                        buzzId: generateBuzzId()
-                    };
-                    
-                    db.collection('posts').add(rebuzz).then(() => {
-                        showToast('Rebuzzed successfully!', 'success');
-                        loadFeed();
-                        
-                        // Notify original author
-                        if (originalBuzz.author.uid !== currentUser.uid) {
-                            createNotification(originalBuzz.author.uid, 'rebuzz', {
-                                buzzId: buzzId,
-                                buzzText: originalBuzz.text.substring(0, 50) + '...'
-                            });
-                        }
-                    });
-                }
-            });
-        }
-        
-        function shareBuzz(buzzId, username) {
-            currentBuzzShareId = buzzId;
-            currentBuzzShareUsername = username;
-            
-            const shareLink = `${window.location.origin}/#buzz/${buzzId}`;
-            document.getElementById('buzzShareLink').value = shareLink;
-            document.getElementById('buzzShareModal').classList.remove('hidden');
-        }
-        
-        function closeBuzzShareModal() {
-            document.getElementById('buzzShareModal').classList.add('hidden');
-        }
-        
-        function copyBuzzLink() {
-            const linkInput = document.getElementById('buzzShareLink');
-            linkInput.select();
-            document.execCommand('copy');
-            showToast('Link copied to clipboard!', 'success');
-        }
-        
-        function shareToWhatsApp() {
-            const link = document.getElementById('buzzShareLink').value;
-            const text = `Check out this buzz on Oriobuzz: ${link}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-        }
-        
-        function shareToTwitter() {
-            const link = document.getElementById('buzzShareLink').value;
-            const text = `Check out this buzz on Oriobuzz`;
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`, '_blank');
-        }
-        
-        function shareToFacebook() {
-            const link = document.getElementById('buzzShareLink').value;
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`, '_blank');
-        }
-        
-        function shareToTelegram() {
-            const link = document.getElementById('buzzShareLink').value;
-            const text = `Check out this buzz on Oriobuzz: ${link}`;
-            window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
-        }
-        
-        function shareNative() {
-            const link = document.getElementById('buzzShareLink').value;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Check out this buzz on Oriobuzz',
-                    url: link
-                });
-            } else {
-                copyBuzzLink();
-            }
-        }
-        
-        function saveBuzz(buzzId) {
-            if (!savedBuzzes.includes(buzzId)) {
-                savedBuzzes.push(buzzId);
-                localStorage.setItem('saved_buzzes', JSON.stringify(savedBuzzes));
-                showToast('Buzz saved!', 'success');
-            } else {
-                showToast('Buzz already saved', 'info');
-            }
-        }
-        
-        function markInterested(buzzId, interested) {
-            const rateCheck = checkRateLimit();
-            if (!rateCheck.allowed) {
-                showToast(rateCheck.reason, 'error');
-                return;
-            }
-            
-            if (interested) {
-                userInterests[buzzId] = 'interested';
-                showToast('Marked as interested', 'success');
-            } else {
-                userInterests[buzzId] = 'not_interested';
-                showToast('Marked as not interested', 'info');
-            }
-            
-            localStorage.setItem('user_interests', JSON.stringify(userInterests));
-            
-            // This would be used for content recommendation algorithm
-            updateContentRecommendations();
-        }
-        
-        function updateContentRecommendations() {
-            // Analyze user interests for better content curation
-            const interests = Object.values(userInterests);
-            const interestedCount = interests.filter(i => i === 'interested').length;
-            const notInterestedCount = interests.filter(i => i === 'not_interested').length;
-            
-            console.log('User engagement:', { interestedCount, notInterestedCount });
-        }
-        
-        function deleteBuzz(buzzId) {
-            if (confirm('Are you sure you want to delete this buzz?')) {
-                db.collection('posts').doc(buzzId).delete().then(() => {
-                    showToast('Buzz deleted', 'success');
-                    loadFeed();
-                }).catch((error) => {
-                    showToast('Failed to delete buzz', 'error');
-                });
-            }
-        }
-        
-        function reportBuzz(buzzId) {
-            const reasons = [
-                'Spam or misleading',
-                'Harassment or hate speech',
-                'Violence or harmful content',
-                'Copyright infringement',
-                'Other'
-            ];
-            
-            const reason = prompt(`Why are you reporting this buzz?\n\n${reasons.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nEnter number (1-5):`);
-            
-            if (reason && reason >= 1 && reason <= 5) {
-                const report = {
-                    buzzId: buzzId,
-                    reportedBy: currentUser.uid,
-                    reason: reasons[reason - 1],
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                db.collection('reports').add(report).then(() => {
-                    showToast('Buzz reported successfully', 'success');
-                }).catch(() => {
-                    showToast('Failed to report buzz', 'error');
-                });
-            }
-        }
 
+        // Load feed from Firestore
         function loadFeed() {
+            showSkeletonFeed();
+            
             const unsubscribe = db.collection('posts')
                 .orderBy('timestamp', 'desc')
                 .limit(20)
                 .onSnapshot((querySnapshot) => {
                     const feedContainer = document.getElementById('feedContainer');
                     feedContainer.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        feedContainer.innerHTML = `
+                            <div class="text-center py-8">
+                                <i class="fas fa-comments text-4xl text-gray-400 mb-4"></i>
+                                <h3 class="text-xl font-semibold text-gray-700 mb-2">No buzzes yet</h3>
+                                <p class="text-gray-500">Be the first to share something!</p>
+                            </div>
+                        `;
+                        return;
+                    }
                     
                     querySnapshot.forEach((doc) => {
                         const buzz = doc.data();
@@ -1563,26 +1065,43 @@
             unsubscribeListeners.push(unsubscribe);
         }
 
+        function showSkeletonFeed() {
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '';
+            
+            // Add skeleton buzzes
+            for (let i = 0; i < 5; i++) {
+                const skeletonBuzz = document.createElement('div');
+                skeletonBuzz.className = 'skeleton-buzz';
+                skeletonBuzz.innerHTML = `
+                    <div class="flex space-x-3">
+                        <div class="skeleton-avatar"></div>
+                        <div class="flex-1">
+                            <div class="skeleton-text short"></div>
+                            <div class="skeleton-text long"></div>
+                            <div class="skeleton-text medium"></div>
+                            <div class="flex space-x-4 mt-3">
+                                <div class="skeleton-text" style="width: 60px; height: 12px;"></div>
+                                <div class="skeleton-text" style="width: 60px; height: 12px;"></div>
+                                <div class="skeleton-text" style="width: 60px; height: 12px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                feedContainer.appendChild(skeletonBuzz);
+            }
+        }
+
         function createBuzzElement(buzzId, buzz) {
             const buzzDiv = document.createElement('div');
             buzzDiv.className = 'bg-white border-b border-gray-200 p-4 buzz-card';
             
             const initial = buzz.author.displayName ? buzz.author.displayName.charAt(0).toUpperCase() : 'U';
-            const isLiked = buzz.likes && buzz.likes.includes(currentUser.uid);
-            const likeCount = buzz.likes ? buzz.likes.length : 0;
-            const commentCount = buzz.comments ? buzz.comments.length : 0;
-            const isOwnBuzz = buzz.author.uid === currentUser.uid;
-            const isBlocked = blockedUsers.includes(buzz.author.uid);
-            
-            // Don't show blocked users' buzzes
-            if (isBlocked && !isOwnBuzz) {
-                return document.createElement('div');
-            }
-            
-            // Privacy check
-            if (buzz.privacy === 'private' && !isOwnBuzz) {
-                return document.createElement('div');
-            }
+            const isLiked = currentUser && buzz.likes && buzz.likes.includes(currentUser.uid);
+            const likeCount = buzz.likesCount || (buzz.likes ? buzz.likes.length : 0);
+            const commentCount = buzz.commentsCount || (buzz.comments ? buzz.comments.length : 0);
+            const isOwnBuzz = currentUser && buzz.author.uid === currentUser.uid;
+            const username = buzz.author.email.split('@')[0];
             
             const moodEmoji = {
                 'happy': '😊',
@@ -1594,47 +1113,23 @@
             const privacyIcon = buzz.privacy === 'public' ? 'fas fa-globe' : 
                               buzz.privacy === 'followers' ? 'fas fa-users' : 'fas fa-lock';
             
-            // Check if this is a rebuzz
-            const isRebuzz = buzz.type === 'rebuzz';
-            
             buzzDiv.innerHTML = `
-                ${isRebuzz ? `
-                    <div class="flex items-center text-gray-500 text-sm mb-2">
-                        <i class="fas fa-retweet mr-2"></i>
-                        <span>${buzz.author.displayName} rebuzzed</span>
-                    </div>
-                ` : ''}
-                
                 <div class="flex space-x-3">
-                    <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold relative">
+                    <button onclick="showUserProfile('${buzz.author.uid}')" class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold relative hover:opacity-80 transition-opacity">
                         ${initial}
                         ${buzz.mood ? `<div class="mood-indicator mood-${buzz.mood}" title="${buzz.mood}"></div>` : ''}
-                    </div>
+                    </button>
                     <div class="flex-1">
                         <div class="flex items-center space-x-2">
-                            <h3 class="font-semibold">${buzz.author.displayName || 'User'}</h3>
-                            <span class="text-gray-500 text-sm">@${buzz.author.email.split('@')[0]}</span>
+                            <button onclick="showUserProfile('${buzz.author.uid}')" class="font-semibold hover:text-green-500 transition-colors">${buzz.author.displayName || 'User'}</button>
+                            <button onclick="showUserProfile('${buzz.author.uid}')" class="text-gray-500 text-sm hover:text-green-500 transition-colors">@${username}</button>
                             <span class="text-gray-500 text-sm">·</span>
                             <span class="text-gray-500 text-sm">${formatTimestamp(buzz.timestamp)}</span>
                             <i class="${privacyIcon} text-gray-400 text-xs" title="${buzz.privacy}"></i>
                             ${buzz.mood ? `<span class="text-sm" title="${buzz.mood}">${moodEmoji[buzz.mood] || ''}</span>` : ''}
-                            
-                            <div class="buzz-actions ml-auto flex space-x-2">
-                                ${!isOwnBuzz ? `<button onclick="blockUser('${buzz.author.uid}')" class="text-red-500 hover:text-red-700" title="Block user"><i class="fas fa-ban text-xs"></i></button>` : ''}
-                            </div>
                         </div>
                         
-                        ${isRebuzz && buzz.originalBuzz ? `
-                            <div class="mt-2 p-3 border-l-4 border-green-200 bg-gray-50 rounded">
-                                <div class="flex items-center space-x-2 mb-1">
-                                    <span class="font-semibold text-sm">${buzz.originalBuzz.author.displayName}</span>
-                                    <span class="text-gray-500 text-xs">@${buzz.originalBuzz.author.email.split('@')[0]}</span>
-                                </div>
-                                <p class="text-gray-800">${formatPostText(buzz.originalBuzz.text)}</p>
-                            </div>
-                        ` : `
-                            <p class="mt-2 text-gray-800">${formatPostText(buzz.text)}</p>
-                        `}
+                        <p class="mt-2 text-gray-800">${formatPostText(buzz.text)}</p>
                         
                         ${buzz.location ? `
                             <div class="mt-2">
@@ -1655,26 +1150,13 @@
                                     <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
                                     <span class="like-count-${buzzId}">${likeCount}</span>
                                 </button>
-                                <button onclick="rebuzz('${buzzId}')" class="hover:text-green-500 transition-colors" title="Rebuzz">
-                                    <i class="fas fa-retweet"></i>
-                                </button>
-                                <button onclick="shareBuzz('${buzzId}', '${buzz.author.email.split('@')[0]}')" class="hover:text-blue-500 transition-colors" title="Share">
+                                <button onclick="sharePost('${buzzId}')" class="hover:text-blue-500 transition-colors" title="Share">
                                     <i class="fas fa-share"></i>
                                 </button>
                             </div>
                             
                             <div class="buzz-actions flex items-center space-x-2">
-                                <button onclick="saveBuzz('${buzzId}')" class="hover:text-purple-500 transition-colors text-xs" title="Save">
-                                    <i class="far fa-bookmark"></i>
-                                </button>
-                                <button onclick="markInterested('${buzzId}', true)" class="hover:text-green-500 transition-colors text-xs" title="Interested">
-                                    <i class="fas fa-thumbs-up"></i>
-                                </button>
-                                <button onclick="markInterested('${buzzId}', false)" class="hover:text-red-500 transition-colors text-xs" title="Not Interested">
-                                    <i class="fas fa-thumbs-down"></i>
-                                </button>
                                 ${isOwnBuzz ? `<button onclick="deleteBuzz('${buzzId}')" class="hover:text-red-500 transition-colors text-xs" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
-                                ${!isOwnBuzz ? `<button onclick="reportBuzz('${buzzId}')" class="hover:text-yellow-500 transition-colors text-xs" title="Report"><i class="fas fa-flag"></i></button>` : ''}
                             </div>
                         </div>
                         
@@ -1693,71 +1175,37 @@
             return buzzDiv;
         }
 
-        function savePost(postId) {
-            // Save post to user's saved posts
-            const savedPosts = JSON.parse(localStorage.getItem('saved_posts') || '[]');
-            if (!savedPosts.includes(postId)) {
-                savedPosts.push(postId);
-                localStorage.setItem('saved_posts', JSON.stringify(savedPosts));
-                showToast('Post saved!', 'success');
-            } else {
-                showToast('Post already saved', 'info');
-            }
-        }
-
-        function formatPostText(text) {
-            // Format hashtags
-            text = text.replace(/#(\w+)/g, '<span class="text-green-500 font-semibold cursor-pointer" onclick="searchHashtag(\'#$1\')">#$1</span>');
-            // Format mentions
-            text = text.replace(/@(\w+)/g, '<span class="text-blue-500 font-semibold cursor-pointer" onclick="searchMention(\'@$1\')">@$1</span>');
-            return text;
-        }
-
-        function formatTimestamp(timestamp) {
-            if (!timestamp) return 'now';
-            const now = new Date();
-            const postTime = timestamp.toDate();
-            const diffMs = now - postTime;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            
-            if (diffMins < 1) return 'now';
-            if (diffMins < 60) return `${diffMins}m`;
-            if (diffHours < 24) return `${diffHours}h`;
-            return `${diffDays}d`;
-        }
-
+        // Like functionality with Firestore
         function toggleLike(buzzId) {
             if (!currentUser) return;
             
             const buzzRef = db.collection('posts').doc(buzzId);
             
-            buzzRef.get().then((doc) => {
-                if (doc.exists) {
+            db.runTransaction((transaction) => {
+                return transaction.get(buzzRef).then((doc) => {
+                    if (!doc.exists) {
+                        throw new Error('Buzz does not exist!');
+                    }
+                    
                     const buzz = doc.data();
                     const likes = buzz.likes || [];
                     const isLiked = likes.includes(currentUser.uid);
                     
                     let newLikes;
+                    let newLikesCount;
+                    
                     if (isLiked) {
                         newLikes = likes.filter(uid => uid !== currentUser.uid);
+                        newLikesCount = (buzz.likesCount || 0) - 1;
                     } else {
                         newLikes = [...likes, currentUser.uid];
+                        newLikesCount = (buzz.likesCount || 0) + 1;
+                        
                         // Add like animation
                         const likeBtn = document.getElementById(`like-btn-${buzzId}`);
                         if (likeBtn) {
                             likeBtn.classList.add('like-animation');
                             setTimeout(() => likeBtn.classList.remove('like-animation'), 600);
-                            
-                            // Create floating heart
-                            const heart = document.createElement('div');
-                            heart.innerHTML = '<i class="fas fa-heart text-red-500"></i>';
-                            heart.className = 'floating-heart text-xl';
-                            heart.style.left = likeBtn.offsetLeft + 'px';
-                            heart.style.top = likeBtn.offsetTop + 'px';
-                            likeBtn.parentElement.appendChild(heart);
-                            setTimeout(() => heart.remove(), 1000);
                         }
                         
                         // Create notification for buzz author
@@ -1769,23 +1217,190 @@
                         }
                     }
                     
-                    buzzRef.update({ likes: newLikes });
-                }
+                    transaction.update(buzzRef, { 
+                        likes: newLikes,
+                        likesCount: Math.max(0, newLikesCount)
+                    });
+                });
+            }).then(() => {
+                console.log('Like updated successfully');
+            }).catch((error) => {
+                console.error('Error updating like:', error);
             });
         }
 
-        function deleteBuzz(buzzId) {
-            if (confirm('Are you sure you want to delete this buzz?')) {
-                db.collection('posts').doc(buzzId).delete().then(() => {
-                    showToast('Buzz deleted', 'success');
-                    loadFeed();
-                }).catch((error) => {
-                    showToast('Failed to delete buzz', 'error');
+        // Follow system with Firestore
+        function toggleFollow(userId) {
+            if (!currentUser || userId === currentUser.uid) return;
+            
+            const currentUserRef = db.collection('users').doc(currentUser.uid);
+            const targetUserRef = db.collection('users').doc(userId);
+            
+            db.runTransaction((transaction) => {
+                return transaction.get(currentUserRef).then((currentUserDoc) => {
+                    return transaction.get(targetUserRef).then((targetUserDoc) => {
+                        if (!currentUserDoc.exists || !targetUserDoc.exists) {
+                            throw new Error('User does not exist!');
+                        }
+                        
+                        const currentUserData = currentUserDoc.data();
+                        const targetUserData = targetUserDoc.data();
+                        
+                        const currentFollowing = currentUserData.following || [];
+                        const targetFollowers = targetUserData.followers || [];
+                        
+                        const isFollowing = currentFollowing.includes(userId);
+                        
+                        if (isFollowing) {
+                            // Unfollow
+                            const newFollowing = currentFollowing.filter(id => id !== userId);
+                            const newFollowers = targetFollowers.filter(id => id !== currentUser.uid);
+                            
+                            transaction.update(currentUserRef, {
+                                following: newFollowing,
+                                followingCount: Math.max(0, newFollowing.length)
+                            });
+                            transaction.update(targetUserRef, {
+                                followers: newFollowers,
+                                followersCount: Math.max(0, newFollowers.length)
+                            });
+                        } else {
+                            // Follow
+                            const newFollowing = [...currentFollowing, userId];
+                            const newFollowers = [...targetFollowers, currentUser.uid];
+                            
+                            transaction.update(currentUserRef, {
+                                following: newFollowing,
+                                followingCount: newFollowing.length
+                            });
+                            transaction.update(targetUserRef, {
+                                followers: newFollowers,
+                                followersCount: newFollowers.length
+                            });
+                            
+                            // Create notification
+                            createNotification(userId, 'follow', {
+                                followerId: currentUser.uid
+                            });
+                        }
+                        
+                        return !isFollowing;
+                    });
                 });
-            }
+            }).then((nowFollowing) => {
+                showToast(nowFollowing ? 'Following user' : 'Unfollowed user', 'success');
+                
+                // Refresh profile if viewing
+                if (!document.getElementById('publicProfileModal').classList.contains('hidden')) {
+                    loadPublicProfileData(userId);
+                }
+            }).catch((error) => {
+                console.error('Follow/unfollow error:', error);
+                showToast('Failed to update follow status', 'error');
+            });
         }
 
-        // Comments functions
+        // Show user profile
+        function showUserProfile(userId) {
+            if (userId === currentUser.uid) {
+                showProfile();
+                return;
+            }
+            
+            document.getElementById('publicProfileModal').classList.remove('hidden');
+            loadPublicProfileData(userId);
+        }
+
+        function loadPublicProfileData(userId) {
+            db.collection('users').doc(userId).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const initial = userData.displayName ? userData.displayName.charAt(0).toUpperCase() : 'U';
+                    const username = userData.email.split('@')[0];
+                    
+                    document.getElementById('publicProfileInitial').textContent = initial;
+                    document.getElementById('publicProfileUsername').textContent = userData.displayName || 'User';
+                    document.getElementById('publicProfileHandle').textContent = `@${username}`;
+                    document.getElementById('publicProfileLocation').textContent = userData.location || 'Location not set';
+                    
+                    if (userData.createdAt) {
+                        const joinDate = userData.createdAt.toDate();
+                        document.getElementById('publicProfileJoined').textContent = `Joined ${joinDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+                    }
+                    
+                    if (userData.verified) {
+                        document.getElementById('publicVerifiedBadge').classList.remove('hidden');
+                    }
+                    
+                    // Load counts
+                    document.getElementById('publicFollowersCount').textContent = userData.followersCount || 0;
+                    document.getElementById('publicFollowingCount').textContent = userData.followingCount || 0;
+                    document.getElementById('publicPostsCount').textContent = userData.postsCount || 0;
+                    
+                    // Add follow/unfollow button
+                    const actionsContainer = document.getElementById('publicProfileActions');
+                    if (currentUser && currentUser.uid !== userId) {
+                        const isFollowing = userData.followers && userData.followers.includes(currentUser.uid);
+                        actionsContainer.innerHTML = `
+                            <button onclick="toggleFollow('${userId}')" class="flex-1 ${isFollowing ? 'bg-gray-500 hover:bg-gray-600' : 'bg-green-500 hover:bg-green-600'} text-white py-2 px-4 rounded-lg transition-colors">
+                                ${isFollowing ? 'Unfollow' : 'Follow'}
+                            </button>
+                        `;
+                    } else {
+                        actionsContainer.innerHTML = '';
+                    }
+                    
+                    // Load user's buzzes
+                    loadPublicProfileBuzzes(userId);
+                } else {
+                    showProfileNotFound();
+                }
+            }).catch((error) => {
+                console.error('Error loading profile:', error);
+                showProfileNotFound();
+            });
+        }
+
+        function loadPublicProfileBuzzes(userId) {
+            db.collection('posts')
+                .where('author.uid', '==', userId)
+                .where('privacy', '==', 'public')
+                .orderBy('timestamp', 'desc')
+                .limit(10)
+                .get()
+                .then((querySnapshot) => {
+                    const profileBuzzes = document.getElementById('publicProfileBuzzes');
+                    profileBuzzes.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        profileBuzzes.innerHTML = '<p class="text-center text-gray-500 py-8">No public buzzes yet</p>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const buzz = doc.data();
+                        const buzzElement = createBuzzElement(doc.id, buzz);
+                        profileBuzzes.appendChild(buzzElement);
+                    });
+                });
+        }
+
+        function showProfileNotFound() {
+            const profileBuzzes = document.getElementById('publicProfileBuzzes');
+            profileBuzzes.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-user-slash text-4xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Profile not found</h3>
+                    <p class="text-gray-500">This user doesn't exist or has been deactivated.</p>
+                </div>
+            `;
+        }
+
+        function closePublicProfile() {
+            document.getElementById('publicProfileModal').classList.add('hidden');
+        }
+
+        // Comments functionality with Firestore
         function showComments(buzzId) {
             currentPostId = buzzId;
             document.getElementById('commentsModal').classList.remove('hidden');
@@ -1803,6 +1418,11 @@
                 .onSnapshot((querySnapshot) => {
                     const commentsContainer = document.getElementById('commentsContainer');
                     commentsContainer.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        commentsContainer.innerHTML = '<p class="text-center text-gray-500 py-4">No comments yet</p>';
+                        return;
+                    }
                     
                     querySnapshot.forEach((doc) => {
                         const comment = doc.data();
@@ -1824,12 +1444,12 @@
             const isOwnComment = comment.author.uid === currentUser.uid;
             
             commentDiv.innerHTML = `
-                <div class="w-8 h-8 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <button onclick="showUserProfile('${comment.author.uid}')" class="w-8 h-8 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity">
                     ${initial}
-                </div>
+                </button>
                 <div class="flex-1">
                     <div class="flex items-center space-x-2">
-                        <h4 class="font-semibold text-sm">${comment.author.displayName || 'User'}</h4>
+                        <button onclick="showUserProfile('${comment.author.uid}')" class="font-semibold text-sm hover:text-green-500 transition-colors">${comment.author.displayName || 'User'}</button>
                         <span class="text-gray-500 text-xs">${formatTimestamp(comment.timestamp)}</span>
                         ${isOwnComment ? '<button onclick="deleteComment(\'' + commentId + '\')" class="text-red-500 hover:text-red-700 ml-2"><i class="fas fa-trash text-xs"></i></button>' : ''}
                     </div>
@@ -1838,9 +1458,6 @@
                         <button onclick="toggleCommentLike('${commentId}')" class="flex items-center space-x-1 text-xs hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : 'text-gray-500'}">
                             <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
                             <span>${likeCount}</span>
-                        </button>
-                        <button onclick="replyToComment('${commentId}')" class="text-xs text-gray-500 hover:text-green-500 transition-colors">
-                            <i class="fas fa-reply mr-1"></i>Reply
                         </button>
                     </div>
                 </div>
@@ -1857,26 +1474,26 @@
                 text: commentText,
                 author: {
                     uid: currentUser.uid,
-                    displayName: currentUser.displayName,
+                    displayName: currentUser.displayName || 'User',
                     email: currentUser.email
                 },
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 likes: []
             };
 
+            // Add comment to Firestore
             db.collection('posts').doc(currentPostId).collection('comments').add(comment).then(() => {
                 document.getElementById('commentInput').value = '';
                 
                 // Update comment count in main buzz
+                db.collection('posts').doc(currentPostId).update({
+                    commentsCount: firebase.firestore.FieldValue.increment(1)
+                });
+                
+                // Get buzz data for notification
                 db.collection('posts').doc(currentPostId).get().then((doc) => {
                     if (doc.exists) {
                         const buzz = doc.data();
-                        const comments = buzz.comments || [];
-                        db.collection('posts').doc(currentPostId).update({
-                            comments: [...comments, comment]
-                        });
-                        
-                        // Create notification for buzz author
                         if (buzz.author.uid !== currentUser.uid) {
                             createNotification(buzz.author.uid, 'comment', {
                                 buzzId: currentPostId,
@@ -1886,6 +1503,9 @@
                         }
                     }
                 });
+            }).catch((error) => {
+                console.error('Error posting comment:', error);
+                showToast('Failed to post comment', 'error');
             });
         }
 
@@ -1894,8 +1514,12 @@
             
             const commentRef = db.collection('posts').doc(currentPostId).collection('comments').doc(commentId);
             
-            commentRef.get().then((doc) => {
-                if (doc.exists) {
+            db.runTransaction((transaction) => {
+                return transaction.get(commentRef).then((doc) => {
+                    if (!doc.exists) {
+                        throw new Error('Comment does not exist!');
+                    }
+                    
                     const comment = doc.data();
                     const likes = comment.likes || [];
                     const isLiked = likes.includes(currentUser.uid);
@@ -1904,148 +1528,24 @@
                         ? likes.filter(uid => uid !== currentUser.uid)
                         : [...likes, currentUser.uid];
                     
-                    commentRef.update({ likes: newLikes });
-                }
+                    transaction.update(commentRef, { likes: newLikes });
+                });
+            }).catch((error) => {
+                console.error('Error updating comment like:', error);
             });
         }
 
         function deleteComment(commentId) {
             if (confirm('Are you sure you want to delete this comment?')) {
-                db.collection('posts').doc(currentPostId).collection('comments').doc(commentId).delete();
-            }
-        }
-
-        // Story functions
-        function showStoryCreator() {
-            document.getElementById('storyCreatorModal').classList.remove('hidden');
-        }
-
-        function closeStoryCreator() {
-            document.getElementById('storyCreatorModal').classList.add('hidden');
-            document.getElementById('storyText').value = '';
-        }
-
-        function selectTemplate(templateNumber) {
-            selectedTemplate = templateNumber;
-            const preview = document.getElementById('storyPreview');
-            preview.className = `story-template-${templateNumber} w-full h-96 rounded-lg flex items-center justify-center relative`;
-            
-            // Update template selection UI
-            document.querySelectorAll('[data-template]').forEach(btn => {
-                btn.classList.remove('border-green-500');
-                btn.classList.add('border-transparent');
-            });
-            document.querySelector(`[data-template="${templateNumber}"]`).classList.add('border-green-500');
-        }
-
-        function publishStory() {
-            const storyText = document.getElementById('storyText').value.trim();
-            if (!storyText || !currentUser) return;
-
-            const story = {
-                text: storyText,
-                template: selectedTemplate,
-                author: {
-                    uid: currentUser.uid,
-                    displayName: currentUser.displayName,
-                    email: currentUser.email
-                },
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                views: []
-            };
-
-            db.collection('stories').add(story).then(() => {
-                closeStoryCreator();
-                loadStories();
-                
-                // Create notification for followers
-                createNotificationForFollowers('new_story', story);
-            });
-        }
-
-        function loadStories() {
-            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-            
-            db.collection('stories')
-                .where('timestamp', '>', twentyFourHoursAgo)
-                .orderBy('timestamp', 'desc')
-                .get()
-                .then((querySnapshot) => {
-                    const storiesContainer = document.getElementById('storiesContainer');
-                    storiesContainer.innerHTML = '';
-                    
-                    querySnapshot.forEach((doc) => {
-                        const story = doc.data();
-                        const storyElement = createStoryElement(doc.id, story);
-                        storiesContainer.appendChild(storyElement);
+                db.collection('posts').doc(currentPostId).collection('comments').doc(commentId).delete().then(() => {
+                    // Update comment count
+                    db.collection('posts').doc(currentPostId).update({
+                        commentsCount: firebase.firestore.FieldValue.increment(-1)
                     });
-                });
-        }
-
-        function createStoryElement(storyId, story) {
-            const storyDiv = document.createElement('div');
-            storyDiv.className = 'flex-shrink-0 text-center cursor-pointer';
-            storyDiv.onclick = () => viewStory(storyId, story);
-            
-            const initial = story.author.displayName ? story.author.displayName.charAt(0).toUpperCase() : 'U';
-            
-            storyDiv.innerHTML = `
-                <div class="w-16 h-16 story-ring rounded-full p-0.5">
-                    <div class="w-full h-full bg-white rounded-full flex items-center justify-center">
-                        <div class="w-12 h-12 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
-                            ${initial}
-                        </div>
-                    </div>
-                </div>
-                <p class="text-xs mt-1 text-gray-600 truncate w-16">${story.author.displayName || 'User'}</p>
-            `;
-            
-            return storyDiv;
-        }
-
-        function viewStory(storyId, story) {
-            currentStoryId = storyId;
-            document.getElementById('storyViewerModal').classList.remove('hidden');
-            
-            const storyContent = document.getElementById('storyViewerContent');
-            storyContent.innerHTML = `
-                <div class="story-template-${story.template} w-full h-full flex items-center justify-center text-white text-2xl font-bold p-8 text-center">
-                    ${story.text}
-                </div>
-            `;
-            
-            const initial = story.author.displayName ? story.author.displayName.charAt(0).toUpperCase() : 'U';
-            document.getElementById('storyAuthorInitial').textContent = initial;
-            document.getElementById('storyAuthor').textContent = story.author.displayName || 'User';
-            document.getElementById('storyTime').textContent = formatTimestamp(story.timestamp);
-            
-            // Add view to story
-            if (!story.views.includes(currentUser.uid)) {
-                db.collection('stories').doc(storyId).update({
-                    views: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                }).catch((error) => {
+                    console.error('Error deleting comment:', error);
                 });
             }
-        }
-
-        function closeStoryViewer() {
-            document.getElementById('storyViewerModal').classList.add('hidden');
-            currentStoryId = null;
-        }
-
-        function reportStory() {
-            if (!currentStoryId || !currentUser) return;
-            
-            const report = {
-                storyId: currentStoryId,
-                reportedBy: currentUser.uid,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                reason: 'inappropriate_content'
-            };
-            
-            db.collection('reports').add(report).then(() => {
-                alert('Story reported successfully');
-                closeStoryViewer();
-            });
         }
 
         // Profile functions
@@ -2061,44 +1561,13 @@
         function loadUserProfile() {
             if (!currentUser) return;
             
-            // Load user's posts for profile grid
-            db.collection('posts')
-                .where('author.uid', '==', currentUser.uid)
-                .orderBy('timestamp', 'desc')
-                .get()
-                .then((querySnapshot) => {
-                    const profileGrid = document.getElementById('profileGrid');
-                    profileGrid.innerHTML = '';
-                    
-                    document.getElementById('postsCount').textContent = querySnapshot.size;
-                    
-                    querySnapshot.forEach((doc) => {
-                        const post = doc.data();
-                        const gridItem = document.createElement('div');
-                        gridItem.className = 'aspect-square bg-gray-200 rounded-lg flex flex-col items-center justify-center text-xs p-2 cursor-pointer hover:opacity-80 transition-opacity post-grid-item';
-                        
-                        const likeCount = post.likes ? post.likes.length : 0;
-                        const commentCount = post.comments ? post.comments.length : 0;
-                        
-                        gridItem.innerHTML = `
-                            <p class="text-center text-gray-700 mb-2 line-clamp-3">${post.text.substring(0, 50)}${post.text.length > 50 ? '...' : ''}</p>
-                            <div class="flex space-x-2 text-gray-500">
-                                <span><i class="far fa-heart"></i> ${likeCount}</span>
-                                <span><i class="far fa-comment"></i> ${commentCount}</span>
-                            </div>
-                        `;
-                        
-                        gridItem.onclick = () => showPostDetail(doc.id, post);
-                        profileGrid.appendChild(gridItem);
-                    });
-                });
-            
-            // Load user data
+            // Load user data from Firestore
             db.collection('users').doc(currentUser.uid).get().then((doc) => {
                 if (doc.exists) {
                     const userData = doc.data();
-                    document.getElementById('followersCount').textContent = userData.followers ? userData.followers.length : 0;
-                    document.getElementById('followingCount').textContent = userData.following ? userData.following.length : 0;
+                    document.getElementById('followersCount').textContent = userData.followersCount || 0;
+                    document.getElementById('followingCount').textContent = userData.followingCount || 0;
+                    document.getElementById('postsCount').textContent = userData.postsCount || 0;
                     
                     if (userData.verified) {
                         document.getElementById('verifiedBadge').classList.remove('hidden');
@@ -2109,8 +1578,44 @@
                     }
                 }
             });
+            
+            // Load user's posts for profile grid
+            db.collection('posts')
+                .where('author.uid', '==', currentUser.uid)
+                .orderBy('timestamp', 'desc')
+                .get()
+                .then((querySnapshot) => {
+                    const profileGrid = document.getElementById('profileGrid');
+                    profileGrid.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        profileGrid.innerHTML = '<div class="col-span-3 text-center py-8 text-gray-500">No posts yet</div>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const post = doc.data();
+                        const gridItem = document.createElement('div');
+                        gridItem.className = 'aspect-square bg-gray-200 rounded-lg flex flex-col items-center justify-center text-xs p-2 cursor-pointer hover:opacity-80 transition-opacity post-grid-item';
+                        
+                        const likeCount = post.likesCount || 0;
+                        const commentCount = post.commentsCount || 0;
+                        
+                        gridItem.innerHTML = `
+                            <p class="text-center text-gray-700 mb-2 line-clamp-3">${post.text.substring(0, 50)}${post.text.length > 50 ? '...' : ''}</p>
+                            <div class="flex space-x-2 text-gray-500">
+                                <span><i class="far fa-heart"></i> ${likeCount}</span>
+                                <span><i class="far fa-comment"></i> ${commentCount}</span>
+                            </div>
+                        `;
+                        
+                        gridItem.onclick = () => showComments(doc.id);
+                        profileGrid.appendChild(gridItem);
+                    });
+                });
         }
 
+        // Followers/Following functions
         function showFollowers() {
             document.getElementById('followModalTitle').textContent = 'Followers';
             document.getElementById('followModal').classList.remove('hidden');
@@ -2161,11 +1666,11 @@
             
             userDiv.innerHTML = `
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
+                    <button onclick="showUserProfile('${userId}')" class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold hover:opacity-80 transition-opacity">
                         ${initial}
-                    </div>
+                    </button>
                     <div>
-                        <h4 class="font-semibold">${user.displayName || 'User'}</h4>
+                        <button onclick="showUserProfile('${userId}')" class="font-semibold hover:text-green-500 transition-colors">${user.displayName || 'User'}</button>
                         <p class="text-sm text-gray-500">@${user.email.split('@')[0]}</p>
                     </div>
                 </div>
@@ -2188,20 +1693,6 @@
                 if (doc.exists) {
                     const userData = doc.data();
                     document.getElementById('locationInput').value = userData.location || '';
-                    
-                    // Check verification status
-                    db.collection('verificationRequests')
-                        .where('userId', '==', currentUser.uid)
-                        .orderBy('timestamp', 'desc')
-                        .limit(1)
-                        .get()
-                        .then((querySnapshot) => {
-                            const statusDiv = document.getElementById('verificationStatus');
-                            if (!querySnapshot.empty) {
-                                const request = querySnapshot.docs[0].data();
-                                statusDiv.innerHTML = `<span class="text-blue-500">Status: ${request.status}</span>`;
-                            }
-                        });
                 }
             });
         }
@@ -2221,53 +1712,16 @@
             if (location) updates.location = location;
             
             db.collection('users').doc(currentUser.uid).update(updates).then(() => {
-                alert('Profile updated successfully!');
+                showToast('Profile updated successfully!', 'success');
                 if (username) {
                     currentUser.displayName = username;
                     initializeUser();
                 }
                 loadUserProfile();
-            });
-        }
-
-        function applyForVerification() {
-            const fileInput = document.getElementById('idUpload');
-            const file = fileInput.files[0];
-            
-            if (!file || !currentUser) {
-                alert('Please select an ID document');
-                return;
-            }
-            
-            const storageRef = storage.ref(`verification/${currentUser.uid}/${file.name}`);
-            
-            storageRef.put(file).then((snapshot) => {
-                return snapshot.ref.getDownloadURL();
-            }).then((downloadURL) => {
-                const verificationRequest = {
-                    userId: currentUser.uid,
-                    userEmail: currentUser.email,
-                    userName: currentUser.displayName,
-                    documentURL: downloadURL,
-                    status: 'pending',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                return db.collection('verificationRequests').add(verificationRequest);
-            }).then(() => {
-                alert('Verification request submitted! You will receive a response within 1-2 days.');
-                fileInput.value = '';
-                document.getElementById('verificationStatus').innerHTML = '<span class="text-blue-500">Status: pending</span>';
             }).catch((error) => {
-                console.error('Verification request error:', error);
-                alert('Failed to submit verification request. Please try again.');
+                console.error('Error updating profile:', error);
+                showToast('Failed to update profile', 'error');
             });
-        }
-
-        function setTheme(theme) {
-            // This would update the CSS variables for theming
-            // For now, just show confirmation
-            alert(`Theme changed to ${theme}!`);
         }
 
         // Notification functions
@@ -2299,7 +1753,7 @@
                 data: data,
                 from: {
                     uid: currentUser.uid,
-                    displayName: currentUser.displayName,
+                    displayName: currentUser.displayName || 'User',
                     email: currentUser.email
                 },
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -2365,23 +1819,19 @@
             switch (notification.type) {
                 case 'like':
                     icon = '<i class="fas fa-heart text-red-500"></i>';
-                    message = `${notification.from.displayName} liked your post`;
+                    message = `${notification.from.displayName} liked your buzz`;
                     break;
                 case 'comment':
                     icon = '<i class="fas fa-comment text-green-500"></i>';
-                    message = `${notification.from.displayName} commented on your post`;
+                    message = `${notification.from.displayName} commented on your buzz`;
                     break;
                 case 'follow':
                     icon = '<i class="fas fa-user-plus text-blue-500"></i>';
                     message = `${notification.from.displayName} started following you`;
                     break;
-                case 'new_post':
+                case 'new_buzz':
                     icon = '<i class="fas fa-plus text-green-500"></i>';
-                    message = `${notification.from.displayName} shared a new post`;
-                    break;
-                case 'new_story':
-                    icon = '<i class="fas fa-circle text-purple-500"></i>';
-                    message = `${notification.from.displayName} shared a new story`;
+                    message = `${notification.from.displayName} shared a new buzz`;
                     break;
             }
             
@@ -2398,10 +1848,9 @@
             
             notificationDiv.onclick = () => {
                 markNotificationRead(notificationId);
-                // Handle notification click based on type
                 if (notification.type === 'like' || notification.type === 'comment') {
                     closeNotifications();
-                    showComments(notification.data.postId);
+                    showComments(notification.data.buzzId);
                 }
             };
             
@@ -2430,8 +1879,59 @@
         }
 
         // Utility functions
+        function deleteBuzz(buzzId) {
+            if (confirm('Are you sure you want to delete this buzz?')) {
+                db.collection('posts').doc(buzzId).delete().then(() => {
+                    // Update user's posts count
+                    db.collection('users').doc(currentUser.uid).update({
+                        postsCount: firebase.firestore.FieldValue.increment(-1)
+                    });
+                    showToast('Buzz deleted', 'success');
+                }).catch((error) => {
+                    console.error('Error deleting buzz:', error);
+                    showToast('Failed to delete buzz', 'error');
+                });
+            }
+        }
+
+        function sharePost(postId) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this buzz on Oriobuzz',
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    showToast('Link copied to clipboard!', 'success');
+                });
+            }
+        }
+
+        function formatPostText(text) {
+            // Format hashtags
+            text = text.replace(/#(\w+)/g, '<span class="text-green-500 font-semibold cursor-pointer" onclick="searchHashtag(\'#$1\')">#$1</span>');
+            // Format mentions
+            text = text.replace(/@(\w+)/g, '<span class="text-blue-500 font-semibold cursor-pointer" onclick="searchMention(\'@$1\')">@$1</span>');
+            return text;
+        }
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'now';
+            const now = new Date();
+            const postTime = timestamp.toDate();
+            const diffMs = now - postTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'now';
+            if (diffMins < 60) return `${diffMins}m`;
+            if (diffHours < 24) return `${diffHours}h`;
+            return `${diffDays}d`;
+        }
+
         function loadTrendingHashtags() {
-            // Analyze recent posts for trending hashtags
+            // Load trending hashtags from recent posts
             db.collection('posts')
                 .where('timestamp', '>', new Date(Date.now() - 24 * 60 * 60 * 1000))
                 .get()
@@ -2497,7 +1997,7 @@
                         if (post.text.toLowerCase().includes(query) || 
                             post.author.displayName.toLowerCase().includes(query) ||
                             post.author.email.toLowerCase().includes(query)) {
-                            const postElement = createPostElement(doc.id, post);
+                            const postElement = createBuzzElement(doc.id, post);
                             feedContainer.appendChild(postElement);
                             hasResults = true;
                         }
@@ -2509,12 +2009,47 @@
                 });
         }
 
+        // Post composer functions
+        function showMoodSelector() {
+            const selector = document.getElementById('moodSelector');
+            selector.classList.toggle('hidden');
+            document.getElementById('privacySelector').classList.add('hidden');
+        }
+
+        function setMood(mood) {
+            currentMood = mood;
+            const moodIndicator = document.getElementById('currentMood');
+            moodIndicator.className = `mood-indicator mood-${mood}`;
+            document.getElementById('moodSelector').classList.add('hidden');
+        }
+
+        function showPrivacySelector() {
+            const selector = document.getElementById('privacySelector');
+            selector.classList.toggle('hidden');
+            document.getElementById('moodSelector').classList.add('hidden');
+        }
+
+        function setPrivacy(privacy) {
+            postPrivacy = privacy;
+            const icon = document.getElementById('privacyIcon');
+            icon.className = privacy === 'public' ? 'fas fa-globe' : 
+                           privacy === 'followers' ? 'fas fa-users' : 'fas fa-lock';
+            document.getElementById('privacySelector').classList.add('hidden');
+        }
+
         function addLocation() {
             const currentText = document.getElementById('postText').value;
             const location = prompt('Add location:');
             if (location) {
-                document.getElementById('postText').value = currentText + ` 📍 ${location}`;
+                currentLocation = location;
+                document.getElementById('locationText').textContent = location;
+                document.getElementById('locationTag').classList.remove('hidden');
             }
+        }
+
+        function removeLocation() {
+            currentLocation = null;
+            document.getElementById('locationTag').classList.add('hidden');
         }
 
         function addHashtag() {
@@ -2522,6 +2057,7 @@
             const hashtag = prompt('Add hashtag (without #):');
             if (hashtag) {
                 document.getElementById('postText').value = currentText + ` #${hashtag}`;
+                updateCharacterCount();
             }
         }
 
@@ -2530,22 +2066,31 @@
             const mention = prompt('Mention user (without @):');
             if (mention) {
                 document.getElementById('postText').value = currentText + ` @${mention}`;
+                updateCharacterCount();
             }
         }
 
-        function sharePost(postId) {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Check out this post on Oriobuzz',
-                    url: window.location.href
-                });
+        function updateCharacterCount() {
+            const text = document.getElementById('postText').value;
+            const count = text.length;
+            const countElement = document.getElementById('characterCount');
+            const buzzButton = document.getElementById('buzzButton');
+            
+            countElement.textContent = `${count}/280`;
+            
+            if (count > 240) {
+                countElement.classList.add('warning');
             } else {
-                // Fallback for browsers that don't support Web Share API
-                const url = window.location.href;
-                navigator.clipboard.writeText(url).then(() => {
-                    alert('Link copied to clipboard!');
-                });
+                countElement.classList.remove('warning');
             }
+            
+            if (count > 270) {
+                countElement.classList.add('danger');
+            } else {
+                countElement.classList.remove('danger');
+            }
+            
+            buzzButton.disabled = count === 0 || count > 280;
         }
 
         // Navigation functions
@@ -2578,7 +2123,27 @@
             }
         }
 
-        // New utility functions
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            loadFeed();
+        }
+
+        function detectLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        showToast('Location detected successfully', 'success');
+                    },
+                    (error) => {
+                        showToast('Location access denied', 'error');
+                    }
+                );
+            } else {
+                showToast('Geolocation not supported', 'error');
+            }
+        }
+
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-white font-semibold ${
@@ -2592,391 +2157,6 @@
             setTimeout(() => {
                 toast.remove();
             }, 3000);
-        }
-
-        function detectLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-                        
-                        // Use reverse geocoding to get location name
-                        fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=YOUR_API_KEY`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.results && data.results.length > 0) {
-                                    const location = data.results[0].formatted;
-                                    showToast(`Location detected: ${location}`, 'success');
-                                }
-                            })
-                            .catch(() => {
-                                showToast('Location detected successfully', 'success');
-                            });
-                    },
-                    (error) => {
-                        showToast('Location access denied', 'error');
-                    }
-                );
-            } else {
-                showToast('Geolocation not supported', 'error');
-            }
-        }
-
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('clearSearchBtn').classList.add('hidden');
-            loadFeed();
-        }
-
-        function showAccountSwitcher() {
-            document.getElementById('accountSwitcherModal').classList.remove('hidden');
-            loadSavedAccounts();
-        }
-
-        function closeAccountSwitcher() {
-            document.getElementById('accountSwitcherModal').classList.add('hidden');
-        }
-
-        function loadSavedAccounts() {
-            const accountsList = document.getElementById('accountsList');
-            accountsList.innerHTML = '';
-            
-            // Current account
-            const currentAccountDiv = document.createElement('div');
-            currentAccountDiv.className = 'flex items-center justify-between p-3 bg-green-50 rounded-lg border-2 border-green-200';
-            currentAccountDiv.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
-                        ${currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U'}
-                    </div>
-                    <div>
-                        <h4 class="font-semibold">${currentUser.displayName || 'User'}</h4>
-                        <p class="text-sm text-gray-500">${currentUser.email}</p>
-                    </div>
-                </div>
-                <div class="text-green-500 font-semibold text-sm">Current</div>
-            `;
-            accountsList.appendChild(currentAccountDiv);
-            
-            // Saved accounts
-            savedAccounts.forEach((account, index) => {
-                if (account.uid !== currentUser.uid) {
-                    const accountDiv = document.createElement('div');
-                    accountDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100';
-                    accountDiv.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
-                                ${account.displayName ? account.displayName.charAt(0).toUpperCase() : 'U'}
-                            </div>
-                            <div>
-                                <h4 class="font-semibold">${account.displayName || 'User'}</h4>
-                                <p class="text-sm text-gray-500">${account.email}</p>
-                            </div>
-                        </div>
-                        <button onclick="removeAccount(${index})" class="text-red-500 hover:text-red-700">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    accountDiv.onclick = () => switchAccount(account);
-                    accountsList.appendChild(accountDiv);
-                }
-            });
-        }
-
-        function addAccount() {
-            // Save current account
-            const currentAccountData = {
-                uid: currentUser.uid,
-                displayName: currentUser.displayName,
-                email: currentUser.email,
-                photoURL: currentUser.photoURL
-            };
-            
-            if (!savedAccounts.find(acc => acc.uid === currentUser.uid)) {
-                savedAccounts.push(currentAccountData);
-                localStorage.setItem('oriobuzz_accounts', JSON.stringify(savedAccounts));
-            }
-            
-            // Sign out and show login
-            signOut();
-        }
-
-        function switchAccount(account) {
-            // This would require re-authentication in a real app
-            showToast('Account switching requires re-authentication', 'info');
-            closeAccountSwitcher();
-        }
-
-        function removeAccount(index) {
-            savedAccounts.splice(index, 1);
-            localStorage.setItem('oriobuzz_accounts', JSON.stringify(savedAccounts));
-            loadSavedAccounts();
-            showToast('Account removed', 'success');
-        }
-
-        function showBlockedUsers() {
-            document.getElementById('blockedUsersModal').classList.remove('hidden');
-            loadBlockedUsers();
-        }
-
-        function closeBlockedUsers() {
-            document.getElementById('blockedUsersModal').classList.add('hidden');
-        }
-
-        function loadBlockedUsers() {
-            const blockedUsersList = document.getElementById('blockedUsersList');
-            
-            if (blockedUsers.length === 0) {
-                blockedUsersList.innerHTML = '<p class="text-center text-gray-500">No blocked users</p>';
-                return;
-            }
-            
-            blockedUsersList.innerHTML = '';
-            blockedUsers.forEach((userId, index) => {
-                db.collection('users').doc(userId).get().then((doc) => {
-                    if (doc.exists) {
-                        const user = doc.data();
-                        const userDiv = document.createElement('div');
-                        userDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
-                        userDiv.innerHTML = `
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold">
-                                    ${user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold">${user.displayName || 'User'}</h4>
-                                    <p class="text-sm text-gray-500">@${user.email.split('@')[0]}</p>
-                                </div>
-                            </div>
-                            <button onclick="unblockUser('${userId}')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded-full text-sm transition-colors">
-                                Unblock
-                            </button>
-                        `;
-                        blockedUsersList.appendChild(userDiv);
-                    }
-                });
-            });
-        }
-
-        function blockUser(userId) {
-            if (!blockedUsers.includes(userId)) {
-                blockedUsers.push(userId);
-                db.collection('users').doc(currentUser.uid).update({
-                    blockedUsers: blockedUsers
-                });
-                showToast('User blocked', 'success');
-            }
-        }
-
-        function unblockUser(userId) {
-            blockedUsers = blockedUsers.filter(id => id !== userId);
-            db.collection('users').doc(currentUser.uid).update({
-                blockedUsers: blockedUsers
-            });
-            loadBlockedUsers();
-            showToast('User unblocked', 'success');
-        }
-
-        // Post composer functions
-        function showMoodSelector() {
-            const selector = document.getElementById('moodSelector');
-            selector.classList.toggle('hidden');
-            document.getElementById('privacySelector').classList.add('hidden');
-        }
-
-        function setMood(mood) {
-            currentMood = mood;
-            const moodIndicator = document.getElementById('currentMood');
-            moodIndicator.className = `mood-indicator mood-${mood}`;
-            document.getElementById('moodSelector').classList.add('hidden');
-        }
-
-        function showPrivacySelector() {
-            const selector = document.getElementById('privacySelector');
-            selector.classList.toggle('hidden');
-            document.getElementById('moodSelector').classList.add('hidden');
-        }
-
-        function setPrivacy(privacy) {
-            postPrivacy = privacy;
-            const icon = document.getElementById('privacyIcon');
-            icon.className = privacy === 'public' ? 'fas fa-globe' : 
-                           privacy === 'followers' ? 'fas fa-users' : 'fas fa-lock';
-            document.getElementById('privacySelector').classList.add('hidden');
-        }
-
-        function schedulePost() {
-            document.getElementById('scheduleModal').classList.remove('hidden');
-            
-            // Set minimum date to today
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('scheduleDate').min = today;
-            document.getElementById('scheduleDate').value = today;
-            
-            // Set current time
-            const now = new Date();
-            const timeString = now.toTimeString().slice(0, 5);
-            document.getElementById('scheduleTime').value = timeString;
-        }
-
-        function closeScheduleModal() {
-            document.getElementById('scheduleModal').classList.add('hidden');
-        }
-
-        function schedulePostConfirm() {
-            const date = document.getElementById('scheduleDate').value;
-            const time = document.getElementById('scheduleTime').value;
-            
-            if (!date || !time) {
-                showToast('Please select date and time', 'error');
-                return;
-            }
-            
-            const scheduledTime = new Date(`${date}T${time}`);
-            const now = new Date();
-            
-            if (scheduledTime <= now) {
-                showToast('Please select a future date and time', 'error');
-                return;
-            }
-            
-            // In a real app, this would schedule the post
-            showToast('Post scheduled successfully!', 'success');
-            closeScheduleModal();
-        }
-
-        function addLocation() {
-            document.getElementById('locationModal').classList.remove('hidden');
-            loadRecentLocations();
-        }
-
-        function closeLocationModal() {
-            document.getElementById('locationModal').classList.add('hidden');
-        }
-
-        function detectCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-                        
-                        // Simulate location name
-                        const locationName = `Current Location (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
-                        selectLocation(locationName);
-                        showToast('Current location added', 'success');
-                    },
-                    (error) => {
-                        showToast('Location access denied', 'error');
-                    }
-                );
-            } else {
-                showToast('Geolocation not supported', 'error');
-            }
-        }
-
-        function selectLocation(locationName) {
-            currentLocation = locationName;
-            document.getElementById('locationText').textContent = locationName;
-            document.getElementById('locationTag').classList.remove('hidden');
-            closeLocationModal();
-        }
-
-        function removeLocation() {
-            currentLocation = null;
-            document.getElementById('locationTag').classList.add('hidden');
-        }
-
-        function loadRecentLocations() {
-            const recentLocations = JSON.parse(localStorage.getItem('recent_locations') || '[]');
-            const container = document.getElementById('recentLocations');
-            
-            if (recentLocations.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 text-sm">No recent locations</p>';
-                return;
-            }
-            
-            container.innerHTML = '';
-            recentLocations.forEach(location => {
-                const locationDiv = document.createElement('div');
-                locationDiv.className = 'p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100';
-                locationDiv.innerHTML = `
-                    <div class="flex items-center">
-                        <i class="fas fa-map-marker-alt text-green-500 mr-2"></i>
-                        <span class="text-sm">${location}</span>
-                    </div>
-                `;
-                locationDiv.onclick = () => selectLocation(location);
-                container.appendChild(locationDiv);
-            });
-        }
-
-        function exportData() {
-            // Simulate data export
-            const userData = {
-                profile: {
-                    displayName: currentUser.displayName,
-                    email: currentUser.email,
-                    uid: currentUser.uid
-                },
-                exportDate: new Date().toISOString(),
-                note: 'This is a demo export. In a real app, this would contain all user data.'
-            };
-            
-            const dataStr = JSON.stringify(userData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'oriobuzz-data-export.json';
-            link.click();
-            
-            showToast('Data exported successfully!', 'success');
-        }
-
-        // Settings functions
-        function togglePrivateAccount() {
-            const isPrivate = document.getElementById('privateAccount').checked;
-            db.collection('users').doc(currentUser.uid).update({
-                isPrivate: isPrivate
-            });
-            showToast(isPrivate ? 'Account set to private' : 'Account set to public', 'success');
-        }
-
-        function toggleOnlineStatus() {
-            const showOnline = document.getElementById('showOnlineStatus').checked;
-            const onlineIndicator = document.getElementById('onlineStatus');
-            
-            if (showOnline) {
-                onlineIndicator.classList.remove('hidden');
-            } else {
-                onlineIndicator.classList.add('hidden');
-            }
-            
-            db.collection('users').doc(currentUser.uid).update({
-                showOnlineStatus: showOnline
-            });
-        }
-
-        function togglePushNotifications() {
-            const enabled = document.getElementById('pushNotifications').checked;
-            if (enabled && 'Notification' in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        showToast('Push notifications enabled', 'success');
-                    }
-                });
-            }
-        }
-
-        function toggleEmailNotifications() {
-            const enabled = document.getElementById('emailNotifications').checked;
-            db.collection('users').doc(currentUser.uid).update({
-                emailNotifications: enabled
-            });
-            showToast(enabled ? 'Email notifications enabled' : 'Email notifications disabled', 'success');
         }
 
         // Event listeners
@@ -2998,29 +2178,12 @@
         });
 
         document.getElementById('postText').addEventListener('input', function(e) {
+            updateCharacterCount();
+            
             const text = e.target.value;
-            const count = text.length;
-            const countElement = document.getElementById('characterCount');
-            const buzzButton = document.getElementById('buzzButton');
             const composer = document.getElementById('postComposer');
             
-            countElement.textContent = `${count}/280`;
-            
-            if (count > 240) {
-                countElement.classList.add('warning');
-            } else {
-                countElement.classList.remove('warning');
-            }
-            
-            if (count > 270) {
-                countElement.classList.add('danger');
-            } else {
-                countElement.classList.remove('danger');
-            }
-            
-            buzzButton.disabled = count === 0 || count > 280;
-            
-            if (count > 0) {
+            if (text.length > 0) {
                 composer.classList.add('focused');
                 
                 // Show typing indicator
@@ -3076,9 +2239,8 @@
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Oriobuzz app initialized');
-            selectTemplate(1); // Set default story template
+            console.log('Oriobuzz app initialized with Firestore integration');
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ef9b1011fb596a',t:'MTc1NTE2NTYzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96efd2faa1ae5496',t:'MTc1NTE2NzkyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
