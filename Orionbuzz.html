@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Oriobuzz - Social Media Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Enhanced Font and Base Styles */
+        /* Font and base styles */
         * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', sans-serif;
             touch-action: manipulation;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -24,49 +24,8 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            -webkit-tap-highlight-color: transparent;
         }
         
-        html {
-            scroll-behavior: smooth;
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-            zoom: 1.0;
-            -webkit-user-scalable: no;
-            -moz-user-scalable: no;
-            -ms-user-scalable: no;
-            user-scalable: no;
-        }
-        
-        body {
-            overscroll-behavior: none;
-            -webkit-overflow-scrolling: touch;
-            zoom: 1.0;
-            -webkit-user-scalable: no;
-            -moz-user-scalable: no;
-            -ms-user-scalable: no;
-            user-scalable: no;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        
-        input, textarea, select {
-            -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-            user-select: text;
-            font-size: 16px !important;
-            -webkit-text-size-adjust: 100%;
-            zoom: 1.0;
-        }
-        
-        /* Disable zoom on input focus */
-        input:focus, textarea:focus, select:focus {
-            font-size: 16px !important;
-            zoom: 1.0;
-        }
-        
-        /* Enhanced Loading States */
         .skeleton {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
@@ -78,238 +37,83 @@
             100% { background-position: -200% 0; }
         }
         
-        .shimmer {
-            background: linear-gradient(90deg, #f8fafc 25%, #e2e8f0 50%, #f8fafc 75%);
-            background-size: 200% 100%;
-            animation: shimmer 2s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        
-        /* Enhanced Buzz Card Styles */
         .buzz-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             border-left: 4px solid transparent;
-            transform: translateZ(0);
-            will-change: transform, box-shadow, border-left-color;
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.95);
         }
         
         .buzz-card:hover {
             border-left-color: #10b981;
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
-            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
         }
         
-        .buzz-card:active {
-            transform: scale(0.98) translateY(0);
+        .buzz-actions {
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         
-        /* Custom Verified Badge */
-        .verified-badge {
-            background: linear-gradient(135deg, #10b981, #06b6d4, #8b5cf6);
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            position: relative;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        .buzz-card:hover .buzz-actions {
+            opacity: 1;
         }
         
-        .verified-badge::before {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            background: linear-gradient(135deg, #10b981, #06b6d4, #8b5cf6, #ec4899);
-            border-radius: 50%;
-            z-index: -1;
-            animation: verifiedGlow 3s ease-in-out infinite;
+        input, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
         }
         
-        @keyframes verifiedGlow {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.1); }
-        }
+        .story-template-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .story-template-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .story-template-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .story-template-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .story-template-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .story-template-6 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
         
-        /* Enhanced Profile Image */
-        .profile-image {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: 3px solid white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        .profile-image.online::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 12px;
-            height: 12px;
-            background: #10b981;
-            border: 2px solid white;
-            border-radius: 50%;
-            animation: onlinePulse 2s infinite;
-        }
-        
-        @keyframes onlinePulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.1); }
-        }
-        
-        /* Enhanced Button Styles */
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            font-weight: 600;
-            border-radius: 12px;
-            padding: 12px 24px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-            border: none;
-            cursor: pointer;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-        }
-        
-        .btn-primary:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn-secondary {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            font-weight: 600;
-            border: 2px solid #10b981;
-            border-radius: 12px;
-            padding: 10px 22px;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-secondary:hover {
-            background: #10b981;
-            color: white;
-            transform: translateY(-1px);
-        }
-        
-        /* Enhanced Modal Styles */
-        .modal-backdrop {
-            backdrop-filter: blur(12px);
-            background: rgba(0, 0, 0, 0.5);
-            transition: all 0.4s ease;
-        }
-        
-        .modal-content {
-            transform: translateZ(0);
-            will-change: transform;
-            border-radius: 24px 24px 0 0;
-            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.2);
-            background: white;
-        }
-        
-        .modal-header {
-            border-radius: 24px 24px 0 0;
-            backdrop-filter: blur(20px);
-            background: rgba(255, 255, 255, 0.98);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        /* Enhanced Animations */
-        .slide-up {
-            animation: slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        
-        @keyframes slideUp {
-            from { 
-                transform: translateY(100%); 
-                opacity: 0; 
-            }
-            to { 
-                transform: translateY(0); 
-                opacity: 1; 
-            }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .bounce-in {
-            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        /* Like Animation */
         .like-animation {
             animation: likeHeart 0.6s ease-in-out;
         }
         
         @keyframes likeHeart {
             0% { transform: scale(1); }
-            15% { transform: scale(1.2); }
-            30% { transform: scale(0.95); }
-            45% { transform: scale(1.1); }
-            60% { transform: scale(1); }
+            50% { transform: scale(1.3); color: #ef4444; }
             100% { transform: scale(1); }
         }
         
-        /* Floating Hearts */
         .floating-heart {
-            animation: floatUp 2s ease-out forwards;
+            animation: floatUp 1s ease-out forwards;
             position: absolute;
             pointer-events: none;
-            z-index: 1000;
-            font-size: 20px;
-            color: #ef4444;
+            z-index: 10;
         }
         
         @keyframes floatUp {
-            0% { 
-                opacity: 1; 
-                transform: translateY(0) scale(1) rotate(0deg); 
-            }
-            100% { 
-                opacity: 0; 
-                transform: translateY(-100px) scale(1.5) rotate(15deg); 
-            }
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
         }
         
-        /* Enhanced Navigation */
-        .nav-glass {
-            backdrop-filter: blur(20px);
-            background: rgba(255, 255, 255, 0.95);
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
         }
         
-        /* Story Ring Animation */
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
         .story-ring {
             background: linear-gradient(45deg, #10b981, #ec4899, #8b5cf6, #06b6d4);
-            background-size: 400% 400%;
-            animation: gradientShift 4s ease infinite;
-            padding: 3px;
-            border-radius: 50%;
+            background-size: 300% 300%;
+            animation: gradientShift 3s ease infinite;
         }
         
         @keyframes gradientShift {
@@ -318,91 +122,215 @@
             100% { background-position: 0% 50%; }
         }
         
-        /* Enhanced Typography */
-        .text-gradient {
-            background: linear-gradient(135deg, #10b981, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        /* Notification Badge */
         .notification-badge {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
             animation: pulse 2s infinite;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
         }
         
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.1); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
-        /* Enhanced Search */
-        .search-container {
-            position: relative;
-            background: rgba(243, 244, 246, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            transition: all 0.3s ease;
+        .post-grid-item {
+            transition: transform 0.2s ease;
         }
         
-        .search-container:focus-within {
-            background: white;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
-            border: 2px solid #10b981;
+        .post-grid-item:hover {
+            transform: scale(1.05);
         }
         
-        /* Trending Topics */
-        .trending-topic {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(236, 72, 153, 0.1));
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 16px;
-            padding: 12px 16px;
-            transition: all 0.3s ease;
+        .profile-image-placeholder {
+            background: linear-gradient(135deg, #10b981, #ec4899);
         }
         
-        .trending-topic:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        .coming-soon-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
         }
         
-        /* Enhanced Engagement Stats */
-        .engagement-stats {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(236, 72, 153, 0.05));
-            border: 1px solid rgba(16, 185, 129, 0.1);
-            border-radius: 12px;
-            padding: 12px;
-            margin-top: 12px;
-        }
-        
-        /* Loading Spinner */
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid #10b981;
+        /* Custom Verified Badge */
+        .verified-badge {
+            background: linear-gradient(45deg, #10b981, #06b6d4);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            position: relative;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .verified-badge::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, #10b981, #06b6d4, #8b5cf6);
+            border-radius: 50%;
+            z-index: -1;
+            animation: verifiedGlow 2s ease-in-out infinite alternate;
         }
         
-        /* Enhanced Skeleton Loading */
+        @keyframes verifiedGlow {
+            0% { opacity: 0.5; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+        
+        .online-indicator {
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            animation: onlinePulse 2s infinite;
+        }
+        
+        @keyframes onlinePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            space-x: 1;
+        }
+        
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        .post-composer {
+            transition: all 0.3s ease;
+        }
+        
+        .post-composer.focused {
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+        }
+        
+        .character-count {
+            transition: color 0.3s ease;
+        }
+        
+        .character-count.warning {
+            color: #f59e0b;
+        }
+        
+        .character-count.danger {
+            color: #ef4444;
+        }
+        
+        .blocked-user {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+        
+        .private-account {
+            position: relative;
+        }
+        
+        .private-account::after {
+            content: '🔒';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 12px;
+        }
+        
+        .location-tag {
+            background: linear-gradient(45deg, #10b981, #06b6d4);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .mood-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+        
+        .mood-happy { background: #10b981; }
+        .mood-sad { background: #6b7280; }
+        .mood-excited { background: #f59e0b; }
+        .mood-love { background: #ec4899; }
+        
+        .account-switcher {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .post-actions {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .post-item:hover .post-actions {
+            opacity: 1;
+        }
+        
+        .engagement-stats {
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 8px;
+        }
+        
+        .trending-topic {
+            background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+            border-left: 3px solid #10b981;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .activity-indicator {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: activityPulse 2s infinite;
+        }
+        
+        @keyframes activityPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        /* Skeleton loading states */
         .skeleton-buzz {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 8px;
         }
         
         .skeleton-avatar {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
@@ -414,7 +342,7 @@
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
             animation: loading 1.5s infinite;
-            border-radius: 8px;
+            border-radius: 4px;
             margin: 8px 0;
         }
         
@@ -422,234 +350,26 @@
         .skeleton-text.medium { width: 80%; }
         .skeleton-text.long { width: 100%; }
         
-        /* Pull to Refresh */
-        .pull-indicator {
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #10b981;
-            font-weight: 600;
-            opacity: 0;
-            transform: translateY(-80px);
-            transition: all 0.3s ease;
+        .pulse-loading {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         
-        .pull-indicator.active {
-            opacity: 1;
-            transform: translateY(0);
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
         }
         
-        /* Enhanced Mobile Responsiveness */
-        @media (max-width: 640px) {
-            .container-mobile {
-                padding-left: 16px;
-                padding-right: 16px;
-            }
-            
-            .buzz-card {
-                margin-bottom: 8px;
-                border-radius: 20px;
-                padding: 20px;
-            }
-            
-            .modal-mobile {
-                border-radius: 28px 28px 0 0;
-                max-height: 95vh;
-            }
+        .route-transition {
+            animation: slideInUp 0.3s ease-out;
         }
         
-        /* Dark Mode Support */
-        @media (prefers-color-scheme: dark) {
-            .buzz-card {
-                background: rgba(31, 41, 55, 0.95);
-                color: white;
-            }
-            
-            .modal-content {
-                background: #1f2937;
-                color: white;
-            }
+        @keyframes slideInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        
-        /* Accessibility Enhancements */
-        .focus-visible:focus {
-            outline: 2px solid #10b981;
-            outline-offset: 2px;
-        }
-        
-        /* Enhanced Interactions */
-        .interactive:hover {
-            transform: translateY(-1px);
-            transition: transform 0.2s ease;
-        }
-        
-        .interactive:active {
-            transform: translateY(0);
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #10b981, #059669);
-            border-radius: 3px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-        }
-        
-        /* Enhanced Security Indicators */
-        .security-indicator {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(16, 185, 129, 0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .security-indicator.show {
-            opacity: 1;
-        }
-        
-        /* Location Indicator */
-        .location-tag {
-            background: linear-gradient(135deg, #10b981, #06b6d4);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        /* Mood Indicators */
-        .mood-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 6px;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .mood-happy { background: #10b981; }
-        .mood-sad { background: #6b7280; }
-        .mood-excited { background: #f59e0b; }
-        .mood-love { background: #ec4899; }
-        .mood-angry { background: #ef4444; }
-        .mood-surprised { background: #8b5cf6; }
-        
-        /* Enhanced Story Templates */
-        .story-template-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .story-template-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .story-template-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .story-template-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-        .story-template-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .story-template-6 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
-        .story-template-7 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
-        .story-template-8 { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
-        
-        /* Enhanced Privacy Indicators */
-        .privacy-public { color: #10b981; }
-        .privacy-followers { color: #f59e0b; }
-        .privacy-private { color: #ef4444; }
-        
-        /* Typing Indicator */
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: #10b981;
-            border-radius: 50%;
-            animation: typingBounce 1.4s infinite ease-in-out;
-        }
-        
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        .typing-dot:nth-child(3) { animation-delay: 0s; }
-        
-        @keyframes typingBounce {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1.2); opacity: 1; }
-        }
-        
-        /* Enhanced Error States */
-        .error-state {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            color: #dc2626;
-        }
-        
-        /* Success States */
-        .success-state {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            color: #059669;
-        }
-        
-        /* Enhanced Toast Notifications */
-        .toast {
-            position: fixed;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            padding: 16px 24px;
-            border-radius: 16px;
-            color: white;
-            font-weight: 600;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            animation: toastSlide 0.4s ease-out;
-        }
-        
-        @keyframes toastSlide {
-            from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-            to { transform: translateX(-50%) translateY(0); opacity: 1; }
-        }
-        
-        .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
-        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
-        .toast.info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .toast.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
-
-    <!-- Security Indicator -->
-    <div id="securityIndicator" class="security-indicator">
-        <i class="fas fa-shield-alt mr-1"></i>
-        <span>Secure Connection</span>
-    </div>
 
     <!-- Firebase Configuration -->
     <script>
@@ -666,189 +386,90 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
-        
-        // Enhanced Security Rules
-        const securityRules = {
-            maxBuzzLength: 280,
-            maxUsernameLength: 30,
-            minUsernameLength: 3,
-            allowedImageTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-            maxImageSize: 5 * 1024 * 1024, // 5MB
-            rateLimits: {
-                buzzes: { count: 50, window: 3600000 }, // 50 buzzes per hour
-                likes: { count: 1000, window: 3600000 }, // 1000 likes per hour
-                follows: { count: 100, window: 3600000 }, // 100 follows per hour
-                comments: { count: 200, window: 3600000 } // 200 comments per hour
-            },
-            blockedWords: ['spam', 'scam', 'fake', 'bot'],
-            adminUIDs: ['admin-uid-1', 'admin-uid-2'] // Add admin UIDs here
-        };
-        
-        // Rate limiting storage
-        const rateLimitStorage = {
-            buzzes: [],
-            likes: [],
-            follows: [],
-            comments: []
-        };
     </script>
 
-    <!-- Enhanced Login Screen -->
+    <!-- Login Screen -->
     <div id="loginScreen" class="min-h-screen bg-gradient-to-br from-green-400 via-pink-500 to-purple-600 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md backdrop-filter backdrop-blur-lg bg-opacity-95">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
             <div class="text-center mb-8">
-                <div class="w-24 h-24 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <i class="fas fa-comments text-white text-4xl"></i>
+                <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-comments text-white text-3xl"></i>
                 </div>
-                <h1 class="text-5xl font-black text-gradient mb-2">Oriobuzz</h1>
-                <p class="text-gray-600 text-lg font-medium">Connect, Share, Discover</p>
-                <p class="text-gray-500 text-sm mt-2">Join millions of users sharing their moments</p>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-green-500 to-pink-500 bg-clip-text text-transparent">Oriobuzz</h1>
+                <p class="text-gray-600 mt-2">Connect, Share, Discover</p>
             </div>
             
             <div class="space-y-4">
-                <button onclick="signInWithGoogle()" class="w-full bg-red-500 hover:bg-red-600 text-white py-4 px-6 rounded-xl flex items-center justify-center space-x-3 transition-all duration-300 transform hover:scale-105 shadow-lg">
-                    <i class="fab fa-google text-xl"></i>
-                    <span class="font-semibold">Continue with Google</span>
+                <button onclick="signInWithGoogle()" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
+                    <i class="fab fa-google"></i>
+                    <span>Continue with Google</span>
                 </button>
                 
-                <button onclick="signInWithTwitter()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 px-6 rounded-xl flex items-center justify-center space-x-3 transition-all duration-300 transform hover:scale-105 shadow-lg">
-                    <i class="fab fa-twitter text-xl"></i>
-                    <span class="font-semibold">Continue with Twitter</span>
+                <button onclick="signInWithTwitter()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
+                    <i class="fab fa-twitter"></i>
+                    <span>Continue with Twitter</span>
                 </button>
                 
-                <button onclick="signInWithGitHub()" class="w-full bg-gray-800 hover:bg-gray-900 text-white py-4 px-6 rounded-xl flex items-center justify-center space-x-3 transition-all duration-300 transform hover:scale-105 shadow-lg">
-                    <i class="fab fa-github text-xl"></i>
-                    <span class="font-semibold">Continue with GitHub</span>
-                </button>
-                
-                <div class="text-center mt-6">
-                    <p class="text-xs text-gray-500">
-                        By continuing, you agree to our 
-                        <a href="#" class="text-green-500 hover:underline">Terms of Service</a> and 
-                        <a href="#" class="text-green-500 hover:underline">Privacy Policy</a>
-                    </p>
-                </div>
-            </div>
-            
-            <!-- Loading Indicator -->
-            <div id="loginLoading" class="hidden text-center mt-6">
-                <div class="spinner mx-auto"></div>
-                <p class="text-gray-600 mt-2">Signing you in...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Public Profile View (No Login Required) -->
-    <div id="publicViewScreen" class="hidden min-h-screen bg-gray-50">
-        <div class="bg-white border-b border-gray-200 p-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                        <i class="fas fa-comments text-white text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-gradient">Oriobuzz</h1>
-                        <p class="text-sm text-gray-500">Public View</p>
-                    </div>
-                </div>
-                <button onclick="showLoginFromPublic()" class="btn-primary">
-                    <i class="fas fa-sign-in-alt mr-2"></i>
-                    Sign In
+                <button onclick="signInWithGitHub()" class="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-colors">
+                    <i class="fab fa-github"></i>
+                    <span>Continue with GitHub</span>
                 </button>
             </div>
-        </div>
-        
-        <div id="publicProfileContent" class="p-4">
-            <!-- Public profile content will be loaded here -->
         </div>
     </div>
 
     <!-- Main App Container -->
     <div id="mainApp" class="hidden min-h-screen bg-gray-50">
-        <!-- Enhanced Top Navigation -->
-        <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 nav-glass">
-            <div class="flex items-center justify-between container-mobile py-3">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                        <i class="fas fa-comments text-white text-xl"></i>
+        <!-- Top Navigation -->
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+            <div class="flex items-center justify-between p-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-comments text-white text-sm"></i>
                     </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-gradient">Oriobuzz</h1>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <span class="text-xs text-gray-500 font-medium" id="onlineUsersCount">0 online</span>
-                        </div>
-                    </div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-green-500 to-pink-500 bg-clip-text text-transparent">Oriobuzz</h1>
+                    <div class="activity-indicator ml-2"></div>
                 </div>
                 
-                <!-- Enhanced Search Bar -->
+                <!-- Search Bar -->
                 <div class="flex-1 max-w-md mx-4">
-                    <div class="search-container">
-                        <input type="text" id="searchInput" placeholder="Search buzzes, users, hashtags..." 
-                               class="w-full bg-transparent rounded-full py-3 px-4 pl-12 pr-12 focus:outline-none text-gray-700 placeholder-gray-500">
-                        <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
-                        <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 transition-colors">
-                            <i class="fas fa-times"></i>
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search users, hashtags..." 
+                               class="w-full bg-gray-100 rounded-full py-2 px-4 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+                        <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-sm"></i>
                         </button>
                     </div>
                 </div>
                 
                 <div class="flex items-center space-x-2">
-                    <!-- Location Detector -->
-                    <button onclick="detectLocation()" class="p-3 text-gray-600 hover:text-green-500 hover:bg-green-50 rounded-full transition-all" title="Detect Location">
-                        <i class="fas fa-map-marker-alt"></i>
+                    <!-- Location -->
+                    <button onclick="detectLocation()" class="text-gray-600 hover:text-green-500 transition-colors">
+                        <i class="fas fa-map-marker-alt text-lg"></i>
                     </button>
-                    
-                    <!-- Account Switcher -->
-                    <div class="relative">
-                        <button onclick="showAccountSwitcher()" class="p-3 text-gray-600 hover:text-green-500 hover:bg-green-50 rounded-full transition-all" title="Switch Account">
-                            <i class="fas fa-user-friends"></i>
-                        </button>
-                        <div id="accountSwitcher" class="hidden absolute top-full right-0 bg-white border rounded-xl shadow-lg p-3 z-20 w-64">
-                            <div class="text-sm font-semibold text-gray-700 mb-2">Switch Account</div>
-                            <div id="accountsList" class="space-y-2 max-h-48 overflow-y-auto">
-                                <!-- Accounts will be populated here -->
-                            </div>
-                            <hr class="my-2">
-                            <button onclick="addAccount()" class="w-full text-left p-2 hover:bg-gray-50 rounded-lg text-green-500 font-medium">
-                                <i class="fas fa-plus mr-2"></i>Add Account
-                            </button>
-                        </div>
-                    </div>
                     
                     <!-- Profile -->
                     <button onclick="showProfile()" class="relative">
-                        <div class="w-12 h-12 profile-image rounded-full flex items-center justify-center text-white font-bold shadow-md online">
+                        <div class="w-8 h-8 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold text-sm">
                             <span id="userInitial">U</span>
+                            <div id="onlineStatus" class="online-indicator"></div>
                         </div>
-                        <div id="notificationBadge" class="hidden absolute -top-1 -right-1 w-5 h-5 notification-badge rounded-full flex items-center justify-center">
-                            <span class="text-xs text-white font-bold" id="notificationCount">0</span>
-                        </div>
+                        <div id="notificationBadge" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full notification-badge"></div>
                     </button>
                 </div>
             </div>
         </nav>
 
-        <!-- Enhanced Stories Section -->
-        <div class="bg-white border-b border-gray-200 container-mobile py-4">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="font-bold text-gray-800 flex items-center">
-                    <i class="fas fa-circle-play text-green-500 mr-2"></i>
-                    Stories
-                </h3>
-                <button onclick="showAllStories()" class="text-green-500 text-sm font-medium hover:underline">
-                    View All
-                </button>
-            </div>
-            <div class="flex space-x-4 overflow-x-auto pb-2 scroll-smooth">
+        <!-- Stories Section -->
+        <div class="bg-white border-b border-gray-200 p-4">
+            <div class="flex space-x-4 overflow-x-auto pb-2">
                 <!-- Add Story Button -->
                 <div class="flex-shrink-0 text-center">
-                    <button onclick="showStoryCreator()" class="story-ring rounded-full p-1 shadow-lg">
-                        <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xl relative">
-                            <i class="fas fa-plus"></i>
-                        </div>
+                    <button onclick="showStoryCreator()" class="w-16 h-16 bg-gradient-to-r from-green-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl relative">
+                        <i class="fas fa-plus"></i>
                     </button>
-                    <p class="text-xs mt-2 text-gray-600 font-medium">Your Story</p>
+                    <p class="text-xs mt-1 text-gray-600">Your Story</p>
                 </div>
                 
                 <!-- Stories -->
@@ -858,34 +479,29 @@
             </div>
         </div>
 
-        <!-- Enhanced Trending Section -->
+        <!-- Trending Hashtags -->
         <div class="bg-white border-b border-gray-200 p-4">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="font-bold text-gray-800 flex items-center">
-                    <i class="fas fa-fire text-orange-500 mr-2"></i>
-                    Trending Now
-                </h3>
-                <button onclick="refreshTrending()" class="text-green-500 text-sm font-medium hover:underline">
-                    <i class="fas fa-sync-alt mr-1"></i>Refresh
-                </button>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="trendingHashtags">
+            <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
+                <i class="fas fa-fire text-orange-500 mr-2"></i>
+                Trending
+            </h3>
+            <div class="flex flex-wrap gap-2" id="trendingHashtags">
                 <!-- Trending hashtags will be populated here -->
             </div>
         </div>
 
-        <!-- Enhanced Post Composer -->
-        <div class="bg-white border-b border-gray-200 container-mobile py-4" id="postComposer">
-            <div class="flex space-x-4">
-                <div class="w-12 h-12 profile-image rounded-full flex items-center justify-center text-white font-bold relative shadow-md">
+        <!-- Post Composer -->
+        <div class="bg-white border-b border-gray-200 p-4 post-composer" id="postComposer">
+            <div class="flex space-x-3">
+                <div class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold relative">
                     <span id="composerUserInitial">U</span>
                     <div class="mood-indicator mood-happy" id="currentMood"></div>
                 </div>
                 <div class="flex-1">
                     <div class="relative">
-                        <textarea id="postText" placeholder="What's buzzing today? Share your thoughts..." 
-                                  class="w-full resize-none border-none outline-none text-lg placeholder-gray-500 min-h-[100px] leading-relaxed" 
-                                  rows="4" maxlength="280"></textarea>
+                        <textarea id="postText" placeholder="What's buzzing?" 
+                                  class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" 
+                                  rows="3" maxlength="280"></textarea>
                         <div id="typingIndicator" class="hidden typing-indicator absolute bottom-2 right-2">
                             <div class="typing-dot"></div>
                             <div class="typing-dot"></div>
@@ -893,500 +509,260 @@
                         </div>
                     </div>
                     
-                    <!-- Enhanced Post Options -->
-                    <div class="flex items-center justify-between mt-4">
+                    <!-- Post Options -->
+                    <div class="flex items-center justify-between mt-3">
                         <div class="flex space-x-2">
                             <!-- Mood Selector -->
                             <div class="relative">
-                                <button onclick="showMoodSelector()" class="p-3 text-green-500 hover:bg-green-50 rounded-full transition-all" title="Add Mood">
+                                <button onclick="showMoodSelector()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
                                     <i class="fas fa-smile"></i>
                                 </button>
-                                <div id="moodSelector" class="hidden absolute top-full left-0 bg-white border rounded-xl shadow-lg p-3 z-10 w-48">
-                                    <div class="text-sm font-semibold text-gray-700 mb-2">How are you feeling?</div>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button onclick="setMood('happy')" class="p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">😊 Happy</button>
-                                        <button onclick="setMood('excited')" class="p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">🎉 Excited</button>
-                                        <button onclick="setMood('love')" class="p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">❤️ Love</button>
-                                        <button onclick="setMood('sad')" class="p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">😢 Sad</button>
-                                        <button onclick="setMood('angry')" class="p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">😠 Angry</button>
-                                        <button onclick="setMood('surprised')" class="p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">😲 Surprised</button>
-                                    </div>
+                                <div id="moodSelector" class="hidden absolute top-full left-0 bg-white border rounded-lg shadow-lg p-2 z-10">
+                                    <button onclick="setMood('happy')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">😊 Happy</button>
+                                    <button onclick="setMood('excited')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">🎉 Excited</button>
+                                    <button onclick="setMood('love')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">❤️ Love</button>
+                                    <button onclick="setMood('sad')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">😢 Sad</button>
                                 </div>
                             </div>
                             
-                            <button onclick="addLocation()" class="p-3 text-green-500 hover:bg-green-50 rounded-full transition-all" title="Add Location">
+                            <button onclick="addLocation()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
                                 <i class="fas fa-map-marker-alt"></i>
                             </button>
-                            <button onclick="addHashtag()" class="p-3 text-green-500 hover:bg-green-50 rounded-full transition-all" title="Add Hashtag">
+                            <button onclick="addHashtag()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
                                 <i class="fas fa-hashtag"></i>
                             </button>
-                            <button onclick="addMention()" class="p-3 text-green-500 hover:bg-green-50 rounded-full transition-all" title="Mention Someone">
+                            <button onclick="addMention()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
                                 <i class="fas fa-at"></i>
                             </button>
-                            <button onclick="schedulePost()" class="p-3 text-green-500 hover:bg-green-50 rounded-full transition-all" title="Schedule Post">
-                                <i class="fas fa-clock"></i>
-                            </button>
                             
-                            <!-- Enhanced Privacy Selector -->
+                            <!-- Privacy Selector -->
                             <div class="relative">
-                                <button onclick="showPrivacySelector()" class="p-3 text-green-500 hover:bg-green-50 rounded-full transition-all" title="Privacy Settings">
+                                <button onclick="showPrivacySelector()" class="hover:bg-green-50 p-2 rounded-full transition-colors text-green-500">
                                     <i class="fas fa-globe" id="privacyIcon"></i>
                                 </button>
-                                <div id="privacySelector" class="hidden absolute top-full left-0 bg-white border rounded-xl shadow-lg p-3 z-10 w-56">
-                                    <div class="text-sm font-semibold text-gray-700 mb-2">Who can see this?</div>
-                                    <button onclick="setPrivacy('public')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                                        <i class="fas fa-globe mr-3 text-green-500"></i>
-                                        <div>
-                                            <div class="font-medium">Public</div>
-                                            <div class="text-xs text-gray-500">Anyone can see this buzz</div>
-                                        </div>
+                                <div id="privacySelector" class="hidden absolute top-full left-0 bg-white border rounded-lg shadow-lg p-2 z-10">
+                                    <button onclick="setPrivacy('public')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">
+                                        <i class="fas fa-globe mr-2"></i>Public
                                     </button>
-                                    <button onclick="setPrivacy('followers')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                                        <i class="fas fa-users mr-3 text-blue-500"></i>
-                                        <div>
-                                            <div class="font-medium">Followers</div>
-                                            <div class="text-xs text-gray-500">Only your followers</div>
-                                        </div>
+                                    <button onclick="setPrivacy('followers')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">
+                                        <i class="fas fa-users mr-2"></i>Followers
                                     </button>
-                                    <button onclick="setPrivacy('private')" class="block w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                                        <i class="fas fa-lock mr-3 text-red-500"></i>
-                                        <div>
-                                            <div class="font-medium">Private</div>
-                                            <div class="text-xs text-gray-500">Only you can see this</div>
-                                        </div>
+                                    <button onclick="setPrivacy('private')" class="block w-full text-left p-2 hover:bg-gray-50 rounded">
+                                        <i class="fas fa-lock mr-2"></i>Private
                                     </button>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="flex items-center space-x-4">
-                            <div class="text-right">
-                                <div id="characterCount" class="text-sm text-gray-500 font-medium">0/280</div>
-                                <div id="wordCount" class="text-xs text-gray-400">0 words</div>
-                            </div>
-                            <button onclick="createBuzz()" id="buzzButton" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                                <i class="fas fa-paper-plane mr-2"></i>
-                                Buzz It
+                        <div class="flex items-center space-x-3">
+                            <span id="characterCount" class="text-sm text-gray-500 character-count">0/280</span>
+                            <button onclick="createBuzz()" id="buzzButton" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50" disabled>
+                                Buzz
                             </button>
                         </div>
                     </div>
                     
                     <!-- Location Tag -->
-                    <div id="locationTag" class="hidden mt-3">
+                    <div id="locationTag" class="hidden mt-2">
                         <span class="location-tag">
                             <i class="fas fa-map-marker-alt"></i>
                             <span id="locationText">Location</span>
-                            <button onclick="removeLocation()" class="ml-2 hover:text-red-300 transition-colors">
+                            <button onclick="removeLocation()" class="ml-1 hover:text-red-300">
                                 <i class="fas fa-times text-xs"></i>
                             </button>
                         </span>
-                    </div>
-                    
-                    <!-- Scheduled Post Indicator -->
-                    <div id="scheduledIndicator" class="hidden mt-3">
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
-                            <div class="flex items-center text-blue-700">
-                                <i class="fas fa-clock mr-2"></i>
-                                <span class="text-sm font-medium">Scheduled for: <span id="scheduledTime"></span></span>
-                            </div>
-                            <button onclick="removeSchedule()" class="text-blue-500 hover:text-blue-700">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Enhanced Pull to Refresh Indicator -->
-        <div id="pullIndicator" class="pull-indicator">
-            <div class="flex items-center space-x-2">
-                <i class="fas fa-arrow-down"></i>
-                <span>Pull to refresh</span>
-            </div>
-        </div>
-
-        <!-- Enhanced Feed -->
-        <div id="feedContainer" class="pb-24 scroll-smooth" style="scroll-padding-top: 120px;">
+        <!-- Feed -->
+        <div id="feedContainer" class="pb-20">
             <!-- Posts will be populated here -->
         </div>
 
-        <!-- Enhanced Bottom Navigation -->
-        <nav class="fixed bottom-0 left-0 right-0 nav-glass border-t border-gray-200">
-            <div class="flex justify-around py-2 safe-area-inset-bottom">
-                <button onclick="showFeed()" class="flex flex-col items-center py-2 px-4 text-green-500 rounded-xl transition-all" id="homeBtn">
-                    <i class="fas fa-home text-xl mb-1"></i>
-                    <span class="text-xs font-medium">Home</span>
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+            <div class="flex justify-around py-2">
+                <button onclick="showFeed()" class="flex flex-col items-center py-2 px-4 text-green-500" id="homeBtn">
+                    <i class="fas fa-home text-xl"></i>
+                    <span class="text-xs">Home</span>
                 </button>
-                <button onclick="showSearch()" class="flex flex-col items-center py-2 px-4 text-gray-400 rounded-xl transition-all" id="searchBtn">
-                    <i class="fas fa-search text-xl mb-1"></i>
-                    <span class="text-xs font-medium">Explore</span>
+                <button onclick="showSearch()" class="flex flex-col items-center py-2 px-4 text-gray-400" id="searchBtn">
+                    <i class="fas fa-search text-xl"></i>
+                    <span class="text-xs">Search</span>
                 </button>
-                <button onclick="showNotifications()" class="flex flex-col items-center py-2 px-4 text-gray-400 relative rounded-xl transition-all" id="notificationsBtn">
-                    <i class="fas fa-bell text-xl mb-1"></i>
-                    <span class="text-xs font-medium">Alerts</span>
-                    <div id="notificationDot" class="hidden absolute top-1 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
+                <button onclick="showNotifications()" class="flex flex-col items-center py-2 px-4 text-gray-400 relative" id="notificationsBtn">
+                    <i class="fas fa-bell text-xl"></i>
+                    <span class="text-xs">Notifications</span>
+                    <div id="notificationDot" class="hidden absolute top-1 right-3 w-2 h-2 bg-red-500 rounded-full"></div>
                 </button>
-                <button onclick="showSaved()" class="flex flex-col items-center py-2 px-4 text-gray-400 rounded-xl transition-all" id="savedBtn">
-                    <i class="fas fa-bookmark text-xl mb-1"></i>
-                    <span class="text-xs font-medium">Saved</span>
-                </button>
-                <button onclick="showProfile()" class="flex flex-col items-center py-2 px-4 text-gray-400 rounded-xl transition-all" id="profileBtn">
-                    <i class="fas fa-user text-xl mb-1"></i>
-                    <span class="text-xs font-medium">Profile</span>
+                <button onclick="showProfile()" class="flex flex-col items-center py-2 px-4 text-gray-400" id="profileBtn">
+                    <i class="fas fa-user text-xl"></i>
+                    <span class="text-xs">Profile</span>
                 </button>
             </div>
         </nav>
     </div>
 
-    <!-- Enhanced Profile Modal -->
-    <div id="profileModal" class="hidden fixed inset-0 modal-backdrop z-50">
-        <div class="bg-white h-full overflow-y-auto modal-content modal-mobile">
-            <!-- Enhanced Profile Header -->
-            <div class="bg-gradient-to-r from-green-500 via-pink-500 to-purple-600 container-mobile py-8 text-white relative">
-                <div class="flex items-center justify-between mb-6">
-                    <button onclick="closeProfile()" class="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-all">
-                        <i class="fas fa-arrow-left text-xl"></i>
+    <!-- Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto">
+            <!-- Profile Header -->
+            <div class="bg-gradient-to-r from-green-500 to-pink-500 p-4 text-white relative">
+                <div class="flex items-center justify-between mb-4">
+                    <button onclick="closeProfile()" class="text-white text-xl">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <div class="flex space-x-2">
-                        <button onclick="shareProfile()" class="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-all">
-                            <i class="fas fa-share text-xl"></i>
-                        </button>
-                        <button onclick="showSettings()" class="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-all">
-                            <i class="fas fa-cog text-xl"></i>
-                        </button>
-                    </div>
+                    <button onclick="showSettings()" class="text-white">
+                        <i class="fas fa-cog"></i>
+                    </button>
                 </div>
                 
-                <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-4">
                     <div class="relative">
-                        <div class="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-lg">
+                        <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl font-bold">
                             <span id="profileUserInitial">U</span>
                         </div>
-                        <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
-                            <i class="fas fa-camera text-white text-xs"></i>
-                        </div>
                     </div>
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-2 mb-2">
-                            <h2 id="profileUsername" class="text-2xl font-bold">Username</h2>
+                    <div>
+                        <div class="flex items-center">
+                            <h2 id="profileUsername" class="text-xl font-bold mr-2">Username</h2>
                             <div id="verifiedBadge" class="verified-badge hidden">
                                 <i class="fas fa-check"></i>
                             </div>
                         </div>
-                        <p id="profileHandle" class="opacity-90 text-lg">@username</p>
-                        <div class="flex items-center mt-2 space-x-4">
-                            <div class="flex items-center">
-                                <i class="fas fa-map-marker-alt text-sm opacity-80 mr-2"></i>
-                                <span id="profileLocation" class="text-sm opacity-80">Location</span>
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-calendar text-sm opacity-80 mr-2"></i>
-                                <span id="profileJoined" class="text-sm opacity-80">Joined</span>
-                            </div>
+                        <p id="profileHandle" class="opacity-80">@username</p>
+                        <div class="flex items-center mt-1">
+                            <i class="fas fa-map-marker-alt text-sm opacity-80 mr-1"></i>
+                            <span id="profileLocation" class="text-sm opacity-80">Location</span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-3 gap-6 mt-6">
-                    <button onclick="showUserBuzzes()" class="text-center">
-                        <p class="font-bold text-2xl" id="postsCount">0</p>
-                        <p class="text-sm opacity-80">Buzzes</p>
-                    </button>
+                <div class="flex justify-between mt-4">
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="postsCount">0</p>
+                        <p class="text-sm opacity-80">Posts</p>
+                    </div>
                     <button onclick="showFollowers()" class="text-center">
-                        <p class="font-bold text-2xl" id="followersCount">0</p>
+                        <p class="font-bold text-lg" id="followersCount">0</p>
                         <p class="text-sm opacity-80">Followers</p>
                     </button>
                     <button onclick="showFollowing()" class="text-center">
-                        <p class="font-bold text-2xl" id="followingCount">0</p>
+                        <p class="font-bold text-lg" id="followingCount">0</p>
                         <p class="text-sm opacity-80">Following</p>
                     </button>
                 </div>
-                
-                <!-- Profile Actions -->
-                <div class="flex space-x-3 mt-6">
-                    <button onclick="editProfile()" class="flex-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white py-3 rounded-xl font-semibold transition-all">
-                        <i class="fas fa-edit mr-2"></i>Edit Profile
-                    </button>
-                    <button onclick="requestVerification()" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-3 rounded-xl transition-all">
-                        <i class="fas fa-check-circle"></i>
-                    </button>
-                </div>
             </div>
             
-            <!-- Profile Tabs -->
-            <div class="border-b border-gray-200">
-                <div class="flex container-mobile">
-                    <button onclick="showProfileTab('buzzes')" class="flex-1 py-4 text-center font-semibold text-green-500 border-b-2 border-green-500" id="buzzesTab">
-                        <i class="fas fa-comments mr-2"></i>Buzzes
-                    </button>
-                    <button onclick="showProfileTab('media')" class="flex-1 py-4 text-center font-semibold text-gray-500" id="mediaTab">
-                        <i class="fas fa-images mr-2"></i>Media
-                    </button>
-                    <button onclick="showProfileTab('likes')" class="flex-1 py-4 text-center font-semibold text-gray-500" id="likesTab">
-                        <i class="fas fa-heart mr-2"></i>Likes
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Profile Content -->
+            <!-- Profile Grid -->
             <div class="p-4">
-                <div id="profileTabContent">
-                    <!-- Profile content will be loaded here -->
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-th text-green-500 mr-2"></i>
+                    Posts
+                </h3>
+                <div class="grid grid-cols-3 gap-1" id="profileGrid">
+                    <!-- User's posts will be displayed here -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Enhanced Settings Modal -->
-    <div id="settingsModal" class="hidden fixed inset-0 modal-backdrop z-50">
-        <div class="bg-white h-full overflow-y-auto slide-up modal-mobile">
-            <div class="modal-header p-4 border-b">
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b">
                 <div class="flex items-center justify-between">
-                    <button onclick="closeSettings()" class="text-xl p-2 hover:bg-gray-100 rounded-full transition-all">
+                    <button onclick="closeSettings()" class="text-xl">
                         <i class="fas fa-arrow-left"></i>
                     </button>
-                    <h2 class="text-xl font-bold">Settings & Privacy</h2>
+                    <h2 class="text-xl font-bold">Settings</h2>
                     <div></div>
                 </div>
             </div>
             
-            <div class="p-4 space-y-6">
-                <!-- Account Settings -->
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <h3 class="font-bold mb-4 flex items-center text-gray-800">
-                        <i class="fas fa-user-edit text-green-500 mr-3"></i>
-                        Account Settings
+            <div class="p-4 space-y-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold mb-3 flex items-center">
+                        <i class="fas fa-user-edit text-green-500 mr-2"></i>
+                        Profile Settings
                     </h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
-                            <input type="text" id="usernameInput" placeholder="Enter your display name" 
-                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            <p class="text-xs text-gray-500 mt-1">This is how others will see your name</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                            <div class="flex">
-                                <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">@</span>
-                                <input type="text" id="handleInput" placeholder="username" 
-                                       class="flex-1 p-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Your unique username for profile links</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-                            <textarea id="bioInput" placeholder="Tell us about yourself..." 
-                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" 
-                                      rows="3" maxlength="160"></textarea>
-                            <p class="text-xs text-gray-500 mt-1">0/160 characters</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                            <input type="text" id="locationInput" placeholder="Where are you based?" 
-                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        </div>
-                        <button onclick="updateProfile()" class="btn-primary w-full">
-                            <i class="fas fa-save mr-2"></i>Save Changes
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Privacy Settings -->
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <h3 class="font-bold mb-4 flex items-center text-gray-800">
-                        <i class="fas fa-shield-alt text-blue-500 mr-3"></i>
-                        Privacy & Security
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <div class="font-medium">Private Account</div>
-                                <div class="text-sm text-gray-500">Only followers can see your buzzes</div>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="privateAccountToggle" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                        
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <div class="font-medium">Show Online Status</div>
-                                <div class="text-sm text-gray-500">Let others see when you're active</div>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="onlineStatusToggle" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                        
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <div class="font-medium">Location Sharing</div>
-                                <div class="text-sm text-gray-500">Share your location in buzzes</div>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="locationSharingToggle" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                        
-                        <button onclick="showBlockedUsers()" class="w-full text-left p-3 hover:bg-gray-100 rounded-lg transition-colors">
-                            <i class="fas fa-user-slash text-red-500 mr-3"></i>
-                            <span class="font-medium">Blocked Users</span>
-                            <i class="fas fa-chevron-right float-right mt-1 text-gray-400"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Notification Settings -->
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <h3 class="font-bold mb-4 flex items-center text-gray-800">
-                        <i class="fas fa-bell text-yellow-500 mr-3"></i>
-                        Notifications
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <div class="font-medium">Push Notifications</div>
-                                <div class="text-sm text-gray-500">Get notified about activity</div>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="pushNotificationsToggle" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                        
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <div class="font-medium">Email Notifications</div>
-                                <div class="text-sm text-gray-500">Receive updates via email</div>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="emailNotificationsToggle" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Verification Request -->
-                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <h3 class="font-bold mb-4 flex items-center text-blue-800">
-                        <i class="fas fa-check-circle text-blue-500 mr-3"></i>
-                        Get Verified
-                    </h3>
-                    <p class="text-sm text-blue-700 mb-4">Get a verified badge to show authenticity. Submit your National ID for verification.</p>
-                    <div id="verificationStatus" class="mb-4">
-                        <!-- Verification status will be shown here -->
-                    </div>
-                    <button onclick="requestVerification()" id="verificationButton" class="btn-secondary w-full">
-                        <i class="fas fa-id-card mr-2"></i>Request Verification
+                    <input type="text" id="usernameInput" placeholder="Display Name" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <input type="text" id="locationInput" placeholder="Location" class="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <button onclick="updateProfile()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-save mr-2"></i>Update Profile
                     </button>
                 </div>
                 
-                <!-- Danger Zone -->
-                <div class="bg-red-50 border border-red-200 rounded-xl p-4">
-                    <h3 class="font-bold mb-4 flex items-center text-red-800">
-                        <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
-                        Danger Zone
-                    </h3>
-                    <div class="space-y-3">
-                        <button onclick="downloadData()" class="w-full text-left p-3 hover:bg-red-100 rounded-lg transition-colors text-red-700">
-                            <i class="fas fa-download mr-3"></i>Download Your Data
-                        </button>
-                        <button onclick="deactivateAccount()" class="w-full text-left p-3 hover:bg-red-100 rounded-lg transition-colors text-red-700">
-                            <i class="fas fa-user-times mr-3"></i>Deactivate Account
-                        </button>
-                        <button onclick="deleteAccount()" class="w-full text-left p-3 hover:bg-red-100 rounded-lg transition-colors text-red-700">
-                            <i class="fas fa-trash mr-3"></i>Delete Account
-                        </button>
-                    </div>
-                </div>
-                
-                <button onclick="signOut()" class="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-semibold transition-all">
+                <button onclick="signOut()" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg transition-colors">
                     <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Enhanced Comments Modal -->
-    <div id="commentsModal" class="hidden fixed inset-0 modal-backdrop z-50">
-        <div class="bg-white h-full overflow-y-auto slide-up modal-mobile">
-            <div class="modal-header p-4 border-b sticky top-0 bg-white">
+    <!-- Comments Modal -->
+    <div id="commentsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b sticky top-0 bg-white">
                 <div class="flex items-center justify-between">
-                    <button onclick="closeComments()" class="text-xl p-2 hover:bg-gray-100 rounded-full transition-all">
+                    <button onclick="closeComments()" class="text-xl">
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <h2 class="text-xl font-bold">Comments</h2>
-                    <button onclick="shareComments()" class="text-green-500 p-2 hover:bg-green-50 rounded-full transition-all">
-                        <i class="fas fa-share"></i>
-                    </button>
+                    <div></div>
                 </div>
-            </div>
-            
-            <!-- Original Buzz -->
-            <div id="originalBuzz" class="p-4 border-b border-gray-100">
-                <!-- Original buzz will be shown here -->
             </div>
             
             <div id="commentsContainer" class="p-4 space-y-4">
                 <!-- Comments will be populated here -->
             </div>
             
-            <!-- Enhanced Comment Input -->
+            <!-- Comment Input -->
             <div class="sticky bottom-0 bg-white border-t p-4">
-                <div class="flex space-x-3">
-                    <div class="w-10 h-10 profile-image rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        <span id="commentUserInitial">U</span>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex space-x-2">
-                            <input type="text" id="commentInput" placeholder="Add a thoughtful comment..." 
-                                   class="flex-1 p-3 border border-gray-300 rounded-full px-4 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            <button onclick="postComment()" class="btn-primary px-4 py-2 rounded-full">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                        <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                            <button onclick="addCommentEmoji()" class="hover:text-green-500 transition-colors">
-                                <i class="fas fa-smile mr-1"></i>Emoji
-                            </button>
-                            <button onclick="addCommentGif()" class="hover:text-green-500 transition-colors">
-                                <i class="fas fa-gif mr-1"></i>GIF
-                            </button>
-                        </div>
-                    </div>
+                <div class="flex space-x-2">
+                    <input type="text" id="commentInput" placeholder="Add a comment..." 
+                           class="flex-1 p-3 border rounded-full px-4 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <button onclick="postComment()" class="bg-gradient-to-r from-green-500 to-pink-500 text-white px-4 py-2 rounded-full">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Enhanced Notifications Modal -->
-    <div id="notificationsModal" class="hidden fixed inset-0 modal-backdrop z-50">
-        <div class="bg-white h-full overflow-y-auto slide-up modal-mobile">
-            <div class="modal-header p-4 border-b sticky top-0 bg-white">
+    <!-- Followers/Following Modal -->
+    <div id="followModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b sticky top-0 bg-white">
                 <div class="flex items-center justify-between">
-                    <button onclick="closeNotifications()" class="text-xl p-2 hover:bg-gray-100 rounded-full transition-all">
+                    <button onclick="closeFollowModal()" class="text-xl">
                         <i class="fas fa-arrow-left"></i>
                     </button>
-                    <h2 class="text-xl font-bold">Notifications</h2>
-                    <button onclick="markAllNotificationsRead()" class="text-green-500 text-sm font-medium hover:underline">
-                        Mark all read
-                    </button>
+                    <h2 id="followModalTitle" class="text-xl font-bold">Followers</h2>
+                    <div></div>
                 </div>
             </div>
             
-            <!-- Notification Filters -->
-            <div class="p-4 border-b border-gray-100">
-                <div class="flex space-x-2 overflow-x-auto">
-                    <button onclick="filterNotifications('all')" class="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-medium whitespace-nowrap" id="filterAll">All</button>
-                    <button onclick="filterNotifications('likes')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium whitespace-nowrap" id="filterLikes">Likes</button>
-                    <button onclick="filterNotifications('comments')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium whitespace-nowrap" id="filterComments">Comments</button>
-                    <button onclick="filterNotifications('follows')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium whitespace-nowrap" id="filterFollows">Follows</button>
-                    <button onclick="filterNotifications('mentions')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium whitespace-nowrap" id="filterMentions">Mentions</button>
+            <div id="followList" class="p-4 space-y-3">
+                <!-- Follow list will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notificationsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto slide-up">
+            <div class="p-4 border-b sticky top-0 bg-white">
+                <div class="flex items-center justify-between">
+                    <button onclick="closeNotifications()" class="text-xl">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-bold">Notifications</h2>
+                    <button onclick="markAllNotificationsRead()" class="text-green-500 text-sm">
+                        Mark all read
+                    </button>
                 </div>
             </div>
             
@@ -1396,125 +772,82 @@
         </div>
     </div>
 
-    <!-- Saved Buzzes Modal -->
-    <div id="savedModal" class="hidden fixed inset-0 modal-backdrop z-50">
-        <div class="bg-white h-full overflow-y-auto slide-up modal-mobile">
-            <div class="modal-header p-4 border-b sticky top-0 bg-white">
-                <div class="flex items-center justify-between">
-                    <button onclick="closeSaved()" class="text-xl p-2 hover:bg-gray-100 rounded-full transition-all">
+    <!-- Public Profile View Modal -->
+    <div id="publicProfileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white h-full overflow-y-auto route-transition">
+            <!-- Public Profile Header -->
+            <div class="bg-gradient-to-r from-green-500 to-pink-500 p-4 text-white relative">
+                <div class="flex items-center justify-between mb-4">
+                    <button onclick="closePublicProfile()" class="text-white text-xl">
                         <i class="fas fa-arrow-left"></i>
                     </button>
-                    <h2 class="text-xl font-bold">Saved Buzzes</h2>
-                    <button onclick="clearAllSaved()" class="text-red-500 text-sm font-medium hover:underline">
-                        Clear All
-                    </button>
-                </div>
-            </div>
-            
-            <div id="savedBuzzesList" class="p-4 space-y-4">
-                <!-- Saved buzzes will be populated here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Verification Modal -->
-    <div id="verificationModal" class="hidden fixed inset-0 modal-backdrop z-50">
-        <div class="bg-white rounded-t-3xl mt-20 overflow-y-auto slide-up">
-            <div class="modal-header p-6 border-b">
-                <div class="flex items-center justify-between">
-                    <button onclick="closeVerificationModal()" class="text-xl p-2 hover:bg-gray-100 rounded-full transition-all">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <h2 class="text-xl font-bold">Request Verification</h2>
-                    <div></div>
-                </div>
-            </div>
-            
-            <div class="p-6">
-                <div class="text-center mb-6">
-                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-check-circle text-blue-500 text-3xl"></i>
+                    <div class="flex space-x-2">
+                        <button onclick="shareProfile()" class="text-white">
+                            <i class="fas fa-share"></i>
+                        </button>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Get Verified</h3>
-                    <p class="text-gray-600">Submit your National ID to get a verified badge and show authenticity to your followers.</p>
                 </div>
                 
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name (as on ID)</label>
-                        <input type="text" id="verificationName" placeholder="Enter your full legal name" 
-                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">National ID Number</label>
-                        <input type="text" id="verificationId" placeholder="Enter your National ID number" 
-                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Reason for Verification</label>
-                        <select id="verificationReason" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Select a reason</option>
-                            <option value="public_figure">Public Figure</option>
-                            <option value="business">Business Account</option>
-                            <option value="creator">Content Creator</option>
-                            <option value="journalist">Journalist</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Additional Information</label>
-                        <textarea id="verificationInfo" placeholder="Tell us why you should be verified..." 
-                                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                                  rows="3"></textarea>
-                    </div>
-                    
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <div class="flex items-start">
-                            <i class="fas fa-info-circle text-yellow-500 mt-1 mr-3"></i>
-                            <div class="text-sm text-yellow-800">
-                                <p class="font-medium mb-1">Verification Process:</p>
-                                <ul class="list-disc list-inside space-y-1">
-                                    <li>Your request will be reviewed within 1-2 business days</li>
-                                    <li>We may contact you for additional information</li>
-                                    <li>Verification is granted based on authenticity and public interest</li>
-                                    <li>Your personal information is kept secure and private</li>
-                                </ul>
-                            </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl font-bold">
+                            <span id="publicProfileInitial">U</span>
                         </div>
                     </div>
-                    
-                    <button onclick="submitVerificationRequest()" class="w-full btn-primary">
-                        <i class="fas fa-paper-plane mr-2"></i>Submit Request
-                    </button>
+                    <div>
+                        <div class="flex items-center">
+                            <h2 id="publicProfileUsername" class="text-xl font-bold mr-2">Username</h2>
+                            <div id="publicVerifiedBadge" class="verified-badge hidden">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                        <p id="publicProfileHandle" class="opacity-80">@username</p>
+                        <div class="flex items-center mt-1">
+                            <i class="fas fa-map-marker-alt text-sm opacity-80 mr-1"></i>
+                            <span id="publicProfileLocation" class="text-sm opacity-80">Location</span>
+                        </div>
+                        <div class="flex items-center mt-1">
+                            <i class="fas fa-calendar text-sm opacity-80 mr-1"></i>
+                            <span id="publicProfileJoined" class="text-sm opacity-80">Joined</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Blocked Users Modal -->
-    <div id="blockedUsersModal" class="hidden fixed inset-0 modal-backdrop z-50">
-        <div class="bg-white h-full overflow-y-auto slide-up modal-mobile">
-            <div class="modal-header p-4 border-b sticky top-0 bg-white">
-                <div class="flex items-center justify-between">
-                    <button onclick="closeBlockedUsers()" class="text-xl p-2 hover:bg-gray-100 rounded-full transition-all">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <h2 class="text-xl font-bold">Blocked Users</h2>
-                    <div></div>
+                
+                <div class="flex justify-between mt-4">
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="publicPostsCount">0</p>
+                        <p class="text-sm opacity-80">Buzzes</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="publicFollowersCount">0</p>
+                        <p class="text-sm opacity-80">Followers</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg" id="publicFollowingCount">0</p>
+                        <p class="text-sm opacity-80">Following</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4 flex space-x-2" id="publicProfileActions">
+                    <!-- Follow/Unfollow buttons will be added here -->
                 </div>
             </div>
             
-            <div id="blockedUsersList" class="p-4 space-y-3">
-                <!-- Blocked users will be populated here -->
+            <!-- Public Profile Buzzes -->
+            <div class="p-4">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-comments text-green-500 mr-2"></i>
+                    Recent Buzzes
+                </h3>
+                <div id="publicProfileBuzzes">
+                    <!-- User's buzzes will be displayed here -->
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Enhanced Global Variables
+        // Global variables
         let currentUser = null;
         let currentPostId = null;
         let unsubscribeListeners = [];
@@ -1523,63 +856,9 @@
         let postPrivacy = 'public';
         let isTyping = false;
         let typingTimeout = null;
-        let scheduledTime = null;
-        let currentNotificationFilter = 'all';
-        let savedBuzzes = [];
-        let blockedUsers = [];
-        let userAccounts = [];
-        let currentRoute = 'home';
-        
-        // Enhanced Security Functions
-        function checkRateLimit(action) {
-            const now = Date.now();
-            const limits = securityRules.rateLimits[action];
-            
-            if (!rateLimitStorage[action]) {
-                rateLimitStorage[action] = [];
-            }
-            
-            // Remove old entries
-            rateLimitStorage[action] = rateLimitStorage[action].filter(
-                timestamp => now - timestamp < limits.window
-            );
-            
-            if (rateLimitStorage[action].length >= limits.count) {
-                return false;
-            }
-            
-            rateLimitStorage[action].push(now);
-            return true;
-        }
-        
-        function sanitizeText(text) {
-            // Remove blocked words
-            let sanitized = text;
-            securityRules.blockedWords.forEach(word => {
-                const regex = new RegExp(word, 'gi');
-                sanitized = sanitized.replace(regex, '***');
-            });
-            return sanitized;
-        }
-        
-        function validateUsername(username) {
-            if (username.length < securityRules.minUsernameLength || 
-                username.length > securityRules.maxUsernameLength) {
-                return false;
-            }
-            
-            // Check for valid characters (alphanumeric and underscore only)
-            const validPattern = /^[a-zA-Z0-9_]+$/;
-            return validPattern.test(username);
-        }
-        
-        function isAdmin(uid) {
-            return securityRules.adminUIDs.includes(uid);
-        }
-        
-        // Enhanced Authentication Functions
+
+        // Authentication functions
         function signInWithGoogle() {
-            showLoginLoading(true);
             const provider = new firebase.auth.GoogleAuthProvider();
             provider.addScope('email');
             provider.addScope('profile');
@@ -1588,32 +867,27 @@
                 currentUser = result.user;
                 initializeUser();
                 showMainApp();
-                showSecurityIndicator();
             }).catch((error) => {
                 console.error('Google sign-in error:', error);
                 showToast('Sign-in failed. Please try again.', 'error');
-                showLoginLoading(false);
             });
         }
 
         function signInWithTwitter() {
-            showLoginLoading(true);
             const provider = new firebase.auth.TwitterAuthProvider();
+            provider.addScope('email');
             
             auth.signInWithPopup(provider).then((result) => {
                 currentUser = result.user;
                 initializeUser();
                 showMainApp();
-                showSecurityIndicator();
             }).catch((error) => {
                 console.error('Twitter sign-in error:', error);
                 showToast('Sign-in failed. Please try again.', 'error');
-                showLoginLoading(false);
             });
         }
 
         function signInWithGitHub() {
-            showLoginLoading(true);
             const provider = new firebase.auth.GithubAuthProvider();
             provider.addScope('user:email');
             
@@ -1621,29 +895,10 @@
                 currentUser = result.user;
                 initializeUser();
                 showMainApp();
-                showSecurityIndicator();
             }).catch((error) => {
                 console.error('GitHub sign-in error:', error);
                 showToast('Sign-in failed. Please try again.', 'error');
-                showLoginLoading(false);
             });
-        }
-
-        function showLoginLoading(show) {
-            const loading = document.getElementById('loginLoading');
-            if (show) {
-                loading.classList.remove('hidden');
-            } else {
-                loading.classList.add('hidden');
-            }
-        }
-
-        function showSecurityIndicator() {
-            const indicator = document.getElementById('securityIndicator');
-            indicator.classList.add('show');
-            setTimeout(() => {
-                indicator.classList.remove('show');
-            }, 3000);
         }
 
         function signOut() {
@@ -1656,40 +911,26 @@
                 document.getElementById('loginScreen').classList.remove('hidden');
                 document.getElementById('mainApp').classList.add('hidden');
                 closeSettings();
-                showToast('Signed out successfully', 'success');
             });
         }
 
-        // Enhanced User Initialization
+        // Initialize user data in Firestore
         function initializeUser() {
             if (currentUser) {
                 const initial = currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : 'U';
-                const username = currentUser.email.split('@')[0];
-                
-                // Update UI elements
                 document.getElementById('userInitial').textContent = initial;
                 document.getElementById('composerUserInitial').textContent = initial;
                 document.getElementById('profileUserInitial').textContent = initial;
-                document.getElementById('commentUserInitial').textContent = initial;
                 document.getElementById('profileUsername').textContent = currentUser.displayName || 'User';
-                document.getElementById('profileHandle').textContent = `@${username}`;
-                
-                // Get profile photo from provider
-                let photoURL = '';
-                if (currentUser.photoURL) {
-                    photoURL = currentUser.photoURL;
-                    // Update profile images with actual photo
-                    updateProfileImages(photoURL);
-                }
+                document.getElementById('profileHandle').textContent = `@${currentUser.email.split('@')[0]}`;
                 
                 // Create/update user document in Firestore
                 const userRef = db.collection('users').doc(currentUser.uid);
                 userRef.set({
                     uid: currentUser.uid,
                     displayName: currentUser.displayName || 'User',
-                    username: username,
                     email: currentUser.email,
-                    photoURL: photoURL,
+                    photoURL: currentUser.photoURL || '',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     lastActive: firebase.firestore.FieldValue.serverTimestamp(),
                     verified: false,
@@ -1700,264 +941,46 @@
                     isPrivate: false,
                     showOnlineStatus: true,
                     blockedUsers: [],
-                    savedBuzzes: [],
                     emailNotifications: false,
                     pushNotifications: true,
                     postsCount: 0,
                     followersCount: 0,
-                    followingCount: 0,
-                    isAdmin: isAdmin(currentUser.uid),
-                    provider: currentUser.providerData[0]?.providerId || 'unknown'
+                    followingCount: 0
                 }, { merge: true }).then(() => {
                     console.log('User data saved to Firestore');
                     setupNotificationListener();
                     loadUserProfile();
-                    updateOnlineStatus(true);
-                    loadSavedBuzzes();
-                    loadBlockedUsers();
                 }).catch((error) => {
                     console.error('Error saving user data:', error);
                 });
             }
         }
 
-        function updateProfileImages(photoURL) {
-            const profileImages = document.querySelectorAll('.profile-image');
-            profileImages.forEach(img => {
-                img.style.backgroundImage = `url(${photoURL})`;
-                img.style.backgroundSize = 'cover';
-                img.style.backgroundPosition = 'center';
-                img.innerHTML = ''; // Remove initial text
-            });
-        }
-
-        function updateOnlineStatus(isOnline) {
-            if (currentUser) {
-                db.collection('users').doc(currentUser.uid).update({
-                    isOnline: isOnline,
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-        }
-
-        // Enhanced URL Routing
-        function handleURLRouting() {
-            const hash = window.location.hash;
-            const params = new URLSearchParams(window.location.search);
-            
-            if (hash.startsWith('#@')) {
-                // Profile link: #@username
-                const username = hash.substring(2);
-                showPublicProfile(username);
-            } else if (hash.startsWith('#buzz/')) {
-                // Buzz link: #buzz/buzzId
-                const buzzId = hash.substring(6);
-                showPublicBuzz(buzzId);
-            } else if (params.get('profile')) {
-                // Query param: ?profile=username
-                const username = params.get('profile');
-                showPublicProfile(username);
-            }
-        }
-
-        function showPublicProfile(username) {
-            // Check if user is logged in
-            if (!currentUser) {
-                // Show public view
-                document.getElementById('publicViewScreen').classList.remove('hidden');
-                document.getElementById('loginScreen').classList.add('hidden');
-                loadPublicProfileByUsername(username);
-            } else {
-                // Show in app
-                findUserByUsername(username).then(userId => {
-                    if (userId) {
-                        showUserProfile(userId);
-                    } else {
-                        showToast('User not found', 'error');
-                    }
-                });
-            }
-        }
-
-        function showPublicBuzz(buzzId) {
-            if (!currentUser) {
-                document.getElementById('publicViewScreen').classList.remove('hidden');
-                document.getElementById('loginScreen').classList.add('hidden');
-                loadPublicBuzz(buzzId);
-            } else {
-                showComments(buzzId);
-            }
-        }
-
-        function loadPublicProfileByUsername(username) {
-            db.collection('users').where('username', '==', username).get()
-                .then(querySnapshot => {
-                    if (!querySnapshot.empty) {
-                        const userData = querySnapshot.docs[0].data();
-                        const userId = querySnapshot.docs[0].id;
-                        displayPublicProfile(userData, userId);
-                    } else {
-                        showPublicProfileNotFound();
-                    }
-                });
-        }
-
-        function displayPublicProfile(userData, userId) {
-            const content = document.getElementById('publicProfileContent');
-            const initial = userData.displayName ? userData.displayName.charAt(0).toUpperCase() : 'U';
-            
-            content.innerHTML = `
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <div class="flex items-center space-x-4 mb-4">
-                        <div class="w-20 h-20 profile-image rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                            ${initial}
-                        </div>
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <h2 class="text-2xl font-bold">${userData.displayName || 'User'}</h2>
-                                ${userData.verified ? '<div class="verified-badge"><i class="fas fa-check"></i></div>' : ''}
-                            </div>
-                            <p class="text-gray-600">@${userData.username}</p>
-                            ${userData.bio ? `<p class="text-gray-700 mt-2">${userData.bio}</p>` : ''}
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                            <p class="font-bold text-xl">${userData.postsCount || 0}</p>
-                            <p class="text-gray-600">Buzzes</p>
-                        </div>
-                        <div>
-                            <p class="font-bold text-xl">${userData.followersCount || 0}</p>
-                            <p class="text-gray-600">Followers</p>
-                        </div>
-                        <div>
-                            <p class="font-bold text-xl">${userData.followingCount || 0}</p>
-                            <p class="text-gray-600">Following</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 text-center">
-                        <p class="text-gray-600 mb-4">Sign in to follow ${userData.displayName} and see their buzzes</p>
-                        <button onclick="showLoginFromPublic()" class="btn-primary">
-                            <i class="fas fa-sign-in-alt mr-2"></i>Sign In to Follow
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="font-bold text-lg mb-4">Public Buzzes</h3>
-                    <div id="publicBuzzes">
-                        <p class="text-center text-gray-500 py-8">Sign in to see buzzes</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        function showPublicProfileNotFound() {
-            const content = document.getElementById('publicProfileContent');
-            content.innerHTML = `
-                <div class="text-center py-12">
-                    <i class="fas fa-user-slash text-6xl text-gray-400 mb-4"></i>
-                    <h2 class="text-2xl font-bold text-gray-700 mb-2">Profile Not Found</h2>
-                    <p class="text-gray-500 mb-6">This user doesn't exist or has been deactivated.</p>
-                    <button onclick="showLoginFromPublic()" class="btn-primary">
-                        <i class="fas fa-home mr-2"></i>Go to Oriobuzz
-                    </button>
-                </div>
-            `;
-        }
-
-        function showLoginFromPublic() {
-            document.getElementById('publicViewScreen').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-        }
-
-        function findUserByUsername(username) {
-            return db.collection('users').where('username', '==', username).get()
-                .then(querySnapshot => {
-                    if (!querySnapshot.empty) {
-                        return querySnapshot.docs[0].id;
-                    }
-                    return null;
-                });
-        }
-
-        // Enhanced Profile Sharing
-        function shareProfile() {
-            const username = currentUser.email.split('@')[0];
-            const profileUrl = `${window.location.origin}${window.location.pathname}#@${username}`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: `${currentUser.displayName || 'User'} on Oriobuzz`,
-                    text: `Check out my profile on Oriobuzz!`,
-                    url: profileUrl
-                });
-            } else {
-                navigator.clipboard.writeText(profileUrl).then(() => {
-                    showToast('Profile link copied to clipboard!', 'success');
-                });
-            }
-        }
-
-        function shareBuzz(buzzId) {
-            const buzzUrl = `${window.location.origin}${window.location.pathname}#buzz/${buzzId}`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Check out this buzz on Oriobuzz',
-                    url: buzzUrl
-                });
-            } else {
-                navigator.clipboard.writeText(buzzUrl).then(() => {
-                    showToast('Buzz link copied to clipboard!', 'success');
-                });
-            }
-        }
-
         function showMainApp() {
             document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('publicViewScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             loadFeed();
             loadTrendingHashtags();
             updateNavigation('home');
-            updateOnlineUsersCount();
         }
 
-        // Enhanced Buzz Functions
+        // Buzz functions - All data stored in Firestore
         function createBuzz() {
-            if (!checkRateLimit('buzzes')) {
-                showToast('Too many buzzes! Please wait before posting again.', 'warning');
-                return;
-            }
-            
             const buzzText = document.getElementById('postText').value.trim();
             if (!buzzText || !currentUser) return;
-            
-            if (buzzText.length > securityRules.maxBuzzLength) {
-                showToast('Buzz is too long!', 'error');
-                return;
-            }
-            
-            const sanitizedText = sanitizeText(buzzText);
-            
+
             const buzz = {
-                text: sanitizedText,
+                text: buzzText,
                 author: {
                     uid: currentUser.uid,
                     displayName: currentUser.displayName || 'User',
-                    username: currentUser.email.split('@')[0],
                     email: currentUser.email,
-                    photoURL: currentUser.photoURL || '',
-                    verified: false // Will be updated from user doc
+                    photoURL: currentUser.photoURL || ''
                 },
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 likes: [],
                 comments: [],
                 retweets: [],
-                saves: [],
                 mood: currentMood,
                 privacy: postPrivacy,
                 location: currentLocation,
@@ -1965,11 +988,7 @@
                 type: 'buzz',
                 likesCount: 0,
                 commentsCount: 0,
-                retweetsCount: 0,
-                savesCount: 0,
-                scheduledFor: scheduledTime,
-                hashtags: extractHashtags(sanitizedText),
-                mentions: extractMentions(sanitizedText)
+                retweetsCount: 0
             };
 
             // Save buzz to Firestore
@@ -1983,7 +1002,8 @@
                 
                 // Clear form
                 document.getElementById('postText').value = '';
-                updateCharacterCount();
+                document.getElementById('characterCount').textContent = '0/280';
+                document.getElementById('buzzButton').disabled = true;
                 resetBuzzComposer();
                 
                 // Create notification for followers
@@ -1992,14 +1012,7 @@
                     buzzText: buzz.text.substring(0, 50) + '...'
                 });
                 
-                // Process hashtags
-                processHashtags(buzz.hashtags);
-                
-                // Process mentions
-                processMentions(buzz.mentions, docRef.id);
-                
                 showToast('Buzz shared successfully!', 'success');
-                hapticFeedback('medium');
             }).catch((error) => {
                 console.error('Error creating buzz:', error);
                 showToast('Failed to share buzz. Please try again.', 'error');
@@ -2010,44 +1023,17 @@
             return 'buzz_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
 
-        function extractHashtags(text) {
-            const hashtags = text.match(/#\w+/g) || [];
-            return hashtags.map(tag => tag.toLowerCase());
+        function resetBuzzComposer() {
+            currentLocation = null;
+            document.getElementById('locationTag').classList.add('hidden');
+            document.getElementById('postComposer').classList.remove('focused');
+            
+            // Reset selectors
+            document.getElementById('moodSelector').classList.add('hidden');
+            document.getElementById('privacySelector').classList.add('hidden');
         }
 
-        function extractMentions(text) {
-            const mentions = text.match(/@\w+/g) || [];
-            return mentions.map(mention => mention.substring(1).toLowerCase());
-        }
-
-        function processHashtags(hashtags) {
-            hashtags.forEach(hashtag => {
-                const hashtagRef = db.collection('hashtags').doc(hashtag);
-                hashtagRef.set({
-                    tag: hashtag,
-                    count: firebase.firestore.FieldValue.increment(1),
-                    lastUsed: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-            });
-        }
-
-        function processMentions(mentions, buzzId) {
-            mentions.forEach(mention => {
-                // Find user by username and create notification
-                db.collection('users').where('username', '==', mention).get()
-                    .then(querySnapshot => {
-                        if (!querySnapshot.empty) {
-                            const userId = querySnapshot.docs[0].id;
-                            createNotification(userId, 'mention', {
-                                buzzId: buzzId,
-                                mentionedBy: currentUser.displayName || 'User'
-                            });
-                        }
-                    });
-            });
-        }
-
-        // Enhanced Feed Loading
+        // Load feed from Firestore
         function loadFeed() {
             showSkeletonFeed();
             
@@ -2060,13 +1046,10 @@
                     
                     if (querySnapshot.empty) {
                         feedContainer.innerHTML = `
-                            <div class="text-center py-12">
-                                <i class="fas fa-comments text-6xl text-gray-400 mb-4"></i>
-                                <h3 class="text-2xl font-bold text-gray-700 mb-2">No buzzes yet</h3>
-                                <p class="text-gray-500 mb-6">Be the first to share something amazing!</p>
-                                <button onclick="focusComposer()" class="btn-primary">
-                                    <i class="fas fa-plus mr-2"></i>Create Your First Buzz
-                                </button>
+                            <div class="text-center py-8">
+                                <i class="fas fa-comments text-4xl text-gray-400 mb-4"></i>
+                                <h3 class="text-xl font-semibold text-gray-700 mb-2">No buzzes yet</h3>
+                                <p class="text-gray-500">Be the first to share something!</p>
                             </div>
                         `;
                         return;
@@ -2074,11 +1057,8 @@
                     
                     querySnapshot.forEach((doc) => {
                         const buzz = doc.data();
-                        // Check if user is blocked
-                        if (!blockedUsers.includes(buzz.author.uid)) {
-                            const buzzElement = createBuzzElement(doc.id, buzz);
-                            feedContainer.appendChild(buzzElement);
-                        }
+                        const buzzElement = createBuzzElement(doc.id, buzz);
+                        feedContainer.appendChild(buzzElement);
                     });
                 });
             
@@ -2092,15 +1072,15 @@
             // Add skeleton buzzes
             for (let i = 0; i < 5; i++) {
                 const skeletonBuzz = document.createElement('div');
-                skeletonBuzz.className = 'skeleton-buzz fade-in';
+                skeletonBuzz.className = 'skeleton-buzz';
                 skeletonBuzz.innerHTML = `
-                    <div class="flex space-x-4">
+                    <div class="flex space-x-3">
                         <div class="skeleton-avatar"></div>
                         <div class="flex-1">
                             <div class="skeleton-text short"></div>
                             <div class="skeleton-text long"></div>
                             <div class="skeleton-text medium"></div>
-                            <div class="flex space-x-6 mt-4">
+                            <div class="flex space-x-4 mt-3">
                                 <div class="skeleton-text" style="width: 60px; height: 12px;"></div>
                                 <div class="skeleton-text" style="width: 60px; height: 12px;"></div>
                                 <div class="skeleton-text" style="width: 60px; height: 12px;"></div>
@@ -2114,51 +1094,45 @@
 
         function createBuzzElement(buzzId, buzz) {
             const buzzDiv = document.createElement('div');
-            buzzDiv.className = 'buzz-card fade-in';
+            buzzDiv.className = 'bg-white border-b border-gray-200 p-4 buzz-card';
             
             const initial = buzz.author.displayName ? buzz.author.displayName.charAt(0).toUpperCase() : 'U';
             const isLiked = currentUser && buzz.likes && buzz.likes.includes(currentUser.uid);
-            const isSaved = savedBuzzes.includes(buzzId);
-            const likeCount = buzz.likesCount || 0;
-            const commentCount = buzz.commentsCount || 0;
-            const saveCount = buzz.savesCount || 0;
+            const likeCount = buzz.likesCount || (buzz.likes ? buzz.likes.length : 0);
+            const commentCount = buzz.commentsCount || (buzz.comments ? buzz.comments.length : 0);
             const isOwnBuzz = currentUser && buzz.author.uid === currentUser.uid;
+            const username = buzz.author.email.split('@')[0];
             
             const moodEmoji = {
                 'happy': '😊',
                 'excited': '🎉',
                 'love': '❤️',
-                'sad': '😢',
-                'angry': '😠',
-                'surprised': '😲'
+                'sad': '😢'
             };
             
-            const privacyIcon = buzz.privacy === 'public' ? 'fas fa-globe privacy-public' : 
-                              buzz.privacy === 'followers' ? 'fas fa-users privacy-followers' : 'fas fa-lock privacy-private';
+            const privacyIcon = buzz.privacy === 'public' ? 'fas fa-globe' : 
+                              buzz.privacy === 'followers' ? 'fas fa-users' : 'fas fa-lock';
             
             buzzDiv.innerHTML = `
-                <div class="flex space-x-4">
-                    <button onclick="showUserProfile('${buzz.author.uid}')" class="w-12 h-12 profile-image rounded-full flex items-center justify-center text-white font-bold relative hover:opacity-80 transition-opacity">
-                        ${buzz.author.photoURL ? '' : initial}
+                <div class="flex space-x-3">
+                    <button onclick="showUserProfile('${buzz.author.uid}')" class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold relative hover:opacity-80 transition-opacity">
+                        ${initial}
                         ${buzz.mood ? `<div class="mood-indicator mood-${buzz.mood}" title="${buzz.mood}"></div>` : ''}
                     </button>
                     <div class="flex-1">
-                        <div class="flex items-center space-x-2 mb-2">
-                            <button onclick="showUserProfile('${buzz.author.uid}')" class="font-bold hover:text-green-500 transition-colors">${buzz.author.displayName || 'User'}</button>
-                            ${buzz.author.verified ? '<div class="verified-badge"><i class="fas fa-check"></i></div>' : ''}
-                            <button onclick="showUserProfile('${buzz.author.uid}')" class="text-gray-500 text-sm hover:text-green-500 transition-colors">@${buzz.author.username}</button>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="showUserProfile('${buzz.author.uid}')" class="font-semibold hover:text-green-500 transition-colors">${buzz.author.displayName || 'User'}</button>
+                            <button onclick="showUserProfile('${buzz.author.uid}')" class="text-gray-500 text-sm hover:text-green-500 transition-colors">@${username}</button>
                             <span class="text-gray-500 text-sm">·</span>
                             <span class="text-gray-500 text-sm">${formatTimestamp(buzz.timestamp)}</span>
-                            <i class="${privacyIcon} text-xs" title="${buzz.privacy}"></i>
-                            ${buzz.mood ? `<span class="text-lg" title="${buzz.mood}">${moodEmoji[buzz.mood] || ''}</span>` : ''}
+                            <i class="${privacyIcon} text-gray-400 text-xs" title="${buzz.privacy}"></i>
+                            ${buzz.mood ? `<span class="text-sm" title="${buzz.mood}">${moodEmoji[buzz.mood] || ''}</span>` : ''}
                         </div>
                         
-                        <div class="mb-3">
-                            <p class="text-gray-800 leading-relaxed">${formatPostText(buzz.text)}</p>
-                        </div>
+                        <p class="mt-2 text-gray-800">${formatPostText(buzz.text)}</p>
                         
                         ${buzz.location ? `
-                            <div class="mb-3">
+                            <div class="mt-2">
                                 <span class="location-tag">
                                     <i class="fas fa-map-marker-alt"></i>
                                     ${buzz.location}
@@ -2166,48 +1140,31 @@
                             </div>
                         ` : ''}
                         
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between mt-3">
                             <div class="flex items-center space-x-6 text-gray-500">
-                                <button onclick="showComments('${buzzId}')" class="flex items-center space-x-2 hover:text-green-500 transition-colors interactive">
+                                <button onclick="showComments('${buzzId}')" class="flex items-center space-x-1 hover:text-green-500 transition-colors">
                                     <i class="far fa-comment"></i>
                                     <span>${commentCount}</span>
                                 </button>
-                                <button onclick="toggleLike('${buzzId}')" class="flex items-center space-x-2 hover:text-red-500 transition-colors interactive ${isLiked ? 'text-red-500' : ''}" id="like-btn-${buzzId}">
+                                <button onclick="toggleLike('${buzzId}')" class="flex items-center space-x-1 hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : ''}" id="like-btn-${buzzId}">
                                     <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
                                     <span class="like-count-${buzzId}">${likeCount}</span>
                                 </button>
-                                <button onclick="rebuzzPost('${buzzId}')" class="flex items-center space-x-2 hover:text-blue-500 transition-colors interactive" title="Rebuzz">
-                                    <i class="fas fa-retweet"></i>
-                                    <span>${buzz.retweetsCount || 0}</span>
-                                </button>
-                                <button onclick="toggleSave('${buzzId}')" class="flex items-center space-x-2 hover:text-yellow-500 transition-colors interactive ${isSaved ? 'text-yellow-500' : ''}" title="Save">
-                                    <i class="fa${isSaved ? 's' : 'r'} fa-bookmark"></i>
-                                    <span>${saveCount}</span>
-                                </button>
-                                <button onclick="shareBuzz('${buzzId}')" class="hover:text-blue-500 transition-colors interactive" title="Share">
+                                <button onclick="sharePost('${buzzId}')" class="hover:text-blue-500 transition-colors" title="Share">
                                     <i class="fas fa-share"></i>
                                 </button>
                             </div>
                             
-                            <div class="flex items-center space-x-2">
-                                ${!isOwnBuzz ? `
-                                    <button onclick="showBuzzOptions('${buzzId}', '${buzz.author.uid}')" class="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full">
-                                        <i class="fas fa-ellipsis-h"></i>
-                                    </button>
-                                ` : `
-                                    <button onclick="deleteBuzz('${buzzId}')" class="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                `}
+                            <div class="buzz-actions flex items-center space-x-2">
+                                ${isOwnBuzz ? `<button onclick="deleteBuzz('${buzzId}')" class="hover:text-red-500 transition-colors text-xs" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
                             </div>
                         </div>
                         
-                        ${(likeCount > 0 || commentCount > 0 || saveCount > 0) ? `
-                            <div class="engagement-stats mt-3">
+                        ${(likeCount > 0 || commentCount > 0) ? `
+                            <div class="engagement-stats mt-2">
                                 <div class="flex items-center space-x-4 text-xs text-gray-600">
                                     ${likeCount > 0 ? `<span><i class="fas fa-heart text-red-500 mr-1"></i>${likeCount} likes</span>` : ''}
                                     ${commentCount > 0 ? `<span><i class="fas fa-comment text-green-500 mr-1"></i>${commentCount} comments</span>` : ''}
-                                    ${saveCount > 0 ? `<span><i class="fas fa-bookmark text-yellow-500 mr-1"></i>${saveCount} saves</span>` : ''}
                                 </div>
                             </div>
                         ` : ''}
@@ -2215,25 +1172,12 @@
                 </div>
             `;
             
-            // Set profile image if available
-            if (buzz.author.photoURL) {
-                const profileImg = buzzDiv.querySelector('.profile-image');
-                profileImg.style.backgroundImage = `url(${buzz.author.photoURL})`;
-                profileImg.style.backgroundSize = 'cover';
-                profileImg.style.backgroundPosition = 'center';
-            }
-            
             return buzzDiv;
         }
 
-        // Enhanced Like System
+        // Like functionality with Firestore
         function toggleLike(buzzId) {
             if (!currentUser) return;
-            
-            if (!checkRateLimit('likes')) {
-                showToast('Too many likes! Please slow down.', 'warning');
-                return;
-            }
             
             const buzzRef = db.collection('posts').doc(buzzId);
             
@@ -2252,7 +1196,7 @@
                     
                     if (isLiked) {
                         newLikes = likes.filter(uid => uid !== currentUser.uid);
-                        newLikesCount = Math.max(0, (buzz.likesCount || 0) - 1);
+                        newLikesCount = (buzz.likesCount || 0) - 1;
                     } else {
                         newLikes = [...likes, currentUser.uid];
                         newLikesCount = (buzz.likesCount || 0) + 1;
@@ -2262,9 +1206,6 @@
                         if (likeBtn) {
                             likeBtn.classList.add('like-animation');
                             setTimeout(() => likeBtn.classList.remove('like-animation'), 600);
-                            
-                            // Create floating heart
-                            createFloatingHeart(likeBtn);
                         }
                         
                         // Create notification for buzz author
@@ -2274,13 +1215,11 @@
                                 buzzText: buzz.text.substring(0, 50) + '...'
                             });
                         }
-                        
-                        hapticFeedback('light');
                     }
                     
                     transaction.update(buzzRef, { 
                         likes: newLikes,
-                        likesCount: newLikesCount
+                        likesCount: Math.max(0, newLikesCount)
                     });
                 });
             }).then(() => {
@@ -2290,45 +1229,1018 @@
             });
         }
 
-        function createFloatingHeart(element) {
-            const heart = document.createElement('div');
-            heart.className = 'floating-heart';
-            heart.innerHTML = '❤️';
+        // Follow system with Firestore
+        function toggleFollow(userId) {
+            if (!currentUser || userId === currentUser.uid) return;
             
-            const rect = element.getBoundingClientRect();
-            heart.style.position = 'fixed';
-            heart.style.left = rect.left + rect.width / 2 + 'px';
-            heart.style.top = rect.top + 'px';
-            heart.style.zIndex = '1000';
-            
-            document.body.appendChild(heart);
-            
-            setTimeout(() => {
-                heart.remove();
-            }, 2000);
-        }
-
-        // Enhanced Save System
-        function toggleSave(buzzId) {
-            if (!currentUser) return;
-            
-            const buzzRef = db.collection('posts').doc(buzzId);
-            const userRef = db.collection('users').doc(currentUser.uid);
+            const currentUserRef = db.collection('users').doc(currentUser.uid);
+            const targetUserRef = db.collection('users').doc(userId);
             
             db.runTransaction((transaction) => {
-                return transaction.get(buzzRef).then((buzzDoc) => {
-                    return transaction.get(userRef).then((userDoc) => {
-                        if (!buzzDoc.exists || !userDoc.exists) {
-                            throw new Error('Document does not exist!');
+                return transaction.get(currentUserRef).then((currentUserDoc) => {
+                    return transaction.get(targetUserRef).then((targetUserDoc) => {
+                        if (!currentUserDoc.exists || !targetUserDoc.exists) {
+                            throw new Error('User does not exist!');
                         }
                         
-                        const buzz = buzzDoc.data();
-                        const user = userDoc.data();
+                        const currentUserData = currentUserDoc.data();
+                        const targetUserData = targetUserDoc.data();
                         
-                        const saves = buzz.saves || [];
-                        const userSaved = user.savedBuzzes || [];
-                        const isSaved = saves.includes(currentUser.uid);
+                        const currentFollowing = currentUserData.following || [];
+                        const targetFollowers = targetUserData.followers || [];
                         
-                        if (isSaved) {
-                            // Remove save
-                            const newSaves = saves.filter(uid => uid !== currentUser.<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96eff7cce321596b',t:'MTc1NTE2OTQzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+                        const isFollowing = currentFollowing.includes(userId);
+                        
+                        if (isFollowing) {
+                            // Unfollow
+                            const newFollowing = currentFollowing.filter(id => id !== userId);
+                            const newFollowers = targetFollowers.filter(id => id !== currentUser.uid);
+                            
+                            transaction.update(currentUserRef, {
+                                following: newFollowing,
+                                followingCount: Math.max(0, newFollowing.length)
+                            });
+                            transaction.update(targetUserRef, {
+                                followers: newFollowers,
+                                followersCount: Math.max(0, newFollowers.length)
+                            });
+                        } else {
+                            // Follow
+                            const newFollowing = [...currentFollowing, userId];
+                            const newFollowers = [...targetFollowers, currentUser.uid];
+                            
+                            transaction.update(currentUserRef, {
+                                following: newFollowing,
+                                followingCount: newFollowing.length
+                            });
+                            transaction.update(targetUserRef, {
+                                followers: newFollowers,
+                                followersCount: newFollowers.length
+                            });
+                            
+                            // Create notification
+                            createNotification(userId, 'follow', {
+                                followerId: currentUser.uid
+                            });
+                        }
+                        
+                        return !isFollowing;
+                    });
+                });
+            }).then((nowFollowing) => {
+                showToast(nowFollowing ? 'Following user' : 'Unfollowed user', 'success');
+                
+                // Refresh profile if viewing
+                if (!document.getElementById('publicProfileModal').classList.contains('hidden')) {
+                    loadPublicProfileData(userId);
+                }
+            }).catch((error) => {
+                console.error('Follow/unfollow error:', error);
+                showToast('Failed to update follow status', 'error');
+            });
+        }
+
+        // Show user profile
+        function showUserProfile(userId) {
+            if (userId === currentUser.uid) {
+                showProfile();
+                return;
+            }
+            
+            document.getElementById('publicProfileModal').classList.remove('hidden');
+            loadPublicProfileData(userId);
+        }
+
+        function loadPublicProfileData(userId) {
+            db.collection('users').doc(userId).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const initial = userData.displayName ? userData.displayName.charAt(0).toUpperCase() : 'U';
+                    const username = userData.email.split('@')[0];
+                    
+                    document.getElementById('publicProfileInitial').textContent = initial;
+                    document.getElementById('publicProfileUsername').textContent = userData.displayName || 'User';
+                    document.getElementById('publicProfileHandle').textContent = `@${username}`;
+                    document.getElementById('publicProfileLocation').textContent = userData.location || 'Location not set';
+                    
+                    if (userData.createdAt) {
+                        const joinDate = userData.createdAt.toDate();
+                        document.getElementById('publicProfileJoined').textContent = `Joined ${joinDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+                    }
+                    
+                    if (userData.verified) {
+                        document.getElementById('publicVerifiedBadge').classList.remove('hidden');
+                    }
+                    
+                    // Load counts
+                    document.getElementById('publicFollowersCount').textContent = userData.followersCount || 0;
+                    document.getElementById('publicFollowingCount').textContent = userData.followingCount || 0;
+                    document.getElementById('publicPostsCount').textContent = userData.postsCount || 0;
+                    
+                    // Add follow/unfollow button
+                    const actionsContainer = document.getElementById('publicProfileActions');
+                    if (currentUser && currentUser.uid !== userId) {
+                        const isFollowing = userData.followers && userData.followers.includes(currentUser.uid);
+                        actionsContainer.innerHTML = `
+                            <button onclick="toggleFollow('${userId}')" class="flex-1 ${isFollowing ? 'bg-gray-500 hover:bg-gray-600' : 'bg-green-500 hover:bg-green-600'} text-white py-2 px-4 rounded-lg transition-colors">
+                                ${isFollowing ? 'Unfollow' : 'Follow'}
+                            </button>
+                        `;
+                    } else {
+                        actionsContainer.innerHTML = '';
+                    }
+                    
+                    // Load user's buzzes
+                    loadPublicProfileBuzzes(userId);
+                } else {
+                    showProfileNotFound();
+                }
+            }).catch((error) => {
+                console.error('Error loading profile:', error);
+                showProfileNotFound();
+            });
+        }
+
+        function loadPublicProfileBuzzes(userId) {
+            db.collection('posts')
+                .where('author.uid', '==', userId)
+                .where('privacy', '==', 'public')
+                .orderBy('timestamp', 'desc')
+                .limit(10)
+                .get()
+                .then((querySnapshot) => {
+                    const profileBuzzes = document.getElementById('publicProfileBuzzes');
+                    profileBuzzes.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        profileBuzzes.innerHTML = '<p class="text-center text-gray-500 py-8">No public buzzes yet</p>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const buzz = doc.data();
+                        const buzzElement = createBuzzElement(doc.id, buzz);
+                        profileBuzzes.appendChild(buzzElement);
+                    });
+                });
+        }
+
+        function showProfileNotFound() {
+            const profileBuzzes = document.getElementById('publicProfileBuzzes');
+            profileBuzzes.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-user-slash text-4xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Profile not found</h3>
+                    <p class="text-gray-500">This user doesn't exist or has been deactivated.</p>
+                </div>
+            `;
+        }
+
+        function closePublicProfile() {
+            document.getElementById('publicProfileModal').classList.add('hidden');
+        }
+
+        // Comments functionality with Firestore
+        function showComments(buzzId) {
+            currentPostId = buzzId;
+            document.getElementById('commentsModal').classList.remove('hidden');
+            loadComments(buzzId);
+        }
+
+        function closeComments() {
+            document.getElementById('commentsModal').classList.add('hidden');
+            currentPostId = null;
+        }
+
+        function loadComments(buzzId) {
+            const unsubscribe = db.collection('posts').doc(buzzId).collection('comments')
+                .orderBy('timestamp', 'desc')
+                .onSnapshot((querySnapshot) => {
+                    const commentsContainer = document.getElementById('commentsContainer');
+                    commentsContainer.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        commentsContainer.innerHTML = '<p class="text-center text-gray-500 py-4">No comments yet</p>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const comment = doc.data();
+                        const commentElement = createCommentElement(doc.id, comment);
+                        commentsContainer.appendChild(commentElement);
+                    });
+                });
+            
+            unsubscribeListeners.push(unsubscribe);
+        }
+
+        function createCommentElement(commentId, comment) {
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'flex space-x-3 p-3 bg-gray-50 rounded-lg';
+            
+            const initial = comment.author.displayName ? comment.author.displayName.charAt(0).toUpperCase() : 'U';
+            const isLiked = comment.likes && comment.likes.includes(currentUser.uid);
+            const likeCount = comment.likes ? comment.likes.length : 0;
+            const isOwnComment = comment.author.uid === currentUser.uid;
+            
+            commentDiv.innerHTML = `
+                <button onclick="showUserProfile('${comment.author.uid}')" class="w-8 h-8 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity">
+                    ${initial}
+                </button>
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="showUserProfile('${comment.author.uid}')" class="font-semibold text-sm hover:text-green-500 transition-colors">${comment.author.displayName || 'User'}</button>
+                        <span class="text-gray-500 text-xs">${formatTimestamp(comment.timestamp)}</span>
+                        ${isOwnComment ? '<button onclick="deleteComment(\'' + commentId + '\')" class="text-red-500 hover:text-red-700 ml-2"><i class="fas fa-trash text-xs"></i></button>' : ''}
+                    </div>
+                    <p class="mt-1 text-sm text-gray-800">${comment.text}</p>
+                    <div class="flex items-center space-x-4 mt-2">
+                        <button onclick="toggleCommentLike('${commentId}')" class="flex items-center space-x-1 text-xs hover:text-red-500 transition-colors ${isLiked ? 'text-red-500' : 'text-gray-500'}">
+                            <i class="fa${isLiked ? 's' : 'r'} fa-heart"></i>
+                            <span>${likeCount}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return commentDiv;
+        }
+
+        function postComment() {
+            const commentText = document.getElementById('commentInput').value.trim();
+            if (!commentText || !currentUser || !currentPostId) return;
+
+            const comment = {
+                text: commentText,
+                author: {
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName || 'User',
+                    email: currentUser.email
+                },
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                likes: []
+            };
+
+            // Add comment to Firestore
+            db.collection('posts').doc(currentPostId).collection('comments').add(comment).then(() => {
+                document.getElementById('commentInput').value = '';
+                
+                // Update comment count in main buzz
+                db.collection('posts').doc(currentPostId).update({
+                    commentsCount: firebase.firestore.FieldValue.increment(1)
+                });
+                
+                // Get buzz data for notification
+                db.collection('posts').doc(currentPostId).get().then((doc) => {
+                    if (doc.exists) {
+                        const buzz = doc.data();
+                        if (buzz.author.uid !== currentUser.uid) {
+                            createNotification(buzz.author.uid, 'comment', {
+                                buzzId: currentPostId,
+                                buzzText: buzz.text.substring(0, 50) + '...',
+                                commentText: commentText
+                            });
+                        }
+                    }
+                });
+            }).catch((error) => {
+                console.error('Error posting comment:', error);
+                showToast('Failed to post comment', 'error');
+            });
+        }
+
+        function toggleCommentLike(commentId) {
+            if (!currentUser || !currentPostId) return;
+            
+            const commentRef = db.collection('posts').doc(currentPostId).collection('comments').doc(commentId);
+            
+            db.runTransaction((transaction) => {
+                return transaction.get(commentRef).then((doc) => {
+                    if (!doc.exists) {
+                        throw new Error('Comment does not exist!');
+                    }
+                    
+                    const comment = doc.data();
+                    const likes = comment.likes || [];
+                    const isLiked = likes.includes(currentUser.uid);
+                    
+                    const newLikes = isLiked 
+                        ? likes.filter(uid => uid !== currentUser.uid)
+                        : [...likes, currentUser.uid];
+                    
+                    transaction.update(commentRef, { likes: newLikes });
+                });
+            }).catch((error) => {
+                console.error('Error updating comment like:', error);
+            });
+        }
+
+        function deleteComment(commentId) {
+            if (confirm('Are you sure you want to delete this comment?')) {
+                db.collection('posts').doc(currentPostId).collection('comments').doc(commentId).delete().then(() => {
+                    // Update comment count
+                    db.collection('posts').doc(currentPostId).update({
+                        commentsCount: firebase.firestore.FieldValue.increment(-1)
+                    });
+                }).catch((error) => {
+                    console.error('Error deleting comment:', error);
+                });
+            }
+        }
+
+        // Profile functions
+        function showProfile() {
+            document.getElementById('profileModal').classList.remove('hidden');
+            loadUserProfile();
+        }
+
+        function closeProfile() {
+            document.getElementById('profileModal').classList.add('hidden');
+        }
+
+        function loadUserProfile() {
+            if (!currentUser) return;
+            
+            // Load user data from Firestore
+            db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    document.getElementById('followersCount').textContent = userData.followersCount || 0;
+                    document.getElementById('followingCount').textContent = userData.followingCount || 0;
+                    document.getElementById('postsCount').textContent = userData.postsCount || 0;
+                    
+                    if (userData.verified) {
+                        document.getElementById('verifiedBadge').classList.remove('hidden');
+                    }
+                    
+                    if (userData.location) {
+                        document.getElementById('profileLocation').textContent = userData.location;
+                    }
+                }
+            });
+            
+            // Load user's posts for profile grid
+            db.collection('posts')
+                .where('author.uid', '==', currentUser.uid)
+                .orderBy('timestamp', 'desc')
+                .get()
+                .then((querySnapshot) => {
+                    const profileGrid = document.getElementById('profileGrid');
+                    profileGrid.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        profileGrid.innerHTML = '<div class="col-span-3 text-center py-8 text-gray-500">No posts yet</div>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const post = doc.data();
+                        const gridItem = document.createElement('div');
+                        gridItem.className = 'aspect-square bg-gray-200 rounded-lg flex flex-col items-center justify-center text-xs p-2 cursor-pointer hover:opacity-80 transition-opacity post-grid-item';
+                        
+                        const likeCount = post.likesCount || 0;
+                        const commentCount = post.commentsCount || 0;
+                        
+                        gridItem.innerHTML = `
+                            <p class="text-center text-gray-700 mb-2 line-clamp-3">${post.text.substring(0, 50)}${post.text.length > 50 ? '...' : ''}</p>
+                            <div class="flex space-x-2 text-gray-500">
+                                <span><i class="far fa-heart"></i> ${likeCount}</span>
+                                <span><i class="far fa-comment"></i> ${commentCount}</span>
+                            </div>
+                        `;
+                        
+                        gridItem.onclick = () => showComments(doc.id);
+                        profileGrid.appendChild(gridItem);
+                    });
+                });
+        }
+
+        // Followers/Following functions
+        function showFollowers() {
+            document.getElementById('followModalTitle').textContent = 'Followers';
+            document.getElementById('followModal').classList.remove('hidden');
+            loadFollowList('followers');
+        }
+
+        function showFollowing() {
+            document.getElementById('followModalTitle').textContent = 'Following';
+            document.getElementById('followModal').classList.remove('hidden');
+            loadFollowList('following');
+        }
+
+        function closeFollowModal() {
+            document.getElementById('followModal').classList.add('hidden');
+        }
+
+        function loadFollowList(type) {
+            db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const userIds = userData[type] || [];
+                    const followList = document.getElementById('followList');
+                    followList.innerHTML = '';
+                    
+                    if (userIds.length === 0) {
+                        followList.innerHTML = '<p class="text-center text-gray-500">No users found</p>';
+                        return;
+                    }
+                    
+                    userIds.forEach(userId => {
+                        db.collection('users').doc(userId).get().then((userDoc) => {
+                            if (userDoc.exists) {
+                                const user = userDoc.data();
+                                const userElement = createFollowUserElement(userId, user);
+                                followList.appendChild(userElement);
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
+        function createFollowUserElement(userId, user) {
+            const userDiv = document.createElement('div');
+            userDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+            
+            const initial = user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U';
+            
+            userDiv.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <button onclick="showUserProfile('${userId}')" class="w-10 h-10 profile-image-placeholder rounded-full flex items-center justify-center text-white font-bold hover:opacity-80 transition-opacity">
+                        ${initial}
+                    </button>
+                    <div>
+                        <button onclick="showUserProfile('${userId}')" class="font-semibold hover:text-green-500 transition-colors">${user.displayName || 'User'}</button>
+                        <p class="text-sm text-gray-500">@${user.email.split('@')[0]}</p>
+                    </div>
+                </div>
+                <button onclick="toggleFollow('${userId}')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded-full text-sm transition-colors">
+                    Following
+                </button>
+            `;
+            
+            return userDiv;
+        }
+
+        // Settings functions
+        function showSettings() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            
+            // Pre-fill current values
+            document.getElementById('usernameInput').value = currentUser.displayName || '';
+            
+            db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    document.getElementById('locationInput').value = userData.location || '';
+                }
+            });
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function updateProfile() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const location = document.getElementById('locationInput').value.trim();
+            
+            if (!currentUser) return;
+            
+            const updates = {};
+            if (username) updates.displayName = username;
+            if (location) updates.location = location;
+            
+            db.collection('users').doc(currentUser.uid).update(updates).then(() => {
+                showToast('Profile updated successfully!', 'success');
+                if (username) {
+                    currentUser.displayName = username;
+                    initializeUser();
+                }
+                loadUserProfile();
+            }).catch((error) => {
+                console.error('Error updating profile:', error);
+                showToast('Failed to update profile', 'error');
+            });
+        }
+
+        // Notification functions
+        function setupNotificationListener() {
+            const unsubscribe = db.collection('notifications')
+                .where('userId', '==', currentUser.uid)
+                .where('read', '==', false)
+                .onSnapshot((querySnapshot) => {
+                    const unreadCount = querySnapshot.size;
+                    const notificationBadge = document.getElementById('notificationBadge');
+                    const notificationDot = document.getElementById('notificationDot');
+                    
+                    if (unreadCount > 0) {
+                        notificationBadge.classList.remove('hidden');
+                        notificationDot.classList.remove('hidden');
+                    } else {
+                        notificationBadge.classList.add('hidden');
+                        notificationDot.classList.add('hidden');
+                    }
+                });
+            
+            unsubscribeListeners.push(unsubscribe);
+        }
+
+        function createNotification(userId, type, data) {
+            const notification = {
+                userId: userId,
+                type: type,
+                data: data,
+                from: {
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName || 'User',
+                    email: currentUser.email
+                },
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            };
+            
+            db.collection('notifications').add(notification);
+        }
+
+        function createNotificationForFollowers(type, data) {
+            db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const followers = userData.followers || [];
+                    
+                    followers.forEach(followerId => {
+                        createNotification(followerId, type, data);
+                    });
+                }
+            });
+        }
+
+        function showNotifications() {
+            document.getElementById('notificationsModal').classList.remove('hidden');
+            loadNotifications();
+            updateNavigation('notifications');
+        }
+
+        function closeNotifications() {
+            document.getElementById('notificationsModal').classList.add('hidden');
+        }
+
+        function loadNotifications() {
+            db.collection('notifications')
+                .where('userId', '==', currentUser.uid)
+                .orderBy('timestamp', 'desc')
+                .limit(50)
+                .get()
+                .then((querySnapshot) => {
+                    const notificationsList = document.getElementById('notificationsList');
+                    notificationsList.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        notificationsList.innerHTML = '<p class="text-center text-gray-500">No notifications yet</p>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const notification = doc.data();
+                        const notificationElement = createNotificationElement(doc.id, notification);
+                        notificationsList.appendChild(notificationElement);
+                    });
+                });
+        }
+
+        function createNotificationElement(notificationId, notification) {
+            const notificationDiv = document.createElement('div');
+            notificationDiv.className = `p-3 rounded-lg ${notification.read ? 'bg-gray-50' : 'bg-blue-50'} cursor-pointer hover:bg-gray-100 transition-colors`;
+            
+            let message = '';
+            let icon = '';
+            
+            switch (notification.type) {
+                case 'like':
+                    icon = '<i class="fas fa-heart text-red-500"></i>';
+                    message = `${notification.from.displayName} liked your buzz`;
+                    break;
+                case 'comment':
+                    icon = '<i class="fas fa-comment text-green-500"></i>';
+                    message = `${notification.from.displayName} commented on your buzz`;
+                    break;
+                case 'follow':
+                    icon = '<i class="fas fa-user-plus text-blue-500"></i>';
+                    message = `${notification.from.displayName} started following you`;
+                    break;
+                case 'new_buzz':
+                    icon = '<i class="fas fa-plus text-green-500"></i>';
+                    message = `${notification.from.displayName} shared a new buzz`;
+                    break;
+            }
+            
+            notificationDiv.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="text-xl">${icon}</div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium">${message}</p>
+                        <p class="text-xs text-gray-500">${formatTimestamp(notification.timestamp)}</p>
+                    </div>
+                    ${!notification.read ? '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>' : ''}
+                </div>
+            `;
+            
+            notificationDiv.onclick = () => {
+                markNotificationRead(notificationId);
+                if (notification.type === 'like' || notification.type === 'comment') {
+                    closeNotifications();
+                    showComments(notification.data.buzzId);
+                }
+            };
+            
+            return notificationDiv;
+        }
+
+        function markNotificationRead(notificationId) {
+            db.collection('notifications').doc(notificationId).update({ read: true });
+        }
+
+        function markAllNotificationsRead() {
+            db.collection('notifications')
+                .where('userId', '==', currentUser.uid)
+                .where('read', '==', false)
+                .get()
+                .then((querySnapshot) => {
+                    const batch = db.batch();
+                    querySnapshot.forEach((doc) => {
+                        batch.update(doc.ref, { read: true });
+                    });
+                    return batch.commit();
+                })
+                .then(() => {
+                    loadNotifications();
+                });
+        }
+
+        // Utility functions
+        function deleteBuzz(buzzId) {
+            if (confirm('Are you sure you want to delete this buzz?')) {
+                db.collection('posts').doc(buzzId).delete().then(() => {
+                    // Update user's posts count
+                    db.collection('users').doc(currentUser.uid).update({
+                        postsCount: firebase.firestore.FieldValue.increment(-1)
+                    });
+                    showToast('Buzz deleted', 'success');
+                }).catch((error) => {
+                    console.error('Error deleting buzz:', error);
+                    showToast('Failed to delete buzz', 'error');
+                });
+            }
+        }
+
+        function sharePost(postId) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this buzz on Oriobuzz',
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    showToast('Link copied to clipboard!', 'success');
+                });
+            }
+        }
+
+        function formatPostText(text) {
+            // Format hashtags
+            text = text.replace(/#(\w+)/g, '<span class="text-green-500 font-semibold cursor-pointer" onclick="searchHashtag(\'#$1\')">#$1</span>');
+            // Format mentions
+            text = text.replace(/@(\w+)/g, '<span class="text-blue-500 font-semibold cursor-pointer" onclick="searchMention(\'@$1\')">@$1</span>');
+            return text;
+        }
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'now';
+            const now = new Date();
+            const postTime = timestamp.toDate();
+            const diffMs = now - postTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'now';
+            if (diffMins < 60) return `${diffMins}m`;
+            if (diffHours < 24) return `${diffHours}h`;
+            return `${diffDays}d`;
+        }
+
+        function loadTrendingHashtags() {
+            // Load trending hashtags from recent posts
+            db.collection('posts')
+                .where('timestamp', '>', new Date(Date.now() - 24 * 60 * 60 * 1000))
+                .get()
+                .then((querySnapshot) => {
+                    const hashtagCount = {};
+                    
+                    querySnapshot.forEach((doc) => {
+                        const post = doc.data();
+                        const hashtags = post.text.match(/#\w+/g) || [];
+                        hashtags.forEach(hashtag => {
+                            hashtagCount[hashtag] = (hashtagCount[hashtag] || 0) + 1;
+                        });
+                    });
+                    
+                    const trending = Object.entries(hashtagCount)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 5)
+                        .map(([hashtag]) => hashtag);
+                    
+                    const trendingContainer = document.getElementById('trendingHashtags');
+                    trendingContainer.innerHTML = trending.map(tag => 
+                        `<span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-200 transition-colors" onclick="searchHashtag('${tag}')">${tag}</span>`
+                    ).join('');
+                    
+                    // Add default trends if no trending hashtags
+                    if (trending.length === 0) {
+                        trendingContainer.innerHTML = `
+                            <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-200 transition-colors" onclick="searchHashtag('#oriobuzz')">#oriobuzz</span>
+                            <span class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-pink-200 transition-colors" onclick="searchHashtag('#trending')">#trending</span>
+                            <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-purple-200 transition-colors" onclick="searchHashtag('#social')">#social</span>
+                        `;
+                    }
+                });
+        }
+
+        function searchHashtag(hashtag) {
+            document.getElementById('searchInput').value = hashtag;
+            performSearch();
+            updateNavigation('search');
+        }
+
+        function searchMention(mention) {
+            document.getElementById('searchInput').value = mention;
+            performSearch();
+            updateNavigation('search');
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!query) return;
+            
+            // Search posts containing the query
+            db.collection('posts')
+                .get()
+                .then((querySnapshot) => {
+                    const feedContainer = document.getElementById('feedContainer');
+                    feedContainer.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-search mr-2"></i>Search Results</div>';
+                    
+                    let hasResults = false;
+                    
+                    querySnapshot.forEach((doc) => {
+                        const post = doc.data();
+                        if (post.text.toLowerCase().includes(query) || 
+                            post.author.displayName.toLowerCase().includes(query) ||
+                            post.author.email.toLowerCase().includes(query)) {
+                            const postElement = createBuzzElement(doc.id, post);
+                            feedContainer.appendChild(postElement);
+                            hasResults = true;
+                        }
+                    });
+                    
+                    if (!hasResults) {
+                        feedContainer.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-search mr-2"></i>No results found</div>';
+                    }
+                });
+        }
+
+        // Post composer functions
+        function showMoodSelector() {
+            const selector = document.getElementById('moodSelector');
+            selector.classList.toggle('hidden');
+            document.getElementById('privacySelector').classList.add('hidden');
+        }
+
+        function setMood(mood) {
+            currentMood = mood;
+            const moodIndicator = document.getElementById('currentMood');
+            moodIndicator.className = `mood-indicator mood-${mood}`;
+            document.getElementById('moodSelector').classList.add('hidden');
+        }
+
+        function showPrivacySelector() {
+            const selector = document.getElementById('privacySelector');
+            selector.classList.toggle('hidden');
+            document.getElementById('moodSelector').classList.add('hidden');
+        }
+
+        function setPrivacy(privacy) {
+            postPrivacy = privacy;
+            const icon = document.getElementById('privacyIcon');
+            icon.className = privacy === 'public' ? 'fas fa-globe' : 
+                           privacy === 'followers' ? 'fas fa-users' : 'fas fa-lock';
+            document.getElementById('privacySelector').classList.add('hidden');
+        }
+
+        function addLocation() {
+            const currentText = document.getElementById('postText').value;
+            const location = prompt('Add location:');
+            if (location) {
+                currentLocation = location;
+                document.getElementById('locationText').textContent = location;
+                document.getElementById('locationTag').classList.remove('hidden');
+            }
+        }
+
+        function removeLocation() {
+            currentLocation = null;
+            document.getElementById('locationTag').classList.add('hidden');
+        }
+
+        function addHashtag() {
+            const currentText = document.getElementById('postText').value;
+            const hashtag = prompt('Add hashtag (without #):');
+            if (hashtag) {
+                document.getElementById('postText').value = currentText + ` #${hashtag}`;
+                updateCharacterCount();
+            }
+        }
+
+        function addMention() {
+            const currentText = document.getElementById('postText').value;
+            const mention = prompt('Mention user (without @):');
+            if (mention) {
+                document.getElementById('postText').value = currentText + ` @${mention}`;
+                updateCharacterCount();
+            }
+        }
+
+        function updateCharacterCount() {
+            const text = document.getElementById('postText').value;
+            const count = text.length;
+            const countElement = document.getElementById('characterCount');
+            const buzzButton = document.getElementById('buzzButton');
+            
+            countElement.textContent = `${count}/280`;
+            
+            if (count > 240) {
+                countElement.classList.add('warning');
+            } else {
+                countElement.classList.remove('warning');
+            }
+            
+            if (count > 270) {
+                countElement.classList.add('danger');
+            } else {
+                countElement.classList.remove('danger');
+            }
+            
+            buzzButton.disabled = count === 0 || count > 280;
+        }
+
+        // Navigation functions
+        function showFeed() {
+            loadFeed();
+            updateNavigation('home');
+        }
+
+        function showSearch() {
+            document.getElementById('searchInput').focus();
+            updateNavigation('search');
+        }
+
+        function updateNavigation(active) {
+            const navButtons = {
+                'home': document.getElementById('homeBtn'),
+                'search': document.getElementById('searchBtn'),
+                'notifications': document.getElementById('notificationsBtn'),
+                'profile': document.getElementById('profileBtn')
+            };
+            
+            Object.values(navButtons).forEach(btn => {
+                btn.classList.remove('text-green-500');
+                btn.classList.add('text-gray-400');
+            });
+            
+            if (navButtons[active]) {
+                navButtons[active].classList.add('text-green-500');
+                navButtons[active].classList.remove('text-gray-400');
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            loadFeed();
+        }
+
+        function detectLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        showToast('Location detected successfully', 'success');
+                    },
+                    (error) => {
+                        showToast('Location access denied', 'error');
+                    }
+                );
+            } else {
+                showToast('Geolocation not supported', 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-white font-semibold ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            } slide-up`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const value = e.target.value;
+            const clearBtn = document.getElementById('clearSearchBtn');
+            
+            if (value.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        document.getElementById('postText').addEventListener('input', function(e) {
+            updateCharacterCount();
+            
+            const text = e.target.value;
+            const composer = document.getElementById('postComposer');
+            
+            if (text.length > 0) {
+                composer.classList.add('focused');
+                
+                // Show typing indicator
+                if (!isTyping) {
+                    isTyping = true;
+                    document.getElementById('typingIndicator').classList.remove('hidden');
+                }
+                
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    isTyping = false;
+                    document.getElementById('typingIndicator').classList.add('hidden');
+                }, 1000);
+            } else {
+                composer.classList.remove('focused');
+            }
+        });
+
+        document.getElementById('postText').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                createBuzz();
+            }
+        });
+
+        document.getElementById('commentInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                postComment();
+            }
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#moodSelector') && !e.target.closest('[onclick="showMoodSelector()"]')) {
+                document.getElementById('moodSelector').classList.add('hidden');
+            }
+            if (!e.target.closest('#privacySelector') && !e.target.closest('[onclick="showPrivacySelector()"]')) {
+                document.getElementById('privacySelector').classList.add('hidden');
+            }
+        });
+
+        // Auth state observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                initializeUser();
+                showMainApp();
+            } else {
+                currentUser = null;
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Oriobuzz app initialized with Firestore integration');
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f005ace4375983',t:'MTc1NTE2OTk5OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
