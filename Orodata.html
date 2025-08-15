@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -515,7 +515,7 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const database = firebase.database();
+        const db = firebase.firestore();
         const storage = firebase.storage();
 
         // Global variables
@@ -1058,57 +1058,73 @@
         }
 
         function loadDataFromFirebase() {
-            // Load companies from Firebase
-            database.ref('companies').once('value', (snapshot) => {
+            // Load companies from Firestore with real-time updates
+            db.collection('companies').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
                 const companies = [];
-                snapshot.forEach((childSnapshot) => {
-                    companies.push(childSnapshot.val());
+                snapshot.forEach((doc) => {
+                    companies.push({ id: doc.id, ...doc.data() });
                 });
+                
                 if (companies.length > 0) {
-                    allCompanies = companies.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    allCompanies = companies;
                     renderCompanies();
                     renderFeaturedCompanies();
                     updateDashboardStats();
+                    console.log(`Loaded ${companies.length} companies from Firestore`);
                 }
+            }, (error) => {
+                console.error('Error loading companies:', error);
             });
 
-            // Load people from Firebase
-            database.ref('people').once('value', (snapshot) => {
+            // Load people from Firestore with real-time updates
+            db.collection('people').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
                 const people = [];
-                snapshot.forEach((childSnapshot) => {
-                    people.push(childSnapshot.val());
+                snapshot.forEach((doc) => {
+                    people.push({ id: doc.id, ...doc.data() });
                 });
+                
                 if (people.length > 0) {
-                    allPeople = people.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    allPeople = people;
                     renderPeople();
                     updateDashboardStats();
+                    console.log(`Loaded ${people.length} people from Firestore`);
                 }
+            }, (error) => {
+                console.error('Error loading people:', error);
             });
 
-            // Load investors from Firebase
-            database.ref('investors').once('value', (snapshot) => {
+            // Load investors from Firestore with real-time updates
+            db.collection('investors').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
                 const investors = [];
-                snapshot.forEach((childSnapshot) => {
-                    investors.push(childSnapshot.val());
+                snapshot.forEach((doc) => {
+                    investors.push({ id: doc.id, ...doc.data() });
                 });
+                
                 if (investors.length > 0) {
-                    allInvestors = investors.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    allInvestors = investors;
                     renderInvestors();
                     updateDashboardStats();
+                    console.log(`Loaded ${investors.length} investors from Firestore`);
                 }
+            }, (error) => {
+                console.error('Error loading investors:', error);
             });
 
-            // Load schools from Firebase
-            database.ref('schools').once('value', (snapshot) => {
+            // Load schools from Firestore with real-time updates
+            db.collection('schools').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
                 const schools = [];
-                snapshot.forEach((childSnapshot) => {
-                    schools.push(childSnapshot.val());
+                snapshot.forEach((doc) => {
+                    schools.push({ id: doc.id, ...doc.data() });
                 });
+                
                 if (schools.length > 0) {
-                    allSchools = schools.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    allSchools = schools;
                     renderSchools();
                     updateDashboardStats();
+                    console.log(`Loaded ${schools.length} schools from Firestore`);
                 }
+            }, (error) => {
+                console.error('Error loading schools:', error);
             });
         }
 
@@ -2232,7 +2248,6 @@
             
             // Build comprehensive company data
             const companyData = {
-                id: 'comp_' + Date.now(),
                 name: formData.get('name'),
                 legalName: formData.get('legalName') || formData.get('name'),
                 tagline: formData.get('tagline'),
@@ -2299,22 +2314,17 @@
                 createdAt: new Date().toISOString()
             };
 
-            // Save to Firebase first
-            database.ref('companies/' + companyData.id).set(companyData)
-                .then(() => {
-                    // Add to local array after successful save
-                    allCompanies.unshift(companyData);
-                    
-                    // Update UI
-                    renderCompanies();
-                    renderFeaturedCompanies();
-                    updateDashboardStats();
+            // Save to Firestore
+            db.collection('companies').add(companyData)
+                .then((docRef) => {
+                    console.log('Company added with ID:', docRef.id);
                     
                     // Close modal and reset form
                     closeModal('addCompanyModal');
                     e.target.reset();
                     
-                    alert('Company added successfully!');
+                    // Show success message
+                    showSuccessMessage('Company added successfully! It will appear in the list shortly.');
                 })
                 .catch((error) => {
                     console.error('Error saving company:', error);
@@ -2332,7 +2342,6 @@
 
             const formData = new FormData(e.target);
             const personData = {
-                id: 'person_' + Date.now(),
                 name: formData.get('name'),
                 title: formData.get('title'),
                 company: formData.get('company'),
@@ -2345,21 +2354,17 @@
                 createdAt: new Date().toISOString()
             };
 
-            // Save to Firebase first
-            database.ref('people/' + personData.id).set(personData)
-                .then(() => {
-                    // Add to local array after successful save
-                    allPeople.unshift(personData);
-                    
-                    // Update UI
-                    renderPeople();
-                    updateDashboardStats();
+            // Save to Firestore
+            db.collection('people').add(personData)
+                .then((docRef) => {
+                    console.log('Person added with ID:', docRef.id);
                     
                     // Close modal and reset form
                     closeModal('addPersonModal');
                     e.target.reset();
                     
-                    alert('Profile added successfully!');
+                    // Show success message
+                    showSuccessMessage('Profile added successfully! It will appear in the list shortly.');
                 })
                 .catch((error) => {
                     console.error('Error saving person:', error);
@@ -2378,13 +2383,13 @@
                     console.log('Google sign-in successful:', user);
                     closeModal('authModal');
                     
-                    // Save user data to Firebase
-                    database.ref('users/' + user.uid).set({
+                    // Save user data to Firestore
+                    db.collection('users').doc(user.uid).set({
                         name: user.displayName,
                         email: user.email,
                         photoURL: user.photoURL,
-                        lastLogin: new Date().toISOString()
-                    });
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
                 })
                 .catch(error => {
                     console.error('Google sign-in error:', error);
@@ -2513,10 +2518,41 @@
         }
 
         function loadUserData() {
-            // Load user-specific data from Firebase
-            database.ref('companies').orderByChild('createdBy').equalTo(currentUser.uid).once('value', snapshot => {
-                // Handle user's companies
-            });
+            // Load user-specific data from Firestore
+            db.collection('companies').where('createdBy', '==', currentUser.uid).get()
+                .then(snapshot => {
+                    console.log(`User has ${snapshot.size} companies`);
+                })
+                .catch(error => {
+                    console.error('Error loading user data:', error);
+                });
+        }
+
+        function showSuccessMessage(message) {
+            // Create and show success notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 4 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
         }
 
         // Close search results when clicking outside
@@ -2526,5 +2562,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f64493938e598d',t:'MTc1NTIzNTQ5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f6539ee78191d4',t:'MTc1NTIzNjEwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
