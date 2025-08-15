@@ -141,6 +141,9 @@
                     <button onclick="openModal('addProfileModal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                         <i class="fas fa-plus mr-2"></i>Add Profile
                     </button>
+                    <button id="adminPanelBtn" onclick="openAdminPanel()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors hidden">
+                        <i class="fas fa-cog mr-2"></i>Admin Panel
+                    </button>
                     <div id="authSection">
                         <button id="loginBtn" onclick="signInWithGoogle()" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                             <i class="fab fa-google mr-2"></i>Sign In with Google
@@ -167,68 +170,7 @@
                 <p class="text-xl text-gray-600">Discover companies, track funding, analyze market trends, and connect with business leaders.</p>
             </div>
             
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-blue-500">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Companies</p>
-                            <p class="text-3xl font-bold text-gray-900" id="companyCount">0</p>
-                            <p class="text-sm text-green-600 mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i>+12% this month
-                            </p>
-                        </div>
-                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <i class="fas fa-building text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-green-500">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Active People</p>
-                            <p class="text-3xl font-bold text-gray-900" id="peopleCount">0</p>
-                            <p class="text-sm text-green-600 mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i>+8% this month
-                            </p>
-                        </div>
-                        <div class="p-3 rounded-full bg-green-100 text-green-600">
-                            <i class="fas fa-users text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-purple-500">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Investors</p>
-                            <p class="text-3xl font-bold text-gray-900" id="investorCount">0</p>
-                            <p class="text-sm text-blue-600 mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i>+5% this month
-                            </p>
-                        </div>
-                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                            <i class="fas fa-chart-line text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-xl shadow-lg p-6 card-hover border-l-4 border-orange-500">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Funding</p>
-                            <p class="text-3xl font-bold text-gray-900" id="totalFunding">$0</p>
-                            <p class="text-sm text-green-600 mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i>+23% this quarter
-                            </p>
-                        </div>
-                        <div class="p-3 rounded-full bg-orange-100 text-orange-600">
-                            <i class="fas fa-dollar-sign text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             
             <!-- Featured Companies & Recent Activity -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -369,20 +311,18 @@
     <div id="companyProfileModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-xl max-w-7xl w-full max-h-screen overflow-y-auto">
-                <!-- Profile Header -->
-                <div class="profile-cover h-40 relative">
-                    <button onclick="closeModal('companyProfileModal')" class="absolute top-4 right-4 text-white hover:text-gray-200 bg-black bg-opacity-20 rounded-full p-2">
+                <div class="px-8 py-6">
+                    <!-- Close Button -->
+                    <button onclick="closeModal('companyProfileModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-white rounded-full p-2 shadow-lg">
                         <i class="fas fa-times text-xl"></i>
                     </button>
-                </div>
-                
-                <div class="px-8 pb-8">
+                    
                     <!-- Company Header Info -->
-                    <div class="flex flex-col lg:flex-row items-start space-y-6 lg:space-y-0 lg:space-x-8 -mt-20">
-                        <div class="bg-white rounded-xl p-4 shadow-lg">
+                    <div class="flex flex-col lg:flex-row items-start space-y-6 lg:space-y-0 lg:space-x-8">
+                        <div class="bg-gray-50 rounded-xl p-4">
                             <img id="modalCompanyLogo" class="w-32 h-32 object-contain" alt="Company Logo">
                         </div>
-                        <div class="flex-1 mt-20 lg:mt-16">
+                        <div class="flex-1">
                             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4">
                                 <div>
                                     <h1 id="modalCompanyName" class="text-4xl font-bold text-gray-900"></h1>
@@ -435,6 +375,8 @@
                             <button onclick="showTab('technology')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Technology</button>
                             <button onclick="showTab('news')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">News & Press</button>
                             <button onclick="showTab('competitors')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Competitors</button>
+                            <button onclick="showTab('employees')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Employees</button>
+                            <button onclick="showTab('investments')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Investments</button>
                             <button onclick="showTab('timeline')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Timeline</button>
                             <button onclick="showTab('contact')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Contact</button>
                             <button onclick="showTab('analytics')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Analytics</button>
@@ -456,6 +398,25 @@
                                         <h3 class="text-xl font-semibold text-gray-900 mb-4">Founders</h3>
                                         <div id="modalFounders" class="space-y-3">
                                             <!-- Founders will be loaded here -->
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="companyInvestmentOverview" class="hidden">
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Investment Portfolio</h3>
+                                        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
+                                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                                <div class="text-center">
+                                                    <p class="text-2xl font-bold text-green-600" id="overviewTotalInvested">$0</p>
+                                                    <p class="text-sm text-gray-600">Total Invested</p>
+                                                </div>
+                                                <div class="text-center">
+                                                    <p class="text-2xl font-bold text-blue-600" id="overviewPortfolioSize">0</p>
+                                                    <p class="text-sm text-gray-600">Portfolio Companies</p>
+                                                </div>
+                                            </div>
+                                            <div id="overviewRecentInvestments" class="space-y-2">
+                                                <!-- Recent investments will be shown here -->
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -611,6 +572,46 @@
                             </div>
                         </div>
                         
+                        <!-- Employees Tab -->
+                        <div id="employeesTab" class="tab-content hidden">
+                            <div class="space-y-6">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-xl font-semibold text-gray-900">Company Employees</h3>
+                                    <button id="linkEmployeeBtn" onclick="openLinkEmployeeModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors hidden">
+                                        <i class="fas fa-plus mr-2"></i>Link Employee
+                                    </button>
+                                </div>
+                                <div id="companyEmployeesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <!-- Company employees will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Investments Tab -->
+                        <div id="investmentsTab" class="tab-content hidden">
+                            <div class="space-y-6">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-xl font-semibold text-gray-900">Company Investments</h3>
+                                    <button id="addInvestmentBtn" onclick="openAddInvestmentModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors hidden">
+                                        <i class="fas fa-plus mr-2"></i>Add Investment
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                                    <div class="bg-blue-50 rounded-lg p-6 text-center">
+                                        <h4 class="text-sm font-medium text-gray-600 mb-2">Total Investments Made</h4>
+                                        <p id="modalTotalInvestmentsMade" class="text-3xl font-bold text-blue-600">$0</p>
+                                    </div>
+                                    <div class="bg-green-50 rounded-lg p-6 text-center">
+                                        <h4 class="text-sm font-medium text-gray-600 mb-2">Portfolio Companies</h4>
+                                        <p id="modalPortfolioCount" class="text-3xl font-bold text-green-600">0</p>
+                                    </div>
+                                </div>
+                                <div id="companyInvestmentsList" class="space-y-4">
+                                    <!-- Company investments will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Timeline Tab -->
                         <div id="timelineTab" class="tab-content hidden">
                             <div>
@@ -675,6 +676,468 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Company Profile Modal -->
+    <div id="editCompanyModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-gray-900">Edit Company Profile</h3>
+                        <button onclick="closeModal('editCompanyModal')" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <form id="editCompanyForm">
+                        <input type="hidden" id="editCompanyId" name="id">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+                                <input type="text" id="editCompanyName" name="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Legal Name</label>
+                                <input type="text" id="editCompanyLegalName" name="legalName" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                                <input type="url" id="editCompanyWebsite" name="website" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Founded Year</label>
+                                <input type="number" id="editCompanyFoundedYear" name="foundedYear" min="1800" max="2024" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Headquarters Location</label>
+                                <input type="text" id="editCompanyLocation" name="location" placeholder="City, Country" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Employee Range</label>
+                                <select id="editCompanyEmployeeRange" name="employeeRange" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                    <option value="1-10">1-10</option>
+                                    <option value="11-50">11-50</option>
+                                    <option value="51-200">51-200</option>
+                                    <option value="201-1000">201-1000</option>
+                                    <option value="1000+">1000+</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Company Status</label>
+                                <select id="editCompanyStatus" name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                    <option value="Active">Active</option>
+                                    <option value="IPO">IPO</option>
+                                    <option value="Acquired">Acquired</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Company Type</label>
+                                <select id="editCompanyType" name="companyType" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                    <option value="Private">Private</option>
+                                    <option value="Public">Public</option>
+                                    <option value="Non-profit">Non-profit</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tagline</label>
+                            <input type="text" id="editCompanyTagline" name="tagline" placeholder="Short description of what the company does" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea id="editCompanyDescription" name="description" rows="4" placeholder="Detailed description of the company's mission, products, and services" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Industries (comma-separated)</label>
+                            <input type="text" id="editCompanyIndustries" name="industries" placeholder="Technology, SaaS, Fintech" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
+                                <input type="url" id="editCompanyLinkedin" name="linkedinUrl" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Twitter URL</label>
+                                <input type="url" id="editCompanyTwitter" name="twitterUrl" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-end space-x-4">
+                            <button type="button" onclick="closeModal('editCompanyModal')" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-save mr-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminPanelModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-6xl w-full max-h-screen overflow-y-auto">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-gray-900">Admin Panel - Profile Management</h3>
+                        <button onclick="closeModal('adminPanelModal')" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Profile Lock Management</h4>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                                <p class="text-sm text-yellow-800">Lock profiles to prevent editing by other users. Only profile creators and admins can lock/unlock profiles.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- Companies Section -->
+                        <div>
+                            <h5 class="font-medium text-gray-900 mb-3">Companies</h5>
+                            <div id="adminCompanyList" class="space-y-3">
+                                <!-- Company list will be loaded here -->
+                            </div>
+                        </div>
+                        
+                        <!-- People Section -->
+                        <div>
+                            <h5 class="font-medium text-gray-900 mb-3">People</h5>
+                            <div id="adminPeopleList" class="space-y-3">
+                                <!-- People list will be loaded here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Investors Section -->
+                        <div>
+                            <h5 class="font-medium text-gray-900 mb-3">Investors</h5>
+                            <div id="adminInvestorList" class="space-y-3">
+                                <!-- Investor list will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Person Profile Modal -->
+    <div id="personProfileModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-6xl w-full max-h-screen overflow-y-auto">
+                <!-- Profile Header -->
+                <div class="profile-cover h-32 relative">
+                    <button onclick="closeModal('personProfileModal')" class="absolute top-4 right-4 text-white hover:text-gray-200 bg-black bg-opacity-20 rounded-full p-2">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="px-8 pb-8">
+                    <!-- Person Header Info -->
+                    <div class="flex flex-col lg:flex-row items-start space-y-6 lg:space-y-0 lg:space-x-8 -mt-16">
+                        <div class="bg-white rounded-xl p-4 shadow-lg relative">
+                            <img id="modalPersonImage" class="w-32 h-32 rounded-full object-cover" alt="Person Photo">
+                            <div id="modalPersonFounderBadge" class="absolute -top-2 -right-2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center hidden">
+                                <i class="fas fa-crown text-white text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 mt-16 lg:mt-8">
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4">
+                                <div>
+                                    <h1 id="modalPersonName" class="text-4xl font-bold text-gray-900"></h1>
+                                    <p id="modalPersonRole" class="text-xl text-gray-600 mt-2"></p>
+                                    <p id="modalPersonCompany" class="text-lg text-blue-600 mt-1 cursor-pointer hover:underline"></p>
+                                </div>
+                                <div class="flex items-center space-x-3 mt-4 lg:mt-0">
+                                    <span id="modalPersonType" class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm mb-4">
+                                <div>
+                                    <span class="text-gray-500">Location</span>
+                                    <p id="modalPersonLocation" class="font-medium text-gray-900"></p>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500">Experience</span>
+                                    <p id="modalPersonExperience" class="font-medium text-gray-900"></p>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500">Education</span>
+                                    <p id="modalPersonEducation" class="font-medium text-gray-900"></p>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500">Joined</span>
+                                    <p id="modalPersonJoined" class="font-medium text-gray-900"></p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2 mb-4" id="modalPersonSkills">
+                                <!-- Skills will be loaded here -->
+                            </div>
+                            
+                            <div class="flex space-x-4 mt-4" id="modalPersonSocialLinks">
+                                <!-- Social links will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <div class="border-b border-gray-200 mt-8">
+                        <nav class="flex space-x-8 overflow-x-auto">
+                            <button onclick="showPersonTab('overview')" class="person-tab-btn tab-active py-3 px-4 border-b-2 font-medium text-sm whitespace-nowrap">Overview</button>
+                            <button onclick="showPersonTab('experience')" class="person-tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Experience</button>
+                            <button onclick="showPersonTab('education')" class="person-tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Education</button>
+                            <button onclick="showPersonTab('achievements')" class="person-tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Achievements</button>
+                            <button onclick="showPersonTab('ventures')" class="person-tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Ventures</button>
+                            <button onclick="showPersonTab('investments')" class="person-tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Investments</button>
+                            <button onclick="showPersonTab('media')" class="person-tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Media</button>
+                        </nav>
+                    </div>
+                    
+                    <!-- Tab Content -->
+                    <div class="mt-8">
+                        <!-- Overview Tab -->
+                        <div id="personOverviewTab" class="person-tab-content">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div class="lg:col-span-2 space-y-6">
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Professional Bio</h3>
+                                        <p id="modalPersonBio" class="text-gray-700 leading-relaxed"></p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Current Responsibilities</h3>
+                                        <div id="modalPersonResponsibilities" class="space-y-2">
+                                            <!-- Responsibilities will be loaded here -->
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="modalPersonConnectedCompanySection">
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Connected Company</h3>
+                                        <div id="modalPersonConnectedCompany" class="bg-gray-50 rounded-lg p-6">
+                                            <!-- Connected company info will be loaded here -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-6">
+                                    <div class="bg-gray-50 rounded-lg p-6">
+                                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Professional Details</h3>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <span class="text-sm font-medium text-gray-500">Industry Focus</span>
+                                                <p id="modalPersonIndustryFocus" class="text-sm text-gray-900 mt-1"></p>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-medium text-gray-500">Expertise Areas</span>
+                                                <div id="modalPersonExpertise" class="mt-1">
+                                                    <!-- Expertise areas will be loaded here -->
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-medium text-gray-500">Languages</span>
+                                                <p id="modalPersonLanguages" class="text-sm text-gray-900 mt-1"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Experience Tab -->
+                        <div id="personExperienceTab" class="person-tab-content hidden">
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Work Experience</h3>
+                                    <div id="modalPersonWorkHistory" class="space-y-4">
+                                        <!-- Work history will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Education Tab -->
+                        <div id="personEducationTab" class="person-tab-content hidden">
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Education History</h3>
+                                    <div id="modalPersonEducationHistory" class="space-y-4">
+                                        <!-- Education history will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Achievements Tab -->
+                        <div id="personAchievementsTab" class="person-tab-content hidden">
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Awards & Recognition</h3>
+                                    <div id="modalPersonAchievementsList" class="space-y-4">
+                                        <!-- Achievements will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Ventures Tab -->
+                        <div id="personVenturesTab" class="person-tab-content hidden">
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Founded Companies</h3>
+                                    <div id="modalPersonVentures" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <!-- Ventures will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Investments Tab -->
+                        <div id="personInvestmentsTab" class="person-tab-content hidden">
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Investment Portfolio</h3>
+                                    <div id="modalPersonInvestments" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <!-- Investments will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Media Tab -->
+                        <div id="personMediaTab" class="person-tab-content hidden">
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Media Coverage & Interviews</h3>
+                                    <div id="modalPersonMedia" class="space-y-4">
+                                        <!-- Media coverage will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link Employee Modal -->
+    <div id="linkEmployeeModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-2xl w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-gray-900">Link Employee to Company</h3>
+                        <button onclick="closeModal('linkEmployeeModal')" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <form id="linkEmployeeForm">
+                        <input type="hidden" id="linkEmployeeCompanyId" name="companyId">
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Employee</label>
+                            <select id="linkEmployeeSelect" name="employeeId" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Choose an employee...</option>
+                                <!-- Employees will be populated here -->
+                            </select>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-4">
+                            <button type="button" onclick="closeModal('linkEmployeeModal')" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-link mr-2"></i>Link Employee
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Investment Modal -->
+    <div id="addInvestmentModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-2xl w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-gray-900">Add Investment</h3>
+                        <button onclick="closeModal('addInvestmentModal')" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <form id="addInvestmentForm">
+                        <input type="hidden" id="investorCompanyId" name="investorCompanyId">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Target Company *</label>
+                                <select id="investmentTargetCompany" name="targetCompanyId" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select company to invest in...</option>
+                                    <!-- Companies will be populated here -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Investment Amount *</label>
+                                <input type="number" name="amount" required min="1000" step="1000" placeholder="1000000" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Investment Round</label>
+                                <select name="round" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                    <option value="Seed">Seed</option>
+                                    <option value="Series A">Series A</option>
+                                    <option value="Series B">Series B</option>
+                                    <option value="Series C">Series C</option>
+                                    <option value="Series D">Series D</option>
+                                    <option value="Growth">Growth</option>
+                                    <option value="Bridge">Bridge</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Investment Date</label>
+                                <input type="date" name="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Investment Notes</label>
+                            <textarea name="notes" rows="3" placeholder="Additional details about this investment..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-4 mt-6">
+                            <button type="button" onclick="closeModal('addInvestmentModal')" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Add Investment
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -797,18 +1260,54 @@
                                     <input type="text" name="role" placeholder="CEO, Founder, CTO, etc." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Current Company</label>
-                                    <input type="text" name="company" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Connected Company</label>
+                                    <select name="companyId" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select a company (optional)</option>
+                                        <!-- Companies will be populated here -->
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Company Name (if not listed)</label>
+                                    <input type="text" name="company" placeholder="Enter company name" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
                                     <input type="text" name="location" placeholder="City, Country" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
+                                    <input type="number" name="experience" min="0" max="50" placeholder="5" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Education</label>
+                                    <input type="text" name="education" placeholder="University, Degree" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Industry Focus</label>
+                                    <input type="text" name="industryFocus" placeholder="Technology, Healthcare, etc." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
                                 </div>
                             </div>
                             
                             <div class="mt-6">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Professional Bio</label>
                                 <textarea name="bio" rows="4" placeholder="Professional background and experience" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Skills & Expertise (comma-separated)</label>
+                                <input type="text" name="skills" placeholder="JavaScript, Leadership, Product Management" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div class="mt-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Current Responsibilities (comma-separated)</label>
+                                <input type="text" name="responsibilities" placeholder="Team leadership, Product strategy, Fundraising" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div class="mt-6">
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="isFounder" id="isFounder" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <label for="isFounder" class="ml-2 block text-sm text-gray-900">This person is a founder</label>
+                                </div>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -891,6 +1390,10 @@
         let people = [];
         let investors = [];
         let allData = [];
+        let userProfiles = [];
+        let editLocks = {};
+        let companyInvestments = [];
+        let currentCompanyId = null;
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
@@ -932,6 +1435,9 @@
             
             // Form submission
             document.getElementById('addProfileForm').addEventListener('submit', handleAddProfile);
+            document.getElementById('editCompanyForm').addEventListener('submit', handleEditCompany);
+            document.getElementById('linkEmployeeForm').addEventListener('submit', handleLinkEmployee);
+            document.getElementById('addInvestmentForm').addEventListener('submit', handleAddInvestment);
             
             // Filters
             document.getElementById('industryFilter').addEventListener('change', filterCompanies);
@@ -973,16 +1479,36 @@
         function updateAuthUI() {
             const loginBtn = document.getElementById('loginBtn');
             const userProfile = document.getElementById('userProfile');
+            const adminPanelBtn = document.getElementById('adminPanelBtn');
             
             if (currentUser) {
                 loginBtn.classList.add('hidden');
                 userProfile.classList.remove('hidden');
                 document.getElementById('userName').textContent = currentUser.displayName || 'User';
                 document.getElementById('userPhoto').src = currentUser.photoURL || 'https://via.placeholder.com/40';
+                
+                // Show admin panel for admin users or profile creators
+                if (isAdminUser(currentUser.uid) || hasCreatedProfiles()) {
+                    adminPanelBtn.classList.remove('hidden');
+                } else {
+                    adminPanelBtn.classList.add('hidden');
+                }
             } else {
                 loginBtn.classList.remove('hidden');
                 userProfile.classList.add('hidden');
+                adminPanelBtn.classList.add('hidden');
             }
+        }
+
+        function isAdminUser(uid) {
+            // Add admin user IDs here or check against Firebase custom claims
+            const adminUsers = ['admin', 'super-admin'];
+            return adminUsers.includes(uid) || uid === 'admin';
+        }
+
+        function hasCreatedProfiles() {
+            if (!currentUser) return false;
+            return [...companies, ...people, ...investors].some(profile => profile.createdBy === currentUser.uid);
         }
 
         // Navigation functions
@@ -1240,24 +1766,94 @@
                 {
                     id: 'elon-musk',
                     name: 'Elon Musk',
-                    role: 'CEO',
+                    role: 'CEO & Product Architect',
+                    companyId: 'tesla-inc',
                     company: 'Tesla',
                     location: 'Austin, Texas, USA',
-                    bio: 'Entrepreneur and business magnate. CEO of Tesla and SpaceX, owner of X (formerly Twitter).',
+                    experience: 25,
+                    education: 'University of Pennsylvania (Physics & Economics)',
+                    industryFocus: 'Automotive, Space, Technology',
+                    bio: 'Entrepreneur and business magnate. CEO of Tesla and SpaceX, owner of X (formerly Twitter). Leading the transition to sustainable energy and making life multiplanetary.',
+                    skills: ['Leadership', 'Product Development', 'Engineering', 'Strategic Planning', 'Innovation'],
+                    responsibilities: ['Company Strategy', 'Product Vision', 'Engineering Oversight', 'Public Relations'],
+                    achievements: [
+                        'Named Time Person of the Year 2021',
+                        'Built Tesla into world\'s most valuable automaker',
+                        'Successfully launched and landed reusable rockets with SpaceX'
+                    ],
+                    isFounder: true,
+                    ventures: [
+                        { name: 'Tesla', role: 'Co-founder & CEO', status: 'Active', founded: 2003 },
+                        { name: 'SpaceX', role: 'Founder & CEO', status: 'Active', founded: 2002 },
+                        { name: 'Neuralink', role: 'Co-founder', status: 'Active', founded: 2016 },
+                        { name: 'The Boring Company', role: 'Founder', status: 'Active', founded: 2016 }
+                    ],
+                    workHistory: [
+                        { company: 'Tesla', role: 'CEO & Product Architect', startDate: '2008-10', endDate: 'Present', current: true },
+                        { company: 'SpaceX', role: 'Founder & CEO', startDate: '2002-03', endDate: 'Present', current: true },
+                        { company: 'PayPal', role: 'Co-founder', startDate: '1999-03', endDate: '2002-10', current: false }
+                    ],
+                    educationHistory: [
+                        { institution: 'University of Pennsylvania', degree: 'Bachelor of Science in Physics', year: '1997' },
+                        { institution: 'University of Pennsylvania', degree: 'Bachelor of Science in Economics', year: '1997' }
+                    ],
+                    investments: [
+                        { company: 'OpenAI', amount: 1000000000, year: '2015', status: 'Exited' },
+                        { company: 'DeepMind', amount: 'Undisclosed', year: '2012', status: 'Acquired by Google' }
+                    ],
+                    media: [
+                        { title: 'Elon Musk on Mars colonization', source: 'TED Talk', date: '2022-04-14', url: 'https://ted.com' },
+                        { title: 'The Future of Transportation', source: 'Bloomberg', date: '2023-01-15', url: 'https://bloomberg.com' }
+                    ],
                     image: 'https://via.placeholder.com/60',
                     linkedinUrl: 'https://linkedin.com/in/elonmusk',
-                    twitterUrl: 'https://twitter.com/elonmusk'
+                    twitterUrl: 'https://twitter.com/elonmusk',
+                    languages: 'English, Afrikaans'
                 },
                 {
                     id: 'sam-altman',
                     name: 'Sam Altman',
                     role: 'CEO',
+                    companyId: 'openai',
                     company: 'OpenAI',
                     location: 'San Francisco, California, USA',
-                    bio: 'CEO of OpenAI, former president of Y Combinator. Leading the development of artificial general intelligence.',
+                    experience: 15,
+                    education: 'Stanford University (Computer Science, dropped out)',
+                    industryFocus: 'Artificial Intelligence, Technology',
+                    bio: 'CEO of OpenAI, former president of Y Combinator. Leading the development of artificial general intelligence that benefits all of humanity.',
+                    skills: ['AI Strategy', 'Leadership', 'Venture Capital', 'Product Management', 'Public Speaking'],
+                    responsibilities: ['AI Safety Research', 'Company Strategy', 'Partnership Development', 'Policy Advocacy'],
+                    achievements: [
+                        'Led OpenAI to create ChatGPT, reaching 100M users in 2 months',
+                        'Former President of Y Combinator, funded 1000+ startups',
+                        'Named to Time 100 Most Influential People 2023'
+                    ],
+                    isFounder: true,
+                    ventures: [
+                        { name: 'OpenAI', role: 'Co-founder & CEO', status: 'Active', founded: 2015 },
+                        { name: 'Loopt', role: 'Co-founder & CEO', status: 'Acquired', founded: 2005 }
+                    ],
+                    workHistory: [
+                        { company: 'OpenAI', role: 'CEO', startDate: '2019-03', endDate: 'Present', current: true },
+                        { company: 'Y Combinator', role: 'President', startDate: '2014-02', endDate: '2019-03', current: false },
+                        { company: 'Loopt', role: 'Co-founder & CEO', startDate: '2005-01', endDate: '2012-03', current: false }
+                    ],
+                    educationHistory: [
+                        { institution: 'Stanford University', degree: 'Computer Science (dropped out)', year: '2005' }
+                    ],
+                    investments: [
+                        { company: 'Airbnb', amount: 'Undisclosed', year: '2009', status: 'IPO' },
+                        { company: 'Stripe', amount: 'Undisclosed', year: '2010', status: 'Private' },
+                        { company: 'Reddit', amount: 'Undisclosed', year: '2014', status: 'IPO' }
+                    ],
+                    media: [
+                        { title: 'The Future of AI', source: 'Lex Fridman Podcast', date: '2023-03-25', url: 'https://lexfridman.com' },
+                        { title: 'Congressional Hearing on AI', source: 'C-SPAN', date: '2023-05-16', url: 'https://c-span.org' }
+                    ],
                     image: 'https://via.placeholder.com/60',
                     linkedinUrl: 'https://linkedin.com/in/sama',
-                    twitterUrl: 'https://twitter.com/sama'
+                    twitterUrl: 'https://twitter.com/sama',
+                    languages: 'English'
                 }
             ];
 
@@ -1309,6 +1905,10 @@
                 // Load investors
                 const investorsSnapshot = await db.collection('investors').get();
                 investors = investorsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Load company investments
+                const investmentsSnapshot = await db.collection('companyInvestments').get();
+                companyInvestments = investmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
                 allData = [...companies, ...people, ...investors];
 
@@ -1362,15 +1962,195 @@
         }
 
         function updateDashboardStats() {
-            document.getElementById('companyCount').textContent = companies.length;
-            document.getElementById('peopleCount').textContent = people.length;
-            document.getElementById('investorCount').textContent = investors.length;
+            // Update stats without banner display
+            loadRecentActivity();
+            loadFeaturedCompanies();
+        }
+
+        function showPersonProfile(personId) {
+            const person = people.find(p => p.id === personId);
+            if (!person) return;
+
+            // Populate modal with person data
+            document.getElementById('modalPersonImage').src = person.image || 'https://via.placeholder.com/128';
+            document.getElementById('modalPersonName').textContent = person.name;
+            document.getElementById('modalPersonRole').textContent = person.role;
             
-            const totalFunding = companies.reduce((sum, company) => {
-                return sum + (company.fundingRounds || []).reduce((roundSum, round) => roundSum + round.amount, 0);
-            }, 0);
+            // Handle connected company
+            const connectedCompany = person.companyId ? companies.find(c => c.id === person.companyId) : null;
+            const companyElement = document.getElementById('modalPersonCompany');
+            if (connectedCompany) {
+                companyElement.textContent = connectedCompany.name;
+                companyElement.onclick = () => {
+                    closeModal('personProfileModal');
+                    showCompanyProfile(connectedCompany.id);
+                };
+            } else {
+                companyElement.textContent = person.company || 'Independent';
+                companyElement.onclick = null;
+                companyElement.classList.remove('cursor-pointer', 'hover:underline');
+            }
             
-            document.getElementById('totalFunding').textContent = formatCurrency(totalFunding);
+            // Basic info
+            document.getElementById('modalPersonLocation').textContent = person.location;
+            document.getElementById('modalPersonExperience').textContent = person.experience ? `${person.experience} years` : 'Not specified';
+            document.getElementById('modalPersonEducation').textContent = person.education || 'Not specified';
+            document.getElementById('modalPersonJoined').textContent = person.createdAt ? formatDate(person.createdAt) : 'Recently';
+            
+            // Person type badge
+            const typeElement = document.getElementById('modalPersonType');
+            if (person.isFounder) {
+                typeElement.textContent = 'Founder';
+                typeElement.className = 'px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800';
+                document.getElementById('modalPersonFounderBadge').classList.remove('hidden');
+            } else {
+                typeElement.textContent = 'Professional';
+                typeElement.className = 'px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800';
+                document.getElementById('modalPersonFounderBadge').classList.add('hidden');
+            }
+            
+            // Skills
+            const skillsContainer = document.getElementById('modalPersonSkills');
+            skillsContainer.innerHTML = (person.skills || []).map(skill => 
+                `<span class="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">${skill}</span>`
+            ).join('');
+            
+            // Social links
+            const socialLinksContainer = document.getElementById('modalPersonSocialLinks');
+            const socialLinks = [];
+            if (person.linkedinUrl) socialLinks.push(`<a href="${person.linkedinUrl}" target="_blank" class="text-blue-600 hover:text-blue-800"><i class="fab fa-linkedin text-xl"></i></a>`);
+            if (person.twitterUrl) socialLinks.push(`<a href="${person.twitterUrl}" target="_blank" class="text-blue-400 hover:text-blue-600"><i class="fab fa-twitter text-xl"></i></a>`);
+            socialLinksContainer.innerHTML = socialLinks.join('');
+            
+            // Overview tab content
+            document.getElementById('modalPersonBio').textContent = person.bio;
+            document.getElementById('modalPersonIndustryFocus').textContent = person.industryFocus || 'Not specified';
+            document.getElementById('modalPersonLanguages').textContent = person.languages || 'Not specified';
+            
+            // Responsibilities
+            const responsibilitiesContainer = document.getElementById('modalPersonResponsibilities');
+            responsibilitiesContainer.innerHTML = (person.responsibilities || []).map(resp => 
+                `<div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span class="text-gray-700">${resp}</span>
+                </div>`
+            ).join('');
+            
+            // Expertise areas
+            const expertiseContainer = document.getElementById('modalPersonExpertise');
+            expertiseContainer.innerHTML = (person.skills || []).map(skill => 
+                `<span class="inline-block px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full mr-1 mb-1">${skill}</span>`
+            ).join('');
+            
+            // Connected company section
+            const connectedCompanySection = document.getElementById('modalPersonConnectedCompanySection');
+            const connectedCompanyContainer = document.getElementById('modalPersonConnectedCompany');
+            if (connectedCompany) {
+                connectedCompanySection.classList.remove('hidden');
+                connectedCompanyContainer.innerHTML = `
+                    <div class="flex items-center space-x-4 cursor-pointer" onclick="closeModal('personProfileModal'); showCompanyProfile('${connectedCompany.id}')">
+                        <img src="${connectedCompany.logo || 'https://via.placeholder.com/60'}" alt="${connectedCompany.name}" class="w-16 h-16 rounded-lg object-contain">
+                        <div>
+                            <h4 class="font-semibold text-gray-900">${connectedCompany.name}</h4>
+                            <p class="text-sm text-gray-600">${connectedCompany.tagline || connectedCompany.description?.substring(0, 100) + '...'}</p>
+                            <p class="text-sm text-gray-500">${connectedCompany.location}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                connectedCompanySection.classList.add('hidden');
+            }
+            
+            // Work history
+            const workHistoryContainer = document.getElementById('modalPersonWorkHistory');
+            workHistoryContainer.innerHTML = (person.workHistory || []).map(work => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-semibold text-gray-900">${work.role}</h4>
+                            <p class="text-sm text-gray-600">${work.company}</p>
+                        </div>
+                        <span class="text-sm text-gray-500">${work.startDate} - ${work.endDate}</span>
+                    </div>
+                    ${work.current ? '<span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Current</span>' : ''}
+                </div>
+            `).join('') || '<p class="text-gray-500">No work history available.</p>';
+            
+            // Education history
+            const educationHistoryContainer = document.getElementById('modalPersonEducationHistory');
+            educationHistoryContainer.innerHTML = (person.educationHistory || []).map(edu => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-900">${edu.degree}</h4>
+                    <p class="text-sm text-gray-600">${edu.institution}</p>
+                    <p class="text-sm text-gray-500">${edu.year}</p>
+                </div>
+            `).join('') || '<p class="text-gray-500">No education history available.</p>';
+            
+            // Achievements
+            const achievementsContainer = document.getElementById('modalPersonAchievementsList');
+            achievementsContainer.innerHTML = (person.achievements || []).map(achievement => `
+                <div class="flex items-start space-x-3 p-4 bg-yellow-50 rounded-lg">
+                    <i class="fas fa-trophy text-yellow-600 mt-1"></i>
+                    <p class="text-gray-700">${achievement}</p>
+                </div>
+            `).join('') || '<p class="text-gray-500">No achievements recorded.</p>';
+            
+            // Ventures
+            const venturesContainer = document.getElementById('modalPersonVentures');
+            venturesContainer.innerHTML = (person.ventures || []).map(venture => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold text-gray-900">${venture.name}</h4>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${venture.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">${venture.status}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">${venture.role}</p>
+                    <p class="text-sm text-gray-500">Founded ${venture.founded}</p>
+                </div>
+            `).join('') || '<p class="text-gray-500">No ventures recorded.</p>';
+            
+            // Investments
+            const investmentsContainer = document.getElementById('modalPersonInvestments');
+            investmentsContainer.innerHTML = (person.investments || []).map(investment => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold text-gray-900">${investment.company}</h4>
+                        <span class="text-sm font-medium text-green-600">${typeof investment.amount === 'number' ? formatCurrency(investment.amount) : investment.amount}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">${investment.status}</p>
+                    <p class="text-sm text-gray-500">${investment.year}</p>
+                </div>
+            `).join('') || '<p class="text-gray-500">No investments recorded.</p>';
+            
+            // Media coverage
+            const mediaContainer = document.getElementById('modalPersonMedia');
+            mediaContainer.innerHTML = (person.media || []).map(media => `
+                <div class="border-b border-gray-200 pb-4">
+                    <h4 class="font-semibold text-gray-900 mb-2">${media.title}</h4>
+                    <p class="text-sm text-gray-500 mb-2">${media.source} • ${formatDate(media.date)}</p>
+                    ${media.url ? `<a href="${media.url}" target="_blank" class="text-blue-600 hover:underline text-sm">Read more</a>` : ''}
+                </div>
+            `).join('') || '<p class="text-gray-500">No media coverage available.</p>';
+            
+            openModal('personProfileModal');
+        }
+
+        function showPersonTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.person-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Show selected tab
+            document.getElementById('person' + tabName.charAt(0).toUpperCase() + tabName.slice(1) + 'Tab').classList.remove('hidden');
+            
+            // Update tab buttons
+            document.querySelectorAll('.person-tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-gray-500', 'border-transparent');
+            });
+            
+            event.target.classList.add('tab-active');
+            event.target.classList.remove('text-gray-500', 'border-transparent');
         }
 
         function renderCompanies() {
@@ -1386,21 +2166,25 @@
         function createCompanyCard(company) {
             const statusClass = `status-${company.status.toLowerCase()}`;
             const totalFunding = (company.fundingRounds || []).reduce((sum, round) => sum + round.amount, 0);
+            const canEdit = currentUser && (company.createdBy === currentUser.uid || !company.editLocked);
+            const isLocked = company.editLocked || false;
             
             return `
-                <div class="bg-white rounded-xl shadow-lg card-hover cursor-pointer overflow-hidden" onclick="showCompanyProfile('${company.id}')">
-                    <div class="p-6">
+                <div class="bg-white rounded-xl shadow-lg card-hover overflow-hidden relative">
+                    <div class="p-6" onclick="showCompanyProfile('${company.id}')">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center space-x-4">
                                 <img src="${company.logo || 'https://via.placeholder.com/60'}" alt="${company.name}" class="w-16 h-16 object-contain rounded-lg border border-gray-200">
                                 <div>
                                     <h3 class="text-xl font-bold text-gray-900">${company.name}</h3>
                                     <p class="text-sm text-gray-500">${company.location}</p>
+                                    ${company.createdBy === currentUser?.uid ? '<span class="text-xs text-blue-600 font-medium"><i class="fas fa-user mr-1"></i>Your Profile</span>' : ''}
                                 </div>
                             </div>
                             <div class="flex flex-col items-end space-y-2">
                                 <span class="px-3 py-1 rounded-full text-xs font-medium ${statusClass}">${company.status}</span>
                                 ${company.rank ? `<span class="px-2 py-1 rounded-full text-xs font-bold rank-badge">#${company.rank}</span>` : ''}
+                                ${isLocked ? '<span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><i class="fas fa-lock mr-1"></i>Locked</span>' : ''}
                             </div>
                         </div>
                         
@@ -1420,6 +2204,18 @@
                             ${totalFunding > 0 ? `<span class="font-semibold text-green-600">${formatCurrency(totalFunding)}</span>` : ''}
                         </div>
                     </div>
+                    ${currentUser ? `
+                        <div class="absolute top-2 right-2 flex space-x-1" onclick="event.stopPropagation()">
+                            ${canEdit ? `<button onclick="editCompanyProfile('${company.id}')" class="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors" title="Edit Profile">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>` : ''}
+                            ${currentUser.uid === 'admin' || company.createdBy === currentUser.uid ? `
+                                <button onclick="toggleEditLock('${company.id}', 'company')" class="p-2 ${isLocked ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-500 hover:bg-gray-600'} text-white rounded-full transition-colors" title="${isLocked ? 'Unlock Profile' : 'Lock Profile'}">
+                                    <i class="fas fa-${isLocked ? 'unlock' : 'lock'} text-xs"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -1427,6 +2223,8 @@
         function showCompanyProfile(companyId) {
             const company = companies.find(c => c.id === companyId);
             if (!company) return;
+            
+            currentCompanyId = companyId;
 
             // Populate modal with company data
             document.getElementById('modalCompanyLogo').src = company.logo || 'https://via.placeholder.com/128';
@@ -1599,6 +2397,26 @@
                 </div>
             `;
             
+            // Load company employees
+            loadCompanyEmployees(companyId);
+            
+            // Load company investments
+            loadCompanyInvestments(companyId);
+            
+            // Load investment overview
+            loadInvestmentOverview(companyId);
+            
+            // Show/hide action buttons based on user authentication
+            const linkEmployeeBtn = document.getElementById('linkEmployeeBtn');
+            const addInvestmentBtn = document.getElementById('addInvestmentBtn');
+            if (currentUser) {
+                linkEmployeeBtn.classList.remove('hidden');
+                addInvestmentBtn.classList.remove('hidden');
+            } else {
+                linkEmployeeBtn.classList.add('hidden');
+                addInvestmentBtn.classList.add('hidden');
+            }
+            
             // Create charts
             setTimeout(() => {
                 createFundingChart(fundingRounds);
@@ -1699,24 +2517,74 @@
         }
 
         function createPersonCard(person) {
+            const canEdit = currentUser && (person.createdBy === currentUser.uid || !person.editLocked);
+            const isLocked = person.editLocked || false;
+            const isFounder = person.isFounder || false;
+            const connectedCompany = person.companyId ? companies.find(c => c.id === person.companyId) : null;
+            
             return `
-                <div class="bg-white rounded-xl shadow-lg card-hover p-6">
+                <div class="bg-white rounded-xl shadow-lg card-hover p-6 relative" onclick="showPersonProfile('${person.id}')">
                     <div class="flex items-center space-x-4 mb-4">
-                        <img src="${person.image || 'https://via.placeholder.com/60'}" alt="${person.name}" class="w-16 h-16 rounded-full object-cover">
-                        <div>
+                        <div class="relative">
+                            <img src="${person.image || 'https://via.placeholder.com/60'}" alt="${person.name}" class="w-16 h-16 rounded-full object-cover">
+                            ${isFounder ? '<div class="absolute -top-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center"><i class="fas fa-crown text-white text-xs"></i></div>' : ''}
+                        </div>
+                        <div class="flex-1">
                             <h3 class="text-lg font-semibold text-gray-900">${person.name}</h3>
                             <p class="text-sm text-gray-600">${person.role}</p>
-                            <p class="text-sm text-gray-500">${person.company}</p>
+                            ${connectedCompany ? 
+                                `<p class="text-sm text-blue-600 hover:underline cursor-pointer" onclick="event.stopPropagation(); showCompanyProfile('${connectedCompany.id}')">${connectedCompany.name}</p>` :
+                                `<p class="text-sm text-gray-500">${person.company}</p>`
+                            }
+                            ${person.createdBy === currentUser?.uid ? '<span class="text-xs text-blue-600 font-medium"><i class="fas fa-user mr-1"></i>Your Profile</span>' : ''}
                         </div>
                     </div>
+                    
+                    ${person.skills && person.skills.length > 0 ? `
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${person.skills.slice(0, 3).map(skill => 
+                                `<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">${skill}</span>`
+                            ).join('')}
+                            ${person.skills.length > 3 ? `<span class="text-xs text-gray-500">+${person.skills.length - 3} more</span>` : ''}
+                        </div>
+                    ` : ''}
+                    
                     <p class="text-gray-600 text-sm mb-4 line-clamp-2">${person.bio}</p>
+                    
+                    ${person.achievements && person.achievements.length > 0 ? `
+                        <div class="mb-3">
+                            <div class="flex items-center text-xs text-gray-500 mb-1">
+                                <i class="fas fa-trophy mr-1"></i>Recent Achievement
+                            </div>
+                            <p class="text-xs text-gray-700">${person.achievements[0]}</p>
+                        </div>
+                    ` : ''}
+                    
                     <div class="flex justify-between items-center">
-                        <p class="text-gray-500 text-sm"><i class="fas fa-map-marker-alt mr-1"></i>${person.location}</p>
+                        <div class="flex items-center space-x-3 text-sm text-gray-500">
+                            <span><i class="fas fa-map-marker-alt mr-1"></i>${person.location}</span>
+                            ${person.experience ? `<span><i class="fas fa-briefcase mr-1"></i>${person.experience}y exp</span>` : ''}
+                        </div>
                         <div class="flex space-x-2">
-                            ${person.linkedinUrl ? `<a href="${person.linkedinUrl}" target="_blank" class="text-blue-600 hover:text-blue-800"><i class="fab fa-linkedin"></i></a>` : ''}
-                            ${person.twitterUrl ? `<a href="${person.twitterUrl}" target="_blank" class="text-blue-400 hover:text-blue-600"><i class="fab fa-twitter"></i></a>` : ''}
+                            ${person.linkedinUrl ? `<a href="${person.linkedinUrl}" target="_blank" onclick="event.stopPropagation()" class="text-blue-600 hover:text-blue-800"><i class="fab fa-linkedin"></i></a>` : ''}
+                            ${person.twitterUrl ? `<a href="${person.twitterUrl}" target="_blank" onclick="event.stopPropagation()" class="text-blue-400 hover:text-blue-600"><i class="fab fa-twitter"></i></a>` : ''}
                         </div>
                     </div>
+                    
+                    ${isLocked ? '<span class="absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><i class="fas fa-lock mr-1"></i>Locked</span>' : ''}
+                    
+                    ${currentUser ? `
+                        <div class="absolute top-2 right-2 flex space-x-1" onclick="event.stopPropagation()">
+                            ${canEdit ? `<button onclick="editPersonProfile('${person.id}')" class="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors" title="Edit Profile">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>` : ''}
+                            ${currentUser.uid === 'admin' || person.createdBy === currentUser.uid ? `
+                                <button onclick="toggleEditLock('${person.id}', 'person')" class="p-2 ${isLocked ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-500 hover:bg-gray-600'} text-white rounded-full transition-colors" title="${isLocked ? 'Unlock Profile' : 'Lock Profile'}">
+                                    <i class="fas fa-${isLocked ? 'unlock' : 'lock'} text-xs"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -1922,6 +2790,15 @@
             
             // Show selected form
             document.getElementById(profileType + 'Form').classList.remove('hidden');
+            
+            // Populate company dropdown for person form
+            if (profileType === 'person') {
+                const companySelect = document.querySelector('#personForm select[name="companyId"]');
+                companySelect.innerHTML = '<option value="">Select a company (optional)</option>' +
+                    companies.map(company => 
+                        `<option value="${company.id}">${company.name}</option>`
+                    ).join('');
+            }
         }
 
         async function handleAddProfile(event) {
@@ -1955,6 +2832,17 @@
                     renderCompanies();
                     
                 } else if (profileType === 'person') {
+                    // Process skills and responsibilities
+                    if (data.skills) {
+                        data.skills = data.skills.split(',').map(s => s.trim());
+                    }
+                    if (data.responsibilities) {
+                        data.responsibilities = data.responsibilities.split(',').map(r => r.trim());
+                    }
+                    
+                    // Handle founder checkbox
+                    data.isFounder = document.getElementById('isFounder').checked;
+                    
                     data.image = 'https://via.placeholder.com/60';
                     
                     // Add to Firestore
@@ -2087,6 +2975,425 @@
             }, 4000);
         }
 
+        // Edit and Admin Functions
+        function editPersonProfile(personId) {
+            showNotification('Person profile editing coming soon!', 'info');
+        }
+
+        function editCompanyProfile(companyId) {
+            const company = companies.find(c => c.id === companyId);
+            if (!company) return;
+            
+            // Check if user can edit
+            if (!currentUser || (company.createdBy !== currentUser.uid && company.editLocked)) {
+                showNotification('You do not have permission to edit this profile', 'error');
+                return;
+            }
+            
+            // Populate edit form
+            document.getElementById('editCompanyId').value = company.id;
+            document.getElementById('editCompanyName').value = company.name || '';
+            document.getElementById('editCompanyLegalName').value = company.legalName || '';
+            document.getElementById('editCompanyWebsite').value = company.website || '';
+            document.getElementById('editCompanyFoundedYear').value = company.foundedYear || '';
+            document.getElementById('editCompanyLocation').value = company.location || '';
+            document.getElementById('editCompanyEmployeeRange').value = company.employeeRange || '';
+            document.getElementById('editCompanyStatus').value = company.status || '';
+            document.getElementById('editCompanyType').value = company.companyType || '';
+            document.getElementById('editCompanyTagline').value = company.tagline || '';
+            document.getElementById('editCompanyDescription').value = company.description || '';
+            document.getElementById('editCompanyIndustries').value = (company.industries || []).join(', ');
+            document.getElementById('editCompanyLinkedin').value = company.socialLinks?.linkedin || '';
+            document.getElementById('editCompanyTwitter').value = company.socialLinks?.twitter || '';
+            
+            openModal('editCompanyModal');
+        }
+
+        async function handleEditCompany(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            const companyId = data.id;
+            
+            try {
+                // Process industries
+                if (data.industries) {
+                    data.industries = data.industries.split(',').map(i => i.trim());
+                }
+                
+                // Update social links
+                data.socialLinks = {
+                    linkedin: data.linkedinUrl || '',
+                    twitter: data.twitterUrl || ''
+                };
+                delete data.linkedinUrl;
+                delete data.twitterUrl;
+                
+                // Update logo if website changed
+                if (data.website) {
+                    data.logo = `https://logo.clearbit.com/${new URL(data.website).hostname}`;
+                }
+                
+                data.updatedAt = new Date().toISOString();
+                data.updatedBy = currentUser.uid;
+                
+                // Update in Firestore
+                await db.collection('companies').doc(companyId).update(data);
+                
+                // Update local data
+                const companyIndex = companies.findIndex(c => c.id === companyId);
+                if (companyIndex !== -1) {
+                    companies[companyIndex] = { ...companies[companyIndex], ...data };
+                    renderCompanies();
+                    updateDashboardStats();
+                    allData = [...companies, ...people, ...investors];
+                }
+                
+                closeModal('editCompanyModal');
+                showNotification('Company profile updated successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error updating company:', error);
+                showNotification('Error updating profile. Please try again.', 'error');
+            }
+        }
+
+        async function toggleEditLock(profileId, profileType) {
+            if (!currentUser) return;
+            
+            let profile, collection;
+            
+            if (profileType === 'company') {
+                profile = companies.find(c => c.id === profileId);
+                collection = 'companies';
+            } else if (profileType === 'person') {
+                profile = people.find(p => p.id === profileId);
+                collection = 'people';
+            } else if (profileType === 'investor') {
+                profile = investors.find(i => i.id === profileId);
+                collection = 'investors';
+            }
+            
+            if (!profile) return;
+            
+            // Check permissions
+            if (!isAdminUser(currentUser.uid) && profile.createdBy !== currentUser.uid) {
+                showNotification('You do not have permission to lock/unlock this profile', 'error');
+                return;
+            }
+            
+            try {
+                const newLockStatus = !profile.editLocked;
+                
+                await db.collection(collection).doc(profileId).update({
+                    editLocked: newLockStatus,
+                    lockUpdatedAt: new Date().toISOString(),
+                    lockUpdatedBy: currentUser.uid
+                });
+                
+                profile.editLocked = newLockStatus;
+                
+                if (profileType === 'company') {
+                    renderCompanies();
+                }
+                
+                showNotification(`Profile ${newLockStatus ? 'locked' : 'unlocked'} successfully!`, 'success');
+                
+            } catch (error) {
+                console.error('Error toggling lock:', error);
+                showNotification('Error updating lock status', 'error');
+            }
+        }
+
+        function openAdminPanel() {
+            loadAdminData();
+            openModal('adminPanelModal');
+        }
+
+        function loadAdminData() {
+            // Load companies for admin panel
+            const adminCompanyList = document.getElementById('adminCompanyList');
+            adminCompanyList.innerHTML = companies.map(company => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                        <img src="${company.logo || 'https://via.placeholder.com/40'}" alt="${company.name}" class="w-10 h-10 rounded object-contain">
+                        <div>
+                            <h6 class="font-medium text-gray-900">${company.name}</h6>
+                            <p class="text-sm text-gray-500">Created by: ${company.createdBy === currentUser?.uid ? 'You' : 'Other User'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${company.editLocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                            <i class="fas fa-${company.editLocked ? 'lock' : 'unlock'} mr-1"></i>
+                            ${company.editLocked ? 'Locked' : 'Unlocked'}
+                        </span>
+                        ${(isAdminUser(currentUser?.uid) || company.createdBy === currentUser?.uid) ? `
+                            <button onclick="toggleEditLock('${company.id}', 'company')" class="px-3 py-1 text-sm ${company.editLocked ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded transition-colors">
+                                ${company.editLocked ? 'Unlock' : 'Lock'}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('') || '<p class="text-gray-500 text-center py-4">No companies found</p>';
+            
+            // Load people for admin panel
+            const adminPeopleList = document.getElementById('adminPeopleList');
+            adminPeopleList.innerHTML = people.map(person => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                        <img src="${person.image || 'https://via.placeholder.com/40'}" alt="${person.name}" class="w-10 h-10 rounded-full object-cover">
+                        <div>
+                            <h6 class="font-medium text-gray-900">${person.name}</h6>
+                            <p class="text-sm text-gray-500">Created by: ${person.createdBy === currentUser?.uid ? 'You' : 'Other User'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${person.editLocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                            <i class="fas fa-${person.editLocked ? 'lock' : 'unlock'} mr-1"></i>
+                            ${person.editLocked ? 'Locked' : 'Unlocked'}
+                        </span>
+                        ${(isAdminUser(currentUser?.uid) || person.createdBy === currentUser?.uid) ? `
+                            <button onclick="toggleEditLock('${person.id}', 'person')" class="px-3 py-1 text-sm ${person.editLocked ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded transition-colors">
+                                ${person.editLocked ? 'Unlock' : 'Lock'}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('') || '<p class="text-gray-500 text-center py-4">No people found</p>';
+            
+            // Load investors for admin panel
+            const adminInvestorList = document.getElementById('adminInvestorList');
+            adminInvestorList.innerHTML = investors.map(investor => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                        <img src="${investor.logo || 'https://via.placeholder.com/40'}" alt="${investor.name}" class="w-10 h-10 rounded object-contain">
+                        <div>
+                            <h6 class="font-medium text-gray-900">${investor.name}</h6>
+                            <p class="text-sm text-gray-500">Created by: ${investor.createdBy === currentUser?.uid ? 'You' : 'Other User'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${investor.editLocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                            <i class="fas fa-${investor.editLocked ? 'lock' : 'unlock'} mr-1"></i>
+                            ${investor.editLocked ? 'Locked' : 'Unlocked'}
+                        </span>
+                        ${(isAdminUser(currentUser?.uid) || investor.createdBy === currentUser?.uid) ? `
+                            <button onclick="toggleEditLock('${investor.id}', 'investor')" class="px-3 py-1 text-sm ${investor.editLocked ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded transition-colors">
+                                ${investor.editLocked ? 'Unlock' : 'Lock'}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('') || '<p class="text-gray-500 text-center py-4">No investors found</p>';
+        }
+
+        // Company Employee and Investment Functions
+        function loadCompanyEmployees(companyId) {
+            const companyEmployees = people.filter(person => person.companyId === companyId);
+            const employeesContainer = document.getElementById('companyEmployeesList');
+            
+            if (companyEmployees.length === 0) {
+                employeesContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No employees linked to this company yet.</div>';
+                return;
+            }
+            
+            employeesContainer.innerHTML = companyEmployees.map(employee => `
+                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="showPersonProfile('${employee.id}')">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="relative">
+                            <img src="${employee.image || 'https://via.placeholder.com/48'}" alt="${employee.name}" class="w-12 h-12 rounded-full object-cover">
+                            ${employee.isFounder ? '<div class="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center"><i class="fas fa-crown text-white text-xs"></i></div>' : ''}
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">${employee.name}</h4>
+                            <p class="text-sm text-gray-600">${employee.role}</p>
+                        </div>
+                    </div>
+                    ${employee.skills && employee.skills.length > 0 ? `
+                        <div class="flex flex-wrap gap-1">
+                            ${employee.skills.slice(0, 2).map(skill => 
+                                `<span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${skill}</span>`
+                            ).join('')}
+                            ${employee.skills.length > 2 ? `<span class="text-xs text-gray-500">+${employee.skills.length - 2}</span>` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+        
+        function loadCompanyInvestments(companyId) {
+            const investments = companyInvestments.filter(inv => inv.investorCompanyId === companyId);
+            const investmentsContainer = document.getElementById('companyInvestmentsList');
+            
+            // Update stats
+            const totalInvested = investments.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+            document.getElementById('modalTotalInvestmentsMade').textContent = formatCurrency(totalInvested);
+            document.getElementById('modalPortfolioCount').textContent = investments.length;
+            
+            if (investments.length === 0) {
+                investmentsContainer.innerHTML = '<div class="text-center text-gray-500 py-8">No investments made yet.</div>';
+                return;
+            }
+            
+            investmentsContainer.innerHTML = investments.map(investment => {
+                const targetCompany = companies.find(c => c.id === investment.targetCompanyId);
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3 cursor-pointer" onclick="showCompanyProfile('${investment.targetCompanyId}')">
+                                <img src="${targetCompany?.logo || 'https://via.placeholder.com/40'}" alt="${targetCompany?.name}" class="w-10 h-10 rounded object-contain">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">${targetCompany?.name || 'Unknown Company'}</h4>
+                                    <p class="text-sm text-gray-600">${investment.round || 'Investment'}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold text-green-600">${formatCurrency(investment.amount)}</p>
+                                <p class="text-sm text-gray-500">${formatDate(investment.date)}</p>
+                            </div>
+                        </div>
+                        ${investment.notes ? `<p class="text-sm text-gray-600 mt-2">${investment.notes}</p>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function loadInvestmentOverview(companyId) {
+            const investments = companyInvestments.filter(inv => inv.investorCompanyId === companyId);
+            const overviewSection = document.getElementById('companyInvestmentOverview');
+            
+            if (investments.length === 0) {
+                overviewSection.classList.add('hidden');
+                return;
+            }
+            
+            overviewSection.classList.remove('hidden');
+            
+            const totalInvested = investments.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+            document.getElementById('overviewTotalInvested').textContent = formatCurrency(totalInvested);
+            document.getElementById('overviewPortfolioSize').textContent = investments.length;
+            
+            // Show recent investments
+            const recentInvestments = investments.slice(-3);
+            const recentContainer = document.getElementById('overviewRecentInvestments');
+            recentContainer.innerHTML = recentInvestments.map(investment => {
+                const targetCompany = companies.find(c => c.id === investment.targetCompanyId);
+                return `
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-700">${targetCompany?.name || 'Unknown'}</span>
+                        <span class="font-medium text-green-600">${formatCurrency(investment.amount)}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function openLinkEmployeeModal() {
+            if (!currentUser) {
+                showNotification('Please sign in to link employees', 'error');
+                return;
+            }
+            
+            // Populate employee dropdown with unlinked employees
+            const unlinkedEmployees = people.filter(person => !person.companyId || person.companyId !== currentCompanyId);
+            const employeeSelect = document.getElementById('linkEmployeeSelect');
+            employeeSelect.innerHTML = '<option value="">Choose an employee...</option>' +
+                unlinkedEmployees.map(person => 
+                    `<option value="${person.id}">${person.name} - ${person.role || 'No role specified'}</option>`
+                ).join('');
+            
+            document.getElementById('linkEmployeeCompanyId').value = currentCompanyId;
+            openModal('linkEmployeeModal');
+        }
+        
+        function openAddInvestmentModal() {
+            if (!currentUser) {
+                showNotification('Please sign in to add investments', 'error');
+                return;
+            }
+            
+            // Populate company dropdown (exclude current company)
+            const otherCompanies = companies.filter(company => company.id !== currentCompanyId);
+            const companySelect = document.getElementById('investmentTargetCompany');
+            companySelect.innerHTML = '<option value="">Select company to invest in...</option>' +
+                otherCompanies.map(company => 
+                    `<option value="${company.id}">${company.name}</option>`
+                ).join('');
+            
+            document.getElementById('investorCompanyId').value = currentCompanyId;
+            
+            // Set default date to today
+            const dateInput = document.querySelector('#addInvestmentForm input[name="date"]');
+            dateInput.value = new Date().toISOString().split('T')[0];
+            
+            openModal('addInvestmentModal');
+        }
+        
+        async function handleLinkEmployee(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                // Update person's company link
+                await db.collection('people').doc(data.employeeId).update({
+                    companyId: data.companyId,
+                    linkedAt: new Date().toISOString(),
+                    linkedBy: currentUser.uid
+                });
+                
+                // Update local data
+                const personIndex = people.findIndex(p => p.id === data.employeeId);
+                if (personIndex !== -1) {
+                    people[personIndex].companyId = data.companyId;
+                    renderPeople();
+                }
+                
+                // Reload company employees
+                loadCompanyEmployees(data.companyId);
+                
+                closeModal('linkEmployeeModal');
+                showNotification('Employee linked successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error linking employee:', error);
+                showNotification('Error linking employee. Please try again.', 'error');
+            }
+        }
+        
+        async function handleAddInvestment(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Convert amount to number
+            data.amount = parseInt(data.amount);
+            data.id = Date.now().toString();
+            data.createdAt = new Date().toISOString();
+            data.createdBy = currentUser.uid;
+            
+            try {
+                // Save investment to Firestore
+                await db.collection('companyInvestments').doc(data.id).set(data);
+                
+                // Update local data
+                companyInvestments.push(data);
+                
+                // Reload company investments
+                loadCompanyInvestments(data.investorCompanyId);
+                loadInvestmentOverview(data.investorCompanyId);
+                
+                closeModal('addInvestmentModal');
+                showNotification('Investment added successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error adding investment:', error);
+                showNotification('Error adding investment. Please try again.', 'error');
+            }
+        }
+
         // Real-time listeners for Firestore
         function setupRealtimeListeners() {
             if (!currentUser) return;
@@ -2114,6 +3421,16 @@
                 updateDashboardStats();
                 allData = [...companies, ...people, ...investors];
             });
+            
+            // Listen for company investments changes
+            db.collection('companyInvestments').onSnapshot((snapshot) => {
+                companyInvestments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Refresh current company profile if open
+                if (currentCompanyId) {
+                    loadCompanyInvestments(currentCompanyId);
+                    loadInvestmentOverview(currentCompanyId);
+                }
+            });
         }
 
         // Initialize real-time listeners when user signs in
@@ -2123,5 +3440,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f6b24602bb54fe',t:'MTc1NTIzOTk4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f6c44c91f68ae1',t:'MTc1NTI0MDcyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
