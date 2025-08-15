@@ -1770,16 +1770,47 @@
         });
 
         function initializeApp() {
+            // Test Firebase connection
+            testFirebaseConnection();
+            
             // Auth state listener
             auth.onAuthStateChanged(user => {
                 currentUser = user;
                 updateAuthUI();
                 if (user) {
+                    console.log('User signed in:', user.displayName || user.email);
                     loadDataFromFirestore();
                 } else {
+                    console.log('User not signed in, loading sample data');
                     loadSampleData();
                 }
             });
+        }
+        
+        async function testFirebaseConnection() {
+            try {
+                console.log('Testing Firebase connection...');
+                
+                // Test Firestore connection
+                await db.collection('test').limit(1).get();
+                console.log('✅ Firestore connection successful');
+                
+                // Test Auth connection
+                console.log('✅ Auth connection successful');
+                
+                showNotification('Firebase connected successfully! 🎉', 'success');
+                
+            } catch (error) {
+                console.error('❌ Firebase connection failed:', error);
+                
+                if (error.code === 'permission-denied') {
+                    showNotification('Firebase permission denied. Check security rules.', 'error');
+                } else if (error.code === 'unavailable') {
+                    showNotification('Firebase service unavailable. Please try again later.', 'error');
+                } else {
+                    showNotification('Firebase connection error. Check console for details.', 'error');
+                }
+            }
         }
 
         function setupEventListeners() {
@@ -1864,10 +1895,24 @@
                 // Show welcome message for new users
                 if (!localStorage.getItem(`welcomed_${currentUser.uid}`)) {
                     setTimeout(() => {
-                        showNotification(`Welcome ${currentUser.displayName}! You can now create company and people profiles. 🚀`, 'success');
+                        showNotification(`स्वागत है ${currentUser.displayName}! अब आप कंपनी और व्यक्तिगत प्रोफाइल बना सकते हैं। 🚀`, 'success');
                         localStorage.setItem(`welcomed_${currentUser.uid}`, 'true');
                     }, 1000);
                 }
+                
+                // Show user profile creation status
+                setTimeout(() => {
+                    const userCompanies = companies.filter(c => c.createdBy === currentUser.uid);
+                    const userPeople = people.filter(p => p.createdBy === currentUser.uid);
+                    const totalProfiles = userCompanies.length + userPeople.length;
+                    
+                    if (totalProfiles === 0) {
+                        showNotification('आपका पहला प्रोफाइल बनाने के लिए "Add Profile" बटन पर क्लिक करें! 📝', 'info');
+                    } else {
+                        console.log(`User has ${totalProfiles} profiles (${userCompanies.length} companies, ${userPeople.length} people)`);
+                    }
+                }, 2000);
+                
             } else {
                 loginBtn.classList.remove('hidden');
                 userProfile.classList.add('hidden');
@@ -2269,29 +2314,72 @@
 
         async function loadDataFromFirestore() {
             try {
+                console.log('🔄 Loading data from Firestore...');
+                console.log('Current user:', currentUser?.displayName || currentUser?.email);
+                
+                // Test Firestore connection first
+                await db.collection('test').limit(1).get();
+                console.log('✅ Firestore connection verified');
+                
                 // Load companies
                 const companiesSnapshot = await db.collection('companies').get();
-                companies = companiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                companies = companiesSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    // Convert Firestore timestamps to readable format
+                    if (data.createdAt && data.createdAt.toDate) {
+                        data.createdAt = data.createdAt.toDate().toISOString();
+                    }
+                    if (data.updatedAt && data.updatedAt.toDate) {
+                        data.updatedAt = data.updatedAt.toDate().toISOString();
+                    }
+                    return { id: doc.id, ...data };
+                });
+                console.log(`✅ Loaded ${companies.length} companies`);
 
                 // Load people
                 const peopleSnapshot = await db.collection('people').get();
-                people = peopleSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                people = peopleSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    // Convert Firestore timestamps to readable format
+                    if (data.createdAt && data.createdAt.toDate) {
+                        data.createdAt = data.createdAt.toDate().toISOString();
+                    }
+                    if (data.updatedAt && data.updatedAt.toDate) {
+                        data.updatedAt = data.updatedAt.toDate().toISOString();
+                    }
+                    return { id: doc.id, ...data };
+                });
+                console.log(`✅ Loaded ${people.length} people`);
 
                 // Load investors
                 const investorsSnapshot = await db.collection('investors').get();
-                investors = investorsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                investors = investorsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    // Convert Firestore timestamps to readable format
+                    if (data.createdAt && data.createdAt.toDate) {
+                        data.createdAt = data.createdAt.toDate().toISOString();
+                    }
+                    if (data.updatedAt && data.updatedAt.toDate) {
+                        data.updatedAt = data.updatedAt.toDate().toISOString();
+                    }
+                    return { id: doc.id, ...data };
+                });
+                console.log(`✅ Loaded ${investors.length} investors`);
 
                 // Load company investments
                 const investmentsSnapshot = await db.collection('companyInvestments').get();
                 companyInvestments = investmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log(`✅ Loaded ${companyInvestments.length} investments`);
 
                 allData = [...companies, ...people, ...investors];
 
                 // If no data exists, load sample data and save to Firestore
                 if (companies.length === 0 && people.length === 0 && investors.length === 0) {
+                    console.log('📝 No data found, loading sample data...');
                     await loadSampleData();
                     await saveSampleDataToFirestore();
                 } else {
+                    console.log('🎉 Data loaded successfully, updating UI...');
                     updateDashboardStats();
                     renderCompanies();
                     renderPeople();
@@ -2300,8 +2388,23 @@
                     loadFeaturedCompanies();
                 }
             } catch (error) {
-                console.error('Error loading data from Firestore:', error);
-                showNotification('Error loading data. Using sample data.', 'error');
+                console.error('❌ Error loading data from Firestore:', error);
+                console.error('Error details:', {
+                    code: error.code,
+                    message: error.message,
+                    stack: error.stack
+                });
+                
+                // Show specific error messages
+                if (error.code === 'permission-denied') {
+                    showNotification('डेटा लोड करने की अनुमति नहीं है। Firebase security rules चेक करें।', 'error');
+                } else if (error.code === 'unavailable') {
+                    showNotification('Firebase service अनुपलब्ध है। Sample data का उपयोग कर रहे हैं।', 'error');
+                } else {
+                    showNotification('डेटा लोड करने में त्रुटि। Sample data का उपयोग कर रहे हैं।', 'error');
+                }
+                
+                // Fallback to sample data
                 loadSampleData();
             }
         }
@@ -3237,23 +3340,39 @@
             event.preventDefault();
             
             if (!currentUser) {
-                showNotification('Please sign in with Google to create profiles', 'error');
+                showNotification('कृपया प्रोफाइल बनाने के लिए Google से साइन इन करें', 'error');
                 return;
             }
+            
+            // Show loading state
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+            submitBtn.disabled = true;
             
             const profileType = document.getElementById('profileType').value;
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData.entries());
             
+            // Validate required fields
+            if (!data.name || data.name.trim() === '') {
+                showNotification('नाम आवश्यक है / Name is required', 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
             // Generate unique ID and add metadata
             data.id = `${profileType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+            data.createdAt = firebase.firestore.Timestamp.now();
+            data.updatedAt = firebase.firestore.Timestamp.now();
             data.createdBy = currentUser.uid;
             data.createdByName = currentUser.displayName || currentUser.email;
             data.createdByEmail = currentUser.email;
-            data.editLocked = false; // Allow editing by default
-            data.verified = false; // Can be verified by admins later
+            data.editLocked = false;
+            data.verified = false;
+            
+            console.log('Creating profile with data:', data);
             
             try {
                 if (profileType === 'company') {
@@ -3264,16 +3383,17 @@
                         data.industries = [];
                     }
                     
-                    // Generate logo URL from website
-                    if (data.website) {
+                    // Generate logo URL from website or name
+                    if (data.website && data.website.trim()) {
                         try {
-                            const hostname = new URL(data.website).hostname;
+                            const url = data.website.startsWith('http') ? data.website : 'https://' + data.website;
+                            const hostname = new URL(url).hostname;
                             data.logo = `https://logo.clearbit.com/${hostname}`;
                         } catch (e) {
-                            data.logo = 'https://via.placeholder.com/128?text=' + encodeURIComponent(data.name.charAt(0));
+                            data.logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name.charAt(0))}&background=3b82f6&color=fff&size=128`;
                         }
                     } else {
-                        data.logo = 'https://via.placeholder.com/128?text=' + encodeURIComponent(data.name.charAt(0));
+                        data.logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name.charAt(0))}&background=3b82f6&color=fff&size=128`;
                     }
                     
                     // Set default values
@@ -3281,7 +3401,8 @@
                     data.status = data.status || 'Active';
                     data.companyType = data.companyType || 'Private';
                     data.operatingStatus = 'Active';
-                    data.rank = companies.length + 1; // Simple ranking system
+                    data.rank = companies.length + 1;
+                    data.foundedYear = data.foundedYear ? parseInt(data.foundedYear) : new Date().getFullYear();
                     
                     // Initialize empty arrays for complex data
                     data.founders = [];
@@ -3300,8 +3421,8 @@
                     
                     // Social links
                     data.socialLinks = {};
-                    if (data.linkedinUrl) data.socialLinks.linkedin = data.linkedinUrl;
-                    if (data.twitterUrl) data.socialLinks.twitter = data.twitterUrl;
+                    if (data.linkedinUrl && data.linkedinUrl.trim()) data.socialLinks.linkedin = data.linkedinUrl.trim();
+                    if (data.twitterUrl && data.twitterUrl.trim()) data.socialLinks.twitter = data.twitterUrl.trim();
                     delete data.linkedinUrl;
                     delete data.twitterUrl;
                     
@@ -3314,13 +3435,19 @@
                     
                     console.log('Creating company profile:', data);
                     
-                    // Add to Firestore
-                    await db.collection('companies').doc(data.id).set(data);
-                    
-                    // Add to local array with proper timestamp
-                    const localData = { ...data, createdAt: new Date().toISOString() };
-                    companies.push(localData);
-                    renderCompanies();
+                    // Add to Firestore with better error handling
+                    try {
+                        await db.collection('companies').doc(data.id).set(data);
+                        console.log('✅ Company saved to Firebase successfully');
+                        
+                        // Add to local array
+                        companies.push(data);
+                        renderCompanies();
+                        
+                    } catch (firestoreError) {
+                        console.error('❌ Firebase save failed:', firestoreError);
+                        throw firestoreError;
+                    }
                     
                 } else if (profileType === 'person') {
                     // Process skills and responsibilities
@@ -3343,7 +3470,7 @@
                     data.image = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=3b82f6&color=fff&size=128`;
                     
                     // Set default values
-                    data.experience = parseInt(data.experience) || 0;
+                    data.experience = data.experience ? parseInt(data.experience) : 0;
                     data.industryFocus = data.industryFocus || 'Technology';
                     data.languages = data.languages || 'English';
                     
@@ -3357,20 +3484,26 @@
                     
                     // Social links
                     data.socialLinks = {};
-                    if (data.linkedinUrl) data.socialLinks.linkedin = data.linkedinUrl;
-                    if (data.twitterUrl) data.socialLinks.twitter = data.twitterUrl;
+                    if (data.linkedinUrl && data.linkedinUrl.trim()) data.socialLinks.linkedin = data.linkedinUrl.trim();
+                    if (data.twitterUrl && data.twitterUrl.trim()) data.socialLinks.twitter = data.twitterUrl.trim();
                     delete data.linkedinUrl;
                     delete data.twitterUrl;
                     
                     console.log('Creating person profile:', data);
                     
                     // Add to Firestore
-                    await db.collection('people').doc(data.id).set(data);
-                    
-                    // Add to local array with proper timestamp
-                    const localData = { ...data, createdAt: new Date().toISOString() };
-                    people.push(localData);
-                    renderPeople();
+                    try {
+                        await db.collection('people').doc(data.id).set(data);
+                        console.log('✅ Person saved to Firebase successfully');
+                        
+                        // Add to local array
+                        people.push(data);
+                        renderPeople();
+                        
+                    } catch (firestoreError) {
+                        console.error('❌ Firebase save failed:', firestoreError);
+                        throw firestoreError;
+                    }
                     
                 } else if (profileType === 'investor') {
                     // Set default logo
@@ -3378,7 +3511,7 @@
                     
                     // Set default values
                     data.investorType = data.investorType || 'Venture Capital';
-                    data.foundedYear = parseInt(data.foundedYear) || new Date().getFullYear();
+                    data.foundedYear = data.foundedYear ? parseInt(data.foundedYear) : new Date().getFullYear();
                     
                     // Initialize empty arrays
                     data.investments = [];
@@ -3390,9 +3523,8 @@
                     // Add to Firestore
                     await db.collection('investors').doc(data.id).set(data);
                     
-                    // Add to local array with proper timestamp
-                    const localData = { ...data, createdAt: new Date().toISOString() };
-                    investors.push(localData);
+                    // Add to local array
+                    investors.push(data);
                     renderInvestors();
                     
                 } else if (profileType === 'government') {
@@ -3400,14 +3532,14 @@
                     data.logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=6366f1&color=fff&size=128`;
                     data.organizationType = 'Government';
                     data.sector = data.sector || 'Public Administration';
+                    data.industries = data.industries ? data.industries.split(',').map(i => i.trim()) : ['Government'];
                     
                     console.log('Creating government profile:', data);
                     
-                    // Add to Firestore (using companies collection for now)
+                    // Add to Firestore (using companies collection)
                     await db.collection('companies').doc(data.id).set(data);
                     
-                    const localData = { ...data, createdAt: new Date().toISOString() };
-                    companies.push(localData);
+                    companies.push(data);
                     renderCompanies();
                     
                 } else if (profileType === 'school') {
@@ -3416,14 +3548,14 @@
                     data.organizationType = 'Educational Institution';
                     data.institutionType = data.institutionType || 'University';
                     data.studentCount = data.studentCount || 'Not specified';
+                    data.industries = data.industries ? data.industries.split(',').map(i => i.trim()) : ['Education'];
                     
                     console.log('Creating school profile:', data);
                     
-                    // Add to Firestore (using companies collection for now)
+                    // Add to Firestore (using companies collection)
                     await db.collection('companies').doc(data.id).set(data);
                     
-                    const localData = { ...data, createdAt: new Date().toISOString() };
-                    companies.push(localData);
+                    companies.push(data);
                     renderCompanies();
                 }
                 
@@ -3446,13 +3578,30 @@
                 
             } catch (error) {
                 console.error('Error adding profile:', error);
-                showNotification('Error creating profile. Please check your internet connection and try again.', 'error');
+                
+                // Show user-friendly error messages
+                let errorMessage = 'Error creating profile. Please try again.';
+                
+                if (error.code === 'permission-denied') {
+                    errorMessage = 'Permission denied. Please check your account permissions.';
+                } else if (error.code === 'network-request-failed') {
+                    errorMessage = 'Network error. Please check your internet connection.';
+                } else if (error.code === 'unavailable') {
+                    errorMessage = 'Service temporarily unavailable. Please try again later.';
+                }
+                
+                showNotification(errorMessage, 'error');
                 
                 // Show detailed error for debugging
-                if (error.code) {
-                    console.error('Firebase Error Code:', error.code);
-                    console.error('Firebase Error Message:', error.message);
-                }
+                console.error('Firebase Error Details:', {
+                    code: error.code,
+                    message: error.message,
+                    stack: error.stack
+                });
+            } finally {
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         }
 
@@ -3596,34 +3745,94 @@
         async function handleEditCompany(event) {
             event.preventDefault();
             
+            if (!currentUser) {
+                showNotification('कृपया प्रोफाइल एडिट करने के लिए साइन इन करें / Please sign in to edit profiles', 'error');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+            submitBtn.disabled = true;
+            
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData.entries());
             const companyId = data.id;
             
+            // Validate required fields
+            if (!data.name || data.name.trim() === '') {
+                showNotification('कंपनी का नाम आवश्यक है / Company name is required', 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Find the company to check permissions
+            const company = companies.find(c => c.id === companyId);
+            if (!company) {
+                showNotification('कंपनी नहीं मिली / Company not found', 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Check edit permissions
+            if (company.editLocked && company.createdBy !== currentUser.uid && !isAdminUser(currentUser.uid)) {
+                showNotification('यह प्रोफाइल लॉक है और एडिट नहीं की जा सकती / This profile is locked and cannot be edited', 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
             try {
                 // Process industries
                 if (data.industries) {
-                    data.industries = data.industries.split(',').map(i => i.trim());
+                    data.industries = data.industries.split(',').map(i => i.trim()).filter(i => i.length > 0);
+                } else {
+                    data.industries = [];
                 }
                 
                 // Update social links
-                data.socialLinks = {
-                    linkedin: data.linkedinUrl || '',
-                    twitter: data.twitterUrl || ''
-                };
+                const socialLinks = {};
+                if (data.linkedinUrl && data.linkedinUrl.trim()) socialLinks.linkedin = data.linkedinUrl.trim();
+                if (data.twitterUrl && data.twitterUrl.trim()) socialLinks.twitter = data.twitterUrl.trim();
+                data.socialLinks = socialLinks;
                 delete data.linkedinUrl;
                 delete data.twitterUrl;
                 
                 // Update logo if website changed
-                if (data.website) {
-                    data.logo = `https://logo.clearbit.com/${new URL(data.website).hostname}`;
+                if (data.website && data.website.trim()) {
+                    try {
+                        const url = data.website.startsWith('http') ? data.website : 'https://' + data.website;
+                        const hostname = new URL(url).hostname;
+                        data.logo = `https://logo.clearbit.com/${hostname}`;
+                    } catch (e) {
+                        data.logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name.charAt(0))}&background=3b82f6&color=fff&size=128`;
+                    }
                 }
                 
-                data.updatedAt = new Date().toISOString();
-                data.updatedBy = currentUser.uid;
+                // Convert numeric fields
+                if (data.foundedYear) data.foundedYear = parseInt(data.foundedYear);
                 
-                // Update in Firestore
-                await db.collection('companies').doc(companyId).update(data);
+                // Add update metadata
+                data.updatedAt = firebase.firestore.Timestamp.now();
+                data.updatedBy = currentUser.uid;
+                data.updatedByName = currentUser.displayName || currentUser.email;
+                
+                // Remove the id from data to avoid overwriting it
+                delete data.id;
+                
+                console.log('Updating company profile:', companyId, data);
+                
+                // Update in Firestore with better error handling
+                try {
+                    await db.collection('companies').doc(companyId).update(data);
+                    console.log('✅ Company updated in Firebase successfully');
+                } catch (firestoreError) {
+                    console.error('❌ Firebase update failed:', firestoreError);
+                    throw firestoreError;
+                }
                 
                 // Update local data
                 const companyIndex = companies.findIndex(c => c.id === companyId);
@@ -3632,14 +3841,40 @@
                     renderCompanies();
                     updateDashboardStats();
                     allData = [...companies, ...people, ...investors];
+                    
+                    // If company profile modal is open, refresh it
+                    if (currentCompanyId === companyId) {
+                        setTimeout(() => showCompanyProfile(companyId), 500);
+                    }
                 }
                 
                 closeModal('editCompanyModal');
-                showNotification('Company profile updated successfully!', 'success');
+                showNotification('Company profile updated successfully! 🎉', 'success');
                 
             } catch (error) {
                 console.error('Error updating company:', error);
-                showNotification('Error updating profile. Please try again.', 'error');
+                
+                let errorMessage = 'Error updating profile. Please try again.';
+                
+                if (error.code === 'permission-denied') {
+                    errorMessage = 'Permission denied. You may not have rights to edit this profile.';
+                } else if (error.code === 'not-found') {
+                    errorMessage = 'Profile not found. It may have been deleted.';
+                } else if (error.code === 'network-request-failed') {
+                    errorMessage = 'Network error. Please check your internet connection.';
+                }
+                
+                showNotification(errorMessage, 'error');
+                
+                console.error('Firebase Error Details:', {
+                    code: error.code,
+                    message: error.message,
+                    companyId: companyId
+                });
+            } finally {
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         }
 
@@ -4024,5 +4259,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f6cf55466d052e',t:'MTc1NTI0MTE3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f6dd87140654cb',t:'MTc1NTI0MTc1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
