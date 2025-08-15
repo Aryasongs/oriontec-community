@@ -172,6 +172,43 @@
             
 
             
+            <!-- Quick Actions for Signed-in Users -->
+            <div id="userQuickActions" class="hidden mb-8">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
+                    <div class="flex flex-col md:flex-row items-center justify-between">
+                        <div class="mb-4 md:mb-0">
+                            <h3 class="text-xl font-bold mb-2">Create Your Business Profile</h3>
+                            <p class="text-blue-100">Share your company or professional story with the world</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="openModal('addProfileModal'); document.getElementById('profileType').value='company'; handleProfileTypeChange();" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+                                <i class="fas fa-building mr-2"></i>Add Company
+                            </button>
+                            <button onclick="openModal('addProfileModal'); document.getElementById('profileType').value='person'; handleProfileTypeChange();" class="bg-blue-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-300 transition-colors">
+                                <i class="fas fa-user mr-2"></i>Add Person
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User's Profiles Section -->
+            <div id="userProfilesSection" class="hidden mb-8">
+                <div class="bg-white rounded-xl shadow-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Your Profiles</h3>
+                            <span id="userProfileCount" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">0 profiles</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div id="userProfilesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- User's profiles will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Featured Companies & Recent Activity -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Featured Companies -->
@@ -379,6 +416,7 @@
                             <button onclick="showTab('investments')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Investments</button>
                             <button onclick="showTab('timeline')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Timeline</button>
                             <button onclick="showTab('contact')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Contact</button>
+                            <button onclick="showTab('predictions')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Predictions & Insights</button>
                             <button onclick="showTab('analytics')" class="tab-btn py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">Analytics</button>
                         </nav>
                     </div>
@@ -638,6 +676,335 @@
                                     <h3 class="text-xl font-semibold text-gray-900 mb-4">Headquarters</h3>
                                     <div id="modalHQInfo" class="bg-gray-50 rounded-lg p-6">
                                         <!-- HQ info will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Predictions & Insights Tab -->
+                        <div id="predictionsTab" class="tab-content hidden">
+                            <div class="space-y-8">
+                                <!-- Growth Insight -->
+                                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-xl font-semibold text-gray-900">Growth Insight</h3>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-sm text-gray-500">updated Mar 9, 2025</span>
+                                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">Not Growing</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-700 leading-relaxed mb-4">
+                                        Tesla reported its first annual decline in vehicle deliveries in 2024, with total deliveries of 1.79 million vehicles, down from 1.81 million in 2023, marking a 1.1% decrease. This decline was attributed to increased competition and a shift in consumer preferences. Additionally, Tesla's sales in Europe fell by 45% in January 2025 compared to the previous year, with only 9,945 vehicles sold, despite a 37% increase in overall EV sales in the region.
+                                    </p>
+                                    <p class="text-gray-700 leading-relaxed mb-4">
+                                        The company also faced challenges in China, where sales of China-made electric vehicles dropped by 49.2% in February 2025. Despite these declines, Tesla's energy storage deployments reached a record 31.4 GWh in 2024, a 114% increase from 14.7 GWh in 2023, indicating growth in its energy segment. Tesla's stock price has fluctuated significantly, dropping below $1 trillion in market capitalization due to these sales challenges and public backlash against CEO Elon Musk's political involvement.
+                                    </p>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900 mb-2">Top Contributing Factors</h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Financial Decline</span>
+                                            <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">Customer Decline</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Acquisition Prediction -->
+                                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-xl font-semibold text-gray-900">Acquisition Prediction</h3>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-sm text-gray-500">updated May 24, 2025</span>
+                                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Very Unlikely</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900 mb-2">Top Contributing Factors</h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Growth Insight</span>
+                                            <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Key Employee Change</span>
+                                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Partnership Announcement</span>
+                                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Runway Speculation</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Notable Events -->
+                                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-6">Notable Events</h3>
+                                    <div class="space-y-6">
+                                        <!-- Legal Proceeding -->
+                                        <div class="border-l-4 border-red-500 pl-4">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h4 class="font-semibold text-gray-900">Legal Proceeding</h4>
+                                                <span class="text-sm text-gray-500">Oct 2, 2025</span>
+                                            </div>
+                                            <p class="text-gray-700 mb-2">
+                                                Tesla is the subject of a pending class action lawsuit alleging that it made materially false and misleading statements regarding its autonomous driving technology and business prospects. The lead plaintiff deadline is October 3, 2025.
+                                            </p>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm text-gray-500">PR Newswire</span>
+                                                <a href="#" class="text-blue-600 hover:underline text-sm">View Article</a>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Product Launch -->
+                                        <div class="border-l-4 border-blue-500 pl-4">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h4 class="font-semibold text-gray-900">Product Launch</h4>
+                                                <span class="text-sm text-gray-500">Aug 12, 2025</span>
+                                            </div>
+                                            <p class="text-gray-700 mb-2">
+                                                Tesla showcased new footage of its self-driving Model Y navigating Swindon's Magic Roundabout, highlighting advancements in its Full Self-Driving (FSD) technology and Robotaxi service. This demonstration marks a significant step toward the company's goal of launching a fully autonomous taxi service.
+                                            </p>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm text-gray-500">The Cool Down</span>
+                                                <a href="#" class="text-blue-600 hover:underline text-sm">View Article</a>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- New Office -->
+                                        <div class="border-l-4 border-green-500 pl-4">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h4 class="font-semibold text-gray-900">New Office</h4>
+                                                <span class="text-sm text-gray-500">Aug 3, 2025</span>
+                                            </div>
+                                            <p class="text-gray-700 mb-2">
+                                                Tesla opened its first charging facility in India at One BKC, Bandra-Kurla Complex, Mumbai, featuring four V4 supercharging stalls and four destination charging stalls.
+                                            </p>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm text-gray-500">Hindu Business Line</span>
+                                                <a href="#" class="text-blue-600 hover:underline text-sm">View Article</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Similar Companies -->
+                                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-6">Similar Companies</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                                            <div class="flex items-center space-x-3 mb-2">
+                                                <img src="https://via.placeholder.com/40" alt="Lucid Motors" class="w-10 h-10 rounded object-contain">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">Lucid Motors</h4>
+                                                    <span class="text-sm font-medium text-blue-600">84</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-gray-600">Lucid Motors is an automotive company that specializes in electric cars.</p>
+                                        </div>
+                                        
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                                            <div class="flex items-center space-x-3 mb-2">
+                                                <img src="https://via.placeholder.com/40" alt="NIO" class="w-10 h-10 rounded object-contain">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">NIO</h4>
+                                                    <span class="text-sm font-medium text-blue-600">94</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-gray-600">NIO is an automotive company that designs and develops electric autonomous vehicles.</p>
+                                        </div>
+                                        
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                                            <div class="flex items-center space-x-3 mb-2">
+                                                <img src="https://via.placeholder.com/40" alt="Fisker" class="w-10 h-10 rounded object-contain">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">Fisker</h4>
+                                                    <span class="text-sm font-medium text-blue-600">-</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-gray-600">Fisker is a designer and manufacturer of electric vehicles and mobility solutions.</p>
+                                        </div>
+                                        
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                                            <div class="flex items-center space-x-3 mb-2">
+                                                <img src="https://via.placeholder.com/40" alt="Nikola Motor Company" class="w-10 h-10 rounded object-contain">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">Nikola Motor Company</h4>
+                                                    <span class="text-sm font-medium text-blue-600">57</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-gray-600">Nikola Motor Company manufactures heavy-duty commercial battery-electric vehicles, fuel-cell electric vehicles, and energy solutions.</p>
+                                        </div>
+                                        
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                                            <div class="flex items-center space-x-3 mb-2">
+                                                <img src="https://via.placeholder.com/40" alt="Stability AI" class="w-10 h-10 rounded object-contain">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">Stability AI</h4>
+                                                    <span class="text-sm font-medium text-blue-600">81</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-gray-600">Stability AI is an artificial intelligence company focused on developing open-source generative AI models.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Investment Breakdown -->
+                                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-6">Investment Breakdown</h3>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                        <div class="text-center">
+                                            <p class="text-2xl font-bold text-blue-600">2</p>
+                                            <p class="text-sm text-gray-600">Number of Investments</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-2xl font-bold text-green-600">10</p>
+                                            <p class="text-sm text-gray-600">Number of Acquisitions</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Announced Date</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organization Name</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead Investor</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Funding Round</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Money Raised</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <tr>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sep 5, 2022</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="flex items-center">
+                                                            <img src="https://via.placeholder.com/32" alt="Coredax" class="w-8 h-8 rounded mr-3">
+                                                            <span class="text-sm font-medium text-gray-900">Coredax</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Yes</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Venture Round</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">₩22B</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- Employee & Investor Profiles -->
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    <!-- Employee Profiles -->
+                                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-6">Employee Profiles</h3>
+                                        <div class="space-y-4">
+                                            <div class="flex items-center space-x-3">
+                                                <img src="https://via.placeholder.com/48" alt="Elon Musk" class="w-12 h-12 rounded-full object-cover">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">Elon Musk</h4>
+                                                    <p class="text-sm text-gray-600">CEO</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-3">
+                                                <img src="https://via.placeholder.com/48" alt="Vaibhav Taneja" class="w-12 h-12 rounded-full object-cover">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">Vaibhav Taneja</h4>
+                                                    <p class="text-sm text-gray-600">CAO & CFO</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-3">
+                                                <img src="https://via.placeholder.com/48" alt="Nagesh Saldi" class="w-12 h-12 rounded-full object-cover">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">Nagesh Saldi</h4>
+                                                    <p class="text-sm text-gray-600">CIO</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-3">
+                                                <img src="https://via.placeholder.com/48" alt="Karm Budhiraj" class="w-12 h-12 rounded-full object-cover">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">Karm Budhiraj</h4>
+                                                    <p class="text-sm text-gray-600">VP, Supply Chain</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Investor Profiles -->
+                                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-6">Investor Profiles</h3>
+                                        <div class="space-y-4">
+                                            <div class="flex items-center space-x-3">
+                                                <img src="https://via.placeholder.com/48" alt="Elon Musk" class="w-12 h-12 rounded-full object-cover">
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900">Elon Musk</h4>
+                                                    <p class="text-sm text-gray-600">Board Member</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <img src="https://via.placeholder.com/48" alt="Robyn Denholm" class="w-12 h-12 rounded-full object-cover">
+                                                    <div>
+                                                        <h4 class="font-semibold text-gray-900">Robyn Denholm</h4>
+                                                        <p class="text-sm text-gray-600">Board Member</p>
+                                                    </div>
+                                                </div>
+                                                <span class="text-sm text-gray-500">Nov 2018</span>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <img src="https://via.placeholder.com/48" alt="Joe Gebbia" class="w-12 h-12 rounded-full object-cover">
+                                                    <div>
+                                                        <h4 class="font-semibold text-gray-900">Joe Gebbia</h4>
+                                                        <p class="text-sm text-gray-600">Board Member</p>
+                                                    </div>
+                                                </div>
+                                                <span class="text-sm text-gray-500">Sep 2022</span>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <img src="https://via.placeholder.com/48" alt="Ira Ehrenpreis" class="w-12 h-12 rounded-full object-cover">
+                                                    <div>
+                                                        <h4 class="font-semibold text-gray-900">Ira Ehrenpreis</h4>
+                                                        <p class="text-sm text-gray-600">Board Member</p>
+                                                    </div>
+                                                </div>
+                                                <span class="text-sm text-gray-500">2007</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Technology Section -->
+                                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-6">Technology</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div class="text-center">
+                                            <p class="text-2xl font-bold text-blue-600">38,104,204</p>
+                                            <p class="text-sm text-gray-600 mb-1">Monthly Web Visits</p>
+                                            <p class="text-sm text-green-600 font-medium">↑ 32.12% in past month</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-2xl font-bold text-green-600">$2.9B</p>
+                                            <p class="text-sm text-gray-600">IT Spend</p>
+                                            <p class="text-xs text-gray-500">This year projection</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-2xl font-bold text-purple-600">41</p>
+                                            <p class="text-sm text-gray-600">Actively Used Products</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-2xl font-bold text-orange-600">68</p>
+                                            <p class="text-sm text-gray-600">Active Website Tech Count</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-6">
+                                        <h4 class="font-semibold text-gray-900 mb-3">Interest Signals</h4>
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm text-gray-700">SunGard</span>
+                                                <span class="text-sm font-medium text-red-600">100</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm text-gray-700">Secure Web Gateway (SWG)</span>
+                                                <span class="text-sm font-medium text-red-600">100</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm text-gray-700">Cyber Maturity Model Certification (CMMC)</span>
+                                                <span class="text-sm font-medium text-red-600">100</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1484,14 +1851,22 @@
             if (currentUser) {
                 loginBtn.classList.add('hidden');
                 userProfile.classList.remove('hidden');
-                document.getElementById('userName').textContent = currentUser.displayName || 'User';
-                document.getElementById('userPhoto').src = currentUser.photoURL || 'https://via.placeholder.com/40';
+                document.getElementById('userName').textContent = currentUser.displayName || currentUser.email || 'User';
+                document.getElementById('userPhoto').src = currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=3b82f6&color=fff&size=40`;
                 
                 // Show admin panel for admin users or profile creators
                 if (isAdminUser(currentUser.uid) || hasCreatedProfiles()) {
                     adminPanelBtn.classList.remove('hidden');
                 } else {
                     adminPanelBtn.classList.add('hidden');
+                }
+                
+                // Show welcome message for new users
+                if (!localStorage.getItem(`welcomed_${currentUser.uid}`)) {
+                    setTimeout(() => {
+                        showNotification(`Welcome ${currentUser.displayName}! You can now create company and people profiles. 🚀`, 'success');
+                        localStorage.setItem(`welcomed_${currentUser.uid}`, 'true');
+                    }, 1000);
                 }
             } else {
                 loginBtn.classList.remove('hidden');
@@ -1965,6 +2340,64 @@
             // Update stats without banner display
             loadRecentActivity();
             loadFeaturedCompanies();
+            loadUserProfiles();
+        }
+
+        function loadUserProfiles() {
+            if (!currentUser) {
+                document.getElementById('userQuickActions').classList.add('hidden');
+                document.getElementById('userProfilesSection').classList.add('hidden');
+                return;
+            }
+
+            // Show quick actions for signed-in users
+            document.getElementById('userQuickActions').classList.remove('hidden');
+
+            // Get user's profiles
+            const userCompanies = companies.filter(c => c.createdBy === currentUser.uid);
+            const userPeople = people.filter(p => p.createdBy === currentUser.uid);
+            const userInvestors = investors.filter(i => i.createdBy === currentUser.uid);
+            const userProfiles = [...userCompanies, ...userPeople, ...userInvestors];
+
+            const profilesSection = document.getElementById('userProfilesSection');
+            const profilesList = document.getElementById('userProfilesList');
+            const profileCount = document.getElementById('userProfileCount');
+
+            if (userProfiles.length === 0) {
+                profilesSection.classList.add('hidden');
+                return;
+            }
+
+            profilesSection.classList.remove('hidden');
+            profileCount.textContent = `${userProfiles.length} profile${userProfiles.length !== 1 ? 's' : ''}`;
+
+            profilesList.innerHTML = userProfiles.map(profile => {
+                const type = userCompanies.includes(profile) ? 'company' : userPeople.includes(profile) ? 'person' : 'investor';
+                const icon = type === 'company' ? 'fas fa-building' : type === 'person' ? 'fas fa-user' : 'fas fa-chart-line';
+                const bgColor = type === 'company' ? 'bg-blue-50 border-blue-200' : type === 'person' ? 'bg-green-50 border-green-200' : 'bg-purple-50 border-purple-200';
+                const iconColor = type === 'company' ? 'text-blue-600' : type === 'person' ? 'text-green-600' : 'text-purple-600';
+
+                return `
+                    <div class="border-2 ${bgColor} rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="${type === 'company' ? `showCompanyProfile('${profile.id}')` : type === 'person' ? `showPersonProfile('${profile.id}')` : `showNotification('Investor profile view coming soon!', 'info')`}">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                                <i class="${icon} ${iconColor}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 text-sm">${profile.name}</h4>
+                                <p class="text-xs text-gray-600">${profile.tagline || profile.role || profile.investorType || ''}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span class="capitalize">${type}</span>
+                            <span>${profile.editLocked ? '🔒 Locked' : '✏️ Editable'}</span>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-400">
+                            Created ${formatDate(profile.createdAt || new Date().toISOString())}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function showPersonProfile(personId) {
@@ -2771,8 +3204,7 @@
             if (type === 'company') {
                 showCompanyProfile(id);
             } else if (type === 'person') {
-                // Show person profile (you can implement this)
-                showNotification('Person profile view coming soon!', 'info');
+                showPersonProfile(id);
             } else if (type === 'investor') {
                 // Show investor profile (you can implement this)
                 showNotification('Investor profile view coming soon!', 'info');
@@ -2805,7 +3237,7 @@
             event.preventDefault();
             
             if (!currentUser) {
-                showNotification('Please sign in to add profiles', 'error');
+                showNotification('Please sign in with Google to create profiles', 'error');
                 return;
             }
             
@@ -2813,62 +3245,214 @@
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData.entries());
             
-            // Add metadata
-            data.id = Date.now().toString();
-            data.createdAt = new Date().toISOString();
+            // Generate unique ID and add metadata
+            data.id = `${profileType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
             data.createdBy = currentUser.uid;
+            data.createdByName = currentUser.displayName || currentUser.email;
+            data.createdByEmail = currentUser.email;
+            data.editLocked = false; // Allow editing by default
+            data.verified = false; // Can be verified by admins later
             
             try {
                 if (profileType === 'company') {
                     // Process industries
                     if (data.industries) {
-                        data.industries = data.industries.split(',').map(i => i.trim());
+                        data.industries = data.industries.split(',').map(i => i.trim()).filter(i => i.length > 0);
+                    } else {
+                        data.industries = [];
                     }
-                    data.logo = `https://logo.clearbit.com/${new URL(data.website || 'https://example.com').hostname}`;
+                    
+                    // Generate logo URL from website
+                    if (data.website) {
+                        try {
+                            const hostname = new URL(data.website).hostname;
+                            data.logo = `https://logo.clearbit.com/${hostname}`;
+                        } catch (e) {
+                            data.logo = 'https://via.placeholder.com/128?text=' + encodeURIComponent(data.name.charAt(0));
+                        }
+                    } else {
+                        data.logo = 'https://via.placeholder.com/128?text=' + encodeURIComponent(data.name.charAt(0));
+                    }
+                    
+                    // Set default values
+                    data.employeeRange = data.employeeRange || '1-10';
+                    data.status = data.status || 'Active';
+                    data.companyType = data.companyType || 'Private';
+                    data.operatingStatus = 'Active';
+                    data.rank = companies.length + 1; // Simple ranking system
+                    
+                    // Initialize empty arrays for complex data
+                    data.founders = [];
+                    data.fundingRounds = [];
+                    data.leadership = [];
+                    data.acquisitions = [];
+                    data.products = [];
+                    data.technologyStack = [];
+                    data.customers = [];
+                    data.news = [];
+                    data.competitors = [];
+                    data.timeline = [{
+                        date: new Date().toISOString(),
+                        event: `${data.name} profile created on BizIntel Pro`
+                    }];
+                    
+                    // Social links
+                    data.socialLinks = {};
+                    if (data.linkedinUrl) data.socialLinks.linkedin = data.linkedinUrl;
+                    if (data.twitterUrl) data.socialLinks.twitter = data.twitterUrl;
+                    delete data.linkedinUrl;
+                    delete data.twitterUrl;
+                    
+                    // Contact info
+                    data.contact = {
+                        hqAddress: data.location || 'Address not provided',
+                        email: data.email || '',
+                        phone: data.phone || ''
+                    };
+                    
+                    console.log('Creating company profile:', data);
                     
                     // Add to Firestore
                     await db.collection('companies').doc(data.id).set(data);
-                    companies.push(data);
+                    
+                    // Add to local array with proper timestamp
+                    const localData = { ...data, createdAt: new Date().toISOString() };
+                    companies.push(localData);
                     renderCompanies();
                     
                 } else if (profileType === 'person') {
                     // Process skills and responsibilities
                     if (data.skills) {
-                        data.skills = data.skills.split(',').map(s => s.trim());
+                        data.skills = data.skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                    } else {
+                        data.skills = [];
                     }
+                    
                     if (data.responsibilities) {
-                        data.responsibilities = data.responsibilities.split(',').map(r => r.trim());
+                        data.responsibilities = data.responsibilities.split(',').map(r => r.trim()).filter(r => r.length > 0);
+                    } else {
+                        data.responsibilities = [];
                     }
                     
                     // Handle founder checkbox
                     data.isFounder = document.getElementById('isFounder').checked;
                     
-                    data.image = 'https://via.placeholder.com/60';
+                    // Set default image
+                    data.image = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=3b82f6&color=fff&size=128`;
+                    
+                    // Set default values
+                    data.experience = parseInt(data.experience) || 0;
+                    data.industryFocus = data.industryFocus || 'Technology';
+                    data.languages = data.languages || 'English';
+                    
+                    // Initialize empty arrays for complex data
+                    data.achievements = [];
+                    data.ventures = [];
+                    data.workHistory = [];
+                    data.educationHistory = [];
+                    data.investments = [];
+                    data.media = [];
+                    
+                    // Social links
+                    data.socialLinks = {};
+                    if (data.linkedinUrl) data.socialLinks.linkedin = data.linkedinUrl;
+                    if (data.twitterUrl) data.socialLinks.twitter = data.twitterUrl;
+                    delete data.linkedinUrl;
+                    delete data.twitterUrl;
+                    
+                    console.log('Creating person profile:', data);
                     
                     // Add to Firestore
                     await db.collection('people').doc(data.id).set(data);
-                    people.push(data);
+                    
+                    // Add to local array with proper timestamp
+                    const localData = { ...data, createdAt: new Date().toISOString() };
+                    people.push(localData);
                     renderPeople();
                     
                 } else if (profileType === 'investor') {
-                    data.logo = 'https://via.placeholder.com/60';
+                    // Set default logo
+                    data.logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=10b981&color=fff&size=128`;
+                    
+                    // Set default values
+                    data.investorType = data.investorType || 'Venture Capital';
+                    data.foundedYear = parseInt(data.foundedYear) || new Date().getFullYear();
+                    
+                    // Initialize empty arrays
+                    data.investments = [];
+                    data.portfolio = [];
+                    data.team = [];
+                    
+                    console.log('Creating investor profile:', data);
                     
                     // Add to Firestore
                     await db.collection('investors').doc(data.id).set(data);
-                    investors.push(data);
+                    
+                    // Add to local array with proper timestamp
+                    const localData = { ...data, createdAt: new Date().toISOString() };
+                    investors.push(localData);
                     renderInvestors();
+                    
+                } else if (profileType === 'government') {
+                    // Government organization
+                    data.logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=6366f1&color=fff&size=128`;
+                    data.organizationType = 'Government';
+                    data.sector = data.sector || 'Public Administration';
+                    
+                    console.log('Creating government profile:', data);
+                    
+                    // Add to Firestore (using companies collection for now)
+                    await db.collection('companies').doc(data.id).set(data);
+                    
+                    const localData = { ...data, createdAt: new Date().toISOString() };
+                    companies.push(localData);
+                    renderCompanies();
+                    
+                } else if (profileType === 'school') {
+                    // Educational institution
+                    data.logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=f59e0b&color=fff&size=128`;
+                    data.organizationType = 'Educational Institution';
+                    data.institutionType = data.institutionType || 'University';
+                    data.studentCount = data.studentCount || 'Not specified';
+                    
+                    console.log('Creating school profile:', data);
+                    
+                    // Add to Firestore (using companies collection for now)
+                    await db.collection('companies').doc(data.id).set(data);
+                    
+                    const localData = { ...data, createdAt: new Date().toISOString() };
+                    companies.push(localData);
+                    renderCompanies();
                 }
                 
+                // Update global data
                 allData = [...companies, ...people, ...investors];
                 updateDashboardStats();
+                loadFeaturedCompanies();
+                loadRecentActivity();
+                
+                // Close modal and reset form
                 closeModal('addProfileModal');
                 event.target.reset();
+                document.getElementById('profileType').value = 'company';
+                handleProfileTypeChange();
                 
-                showNotification('Profile created successfully!', 'success');
+                showNotification(`${profileType.charAt(0).toUpperCase() + profileType.slice(1)} profile created successfully! 🎉`, 'success');
+                
+                // Log activity
+                console.log(`New ${profileType} profile created by ${currentUser.displayName}: ${data.name}`);
                 
             } catch (error) {
                 console.error('Error adding profile:', error);
-                showNotification('Error creating profile. Please try again.', 'error');
+                showNotification('Error creating profile. Please check your internet connection and try again.', 'error');
+                
+                // Show detailed error for debugging
+                if (error.code) {
+                    console.error('Firebase Error Code:', error.code);
+                    console.error('Firebase Error Message:', error.message);
+                }
             }
         }
 
@@ -3440,5 +4024,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f6c44c91f68ae1',t:'MTc1NTI0MDcyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f6cf55466d052e',t:'MTc1NTI0MTE3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
