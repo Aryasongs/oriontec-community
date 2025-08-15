@@ -565,6 +565,9 @@
         }
 
         function loadSampleData() {
+            // First try to load data from Firebase, then fall back to sample data
+            loadDataFromFirebase();
+            
             // Sample companies with comprehensive Crunchbase-style data
             const sampleCompanies = [
                 {
@@ -600,9 +603,10 @@
                         instagram: 'https://instagram.com/techflowsolutions'
                     },
                     founders: [
-                        { name: 'Sarah Chen', role: 'CEO & Co-Founder' },
-                        { name: 'Michael Rodriguez', role: 'CTO & Co-Founder' }
+                        { id: 'person1', name: 'Sarah Chen', role: 'CEO & Co-Founder' },
+                        { id: 'person3', name: 'Michael Rodriguez', role: 'CTO & Co-Founder' }
                     ],
+                    employees: ['person1', 'person3', 'person4', 'person5'],
                     totalFunding: 15000000,
                     fundingRounds: [
                         { 
@@ -632,10 +636,10 @@
                     valuation: 75000000,
                     leadership: {
                         current: [
-                            { name: 'Sarah Chen', title: 'CEO & Co-Founder', startDate: '2020-03-15', current: true, bio: 'Serial entrepreneur with 10+ years in AI and automation' },
-                            { name: 'Michael Rodriguez', title: 'CTO & Co-Founder', startDate: '2020-03-15', current: true, bio: 'Former Google engineer specializing in ML infrastructure' },
-                            { name: 'Jennifer Park', title: 'VP of Sales', startDate: '2021-08-01', current: true, bio: 'Enterprise sales leader with SaaS expertise' },
-                            { name: 'David Kim', title: 'Head of Product', startDate: '2021-03-15', current: true, bio: 'Product management veteran from Microsoft' }
+                            { id: 'person1', name: 'Sarah Chen', title: 'CEO & Co-Founder', startDate: '2020-03-15', current: true, bio: 'Serial entrepreneur with 10+ years in AI and automation', isFounder: true },
+                            { id: 'person3', name: 'Michael Rodriguez', title: 'CTO & Co-Founder', startDate: '2020-03-15', current: true, bio: 'Former Google engineer specializing in ML infrastructure', isFounder: true },
+                            { id: 'person4', name: 'Jennifer Park', title: 'VP of Sales', startDate: '2021-08-01', current: true, bio: 'Enterprise sales leader with SaaS expertise' },
+                            { id: 'person5', name: 'David Kim', title: 'Head of Product', startDate: '2021-03-15', current: true, bio: 'Product management veteran from Microsoft' }
                         ],
                         past: [
                             { name: 'Robert Johnson', title: 'Former VP Marketing', startDate: '2020-12-01', endDate: '2022-06-30', current: false }
@@ -659,13 +663,17 @@
                     technologyStack: ['AWS', 'Python', 'React', 'PostgreSQL', 'Docker', 'Kubernetes'],
                     customers: ['Fortune 500 Companies', 'Mid-market Enterprises', 'Growing Startups'],
                     competitors: ['Zapier', 'Microsoft Power Automate', 'UiPath'],
+                    partnerships: [
+                        { company: 'Microsoft', type: 'Technology Partner', date: '2023-05-10', description: 'Enterprise integration partnership' },
+                        { company: 'AWS', type: 'Cloud Partner', date: '2021-09-15', description: 'Preferred cloud infrastructure partner' }
+                    ],
                     news: [
-                        { date: '2023-01-15', headline: 'TechFlow Raises $10M Series B to Expand AI Capabilities', category: 'Funding', source: 'TechCrunch' },
-                        { date: '2023-03-20', headline: 'Named Best AI Startup 2023 by Industry Awards', category: 'Award', source: 'AI Weekly' },
-                        { date: '2023-05-10', headline: 'TechFlow Partners with Microsoft for Enterprise Integration', category: 'Partnership', source: 'Business Wire' }
+                        { date: '2023-01-15', headline: 'TechFlow Raises $10M Series B to Expand AI Capabilities', category: 'Funding', source: 'TechCrunch', url: '#' },
+                        { date: '2023-03-20', headline: 'Named Best AI Startup 2023 by Industry Awards', category: 'Award', source: 'AI Weekly', url: '#' },
+                        { date: '2023-05-10', headline: 'TechFlow Partners with Microsoft for Enterprise Integration', category: 'Partnership', source: 'Business Wire', url: '#' }
                     ],
                     milestones: [
-                        { date: '2020-03-15', event: 'Company Founded', description: 'TechFlow Solutions incorporated' },
+                        { date: '2020-03-15', event: 'Company Founded', description: 'TechFlow Solutions incorporated by Sarah Chen and Michael Rodriguez' },
                         { date: '2020-08-01', event: 'Pre-Seed Funding', description: 'Raised $500K pre-seed round' },
                         { date: '2021-01-15', event: 'Product Launch', description: 'Launched TechFlow Automation Suite' },
                         { date: '2021-06-01', event: 'Series A', description: 'Closed $5M Series A funding' },
@@ -677,6 +685,11 @@
                         revenueRange: '$1M - $10M',
                         employeeGrowth: '+45% YoY',
                         customerCount: '500+'
+                    },
+                    charts: {
+                        fundingGrowth: [500000, 5500000, 15500000],
+                        employeeGrowth: [5, 15, 35, 65],
+                        revenueGrowth: [100000, 500000, 2000000, 5000000]
                     }
                 },
                 {
@@ -724,44 +737,245 @@
                 }
             ];
 
-            // Sample people
+            // Sample people with comprehensive profiles and company connections
             const samplePeople = [
                 {
                     id: 'person1',
                     name: 'Sarah Chen',
-                    title: 'CEO & Founder at TechFlow Solutions',
-                    company: 'TechFlow Solutions',
+                    title: 'CEO & Co-Founder',
+                    currentCompany: 'TechFlow Solutions',
+                    currentCompanyId: 'comp1',
                     location: 'San Francisco, CA',
-                    bio: 'Serial entrepreneur with 10+ years in AI and automation. Previously founded two successful startups.',
+                    profileType: 'founder',
+                    isFounder: true,
+                    bio: 'Serial entrepreneur with 10+ years in AI and automation. Previously founded two successful startups and led them to successful exits.',
+                    detailedBio: 'Sarah Chen is a visionary entrepreneur who has dedicated her career to revolutionizing business automation through artificial intelligence. With over a decade of experience in the tech industry, she has successfully founded and scaled multiple companies, with two notable exits under her belt. Her expertise spans machine learning, enterprise software, and strategic business development. Sarah is passionate about democratizing AI technology and making it accessible to businesses of all sizes.',
                     linkedin: 'https://linkedin.com/in/sarahchen',
+                    twitter: 'https://twitter.com/sarahchen_ai',
                     email: 'sarah@techflow.com',
                     avatar: '👩‍💼',
+                    skills: ['Artificial Intelligence', 'Machine Learning', 'Enterprise Software', 'Strategic Planning', 'Team Leadership', 'Fundraising'],
+                    expertise: ['AI/ML', 'SaaS', 'Enterprise Software', 'Startup Strategy'],
                     experience: [
-                        { company: 'TechFlow Solutions', role: 'CEO & Founder', startDate: '2020-03-15', current: true },
-                        { company: 'Previous Startup', role: 'CTO', startDate: '2017-01-01', endDate: '2020-02-28' }
+                        { 
+                            company: 'TechFlow Solutions', 
+                            companyId: 'comp1',
+                            role: 'CEO & Co-Founder', 
+                            startDate: '2020-03-15', 
+                            current: true,
+                            description: 'Co-founded and leading TechFlow Solutions, an AI-powered workflow automation platform. Raised $15M+ in funding and scaled the team to 65+ employees.',
+                            achievements: ['Raised $15M in funding', 'Scaled team to 65+ employees', 'Achieved $5M ARR', 'Launched 3 major products']
+                        },
+                        { 
+                            company: 'AutoFlow Systems', 
+                            role: 'Founder & CEO', 
+                            startDate: '2017-01-01', 
+                            endDate: '2020-02-28',
+                            description: 'Founded and led AutoFlow Systems, a workflow automation startup. Successfully exited to Microsoft for $25M.',
+                            achievements: ['Successful exit to Microsoft for $25M', 'Built team of 25 engineers', 'Served 200+ enterprise clients']
+                        },
+                        { 
+                            company: 'Google', 
+                            role: 'Senior Product Manager', 
+                            startDate: '2014-06-01', 
+                            endDate: '2016-12-31',
+                            description: 'Led product development for Google Cloud AI services, managing a team of 15 engineers and designers.',
+                            achievements: ['Launched 2 major AI products', 'Managed $10M product budget', 'Led team of 15 engineers']
+                        }
                     ],
                     education: [
-                        { school: 'Stanford University', degree: 'MS Computer Science', year: '2016' },
-                        { school: 'UC Berkeley', degree: 'BS Engineering', year: '2014' }
-                    ]
+                        { school: 'Stanford University', schoolId: 'school1', degree: 'MS Computer Science', field: 'Artificial Intelligence', year: '2016', gpa: '3.9' },
+                        { school: 'UC Berkeley', degree: 'BS Engineering', field: 'Computer Science', year: '2014', gpa: '3.8' }
+                    ],
+                    investments: [
+                        { company: 'AI Startup Inc', amount: 50000, date: '2023-01-15', round: 'Seed' },
+                        { company: 'DataTech Solutions', amount: 25000, date: '2022-08-20', round: 'Pre-Seed' }
+                    ],
+                    mentorship: [
+                        { program: 'Y Combinator', role: 'Mentor', since: '2021-01-01' },
+                        { program: 'Techstars', role: 'Advisor', since: '2020-06-01' }
+                    ],
+                    awards: [
+                        { title: 'Forbes 30 Under 30', year: '2019', category: 'Technology' },
+                        { title: 'Women in AI Leadership Award', year: '2021', category: 'Innovation' }
+                    ],
+                    speakingEngagements: [
+                        { event: 'TechCrunch Disrupt', title: 'The Future of AI in Enterprise', date: '2023-09-15' },
+                        { event: 'AI Summit', title: 'Building AI-First Companies', date: '2023-06-20' }
+                    ],
+                    mediaAppearances: [
+                        { outlet: 'TechCrunch', title: 'How Sarah Chen Built TechFlow into a $75M Company', date: '2023-01-15', type: 'Interview' },
+                        { outlet: 'Forbes', title: 'The AI Entrepreneur Revolutionizing Workflows', date: '2022-11-20', type: 'Profile' }
+                    ],
+                    personalInterests: ['Rock Climbing', 'Photography', 'Sustainable Technology'],
+                    languages: ['English (Native)', 'Mandarin (Fluent)', 'Spanish (Conversational)']
                 },
                 {
                     id: 'person2',
                     name: 'Dr. Emily Watson',
-                    title: 'CEO at HealthTech Innovations',
-                    company: 'HealthTech Innovations',
+                    title: 'CEO & Founder',
+                    currentCompany: 'HealthTech Innovations',
+                    currentCompanyId: 'comp2',
                     location: 'Boston, MA',
+                    profileType: 'founder',
+                    isFounder: true,
                     bio: 'Medical doctor turned entrepreneur, passionate about improving healthcare accessibility through technology.',
+                    detailedBio: 'Dr. Emily Watson combines her medical expertise with entrepreneurial vision to transform healthcare delivery. As a practicing physician for over 8 years, she witnessed firsthand the inefficiencies in healthcare systems and decided to build solutions. Her unique perspective as both a clinician and technologist has enabled her to create products that truly address real-world healthcare challenges.',
                     linkedin: 'https://linkedin.com/in/emilywatson',
                     email: 'emily@healthtech-innovations.com',
                     avatar: '👩‍⚕️',
+                    skills: ['Healthcare Technology', 'Digital Health', 'Medical Practice', 'Product Strategy', 'Regulatory Compliance'],
+                    expertise: ['HealthTech', 'Digital Health', 'Medical Devices', 'Healthcare Policy'],
                     experience: [
-                        { company: 'HealthTech Innovations', role: 'CEO', startDate: '2019-08-10', current: true },
-                        { company: 'Boston Medical Center', role: 'Physician', startDate: '2015-06-01', endDate: '2019-07-31' }
+                        { 
+                            company: 'HealthTech Innovations', 
+                            companyId: 'comp2',
+                            role: 'CEO & Founder', 
+                            startDate: '2019-08-10', 
+                            current: true,
+                            description: 'Founded HealthTech Innovations to democratize healthcare access through digital solutions.',
+                            achievements: ['Raised $8M in funding', 'Served 50,000+ patients', 'FDA approval for 2 products']
+                        },
+                        { 
+                            company: 'Boston Medical Center', 
+                            role: 'Attending Physician', 
+                            startDate: '2015-06-01', 
+                            endDate: '2019-07-31',
+                            description: 'Practiced internal medicine while developing digital health solutions.',
+                            achievements: ['Treated 5,000+ patients', 'Published 15 research papers', 'Led digital transformation initiative']
+                        }
                     ],
                     education: [
-                        { school: 'Harvard Medical School', degree: 'MD', year: '2015' },
-                        { school: 'MIT', degree: 'BS Bioengineering', year: '2011' }
+                        { school: 'Harvard Medical School', schoolId: 'school2', degree: 'MD', field: 'Medicine', year: '2015' },
+                        { school: 'MIT', degree: 'BS Bioengineering', field: 'Biomedical Engineering', year: '2011' }
+                    ],
+                    publications: [
+                        { title: 'Digital Health Solutions for Underserved Communities', journal: 'NEJM', year: '2022' },
+                        { title: 'AI in Clinical Decision Making', journal: 'JAMA', year: '2021' }
+                    ],
+                    certifications: ['Board Certified Internal Medicine', 'Digital Health Certification', 'Healthcare Innovation Leadership']
+                },
+                {
+                    id: 'person3',
+                    name: 'Michael Rodriguez',
+                    title: 'CTO & Co-Founder',
+                    currentCompany: 'TechFlow Solutions',
+                    currentCompanyId: 'comp1',
+                    location: 'San Francisco, CA',
+                    profileType: 'founder',
+                    isFounder: true,
+                    bio: 'Former Google engineer specializing in ML infrastructure and distributed systems.',
+                    detailedBio: 'Michael Rodriguez is a seasoned technology leader with deep expertise in machine learning infrastructure and large-scale distributed systems. During his tenure at Google, he architected ML systems that served billions of users daily. His technical vision and execution capabilities have been instrumental in building TechFlow\'s robust and scalable platform.',
+                    linkedin: 'https://linkedin.com/in/michaelrodriguez',
+                    github: 'https://github.com/mrodriguez',
+                    email: 'michael@techflow.com',
+                    avatar: '👨‍💻',
+                    skills: ['Machine Learning', 'Distributed Systems', 'Cloud Architecture', 'Python', 'Kubernetes', 'System Design'],
+                    expertise: ['ML Infrastructure', 'Cloud Computing', 'System Architecture', 'DevOps'],
+                    experience: [
+                        { 
+                            company: 'TechFlow Solutions', 
+                            companyId: 'comp1',
+                            role: 'CTO & Co-Founder', 
+                            startDate: '2020-03-15', 
+                            current: true,
+                            description: 'Co-founded TechFlow and built the entire technical infrastructure from ground up.',
+                            achievements: ['Built scalable ML platform', 'Led team of 30+ engineers', 'Architected system serving 1M+ requests/day']
+                        },
+                        { 
+                            company: 'Google', 
+                            role: 'Senior Staff Engineer', 
+                            startDate: '2016-01-01', 
+                            endDate: '2020-02-28',
+                            description: 'Led ML infrastructure for Google Cloud AI, serving billions of predictions daily.',
+                            achievements: ['Built ML serving infrastructure', 'Led team of 20 engineers', 'Reduced latency by 60%']
+                        }
+                    ],
+                    education: [
+                        { school: 'MIT', degree: 'MS Computer Science', field: 'Machine Learning', year: '2015' },
+                        { school: 'Stanford University', schoolId: 'school1', degree: 'BS Computer Science', field: 'Systems', year: '2013' }
+                    ],
+                    patents: [
+                        { title: 'Distributed Machine Learning System', number: 'US10,123,456', year: '2021' },
+                        { title: 'Automated Workflow Optimization', number: 'US10,789,012', year: '2022' }
+                    ]
+                },
+                {
+                    id: 'person4',
+                    name: 'Jennifer Park',
+                    title: 'VP of Sales',
+                    currentCompany: 'TechFlow Solutions',
+                    currentCompanyId: 'comp1',
+                    location: 'San Francisco, CA',
+                    profileType: 'employee',
+                    bio: 'Enterprise sales leader with 12+ years of SaaS experience and proven track record of scaling revenue.',
+                    detailedBio: 'Jennifer Park is a results-driven sales executive with extensive experience in enterprise SaaS sales. She has consistently exceeded revenue targets and built high-performing sales teams. Her deep understanding of enterprise customer needs and consultative selling approach has been key to TechFlow\'s rapid growth.',
+                    linkedin: 'https://linkedin.com/in/jenniferpark',
+                    email: 'jennifer@techflow.com',
+                    avatar: '👩‍💼',
+                    skills: ['Enterprise Sales', 'SaaS', 'Team Leadership', 'Customer Success', 'Revenue Operations'],
+                    expertise: ['Enterprise Sales', 'SaaS Sales', 'Customer Success', 'Sales Strategy'],
+                    experience: [
+                        { 
+                            company: 'TechFlow Solutions', 
+                            companyId: 'comp1',
+                            role: 'VP of Sales', 
+                            startDate: '2021-08-01', 
+                            current: true,
+                            description: 'Leading sales organization and driving revenue growth for TechFlow Solutions.',
+                            achievements: ['Grew ARR from $1M to $5M', 'Built sales team of 15', 'Achieved 120% of quota for 2 years']
+                        },
+                        { 
+                            company: 'Salesforce', 
+                            role: 'Senior Sales Director', 
+                            startDate: '2018-03-01', 
+                            endDate: '2021-07-31',
+                            description: 'Led enterprise sales for Salesforce\'s automation products.',
+                            achievements: ['Managed $50M territory', 'Exceeded quota by 130%', 'Led team of 12 AEs']
+                        }
+                    ],
+                    education: [
+                        { school: 'UC Berkeley', degree: 'MBA', field: 'Business Administration', year: '2017' },
+                        { school: 'UCLA', degree: 'BS Business', field: 'Marketing', year: '2012' }
+                    ]
+                },
+                {
+                    id: 'person5',
+                    name: 'David Kim',
+                    title: 'Head of Product',
+                    currentCompany: 'TechFlow Solutions',
+                    currentCompanyId: 'comp1',
+                    location: 'San Francisco, CA',
+                    profileType: 'employee',
+                    bio: 'Product management veteran with experience at Microsoft and Amazon, specializing in AI-powered products.',
+                    detailedBio: 'David Kim brings over 10 years of product management experience from leading tech companies. His expertise in AI/ML products and user experience design has been crucial in shaping TechFlow\'s product strategy and roadmap. He has a proven track record of launching successful products that delight users and drive business growth.',
+                    linkedin: 'https://linkedin.com/in/davidkim',
+                    email: 'david@techflow.com',
+                    avatar: '👨‍💼',
+                    skills: ['Product Management', 'AI/ML Products', 'User Experience', 'Product Strategy', 'Data Analysis'],
+                    expertise: ['Product Management', 'AI/ML', 'User Experience', 'Product Strategy'],
+                    experience: [
+                        { 
+                            company: 'TechFlow Solutions', 
+                            companyId: 'comp1',
+                            role: 'Head of Product', 
+                            startDate: '2021-03-15', 
+                            current: true,
+                            description: 'Leading product strategy and development for TechFlow\'s AI automation platform.',
+                            achievements: ['Launched 3 major products', 'Improved user engagement by 200%', 'Led product team of 12']
+                        },
+                        { 
+                            company: 'Microsoft', 
+                            role: 'Senior Product Manager', 
+                            startDate: '2017-06-01', 
+                            endDate: '2021-02-28',
+                            description: 'Led product development for Microsoft\'s AI and automation tools.',
+                            achievements: ['Launched Power Automate features', 'Managed $20M product budget', 'Grew user base by 300%']
+                        }
+                    ],
+                    education: [
+                        { school: 'Stanford University', schoolId: 'school1', degree: 'MS Computer Science', field: 'Human-Computer Interaction', year: '2016' },
+                        { school: 'UC Berkeley', degree: 'BS Engineering', field: 'Industrial Engineering', year: '2014' }
                     ]
                 }
             ];
@@ -820,11 +1034,19 @@
                 }
             ];
 
-            // Store sample data
-            allCompanies = sampleCompanies;
-            allPeople = samplePeople;
-            allInvestors = sampleInvestors;
-            allSchools = sampleSchools;
+            // Store sample data as fallback
+            if (allCompanies.length === 0) {
+                allCompanies = sampleCompanies;
+            }
+            if (allPeople.length === 0) {
+                allPeople = samplePeople;
+            }
+            if (allInvestors.length === 0) {
+                allInvestors = sampleInvestors;
+            }
+            if (allSchools.length === 0) {
+                allSchools = sampleSchools;
+            }
 
             // Update UI
             updateDashboardStats();
@@ -833,6 +1055,61 @@
             renderPeople();
             renderInvestors();
             renderSchools();
+        }
+
+        function loadDataFromFirebase() {
+            // Load companies from Firebase
+            database.ref('companies').once('value', (snapshot) => {
+                const companies = [];
+                snapshot.forEach((childSnapshot) => {
+                    companies.push(childSnapshot.val());
+                });
+                if (companies.length > 0) {
+                    allCompanies = companies.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    renderCompanies();
+                    renderFeaturedCompanies();
+                    updateDashboardStats();
+                }
+            });
+
+            // Load people from Firebase
+            database.ref('people').once('value', (snapshot) => {
+                const people = [];
+                snapshot.forEach((childSnapshot) => {
+                    people.push(childSnapshot.val());
+                });
+                if (people.length > 0) {
+                    allPeople = people.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    renderPeople();
+                    updateDashboardStats();
+                }
+            });
+
+            // Load investors from Firebase
+            database.ref('investors').once('value', (snapshot) => {
+                const investors = [];
+                snapshot.forEach((childSnapshot) => {
+                    investors.push(childSnapshot.val());
+                });
+                if (investors.length > 0) {
+                    allInvestors = investors.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    renderInvestors();
+                    updateDashboardStats();
+                }
+            });
+
+            // Load schools from Firebase
+            database.ref('schools').once('value', (snapshot) => {
+                const schools = [];
+                snapshot.forEach((childSnapshot) => {
+                    schools.push(childSnapshot.val());
+                });
+                if (schools.length > 0) {
+                    allSchools = schools.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    renderSchools();
+                    updateDashboardStats();
+                }
+            });
         }
 
         function showSection(sectionName) {
@@ -1246,20 +1523,52 @@
                                         <h3 class="text-lg font-semibold mb-4">Current Leadership</h3>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             ${company.leadership.current.map(leader => `
-                                                <div class="bg-white border rounded-lg p-6">
+                                                <div class="bg-white border rounded-lg p-6 cursor-pointer hover:shadow-md transition" ${leader.id ? `onclick="showPersonDetail('${leader.id}')"` : ''}>
                                                     <div class="flex items-start space-x-4">
                                                         <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-xl">
-                                                            👤
+                                                            ${leader.isFounder ? '👑' : '👤'}
                                                         </div>
                                                         <div class="flex-1">
-                                                            <h4 class="font-semibold text-lg">${leader.name}</h4>
+                                                            <div class="flex items-center space-x-2 mb-1">
+                                                                <h4 class="font-semibold text-lg">${leader.name}</h4>
+                                                                ${leader.isFounder ? '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Founder</span>' : ''}
+                                                            </div>
                                                             <p class="text-purple-600 font-medium">${leader.title}</p>
                                                             <p class="text-sm text-gray-500 mb-2">Since ${new Date(leader.startDate).toLocaleDateString()}</p>
                                                             ${leader.bio ? `<p class="text-sm text-gray-600">${leader.bio}</p>` : ''}
+                                                            ${leader.id ? '<p class="text-xs text-purple-600 mt-2">Click to view full profile →</p>' : ''}
                                                         </div>
                                                     </div>
                                                 </div>
                                             `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                <!-- All Employees Section -->
+                                ${company.employees && company.employees.length > 0 ? `
+                                    <div>
+                                        <h3 class="text-lg font-semibold mb-4">Team Members</h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            ${company.employees.map(employeeId => {
+                                                const employee = allPeople.find(p => p.id === employeeId);
+                                                if (!employee) return '';
+                                                return `
+                                                    <div class="bg-gray-50 p-4 rounded-lg cursor-pointer hover:bg-gray-100 transition" onclick="showPersonDetail('${employee.id}')">
+                                                        <div class="flex items-center space-x-3 mb-2">
+                                                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white">
+                                                                ${employee.avatar}
+                                                            </div>
+                                                            <div class="flex-1">
+                                                                <h4 class="font-semibold text-sm">${employee.name}</h4>
+                                                                <p class="text-xs text-gray-600">${employee.title}</p>
+                                                            </div>
+                                                        </div>
+                                                        ${employee.isFounder ? '<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs">Founder</span>' : ''}
+                                                        <p class="text-xs text-purple-600 mt-2">View profile →</p>
+                                                    </div>
+                                                `;
+                                            }).join('')}
                                         </div>
                                     </div>
                                 ` : ''}
@@ -1387,23 +1696,48 @@
                         
                         <!-- News Tab -->
                         <div id="news-tab" class="tab-content hidden">
-                            ${company.news && company.news.length > 0 ? `
-                                <div class="space-y-4">
-                                    <h3 class="text-lg font-semibold">Recent News & Press</h3>
-                                    ${company.news.map(item => `
-                                        <div class="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
-                                            <div class="flex justify-between items-start mb-3">
-                                                <h4 class="font-semibold text-lg">${item.headline}</h4>
-                                                <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">${item.category}</span>
-                                            </div>
-                                            <div class="flex justify-between items-center text-sm text-gray-500">
-                                                <span>${new Date(item.date).toLocaleDateString()}</span>
-                                                <span>${item.source}</span>
-                                            </div>
+                            <div class="space-y-8">
+                                ${company.news && company.news.length > 0 ? `
+                                    <div>
+                                        <h3 class="text-lg font-semibold mb-6">Recent News & Press Coverage</h3>
+                                        <div class="space-y-4">
+                                            ${company.news.map(item => `
+                                                <div class="news-item bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
+                                                    <div class="flex justify-between items-start mb-3">
+                                                        <h4 class="font-semibold text-lg hover:text-purple-600 cursor-pointer">${item.headline}</h4>
+                                                        <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm whitespace-nowrap ml-4">${item.category}</span>
+                                                    </div>
+                                                    <div class="flex justify-between items-center text-sm text-gray-500">
+                                                        <span><i class="fas fa-calendar mr-1"></i>${new Date(item.date).toLocaleDateString()}</span>
+                                                        <span><i class="fas fa-newspaper mr-1"></i>${item.source}</span>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
                                         </div>
-                                    `).join('')}
-                                </div>
-                            ` : '<div class="text-center py-8 text-gray-500">No news available</div>'}
+                                    </div>
+                                ` : ''}
+                                
+                                ${company.partnerships && company.partnerships.length > 0 ? `
+                                    <div>
+                                        <h3 class="text-lg font-semibold mb-6">Strategic Partnerships</h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            ${company.partnerships.map(partnership => `
+                                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                                    <div class="flex justify-between items-start mb-2">
+                                                        <h4 class="font-semibold">${partnership.company}</h4>
+                                                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">${partnership.type}</span>
+                                                    </div>
+                                                    <p class="text-sm text-gray-600 mb-2">${partnership.description}</p>
+                                                    <p class="text-xs text-gray-500">Announced: ${new Date(partnership.date).toLocaleDateString()}</p>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${(!company.news || company.news.length === 0) && (!company.partnerships || company.partnerships.length === 0) ? 
+                                    '<div class="text-center py-8 text-gray-500">No news or partnership information available</div>' : ''}
+                            </div>
                         </div>
                         
                         <!-- Timeline Tab -->
@@ -1447,72 +1781,322 @@
             const modal = document.getElementById('personModal');
             const content = document.getElementById('personModalContent');
             
+            // Get connected company info
+            const connectedCompany = person.currentCompanyId ? allCompanies.find(c => c.id === person.currentCompanyId) : null;
+            
             content.innerHTML = `
                 <div class="relative">
-                    <div class="profile-card h-48 rounded-t-xl flex items-end p-6">
-                        <div class="flex items-center space-x-6">
-                            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl shadow-lg">
-                                ${person.avatar}
-                            </div>
-                            <div class="text-white">
-                                <h1 class="text-3xl font-bold">${person.name}</h1>
-                                <p class="text-xl opacity-90">${person.title}</p>
-                                <p class="opacity-75">${person.location}</p>
-                            </div>
-                        </div>
-                        <button onclick="closeModal('personModal')" class="absolute top-4 right-4 text-white hover:text-gray-200">
+                    <!-- Header Section -->
+                    <div class="profile-card h-64 rounded-t-xl p-6">
+                        <button onclick="closeModal('personModal')" class="absolute top-4 right-4 text-white hover:text-gray-200 z-10">
                             <i class="fas fa-times text-xl"></i>
                         </button>
+                        
+                        <div class="flex flex-col h-full">
+                            <!-- Top Row: Avatar, Name, Title -->
+                            <div class="flex items-start space-x-6 mb-4">
+                                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl shadow-lg">
+                                    ${person.avatar}
+                                </div>
+                                <div class="flex-1 text-white">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <h1 class="text-3xl font-bold">${person.name}</h1>
+                                        ${person.isFounder ? '<span class="bg-yellow-500 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium">Founder</span>' : ''}
+                                    </div>
+                                    <p class="text-xl opacity-90 mb-1">${person.title}</p>
+                                    ${connectedCompany ? `
+                                        <p class="opacity-80 cursor-pointer hover:opacity-100" onclick="showCompanyDetail('${person.currentCompanyId}')">
+                                            <i class="fas fa-building mr-1"></i>${person.currentCompany}
+                                        </p>
+                                    ` : `<p class="opacity-80">${person.currentCompany}</p>`}
+                                    <p class="text-sm opacity-75 mt-1"><i class="fas fa-map-marker-alt mr-1"></i>${person.location}</p>
+                                </div>
+                                
+                                <!-- Social Links -->
+                                <div class="flex flex-col space-y-2">
+                                    ${person.linkedin ? `<a href="${person.linkedin}" target="_blank" class="text-white hover:text-blue-200"><i class="fab fa-linkedin text-xl"></i></a>` : ''}
+                                    ${person.twitter ? `<a href="${person.twitter}" target="_blank" class="text-white hover:text-blue-200"><i class="fab fa-twitter text-xl"></i></a>` : ''}
+                                    ${person.github ? `<a href="${person.github}" target="_blank" class="text-white hover:text-gray-200"><i class="fab fa-github text-xl"></i></a>` : ''}
+                                </div>
+                            </div>
+                            
+                            <!-- Bottom Row: Skills/Expertise Tags -->
+                            <div class="flex flex-wrap gap-2 mt-auto">
+                                ${(person.expertise || []).slice(0, 4).map(skill => 
+                                    `<span class="bg-white bg-opacity-20 text-white text-xs px-3 py-1 rounded-full">${skill}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="p-6 space-y-8">
-                        <!-- Bio -->
-                        <div>
-                            <h2 class="text-xl font-semibold mb-4">About</h2>
-                            <p class="text-gray-600">${person.bio}</p>
+                    <!-- Tab Navigation -->
+                    <div class="border-b bg-white">
+                        <div class="flex space-x-8 px-6">
+                            <button onclick="showPersonTab('overview')" class="person-tab active py-4 px-2 border-b-2 border-purple-600 text-purple-600 font-medium">Overview</button>
+                            <button onclick="showPersonTab('experience')" class="person-tab py-4 px-2 border-b-2 border-transparent text-gray-600 hover:text-gray-900">Experience</button>
+                            <button onclick="showPersonTab('education')" class="person-tab py-4 px-2 border-b-2 border-transparent text-gray-600 hover:text-gray-900">Education</button>
+                            ${person.isFounder ? '<button onclick="showPersonTab(\'entrepreneurial\')" class="person-tab py-4 px-2 border-b-2 border-transparent text-gray-600 hover:text-gray-900">Entrepreneurial</button>' : ''}
+                            <button onclick="showPersonTab('achievements')" class="person-tab py-4 px-2 border-b-2 border-transparent text-gray-600 hover:text-gray-900">Achievements</button>
                         </div>
-
-                        ${person.experience && person.experience.length > 0 ? `
-                            <!-- Experience -->
-                            <div class="form-section pl-4">
-                                <h2 class="text-xl font-semibold mb-4">Experience</h2>
+                    </div>
+                    
+                    <!-- Tab Content -->
+                    <div class="p-6">
+                        <!-- Overview Tab -->
+                        <div id="overview-tab" class="person-tab-content">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <!-- Main Content -->
+                                <div class="lg:col-span-2 space-y-6">
+                                    <div>
+                                        <h2 class="text-xl font-semibold mb-4">About ${person.name}</h2>
+                                        <p class="text-gray-600 mb-4">${person.detailedBio || person.bio}</p>
+                                    </div>
+                                    
+                                    ${person.skills && person.skills.length > 0 ? `
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900 mb-3">Core Skills</h3>
+                                            <div class="flex flex-wrap gap-2">
+                                                ${person.skills.map(skill => `
+                                                    <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">${skill}</span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${connectedCompany ? `
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900 mb-3">Current Company</h3>
+                                            <div class="bg-gray-50 p-4 rounded-lg cursor-pointer hover:bg-gray-100 transition" onclick="showCompanyDetail('${person.currentCompanyId}')">
+                                                <div class="flex items-center space-x-4">
+                                                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white text-xl">
+                                                        ${connectedCompany.logo}
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="font-semibold">${connectedCompany.name}</h4>
+                                                        <p class="text-sm text-gray-600">${connectedCompany.industry} • ${connectedCompany.location}</p>
+                                                        <p class="text-xs text-gray-500">${connectedCompany.employeeCount} employees</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${person.personalInterests && person.personalInterests.length > 0 ? `
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900 mb-3">Personal Interests</h3>
+                                            <div class="flex flex-wrap gap-2">
+                                                ${person.personalInterests.map(interest => `
+                                                    <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm">${interest}</span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                
+                                <!-- Sidebar -->
                                 <div class="space-y-4">
+                                    <!-- Contact Info -->
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="font-semibold text-gray-800 mb-3">Contact Information</h3>
+                                        <div class="space-y-2 text-sm">
+                                            ${person.email ? `<div><i class="fas fa-envelope text-gray-400 mr-2"></i>${person.email}</div>` : ''}
+                                            ${person.linkedin ? `<div><i class="fab fa-linkedin text-blue-600 mr-2"></i><a href="${person.linkedin}" target="_blank" class="text-blue-600 hover:text-blue-700">LinkedIn</a></div>` : ''}
+                                            ${person.twitter ? `<div><i class="fab fa-twitter text-blue-400 mr-2"></i><a href="${person.twitter}" target="_blank" class="text-blue-400 hover:text-blue-500">Twitter</a></div>` : ''}
+                                            ${person.github ? `<div><i class="fab fa-github text-gray-600 mr-2"></i><a href="${person.github}" target="_blank" class="text-gray-600 hover:text-gray-700">GitHub</a></div>` : ''}
+                                        </div>
+                                    </div>
+                                    
+                                    ${person.languages && person.languages.length > 0 ? `
+                                        <div class="bg-blue-50 p-4 rounded-lg">
+                                            <h3 class="font-semibold text-blue-800 mb-3">Languages</h3>
+                                            <div class="space-y-1 text-sm">
+                                                ${person.languages.map(lang => `<div class="text-blue-700">${lang}</div>`).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${person.certifications && person.certifications.length > 0 ? `
+                                        <div class="bg-green-50 p-4 rounded-lg">
+                                            <h3 class="font-semibold text-green-800 mb-3">Certifications</h3>
+                                            <div class="space-y-1 text-sm">
+                                                ${person.certifications.map(cert => `<div class="text-green-700">${cert}</div>`).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Experience Tab -->
+                        <div id="experience-tab" class="person-tab-content hidden">
+                            ${person.experience && person.experience.length > 0 ? `
+                                <div class="space-y-6">
+                                    <h3 class="text-lg font-semibold">Professional Experience</h3>
                                     ${person.experience.map(exp => `
-                                        <div class="border-l-2 border-purple-200 pl-4">
-                                            <h3 class="font-semibold">${exp.role}</h3>
-                                            <p class="text-purple-600 font-medium">${exp.company}</p>
-                                            <p class="text-sm text-gray-500">
-                                                ${new Date(exp.startDate).toLocaleDateString()} - 
-                                                ${exp.current ? 'Present' : new Date(exp.endDate).toLocaleDateString()}
-                                            </p>
+                                        <div class="bg-white border rounded-lg p-6">
+                                            <div class="flex justify-between items-start mb-4">
+                                                <div class="flex-1">
+                                                    <h4 class="font-semibold text-lg">${exp.role}</h4>
+                                                    <p class="text-purple-600 font-medium cursor-pointer hover:text-purple-700" ${exp.companyId ? `onclick="showCompanyDetail('${exp.companyId}')"` : ''}>${exp.company}</p>
+                                                    <p class="text-sm text-gray-500 mb-3">
+                                                        ${new Date(exp.startDate).toLocaleDateString()} - 
+                                                        ${exp.current ? 'Present' : new Date(exp.endDate).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                                ${exp.current ? '<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Current</span>' : ''}
+                                            </div>
+                                            <p class="text-gray-600 mb-4">${exp.description}</p>
+                                            ${exp.achievements && exp.achievements.length > 0 ? `
+                                                <div>
+                                                    <h5 class="font-medium text-gray-900 mb-2">Key Achievements:</h5>
+                                                    <ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
+                                                        ${exp.achievements.map(achievement => `<li>${achievement}</li>`).join('')}
+                                                    </ul>
+                                                </div>
+                                            ` : ''}
                                         </div>
                                     `).join('')}
                                 </div>
-                            </div>
-                        ` : ''}
-
-                        ${person.education && person.education.length > 0 ? `
-                            <!-- Education -->
-                            <div class="form-section pl-4">
-                                <h2 class="text-xl font-semibold mb-4">Education</h2>
-                                <div class="space-y-4">
+                            ` : '<div class="text-center py-8 text-gray-500">No experience information available</div>'}
+                        </div>
+                        
+                        <!-- Education Tab -->
+                        <div id="education-tab" class="person-tab-content hidden">
+                            ${person.education && person.education.length > 0 ? `
+                                <div class="space-y-6">
+                                    <h3 class="text-lg font-semibold">Education</h3>
                                     ${person.education.map(edu => `
-                                        <div class="border-l-2 border-blue-200 pl-4">
-                                            <h3 class="font-semibold">${edu.degree}</h3>
-                                            <p class="text-blue-600 font-medium">${edu.school}</p>
-                                            <p class="text-sm text-gray-500">${edu.year}</p>
+                                        <div class="bg-white border rounded-lg p-6">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <h4 class="font-semibold text-lg">${edu.degree}</h4>
+                                                    <p class="text-blue-600 font-medium cursor-pointer hover:text-blue-700" ${edu.schoolId ? `onclick="showSchoolDetail('${edu.schoolId}')"` : ''}>${edu.school}</p>
+                                                    ${edu.field ? `<p class="text-gray-600">Field of Study: ${edu.field}</p>` : ''}
+                                                    <p class="text-sm text-gray-500">Graduated: ${edu.year}</p>
+                                                    ${edu.gpa ? `<p class="text-sm text-gray-500">GPA: ${edu.gpa}</p>` : ''}
+                                                </div>
+                                            </div>
                                         </div>
                                     `).join('')}
                                 </div>
+                            ` : '<div class="text-center py-8 text-gray-500">No education information available</div>'}
+                        </div>
+                        
+                        <!-- Entrepreneurial Tab (for founders) -->
+                        ${person.isFounder ? `
+                            <div id="entrepreneurial-tab" class="person-tab-content hidden">
+                                <div class="space-y-8">
+                                    ${person.investments && person.investments.length > 0 ? `
+                                        <div>
+                                            <h3 class="text-lg font-semibold mb-4">Angel Investments</h3>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                ${person.investments.map(investment => `
+                                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                                        <h4 class="font-semibold">${investment.company}</h4>
+                                                        <p class="text-sm text-gray-600">${investment.round} Round</p>
+                                                        <p class="text-sm text-green-600">$${investment.amount.toLocaleString()}</p>
+                                                        <p class="text-xs text-gray-500">${new Date(investment.date).toLocaleDateString()}</p>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${person.mentorship && person.mentorship.length > 0 ? `
+                                        <div>
+                                            <h3 class="text-lg font-semibold mb-4">Mentorship & Advisory</h3>
+                                            <div class="space-y-3">
+                                                ${person.mentorship.map(mentor => `
+                                                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                                        <h4 class="font-semibold">${mentor.program}</h4>
+                                                        <p class="text-sm text-purple-600">${mentor.role}</p>
+                                                        <p class="text-xs text-gray-500">Since ${new Date(mentor.since).toLocaleDateString()}</p>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${person.patents && person.patents.length > 0 ? `
+                                        <div>
+                                            <h3 class="text-lg font-semibold mb-4">Patents</h3>
+                                            <div class="space-y-3">
+                                                ${person.patents.map(patent => `
+                                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                                        <h4 class="font-semibold">${patent.title}</h4>
+                                                        <p class="text-sm text-blue-600">Patent #${patent.number}</p>
+                                                        <p class="text-xs text-gray-500">Filed: ${patent.year}</p>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
                             </div>
                         ` : ''}
-
-                        <!-- Contact -->
-                        <div class="form-section pl-4">
-                            <h2 class="text-xl font-semibold mb-4">Contact</h2>
-                            <div class="space-y-2">
-                                ${person.email ? `<p><i class="fas fa-envelope text-gray-400 mr-2"></i>${person.email}</p>` : ''}
-                                ${person.linkedin ? `<p><i class="fab fa-linkedin text-blue-600 mr-2"></i><a href="${person.linkedin}" target="_blank" class="text-blue-600 hover:text-blue-700">LinkedIn Profile</a></p>` : ''}
+                        
+                        <!-- Achievements Tab -->
+                        <div id="achievements-tab" class="person-tab-content hidden">
+                            <div class="space-y-8">
+                                ${person.awards && person.awards.length > 0 ? `
+                                    <div>
+                                        <h3 class="text-lg font-semibold mb-4">Awards & Recognition</h3>
+                                        <div class="space-y-4">
+                                            ${person.awards.map(award => `
+                                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                                    <h4 class="font-semibold">${award.title}</h4>
+                                                    <p class="text-sm text-yellow-700">${award.category}</p>
+                                                    <p class="text-xs text-gray-500">${award.year}</p>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${person.speakingEngagements && person.speakingEngagements.length > 0 ? `
+                                    <div>
+                                        <h3 class="text-lg font-semibold mb-4">Speaking Engagements</h3>
+                                        <div class="space-y-4">
+                                            ${person.speakingEngagements.map(speaking => `
+                                                <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                                                    <h4 class="font-semibold">${speaking.title}</h4>
+                                                    <p class="text-sm text-indigo-600">${speaking.event}</p>
+                                                    <p class="text-xs text-gray-500">${new Date(speaking.date).toLocaleDateString()}</p>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${person.mediaAppearances && person.mediaAppearances.length > 0 ? `
+                                    <div>
+                                        <h3 class="text-lg font-semibold mb-4">Media Appearances</h3>
+                                        <div class="space-y-4">
+                                            ${person.mediaAppearances.map(media => `
+                                                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                                    <h4 class="font-semibold">${media.title}</h4>
+                                                    <p class="text-sm text-red-600">${media.outlet} • ${media.type}</p>
+                                                    <p class="text-xs text-gray-500">${new Date(media.date).toLocaleDateString()}</p>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${person.publications && person.publications.length > 0 ? `
+                                    <div>
+                                        <h3 class="text-lg font-semibold mb-4">Publications</h3>
+                                        <div class="space-y-4">
+                                            ${person.publications.map(pub => `
+                                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                                    <h4 class="font-semibold">${pub.title}</h4>
+                                                    <p class="text-sm text-gray-600">${pub.journal}</p>
+                                                    <p class="text-xs text-gray-500">${pub.year}</p>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -1520,6 +2104,26 @@
             `;
             
             modal.classList.remove('hidden');
+        }
+
+        function showPersonTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.person-tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.person-tab').forEach(tab => {
+                tab.classList.remove('active', 'border-purple-600', 'text-purple-600');
+                tab.classList.add('border-transparent', 'text-gray-600');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Add active class to selected tab
+            event.target.classList.add('active', 'border-purple-600', 'text-purple-600');
+            event.target.classList.remove('border-transparent', 'text-gray-600');
         }
 
         function handleGlobalSearch(e) {
@@ -1695,22 +2299,27 @@
                 createdAt: new Date().toISOString()
             };
 
-            // Add to local array
-            allCompanies.unshift(companyData);
-            
-            // Save to Firebase
-            database.ref('companies/' + companyData.id).set(companyData);
-            
-            // Update UI
-            renderCompanies();
-            renderFeaturedCompanies();
-            updateDashboardStats();
-            
-            // Close modal and reset form
-            closeModal('addCompanyModal');
-            e.target.reset();
-            
-            alert('Company added successfully!');
+            // Save to Firebase first
+            database.ref('companies/' + companyData.id).set(companyData)
+                .then(() => {
+                    // Add to local array after successful save
+                    allCompanies.unshift(companyData);
+                    
+                    // Update UI
+                    renderCompanies();
+                    renderFeaturedCompanies();
+                    updateDashboardStats();
+                    
+                    // Close modal and reset form
+                    closeModal('addCompanyModal');
+                    e.target.reset();
+                    
+                    alert('Company added successfully!');
+                })
+                .catch((error) => {
+                    console.error('Error saving company:', error);
+                    alert('Error saving company. Please try again.');
+                });
         }
 
         function handleAddPerson(e) {
@@ -1736,21 +2345,26 @@
                 createdAt: new Date().toISOString()
             };
 
-            // Add to local array
-            allPeople.unshift(personData);
-            
-            // Save to Firebase
-            database.ref('people/' + personData.id).set(personData);
-            
-            // Update UI
-            renderPeople();
-            updateDashboardStats();
-            
-            // Close modal and reset form
-            closeModal('addPersonModal');
-            e.target.reset();
-            
-            alert('Profile added successfully!');
+            // Save to Firebase first
+            database.ref('people/' + personData.id).set(personData)
+                .then(() => {
+                    // Add to local array after successful save
+                    allPeople.unshift(personData);
+                    
+                    // Update UI
+                    renderPeople();
+                    updateDashboardStats();
+                    
+                    // Close modal and reset form
+                    closeModal('addPersonModal');
+                    e.target.reset();
+                    
+                    alert('Profile added successfully!');
+                })
+                .catch((error) => {
+                    console.error('Error saving person:', error);
+                    alert('Error saving profile. Please try again.');
+                });
         }
 
         function signInWithGoogle() {
@@ -1912,5 +2526,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f635837299919a',t:'MTc1NTIzNDg3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f64493938e598d',t:'MTc1NTIzNTQ5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
