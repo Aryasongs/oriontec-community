@@ -568,6 +568,9 @@
             // First try to load data from Firebase, then fall back to sample data
             loadDataFromFirebase();
             
+            // Auto-save Tesla and Elon Musk data to Firebase on first load
+            autoSaveSampleData();
+            
             // Sample companies with comprehensive Crunchbase-style data
             const sampleCompanies = [
                 {
@@ -1332,57 +1335,9 @@
                 }
             ];
 
-            // Store sample data as fallback and auto-save Tesla to Firebase
+            // Store sample data as fallback
             if (allCompanies.length === 0) {
                 allCompanies = sampleCompanies;
-                
-                // Auto-save Tesla to Firebase if not already exists
-                const teslaData = sampleCompanies.find(c => c.id === 'tesla');
-                if (teslaData) {
-                    db.collection('companies').doc('tesla').get()
-                        .then((doc) => {
-                            if (!doc.exists) {
-                                // Tesla doesn't exist in Firebase, save it
-                                db.collection('companies').doc('tesla').set(teslaData)
-                                    .then(() => {
-                                        console.log('✅ Tesla company auto-saved to Firebase!');
-                                        showSuccessMessage('Tesla company data has been saved to Firebase and is now live!');
-                                    })
-                                    .catch((error) => {
-                                        console.error('Error auto-saving Tesla:', error);
-                                    });
-                            } else {
-                                console.log('Tesla already exists in Firebase');
-                            }
-                        })
-                        .catch((error) => {
-                            console.error('Error checking Tesla existence:', error);
-                        });
-                }
-                
-                // Auto-save Elon Musk to Firebase if not already exists
-                const elonData = samplePeople.find(p => p.id === 'elon-musk');
-                if (elonData) {
-                    db.collection('people').doc('elon-musk').get()
-                        .then((doc) => {
-                            if (!doc.exists) {
-                                // Elon doesn't exist in Firebase, save him
-                                db.collection('people').doc('elon-musk').set(elonData)
-                                    .then(() => {
-                                        console.log('✅ Elon Musk profile auto-saved to Firebase!');
-                                        showSuccessMessage('Elon Musk profile has been saved to Firebase and is now live!');
-                                    })
-                                    .catch((error) => {
-                                        console.error('Error auto-saving Elon Musk:', error);
-                                    });
-                            } else {
-                                console.log('Elon Musk already exists in Firebase');
-                            }
-                        })
-                        .catch((error) => {
-                            console.error('Error checking Elon Musk existence:', error);
-                        });
-                }
             }
             if (allPeople.length === 0) {
                 allPeople = samplePeople;
@@ -1404,22 +1359,31 @@
         }
 
         function loadDataFromFirebase() {
+            console.log('🔄 Starting to load data from Firebase...');
+            
             // Load companies from Firestore with real-time updates
             db.collection('companies').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+                console.log(`📊 Firebase snapshot received: ${snapshot.size} companies`);
                 const companies = [];
                 snapshot.forEach((doc) => {
-                    companies.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    console.log(`📄 Company loaded: ${data.name} (ID: ${doc.id})`);
+                    companies.push({ id: doc.id, ...data });
                 });
+                
+                console.log(`💾 Total companies loaded: ${companies.length}`);
                 
                 if (companies.length > 0) {
                     allCompanies = companies;
                     renderCompanies();
                     renderFeaturedCompanies();
                     updateDashboardStats();
-                    console.log(`Loaded ${companies.length} companies from Firestore`);
+                    console.log(`✅ Successfully loaded ${companies.length} companies from Firestore`);
+                } else {
+                    console.log('⚠️ No companies found in Firebase, keeping sample data');
                 }
             }, (error) => {
-                console.error('Error loading companies:', error);
+                console.error('❌ Error loading companies from Firebase:', error);
             });
 
             // Load people from Firestore with real-time updates
@@ -1474,20 +1438,206 @@
             });
         }
 
+        function autoSaveSampleData() {
+            // Auto-save Tesla company data to Firebase
+            const teslaData = {
+                id: 'tesla',
+                name: 'Tesla, Inc.',
+                legalName: 'Tesla, Inc.',
+                alternateNames: ['Tesla Motors', 'Tesla'],
+                tagline: 'Accelerating the world\'s transition to sustainable energy',
+                type: 'Public',
+                companyType: 'For Profit',
+                foundedDate: '2003-07-01',
+                employeeCount: '501+',
+                employeeRange: '100,000+',
+                website: 'https://tesla.com',
+                industry: 'Automotive',
+                industryTags: ['Electric Vehicles', 'Clean Energy', 'Autonomous Driving', 'Battery Technology'],
+                location: 'Austin, Texas, USA',
+                headquarters: {
+                    address: '1 Tesla Road, Austin, TX 78725, USA',
+                    phone: '+1 (512) 516-8177',
+                    email: 'ir@tesla.com'
+                },
+                description: 'Tesla designs, develops, manufactures, and sells electric vehicles, energy generation and storage systems.',
+                detailedDescription: 'Tesla, Inc. is an American multinational automotive and clean energy company headquartered in Austin, Texas. Tesla designs and manufactures electric vehicles, battery energy storage from home to grid-scale, solar panels and solar roof tiles, and related products and services.',
+                logo: '🚗',
+                status: 'IPO\'d',
+                operatingStatus: 'Active',
+                crunchbaseRank: 1250,
+                socialMedia: {
+                    linkedin: 'https://linkedin.com/company/tesla-motors',
+                    twitter: 'https://twitter.com/tesla',
+                    facebook: 'https://facebook.com/tesla',
+                    instagram: 'https://instagram.com/teslamotors'
+                },
+                founders: [
+                    { id: 'elon-musk', name: 'Elon Musk', role: 'CEO & Product Architect' },
+                    { id: 'martin-eberhard', name: 'Martin Eberhard', role: 'Co-Founder' }
+                ],
+                totalFunding: 7200000000,
+                fundingRounds: [
+                    { date: '2004-02-01', type: 'Series A', amount: 7500000, investors: ['Elon Musk'], leadInvestor: 'Elon Musk' },
+                    { date: '2010-06-29', type: 'IPO', amount: 226100000, investors: ['Public Market'], leadInvestor: 'Goldman Sachs' }
+                ],
+                valuation: 800000000000,
+                leadership: {
+                    current: [
+                        { id: 'elon-musk', name: 'Elon Musk', title: 'CEO & Product Architect', isFounder: true }
+                    ]
+                },
+                products: [
+                    { name: 'Model S', description: 'Luxury electric sedan' },
+                    { name: 'Model 3', description: 'Mass-market electric sedan' },
+                    { name: 'Model X', description: 'Electric SUV with falcon wing doors' },
+                    { name: 'Model Y', description: 'Compact electric SUV' }
+                ],
+                news: [
+                    { date: '2023-10-18', headline: 'Tesla Reports Record Q3 2023 Deliveries', category: 'Earnings' }
+                ],
+                createdAt: new Date().toISOString()
+            };
+
+            // Auto-save Elon Musk profile data to Firebase
+            const elonData = {
+                id: 'elon-musk',
+                name: 'Elon Musk',
+                title: 'CEO & Product Architect',
+                currentCompany: 'Tesla, Inc.',
+                currentCompanyId: 'tesla',
+                location: 'Austin, Texas, USA',
+                profileType: 'founder',
+                isFounder: true,
+                bio: 'Entrepreneur and business magnate. CEO of Tesla and SpaceX, owner of X (formerly Twitter).',
+                detailedBio: 'Elon Reeve Musk is a business magnate and investor. He is the founder, CEO, and chief engineer of SpaceX; CEO and product architect of Tesla, Inc.; owner and CTO of X Corp.',
+                linkedin: 'https://linkedin.com/in/elonmusk',
+                twitter: 'https://twitter.com/elonmusk',
+                avatar: '🚀',
+                skills: ['Entrepreneurship', 'Product Development', 'Engineering', 'Strategic Vision'],
+                expertise: ['Electric Vehicles', 'Space Technology', 'Renewable Energy', 'AI'],
+                experience: [
+                    { 
+                        company: 'Tesla, Inc.', 
+                        companyId: 'tesla',
+                        role: 'CEO & Product Architect', 
+                        startDate: '2008-10-01', 
+                        current: true,
+                        description: 'Leading Tesla\'s mission to accelerate sustainable energy transition.'
+                    },
+                    { 
+                        company: 'SpaceX', 
+                        role: 'Founder, CEO & Chief Engineer', 
+                        startDate: '2002-03-01', 
+                        current: true,
+                        description: 'Founded SpaceX to reduce space transportation costs and enable Mars colonization.'
+                    }
+                ],
+                education: [
+                    { school: 'University of Pennsylvania', degree: 'BS Physics', year: '1997' },
+                    { school: 'University of Pennsylvania (Wharton)', degree: 'BS Economics', year: '1997' }
+                ],
+                awards: [
+                    { title: 'Time Person of the Year', year: '2021', category: 'Leadership' },
+                    { title: 'Forbes Most Powerful People', year: '2023', category: 'Business' }
+                ],
+                netWorth: 240000000000,
+                createdAt: new Date().toISOString()
+            };
+
+            // Save Tesla to Firebase
+            db.collection('companies').doc('tesla').set(teslaData)
+                .then(() => {
+                    console.log('✅ Tesla company auto-saved to Firebase!');
+                    showSuccessMessage('🚗 Tesla company data saved to Firebase successfully!');
+                })
+                .catch((error) => {
+                    console.error('❌ Error auto-saving Tesla:', error);
+                });
+
+            // Save Elon Musk to Firebase
+            db.collection('people').doc('elon-musk').set(elonData)
+                .then(() => {
+                    console.log('✅ Elon Musk profile auto-saved to Firebase!');
+                    showSuccessMessage('🚀 Elon Musk profile saved to Firebase successfully!');
+                })
+                .catch((error) => {
+                    console.error('❌ Error auto-saving Elon Musk:', error);
+                });
+
+            // Also save sample investors and schools
+            const sampleInvestor = {
+                id: 'venture-capital-partners',
+                name: 'Venture Capital Partners',
+                type: 'Venture Capital',
+                location: 'Palo Alto, CA',
+                description: 'Early-stage VC firm focused on AI and enterprise software.',
+                website: 'https://vcpartners.com',
+                logo: '💼',
+                totalInvestments: 45,
+                portfolioCompanies: ['Tesla', 'TechFlow Solutions'],
+                createdAt: new Date().toISOString()
+            };
+
+            const sampleSchool = {
+                id: 'university-of-pennsylvania',
+                name: 'University of Pennsylvania',
+                type: 'Private University',
+                location: 'Philadelphia, PA',
+                description: 'Ivy League research university known for business and engineering.',
+                website: 'https://upenn.edu',
+                logo: '🎓',
+                founded: '1740',
+                students: '25,000',
+                notableAlumni: ['Elon Musk', 'Warren Buffett'],
+                createdAt: new Date().toISOString()
+            };
+
+            // Save investor
+            db.collection('investors').doc('venture-capital-partners').set(sampleInvestor)
+                .then(() => {
+                    console.log('✅ Sample investor saved to Firebase!');
+                })
+                .catch((error) => {
+                    console.error('❌ Error saving investor:', error);
+                });
+
+            // Save school
+            db.collection('schools').doc('university-of-pennsylvania').set(sampleSchool)
+                .then(() => {
+                    console.log('✅ Sample school saved to Firebase!');
+                })
+                .catch((error) => {
+                    console.error('❌ Error saving school:', error);
+                });
+        }
+
         function showSection(sectionName) {
+            console.log(`🔄 Switching to section: ${sectionName}`);
+            
             // Hide all sections
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.add('hidden');
             });
             
             // Show selected section
-            document.getElementById(sectionName + 'Section').classList.remove('hidden');
+            const targetSection = document.getElementById(sectionName + 'Section');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                console.log(`✅ Section ${sectionName} is now visible`);
+            } else {
+                console.error(`❌ Section ${sectionName}Section not found!`);
+            }
             
-            // Update navigation
+            // Update navigation - find the button that was clicked
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('bg-white', 'bg-opacity-20');
             });
-            event.target.classList.add('bg-white', 'bg-opacity-20');
+            
+            // If called from an event, highlight the clicked button
+            if (event && event.target) {
+                event.target.classList.add('bg-white', 'bg-opacity-20');
+            }
         }
 
         function updateAuthUI() {
@@ -2569,7 +2719,14 @@
                 return;
             }
 
+            console.log('🚀 Starting company creation process...');
             const formData = new FormData(e.target);
+            
+            // Debug: Log all form data
+            console.log('📝 Form data received:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
             
             // Process industry tags
             const industryTagsString = formData.get('industryTags');
@@ -2594,34 +2751,34 @@
             
             // Build comprehensive company data
             const companyData = {
-                name: formData.get('name'),
-                legalName: formData.get('legalName') || formData.get('name'),
-                tagline: formData.get('tagline'),
-                type: formData.get('type'),
+                name: formData.get('name') || 'Unnamed Company',
+                legalName: formData.get('legalName') || formData.get('name') || 'Unnamed Company',
+                tagline: formData.get('tagline') || '',
+                type: formData.get('type') || 'Private',
                 companyType: 'For Profit',
-                foundedDate: formData.get('foundedDate'),
-                employeeCount: formData.get('employeeCount'),
-                employeeRange: formData.get('employeeCount'),
-                website: formData.get('website'),
-                industry: formData.get('industry'),
+                foundedDate: formData.get('foundedDate') || new Date().toISOString().split('T')[0],
+                employeeCount: formData.get('employeeCount') || '1-10',
+                employeeRange: formData.get('employeeCount') || '1-10',
+                website: formData.get('website') || '',
+                industry: formData.get('industry') || 'Technology',
                 industryTags: industryTags,
-                location: formData.get('location'),
+                location: formData.get('location') || 'Unknown',
                 headquarters: {
-                    address: formData.get('address'),
-                    phone: formData.get('phone'),
-                    email: formData.get('email')
+                    address: formData.get('address') || '',
+                    phone: formData.get('phone') || '',
+                    email: formData.get('email') || ''
                 },
-                description: formData.get('description'),
-                detailedDescription: formData.get('detailedDescription') || formData.get('description'),
+                description: formData.get('description') || 'No description provided',
+                detailedDescription: formData.get('detailedDescription') || formData.get('description') || 'No description provided',
                 logo: '🏢',
-                status: formData.get('status'),
-                operatingStatus: formData.get('status'),
+                status: formData.get('status') || 'Active',
+                operatingStatus: formData.get('status') || 'Active',
                 crunchbaseRank: Math.floor(Math.random() * 50000) + 10000,
                 socialMedia: {
-                    linkedin: formData.get('linkedin'),
-                    twitter: formData.get('twitter'),
-                    facebook: formData.get('facebook'),
-                    instagram: formData.get('instagram')
+                    linkedin: formData.get('linkedin') || '',
+                    twitter: formData.get('twitter') || '',
+                    facebook: formData.get('facebook') || '',
+                    instagram: formData.get('instagram') || ''
                 },
                 founders: founders,
                 totalFunding: 0,
@@ -2647,7 +2804,7 @@
                     {
                         date: formData.get('foundedDate') || new Date().toISOString().split('T')[0],
                         event: 'Company Founded',
-                        description: `${formData.get('name')} was incorporated`
+                        description: `${formData.get('name') || 'Company'} was incorporated`
                     }
                 ],
                 metrics: {
@@ -2657,24 +2814,56 @@
                     customerCount: null
                 },
                 createdBy: currentUser.uid,
-                createdAt: new Date().toISOString()
+                createdByName: currentUser.displayName || currentUser.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
+
+            console.log('💾 Company data to save:', companyData);
+
+            // Show loading state
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = 'Saving...';
+            submitButton.disabled = true;
 
             // Save to Firestore
             db.collection('companies').add(companyData)
                 .then((docRef) => {
-                    console.log('Company added with ID:', docRef.id);
+                    console.log('✅ Company successfully added with ID:', docRef.id);
+                    
+                    // Add to local array immediately for instant UI update
+                    const newCompany = { id: docRef.id, ...companyData, createdAt: new Date().toISOString() };
+                    allCompanies.unshift(newCompany);
+                    
+                    // Update UI immediately
+                    renderCompanies();
+                    renderFeaturedCompanies();
+                    updateDashboardStats();
                     
                     // Close modal and reset form
                     closeModal('addCompanyModal');
                     e.target.reset();
                     
+                    // Reset button
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                    
                     // Show success message
-                    showSuccessMessage('Company added successfully! It will appear in the list shortly.');
+                    showSuccessMessage(`🎉 ${companyData.name} added successfully!`);
+                    
+                    // Switch to companies section to show the new company
+                    showSection('companies');
                 })
                 .catch((error) => {
-                    console.error('Error saving company:', error);
-                    alert('Error saving company. Please try again.');
+                    console.error('❌ Error saving company:', error);
+                    
+                    // Reset button
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                    
+                    // Show detailed error
+                    alert(`Error saving company: ${error.message}\n\nPlease check the console for more details.`);
                 });
         }
 
@@ -2908,5 +3097,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f65c98110654bf',t:'MTc1NTIzNjQ3NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f66b1e70c45970',t:'MTc1NTIzNzA2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
