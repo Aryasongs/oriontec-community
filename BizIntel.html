@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BizIntel Pro - Business Intelligence Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -24,6 +24,14 @@
         .timeline-dot { position: absolute; left: 11px; top: 8px; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; }
         .funding-chart { min-height: 300px; }
         .rank-badge { background: linear-gradient(45deg, #fbbf24, #f59e0b); }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .premium-blur { filter: blur(3px); transition: filter 0.3s ease; }
+        .premium-overlay { position: relative; }
+        .premium-overlay::after { content: '🔒 Premium'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        @media (max-width: 640px) {
+            .funding-chart { min-height: 200px; }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -36,91 +44,149 @@
                         <h1 class="text-2xl font-bold gradient-bg bg-clip-text text-transparent">BizIntel Pro</h1>
                         <p class="text-xs text-gray-500">Business Intelligence Platform</p>
                     </div>
-                    <div class="hidden md:block ml-10">
+                    <div class="hidden lg:block ml-10">
                         <div class="flex items-baseline space-x-4">
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('dashboard')">Dashboard</a>
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('companies')">Companies</a>
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('people')">People</a>
-                            <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('investors')">Investors</a>
-                            <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('analytics')">Analytics</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium relative" onclick="showSection('investors')">
+                                Investors
+                                <span class="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs px-1 rounded-full">PRO</span>
+                            </a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium relative" onclick="showSection('analytics')">
+                                Analytics
+                                <span class="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs px-1 rounded-full">PRO</span>
+                            </a>
                         </div>
                     </div>
+                    <!-- Mobile Menu Button -->
+                    <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div class="relative">
-                        <input type="text" id="globalSearch" placeholder="Search companies, people, investors..." class="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <div class="flex items-center space-x-2 md:space-x-4">
+                    <div class="relative hidden md:block">
+                        <input type="text" id="globalSearch" placeholder="Search companies, people, investors..." class="w-60 lg:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                     </div>
+                    <!-- Mobile Search Button -->
+                    <button id="mobileSearchBtn" class="md:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100">
+                        <i class="fas fa-search text-lg"></i>
+                    </button>
                     <button id="authButton" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
                         <i class="fab fa-google mr-2"></i>Sign In with Google
                     </button>
                     <div id="userProfile" class="hidden flex items-center space-x-3">
                         <img id="userPhoto" class="w-8 h-8 rounded-full" alt="User">
                         <div class="flex flex-col">
-                            <span id="userName" class="text-sm font-medium"></span>
+                            <div class="flex items-center space-x-2">
+                                <span id="userName" class="text-sm font-medium"></span>
+                                <span id="premiumBadge" class="hidden bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                                    <i class="fas fa-crown mr-1"></i>PRO
+                                </span>
+                            </div>
                             <button id="signOutButton" class="text-xs text-gray-600 hover:text-gray-800 text-left">Sign Out</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu" class="lg:hidden hidden bg-white border-t border-gray-200">
+            <div class="px-4 py-3 space-y-1">
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50" onclick="showSection('dashboard'); toggleMobileMenu()">
+                    <i class="fas fa-chart-pie mr-3"></i>Dashboard
+                </a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50" onclick="showSection('companies'); toggleMobileMenu()">
+                    <i class="fas fa-building mr-3"></i>Companies
+                </a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50" onclick="showSection('people'); toggleMobileMenu()">
+                    <i class="fas fa-users mr-3"></i>People
+                </a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 relative" onclick="showSection('investors'); toggleMobileMenu()">
+                    <i class="fas fa-handshake mr-3"></i>Investors
+                    <span class="absolute top-1 right-3 bg-yellow-400 text-yellow-900 text-xs px-1 rounded-full">PRO</span>
+                </a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 relative" onclick="showSection('analytics'); toggleMobileMenu()">
+                    <i class="fas fa-chart-line mr-3"></i>Analytics
+                    <span class="absolute top-1 right-3 bg-yellow-400 text-yellow-900 text-xs px-1 rounded-full">PRO</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Mobile Search Overlay -->
+        <div id="mobileSearchOverlay" class="md:hidden hidden fixed inset-0 bg-white z-50">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-lg font-semibold">Search</h3>
+                <button id="closeMobileSearch" class="p-2 text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="relative">
+                    <input type="text" id="mobileGlobalSearch" placeholder="Search companies, people, investors..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg">
+                    <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+                </div>
+            </div>
+        </div>
     </nav>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         <!-- Dashboard Section -->
         <div id="dashboard" class="section">
-            <div class="mb-8">
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">Business Intelligence Dashboard</h2>
-                <p class="text-gray-600">Comprehensive business data, funding insights, and market intelligence</p>
+            <div class="mb-6 sm:mb-8">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Business Intelligence Dashboard</h2>
+                <p class="text-sm sm:text-base text-gray-600">Comprehensive business data, funding insights, and market intelligence</p>
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover">
                     <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-blue-100">
-                            <i class="fas fa-building text-blue-600 text-xl"></i>
+                        <div class="p-2 sm:p-3 rounded-full bg-blue-100">
+                            <i class="fas fa-building text-blue-600 text-lg sm:text-xl"></i>
                         </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Companies</p>
-                            <p class="text-2xl font-semibold text-gray-900" id="companyCount">0</p>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Total Companies</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900" id="companyCount">0</p>
                             <p class="text-xs text-green-600">+12% this month</p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover">
                     <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-100">
-                            <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                        <div class="p-2 sm:p-3 rounded-full bg-green-100">
+                            <i class="fas fa-chart-line text-green-600 text-lg sm:text-xl"></i>
                         </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Funding</p>
-                            <p class="text-2xl font-semibold text-gray-900" id="totalFunding">$0</p>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Total Funding</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900" id="totalFunding">$0</p>
                             <p class="text-xs text-green-600">+8% this quarter</p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover">
                     <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-purple-100">
-                            <i class="fas fa-users text-purple-600 text-xl"></i>
+                        <div class="p-2 sm:p-3 rounded-full bg-purple-100">
+                            <i class="fas fa-users text-purple-600 text-lg sm:text-xl"></i>
                         </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Active Professionals</p>
-                            <p class="text-2xl font-semibold text-gray-900" id="peopleCount">0</p>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Active Professionals</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900" id="peopleCount">0</p>
                             <p class="text-xs text-green-600">+15% this month</p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover">
                     <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-orange-100">
-                            <i class="fas fa-handshake text-orange-600 text-xl"></i>
+                        <div class="p-2 sm:p-3 rounded-full bg-orange-100">
+                            <i class="fas fa-handshake text-orange-600 text-lg sm:text-xl"></i>
                         </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Investment Firms</p>
-                            <p class="text-2xl font-semibold text-gray-900" id="investorCount">0</p>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Investment Firms</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900" id="investorCount">0</p>
                             <p class="text-xs text-green-600">+5% this month</p>
                         </div>
                     </div>
@@ -128,28 +194,387 @@
             </div>
 
             <!-- Featured Companies -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-semibold text-gray-900">Featured Companies</h3>
-                    <button onclick="showSection('companies')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View All →</button>
+            <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+                <div class="flex justify-between items-center mb-4 sm:mb-6">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Featured Companies</h3>
+                    <button onclick="showSection('companies')" class="text-blue-600 hover:text-blue-800 text-xs sm:text-sm font-medium">View All →</button>
                 </div>
-                <div id="featuredCompanies" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div id="featuredCompanies" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     <!-- Companies will be loaded here -->
                 </div>
             </div>
 
             <!-- Recent Activity -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Recent Funding Rounds</h3>
-                    <div id="recentFunding" class="space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Recent Funding Rounds</h3>
+                    <div id="recentFunding" class="space-y-3 sm:space-y-4">
                         <!-- Recent funding will be loaded here -->
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Latest News & Updates</h3>
-                    <div id="recentNews" class="space-y-4">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Latest News & Updates</h3>
+                    <div id="recentNews" class="space-y-3 sm:space-y-4">
                         <!-- Recent news will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investors Section -->
+        <div id="investors" class="section hidden">
+            <div class="mb-6 sm:mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Investor Database</h2>
+                        <p class="text-sm sm:text-base text-gray-600">Comprehensive database of investment firms, VCs, and angel investors</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                            <i class="fas fa-crown mr-1"></i>PREMIUM
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Stats Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover premium-blur cursor-pointer" onclick="showPremiumUpgrade('investor statistics')">
+                    <div class="flex items-center">
+                        <div class="p-2 sm:p-3 rounded-full bg-purple-100">
+                            <i class="fas fa-handshake text-purple-600 text-lg sm:text-xl"></i>
+                        </div>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Total Investors</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900">2,847</p>
+                            <p class="text-xs text-green-600">+23% this quarter</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover premium-blur cursor-pointer" onclick="showPremiumUpgrade('investment statistics')">
+                    <div class="flex items-center">
+                        <div class="p-2 sm:p-3 rounded-full bg-green-100">
+                            <i class="fas fa-dollar-sign text-green-600 text-lg sm:text-xl"></i>
+                        </div>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Total AUM</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900">$847B</p>
+                            <p class="text-xs text-green-600">+12% YoY</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover premium-blur cursor-pointer" onclick="showPremiumUpgrade('deal statistics')">
+                    <div class="flex items-center">
+                        <div class="p-2 sm:p-3 rounded-full bg-blue-100">
+                            <i class="fas fa-chart-line text-blue-600 text-lg sm:text-xl"></i>
+                        </div>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Active Deals</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900">1,234</p>
+                            <p class="text-xs text-green-600">+18% this month</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover premium-blur cursor-pointer" onclick="showPremiumUpgrade('portfolio statistics')">
+                    <div class="flex items-center">
+                        <div class="p-2 sm:p-3 rounded-full bg-orange-100">
+                            <i class="fas fa-briefcase text-orange-600 text-lg sm:text-xl"></i>
+                        </div>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Portfolio Companies</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900">15,678</p>
+                            <p class="text-xs text-green-600">+9% this quarter</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Investor Filters -->
+            <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6 premium-overlay cursor-pointer" onclick="showPremiumUpgrade('advanced investor filters')">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Advanced Investor Filters</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 premium-blur">
+                    <select class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="">Investment Stage</option>
+                        <option value="Pre-Seed">Pre-Seed</option>
+                        <option value="Seed">Seed</option>
+                        <option value="Series A">Series A</option>
+                        <option value="Series B+">Series B+</option>
+                        <option value="Growth">Growth</option>
+                    </select>
+                    <select class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="">Investment Size</option>
+                        <option value="$10K-$100K">$10K-$100K</option>
+                        <option value="$100K-$1M">$100K-$1M</option>
+                        <option value="$1M-$10M">$1M-$10M</option>
+                        <option value="$10M+">$10M+</option>
+                    </select>
+                    <select class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="">Geographic Focus</option>
+                        <option value="North America">North America</option>
+                        <option value="Europe">Europe</option>
+                        <option value="Asia">Asia</option>
+                        <option value="Global">Global</option>
+                    </select>
+                    <select class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="">Sector Focus</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Fintech">Fintech</option>
+                        <option value="Consumer">Consumer</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Premium Investor Grid -->
+            <div class="bg-white rounded-xl shadow-md p-6 premium-overlay cursor-pointer" onclick="showPremiumUpgrade('investor database access')">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900">Top Investment Firms</h3>
+                    <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">View All →</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 premium-blur">
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <span class="text-white font-bold">A16Z</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Andreessen Horowitz</h4>
+                                <p class="text-sm text-gray-600">Venture Capital</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">AUM:</span>
+                                <span class="font-medium">$35B</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Portfolio:</span>
+                                <span class="font-medium">400+ companies</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Stage:</span>
+                                <span class="font-medium">Seed to Growth</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                                <span class="text-white font-bold">SV</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Sequoia Capital</h4>
+                                <p class="text-sm text-gray-600">Venture Capital</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">AUM:</span>
+                                <span class="font-medium">$85B</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Portfolio:</span>
+                                <span class="font-medium">500+ companies</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Stage:</span>
+                                <span class="font-medium">Seed to IPO</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                                <span class="text-white font-bold">KP</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Kleiner Perkins</h4>
+                                <p class="text-sm text-gray-600">Venture Capital</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">AUM:</span>
+                                <span class="font-medium">$2B</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Portfolio:</span>
+                                <span class="font-medium">900+ companies</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Stage:</span>
+                                <span class="font-medium">Early to Growth</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div id="analytics" class="section hidden">
+            <div class="mb-6 sm:mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Advanced Analytics</h2>
+                        <p class="text-sm sm:text-base text-gray-600">Deep insights and market intelligence for data-driven decisions</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                            <i class="fas fa-crown mr-1"></i>PREMIUM
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Analytics Dashboard -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Market Trends Chart -->
+                <div class="bg-white rounded-xl shadow-md p-6 premium-overlay cursor-pointer" onclick="showPremiumUpgrade('market trend analysis')">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Market Trends Analysis</h3>
+                    <div class="premium-blur">
+                        <div class="h-64 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center">
+                            <div class="text-center">
+                                <i class="fas fa-chart-line text-4xl text-blue-400 mb-2"></i>
+                                <p class="text-gray-600">Interactive trend charts</p>
+                                <p class="text-sm text-gray-500">Funding trends by sector</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Valuation Insights -->
+                <div class="bg-white rounded-xl shadow-md p-6 premium-overlay cursor-pointer" onclick="showPremiumUpgrade('valuation insights')">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Valuation Insights</h3>
+                    <div class="premium-blur">
+                        <div class="h-64 bg-gradient-to-br from-green-50 to-teal-50 rounded-lg flex items-center justify-center">
+                            <div class="text-center">
+                                <i class="fas fa-dollar-sign text-4xl text-green-400 mb-2"></i>
+                                <p class="text-gray-600">Valuation benchmarks</p>
+                                <p class="text-sm text-gray-500">Industry comparisons</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Analytics Features -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6 premium-overlay cursor-pointer" onclick="showPremiumUpgrade('funding flow analysis')">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-stream text-purple-600"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Funding Flow Analysis</h3>
+                    </div>
+                    <div class="premium-blur">
+                        <p class="text-gray-600 mb-4">Track capital flows between investors and startups</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span>Q4 2023 Total:</span>
+                                <span class="font-medium">$45.2B</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Top Sector:</span>
+                                <span class="font-medium">AI/ML</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Avg Deal Size:</span>
+                                <span class="font-medium">$12.3M</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 premium-overlay cursor-pointer" onclick="showPremiumUpgrade('competitive intelligence')">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-crosshairs text-red-600"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Competitive Intelligence</h3>
+                    </div>
+                    <div class="premium-blur">
+                        <p class="text-gray-600 mb-4">Monitor competitor activities and market positioning</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span>Companies Tracked:</span>
+                                <span class="font-medium">2,847</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Weekly Updates:</span>
+                                <span class="font-medium">156</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Alert Triggers:</span>
+                                <span class="font-medium">23</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 premium-overlay cursor-pointer" onclick="showPremiumUpgrade('predictive analytics')">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-crystal-ball text-blue-600"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Predictive Analytics</h3>
+                    </div>
+                    <div class="premium-blur">
+                        <p class="text-gray-600 mb-4">AI-powered predictions for market trends</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span>Accuracy Rate:</span>
+                                <span class="font-medium">87.3%</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Predictions Made:</span>
+                                <span class="font-medium">1,234</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Success Rate:</span>
+                                <span class="font-medium">92.1%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Reports Section -->
+            <div class="bg-white rounded-xl shadow-md p-6 premium-overlay cursor-pointer" onclick="showPremiumUpgrade('custom reports')">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900">Custom Reports & Exports</h3>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                        <i class="fas fa-download mr-2"></i>Generate Report
+                    </button>
+                </div>
+                <div class="premium-blur">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="p-4 border border-gray-200 rounded-lg text-center">
+                            <i class="fas fa-file-pdf text-red-500 text-2xl mb-2"></i>
+                            <h4 class="font-medium text-gray-900">PDF Reports</h4>
+                            <p class="text-sm text-gray-600">Executive summaries</p>
+                        </div>
+                        <div class="p-4 border border-gray-200 rounded-lg text-center">
+                            <i class="fas fa-file-excel text-green-500 text-2xl mb-2"></i>
+                            <h4 class="font-medium text-gray-900">Excel Exports</h4>
+                            <p class="text-sm text-gray-600">Raw data analysis</p>
+                        </div>
+                        <div class="p-4 border border-gray-200 rounded-lg text-center">
+                            <i class="fas fa-chart-bar text-blue-500 text-2xl mb-2"></i>
+                            <h4 class="font-medium text-gray-900">Interactive Dashboards</h4>
+                            <p class="text-sm text-gray-600">Real-time insights</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900 mb-2">Available Report Types:</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                            <div>• Market Analysis Reports</div>
+                            <div>• Investor Activity Reports</div>
+                            <div>• Company Performance Reports</div>
+                            <div>• Sector Trend Reports</div>
+                            <div>• Funding Round Analysis</div>
+                            <div>• Competitive Landscape</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -157,16 +582,16 @@
 
         <!-- People Section -->
         <div id="people" class="section hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-bold text-gray-900">People Directory</h2>
-                <button onclick="showAddPersonModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">People Directory</h2>
+                <button id="addPersonBtn" onclick="handleAddPerson()" class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base w-full sm:w-auto">
                     <i class="fas fa-plus mr-2"></i>Add Person
                 </button>
             </div>
 
             <!-- People Filters -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <select id="roleFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
                         <option value="">All Roles</option>
                         <option value="CEO">CEO</option>
@@ -195,23 +620,23 @@
             </div>
 
             <!-- People Grid -->
-            <div id="peopleGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="peopleGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <!-- People will be loaded here -->
             </div>
         </div>
 
         <!-- Companies Section -->
         <div id="companies" class="section hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-bold text-gray-900">Companies Directory</h2>
-                <button onclick="showAddCompanyModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Companies Directory</h2>
+                <button id="addCompanyBtn" onclick="handleAddCompany()" class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base w-full sm:w-auto">
                     <i class="fas fa-plus mr-2"></i>Add Company
                 </button>
             </div>
 
             <!-- Advanced Filters -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                     <select id="industryFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
                         <option value="">All Industries</option>
                         <option value="Technology">Technology</option>
@@ -254,22 +679,19 @@
             </div>
 
             <!-- Companies Grid -->
-            <div id="companiesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="companiesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <!-- Companies will be loaded here -->
             </div>
         </div>
 
         <!-- Company Detail Modal -->
         <div id="companyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
-            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
-                <div class="bg-white rounded-xl max-w-7xl w-full max-h-screen overflow-y-auto">
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-8 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-7xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
                     <!-- Company Header -->
                     <div class="bg-white border-b p-6">
                         <div class="flex justify-between items-start mb-4">
-                            <div class="flex items-start space-x-4">
-                                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                                    <span class="text-white font-bold text-xl" id="modalCompanyLogo">C</span>
-                                </div>
+                            <div class="flex items-start">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-3 mb-2">
                                         <h2 class="text-3xl font-bold text-gray-900" id="modalCompanyName">Company Name</h2>
@@ -424,21 +846,23 @@
                                     <i class="fas fa-plus mr-2"></i>Add Investment
                                 </button>
                             </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Round</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead Investors</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valuation</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="fundingRoundsTable" class="bg-white divide-y divide-gray-200">
-                                        <!-- Funding rounds will be populated here -->
-                                    </tbody>
-                                </table>
+                            <div class="overflow-x-auto -mx-4 sm:mx-0">
+                                <div class="inline-block min-w-full align-middle">
+                                    <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Round</th>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date</th>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Lead Investors</th>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Valuation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="fundingRoundsTable" class="bg-white divide-y divide-gray-200">
+                                            <!-- Funding rounds will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
                             <div class="mt-8">
@@ -564,7 +988,10 @@
                                     <div class="bg-gray-50 rounded-lg p-6 space-y-4">
                                         <div>
                                             <label class="text-sm font-medium text-gray-600">Headquarters Address</label>
-                                            <p class="text-gray-900" id="modalCompanyAddress">-</p>
+                                            <p class="text-gray-900 mb-2" id="modalCompanyAddress">-</p>
+                                            <a id="modalCompanyMapLink" href="#" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm">
+                                                <i class="fas fa-map-marker-alt mr-1"></i>View on Map
+                                            </a>
                                         </div>
                                         <div>
                                             <label class="text-sm font-medium text-gray-600">Phone Number</label>
@@ -579,11 +1006,59 @@
                                             <p class="text-gray-900" id="modalInvestorEmail">-</p>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Map Preview -->
+                                    <div class="mt-6">
+                                        <h5 class="text-lg font-semibold text-gray-900 mb-3">Location</h5>
+                                        <div class="bg-gray-200 rounded-lg h-48 flex items-center justify-center" id="mapContainer">
+                                            <div class="text-center">
+                                                <i class="fas fa-map text-gray-400 text-3xl mb-2"></i>
+                                                <p class="text-gray-500">Map will load here</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
                                     <h4 class="text-xl font-semibold text-gray-900 mb-4">Social Media & Links</h4>
                                     <div class="bg-gray-50 rounded-lg p-6" id="modalCompanySocial">
                                         <!-- Social links will be populated here -->
+                                    </div>
+                                    
+                                    <!-- Profile Sharing -->
+                                    <div class="mt-6">
+                                        <h5 class="text-lg font-semibold text-gray-900 mb-3">Share Profile</h5>
+                                        <div class="bg-blue-50 rounded-lg p-4">
+                                            <label class="text-sm font-medium text-gray-600 mb-2 block">Profile URL</label>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="text" id="profileShareUrl" readonly class="flex-1 bg-white border border-gray-300 rounded px-3 py-2 text-sm">
+                                                <button onclick="copyProfileUrl()" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Activity Stats -->
+                                    <div class="mt-6">
+                                        <h5 class="text-lg font-semibold text-gray-900 mb-3">Activity Stats</h5>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="bg-green-50 rounded-lg p-4 text-center">
+                                                <div class="text-2xl font-bold text-green-600" id="modalCompanyViews">0</div>
+                                                <div class="text-sm text-green-800">Profile Views</div>
+                                            </div>
+                                            <div class="bg-blue-50 rounded-lg p-4 text-center">
+                                                <div class="text-2xl font-bold text-blue-600" id="modalCompanyEdits">0</div>
+                                                <div class="text-sm text-blue-800">Total Edits</div>
+                                            </div>
+                                            <div class="bg-purple-50 rounded-lg p-4 text-center">
+                                                <div class="text-2xl font-bold text-purple-600" id="modalCompanyScore">0</div>
+                                                <div class="text-sm text-purple-800">Activity Score</div>
+                                            </div>
+                                            <div class="bg-orange-50 rounded-lg p-4 text-center">
+                                                <div class="text-sm font-medium text-orange-600" id="modalCompanyUpdated">-</div>
+                                                <div class="text-sm text-orange-800">Last Updated</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -595,93 +1070,90 @@
 
         <!-- Person Detail Modal -->
         <div id="personModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
-            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
-                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
                     <!-- Person Header -->
-                    <div class="bg-white border-b p-6">
+                    <div class="bg-white border-b p-4 sm:p-6">
                         <div class="flex justify-between items-start mb-4">
-                            <div class="flex items-start space-x-4">
-                                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                                    <span class="text-white font-bold text-2xl" id="modalPersonInitials">JD</span>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-3 mb-2">
-                                        <h2 class="text-3xl font-bold text-gray-900" id="modalPersonName">Person Name</h2>
-                                        <button id="editPersonBtn" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium hover:bg-blue-200 hidden">
+                            <div class="flex items-start flex-1 min-w-0">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2">
+                                        <h2 class="text-xl sm:text-3xl font-bold text-gray-900 truncate" id="modalPersonName">Person Name</h2>
+                                        <button id="editPersonBtn" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm font-medium hover:bg-blue-200 hidden mt-1 sm:mt-0 self-start">
                                             <i class="fas fa-edit mr-1"></i>Edit
                                         </button>
                                     </div>
-                                    <p class="text-lg text-gray-600 mb-2" id="modalPersonRole">Current Role</p>
-                                    <p class="text-md text-blue-600 mb-3" id="modalPersonCompany">Company Name</p>
-                                    <div class="flex flex-wrap gap-2 mb-3">
-                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm" id="modalPersonLocation">Location</span>
-                                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm" id="modalPersonExperience">Experience</span>
-                                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm" id="modalPersonType">Type</span>
+                                    <p class="text-sm sm:text-lg text-gray-600 mb-1 sm:mb-2" id="modalPersonRole">Current Role</p>
+                                    <p class="text-sm sm:text-md text-blue-600 mb-2 sm:mb-3 cursor-pointer" id="modalPersonCompany" onclick="showPremiumUpgrade('company details')">Company Name</p>
+                                    <div class="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm" id="modalPersonLocation">Location</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm" id="modalPersonExperience">Experience</span>
+                                        <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs sm:text-sm" id="modalPersonType">Type</span>
                                     </div>
-                                    <div class="flex space-x-4">
-                                        <a href="#" id="modalPersonLinkedIn" class="text-blue-600 hover:text-blue-800" target="_blank">
-                                            <i class="fab fa-linkedin mr-1"></i>LinkedIn
+                                    <div class="flex flex-wrap gap-2 sm:gap-4 text-sm">
+                                        <a href="#" id="modalPersonLinkedIn" class="text-blue-600 hover:text-blue-800 flex items-center" target="_blank" onclick="return showPremiumUpgrade('LinkedIn access')">
+                                            <i class="fab fa-linkedin mr-1"></i><span class="hidden sm:inline">LinkedIn</span>
                                         </a>
-                                        <a href="#" id="modalPersonTwitter" class="text-blue-600 hover:text-blue-800" target="_blank">
-                                            <i class="fab fa-twitter mr-1"></i>Twitter
+                                        <a href="#" id="modalPersonTwitter" class="text-blue-600 hover:text-blue-800 flex items-center" target="_blank" onclick="return showPremiumUpgrade('Twitter access')">
+                                            <i class="fab fa-twitter mr-1"></i><span class="hidden sm:inline">Twitter</span>
                                         </a>
-                                        <a href="#" id="modalPersonEmail" class="text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-envelope mr-1"></i>Email
+                                        <a href="#" id="modalPersonEmail" class="text-blue-600 hover:text-blue-800 flex items-center" onclick="return showPremiumUpgrade('email access')">
+                                            <i class="fas fa-envelope mr-1"></i><span class="hidden sm:inline">Email</span>
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                            <button onclick="closePersonModal()" class="text-gray-400 hover:text-gray-600">
-                                <i class="fas fa-times text-2xl"></i>
+                            <button onclick="closePersonModal()" class="text-gray-400 hover:text-gray-600 p-1 flex-shrink-0">
+                                <i class="fas fa-times text-xl sm:text-2xl"></i>
                             </button>
                         </div>
                     </div>
 
                     <!-- Person Tabs -->
-                    <div class="px-6 border-b bg-white sticky top-0 z-10">
-                        <nav class="flex space-x-8 overflow-x-auto">
-                            <button class="py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap tab-active" onclick="showPersonTab('profile')">Profile</button>
-                            <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showPersonTab('experience')">Experience</button>
-                            <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showPersonTab('education')">Education</button>
-                            <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showPersonTab('achievements')">Achievements</button>
-                            <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showPersonTab('network')">Network</button>
+                    <div class="px-4 sm:px-6 border-b bg-white sticky top-0 z-10">
+                        <nav class="flex space-x-4 sm:space-x-8 overflow-x-auto scrollbar-hide">
+                            <button class="py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap tab-active flex-shrink-0" onclick="showPersonTab('profile')">Profile</button>
+                            <button class="py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0" onclick="showPersonTab('experience')">Experience</button>
+                            <button class="py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0" onclick="showPersonTab('education')">Education</button>
+                            <button class="py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0" onclick="showPersonTab('achievements')">Achievements</button>
+                            <button class="py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0" onclick="showPersonTab('network')">Network</button>
                         </nav>
                     </div>
 
                     <!-- Person Tab Content -->
-                    <div class="p-6">
+                    <div class="p-4 sm:p-6">
                         <!-- Profile Tab -->
                         <div id="profilePersonTab" class="person-tab-content">
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                                 <div class="lg:col-span-2">
-                                    <h4 class="text-xl font-semibold text-gray-900 mb-4">About</h4>
-                                    <p class="text-gray-600 mb-6 leading-relaxed" id="modalPersonBio">Person bio will appear here...</p>
+                                    <h4 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">About</h4>
+                                    <p class="text-gray-600 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base" id="modalPersonBio">Person bio will appear here...</p>
                                     
-                                    <h4 class="text-xl font-semibold text-gray-900 mb-4">Skills & Expertise</h4>
-                                    <div id="modalPersonSkills" class="flex flex-wrap gap-2 mb-6">
+                                    <h4 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Skills & Expertise</h4>
+                                    <div id="modalPersonSkills" class="flex flex-wrap gap-2 mb-4 sm:mb-6">
                                         <!-- Skills will be populated here -->
                                     </div>
 
-                                    <h4 class="text-xl font-semibold text-gray-900 mb-4">Responsibilities</h4>
+                                    <h4 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Responsibilities</h4>
                                     <div id="modalPersonResponsibilities" class="space-y-2">
                                         <!-- Responsibilities will be populated here -->
                                     </div>
                                 </div>
                                 
                                 <div>
-                                    <h4 class="text-xl font-semibold text-gray-900 mb-4">Quick Info</h4>
-                                    <div class="space-y-4">
-                                        <div class="bg-blue-50 rounded-lg p-4">
-                                            <div class="text-lg font-bold text-blue-600" id="modalPersonYearsExp">0</div>
-                                            <div class="text-sm text-blue-800">Years Experience</div>
+                                    <h4 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Quick Info</h4>
+                                    <div class="space-y-3 sm:space-y-4">
+                                        <div class="bg-blue-50 rounded-lg p-3 sm:p-4">
+                                            <div class="text-lg sm:text-xl font-bold text-blue-600" id="modalPersonYearsExp">0</div>
+                                            <div class="text-xs sm:text-sm text-blue-800">Years Experience</div>
                                         </div>
-                                        <div class="bg-green-50 rounded-lg p-4">
-                                            <div class="text-lg font-bold text-green-600" id="modalPersonCompaniesWorked">0</div>
-                                            <div class="text-sm text-green-800">Companies Worked</div>
+                                        <div class="bg-green-50 rounded-lg p-3 sm:p-4">
+                                            <div class="text-lg sm:text-xl font-bold text-green-600" id="modalPersonCompaniesWorked">0</div>
+                                            <div class="text-xs sm:text-sm text-green-800">Companies Worked</div>
                                         </div>
-                                        <div class="bg-purple-50 rounded-lg p-4">
-                                            <div class="text-lg font-bold text-purple-600" id="modalPersonProjects">0</div>
-                                            <div class="text-sm text-purple-800">Notable Projects</div>
+                                        <div class="bg-purple-50 rounded-lg p-3 sm:p-4">
+                                            <div class="text-lg sm:text-xl font-bold text-purple-600" id="modalPersonProjects">0</div>
+                                            <div class="text-xs sm:text-sm text-purple-800">Notable Projects</div>
                                         </div>
                                     </div>
                                 </div>
@@ -746,18 +1218,58 @@
 
         <!-- Add Person Modal -->
         <div id="addPersonModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
-            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
-                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
-                    <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-xl">
-                        <h3 class="text-2xl font-bold text-gray-900">Add New Person</h3>
-                        <button onclick="closeAddPersonModal()" class="text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-times text-xl"></i>
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
+                    <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center rounded-t-xl">
+                        <h3 class="text-lg sm:text-2xl font-bold text-gray-900">Add New Person</h3>
+                        <button onclick="closeAddPersonModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                            <i class="fas fa-times text-lg sm:text-xl"></i>
                         </button>
                     </div>
-                    <form id="addPersonForm" class="p-6 space-y-6">
+                    <form id="addPersonForm" class="p-4 sm:p-6 space-y-4 sm:space-y-6">
+                        <!-- Profile Type Management -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Manage Profile Type(s)</h4>
+                            <p class="text-sm text-gray-600 mb-4">Please add any profile type(s) below that best describe this profile.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="personProfileTypeIndividual" value="Individual Investor" checked class="text-blue-600">
+                                    <span class="text-sm font-medium">Individual Investor</span>
+                                </label>
+                                <label class="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="personProfileTypeEmployee" value="Employee" class="text-blue-600">
+                                    <span class="text-sm font-medium">Employee</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- Basic Information -->
                         <div>
                             <h4 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                                    <input type="text" id="personFirstName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                                    <input type="text" id="personLastName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                    <select id="personGender" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Non-binary">Non-binary</option>
+                                        <option value="Prefer not to say">Prefer not to say</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Also Known As</label>
+                                    <input type="text" id="personAlsoKnownAs" placeholder="Nicknames, aliases" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
@@ -919,18 +1431,44 @@
 
         <!-- Add Company Modal -->
         <div id="addCompanyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
-            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
-                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
-                    <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-xl">
-                        <h3 class="text-2xl font-bold text-gray-900">Add New Company</h3>
-                        <button onclick="closeAddCompanyModal()" class="text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-times text-xl"></i>
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
+                    <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center rounded-t-xl">
+                        <h3 class="text-lg sm:text-2xl font-bold text-gray-900">Add New Company</h3>
+                        <button onclick="closeAddCompanyModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                            <i class="fas fa-times text-lg sm:text-xl"></i>
                         </button>
                     </div>
-                    <form id="addCompanyForm" class="p-6 space-y-6">
+                    <form id="addCompanyForm" class="p-4 sm:p-6 space-y-4 sm:space-y-6">
+                        <!-- Profile Type Management -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Manage Profile Type(s)</h4>
+                            <p class="text-sm text-gray-600 mb-4">Please add any profile type(s) below that best describe this profile. Profile types control which fields are available to be displayed on a profile.</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <label class="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="profileTypeCompany" value="Company" checked class="text-blue-600">
+                                    <span class="text-sm font-medium">Company</span>
+                                </label>
+                                <label class="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="profileTypeInvestment" value="Investment Firm" class="text-blue-600">
+                                    <span class="text-sm font-medium">Investment Firm</span>
+                                </label>
+                                <label class="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="profileTypeGovernment" value="Government Entity" class="text-blue-600">
+                                    <span class="text-sm font-medium">Government Entity</span>
+                                </label>
+                                <label class="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="profileTypeSchool" value="School" class="text-blue-600">
+                                    <span class="text-sm font-medium">School</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- Basic Information -->
                         <div>
                             <h4 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
@@ -1010,17 +1548,47 @@
                             </div>
                         </div>
 
+                        <!-- Headquarters -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Headquarters</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Address</label>
+                                    <textarea id="companyAddress" rows="2" placeholder="1600 Amphitheatre Parkway, Mountain View, CA 94043, USA" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input type="tel" id="companyPhone" placeholder="510-555-5555" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+                                    <input type="email" id="companyContactEmail" placeholder="hello@company.com" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Industries & Diversity -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Industries & Diversity Spotlight</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Industries (comma separated)</label>
+                                    <input type="text" id="companyIndustries" placeholder="E.g. 'RegTech', 'Account-based Marketing'" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Diversity Spotlight</label>
+                                    <input type="text" id="companyDiversity" placeholder="E.g. 'Women-led', 'Minority-owned'" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Contact & Links -->
                         <div>
-                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Contact & Links</h4>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Social Links</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
                                     <input type="url" id="companyWebsite" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                    <input type="email" id="companyEmail" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
@@ -1029,6 +1597,10 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Twitter</label>
                                     <input type="url" id="companyTwitter" placeholder="https://twitter.com/..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                                    <input type="url" id="companyFacebook" placeholder="https://facebook.com/..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
                                 </div>
                             </div>
                         </div>
@@ -1060,7 +1632,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-        const storage = firebase.storage();
 
         // Global variables
         let currentUser = null;
@@ -1075,6 +1646,8 @@
             {
                 id: 'elon-musk',
                 name: 'Elon Musk',
+                firstName: 'Elon',
+                lastName: 'Musk',
                 email: 'elon@tesla.com',
                 role: 'CEO & Product Architect',
                 company: 'Tesla Motors',
@@ -1082,6 +1655,14 @@
                 location: 'Austin, Texas, USA',
                 type: 'Founder',
                 experience: '10+',
+                profileType: 'Individual Investor',
+                gender: 'Male',
+                profileUrl: 'elon-musk',
+                profileImage: 'https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg',
+                views: 25430,
+                edits: 156,
+                activityScore: 98,
+                lastUpdated: '2024-01-14',
                 bio: 'Entrepreneur and business magnate. CEO of Tesla and SpaceX, founder of Neuralink and The Boring Company. Previously co-founded PayPal and OpenAI.',
                 skills: ['Leadership', 'Product Development', 'Engineering', 'Strategic Planning', 'Innovation'],
                 responsibilities: [
@@ -1226,6 +1807,18 @@
                 operatingStatus: 'Active',
                 alternateNames: ['Tesla Inc', 'Tesla Motors Inc'],
                 founders: ['Elon Musk', 'Martin Eberhard', 'Marc Tarpenning', 'JB Straubel', 'Ian Wright'],
+                profileUrl: 'tesla-motors',
+                profileType: 'Company',
+                views: 15420,
+                edits: 89,
+                activityScore: 95,
+                lastUpdated: '2024-01-15',
+                diversitySpotlight: ['Electric Vehicles', 'Sustainable Energy', 'Autonomous Driving'],
+                headquarters: {
+                    address: '1 Tesla Road, Austin, TX 78725, USA',
+                    coordinates: { lat: 30.2672, lng: -97.7431 },
+                    mapUrl: 'https://maps.google.com/?q=1+Tesla+Road,+Austin,+TX+78725'
+                },
                 fundingRounds: [
                     { round: 'IPO', amount: '$226M', date: '2010-06-29', leadInvestors: 'Public Market', valuation: '$1.7B' },
                     { round: 'Series F', amount: '$50M', date: '2009-07-15', leadInvestors: 'Daimler AG', valuation: '$500M' },
@@ -1313,6 +1906,18 @@
                 operatingStatus: 'Active',
                 alternateNames: ['OpenAI LP', 'OpenAI Inc'],
                 founders: ['Sam Altman', 'Elon Musk', 'Greg Brockman', 'Ilya Sutskever', 'Wojciech Zaremba'],
+                profileUrl: 'openai',
+                profileType: 'Company',
+                views: 12850,
+                edits: 67,
+                activityScore: 92,
+                lastUpdated: '2024-01-12',
+                diversitySpotlight: ['Artificial Intelligence', 'Machine Learning', 'AI Safety'],
+                headquarters: {
+                    address: '3180 18th St, San Francisco, CA 94110, USA',
+                    coordinates: { lat: 37.7749, lng: -122.4194 },
+                    mapUrl: 'https://maps.google.com/?q=3180+18th+St,+San+Francisco,+CA+94110'
+                },
                 fundingRounds: [
                     { round: 'Series C', amount: '$10B', date: '2023-01-23', leadInvestors: 'Microsoft', valuation: '$29B' },
                     { round: 'Series B', amount: '$1B', date: '2019-07-22', leadInvestors: 'Microsoft', valuation: '$1B' },
@@ -1392,6 +1997,18 @@
                 operatingStatus: 'Active',
                 alternateNames: ['Stripe Inc', '/dev/payments'],
                 founders: ['Patrick Collison', 'John Collison'],
+                profileUrl: 'stripe',
+                profileType: 'Company',
+                views: 9870,
+                edits: 45,
+                activityScore: 88,
+                lastUpdated: '2024-01-10',
+                diversitySpotlight: ['Fintech', 'Payment Processing', 'Developer Tools'],
+                headquarters: {
+                    address: '354 Oyster Point Blvd, South San Francisco, CA 94080, USA',
+                    coordinates: { lat: 37.6624, lng: -122.3892 },
+                    mapUrl: 'https://maps.google.com/?q=354+Oyster+Point+Blvd,+South+San+Francisco,+CA+94080'
+                },
                 fundingRounds: [
                     { round: 'Series H', amount: '$600M', date: '2021-03-14', leadInvestors: 'Allianz X', valuation: '$95B' },
                     { round: 'Series G', amount: '$250M', date: '2020-04-16', leadInvestors: 'Andreessen Horowitz', valuation: '$36B' },
@@ -1456,11 +2073,56 @@
             }
         ];
 
+        // Global functions for button handlers
+        window.handleAddCompany = function() {
+            console.log('Add Company clicked');
+            if (!currentUser) {
+                alert('Please sign in with Google to add companies');
+                return;
+            }
+            document.getElementById('addCompanyModal').classList.remove('hidden');
+        };
+        
+        window.handleAddPerson = function() {
+            console.log('Add Person clicked');
+            if (!currentUser) {
+                alert('Please sign in with Google to add people');
+                return;
+            }
+            document.getElementById('addPersonModal').classList.remove('hidden');
+        };
+
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app...');
             initializeAuth();
             loadInitialData();
             setupEventListeners();
+            
+            // Force attach event listeners to buttons
+            setTimeout(() => {
+                const addCompanyBtn = document.getElementById('addCompanyBtn');
+                const addPersonBtn = document.getElementById('addPersonBtn');
+                
+                console.log('Add Company Button:', addCompanyBtn);
+                console.log('Add Person Button:', addPersonBtn);
+                
+                if (addCompanyBtn) {
+                    addCompanyBtn.onclick = handleAddCompany;
+                    addCompanyBtn.addEventListener('click', handleAddCompany);
+                    console.log('Company button events attached');
+                } else {
+                    console.error('Add Company button not found!');
+                }
+                
+                if (addPersonBtn) {
+                    addPersonBtn.onclick = handleAddPerson;
+                    addPersonBtn.addEventListener('click', handleAddPerson);
+                    console.log('Person button events attached');
+                } else {
+                    console.error('Add Person button not found!');
+                }
+            }, 500);
         });
 
         // Authentication
@@ -1479,6 +2141,13 @@
                     userProfile.classList.remove('hidden');
                     document.getElementById('userName').textContent = user.displayName;
                     document.getElementById('userPhoto').src = user.photoURL;
+                    
+                    // Show premium badge if user has premium
+                    if (checkPremiumAccess()) {
+                        document.getElementById('premiumBadge').classList.remove('hidden');
+                    } else {
+                        document.getElementById('premiumBadge').classList.add('hidden');
+                    }
                 } else {
                     currentUser = null;
                     authButton.classList.remove('hidden');
@@ -1622,13 +2291,10 @@
             card.className = 'bg-white rounded-xl shadow-md p-6 card-hover cursor-pointer border border-gray-100';
             card.onclick = () => showPersonDetail(person);
             
-            const initials = person.name.split(' ').map(n => n[0]).join('');
+            // Avatar system removed
             
             card.innerHTML = `
-                <div class="flex items-start space-x-4 mb-4">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                        <span class="text-white font-bold text-lg">${initials}</span>
-                    </div>
+                <div class="mb-4">
                     <div class="flex-1 min-w-0">
                         <h3 class="text-lg font-semibold text-gray-900 truncate">${person.name}</h3>
                         <p class="text-gray-600 text-sm mb-1">${person.role}</p>
@@ -1746,10 +2412,7 @@
             
             card.innerHTML = `
                 <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <span class="text-white font-bold text-xl">${company.name.charAt(0)}</span>
-                        </div>
+                    <div class="flex items-start">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center space-x-2 mb-1">
                                 <h3 class="text-lg font-semibold text-gray-900 truncate">${company.name}</h3>
@@ -1766,9 +2429,17 @@
                     ${company.location ? `<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">${company.location.split(',')[0]}</span>` : ''}
                     ${company.employees ? `<span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">${company.employees}</span>` : ''}
                 </div>
-                <div class="flex justify-between items-center text-sm">
+                <div class="flex justify-between items-center text-sm mb-2">
                     <span class="text-gray-500">Founded ${company.founded || 'N/A'}</span>
                     <span class="text-blue-600 font-medium">${company.totalFunding || 'No funding data'}</span>
+                </div>
+                <div class="flex justify-between items-center text-xs text-gray-500 pt-2 border-t">
+                    <span><i class="fas fa-eye mr-1"></i>${company.views || 0} views</span>
+                    <span><i class="fas fa-edit mr-1"></i>${company.edits || 0} edits</span>
+                    <span class="flex items-center">
+                        <i class="fas fa-star mr-1 text-yellow-500"></i>
+                        <span class="font-medium">${company.activityScore || 0}</span>
+                    </span>
                 </div>
             `;
             
@@ -1781,8 +2452,6 @@
             const modal = document.getElementById('personModal');
             
             // Update header information
-            const initials = person.name.split(' ').map(n => n[0]).join('');
-            document.getElementById('modalPersonInitials').textContent = initials;
             document.getElementById('modalPersonName').textContent = person.name;
             document.getElementById('modalPersonRole').textContent = person.role;
             document.getElementById('modalPersonCompany').textContent = person.company;
@@ -1809,17 +2478,11 @@
                 emailLink.style.display = 'inline';
             }
             
-            // Show edit button if user owns this profile or company
-            if (currentUser && (currentUser.uid === company.createdBy || 
-                (company.leadership && company.leadership.some(leader => 
-                    leader.type === 'current' && currentUser.email && 
-                    (leader.name.toLowerCase().includes(currentUser.displayName?.toLowerCase() || '') ||
-                     currentUser.email.includes(leader.name.toLowerCase().replace(' ', '.'))))))) {
-                document.getElementById('editCompanyBtn').classList.remove('hidden');
-                document.getElementById('addInvestmentBtn').classList.remove('hidden');
+            // Show edit button if user is signed in (allow all signed-in users to edit)
+            if (currentUser) {
+                document.getElementById('editPersonBtn').classList.remove('hidden');
             } else {
-                document.getElementById('editCompanyBtn').classList.add('hidden');
-                document.getElementById('addInvestmentBtn').classList.add('hidden');
+                document.getElementById('editPersonBtn').classList.add('hidden');
             }
             
             // Update all tab content
@@ -1997,12 +2660,17 @@
             currentCompany = company;
             const modal = document.getElementById('companyModal');
             
+            // Increment view count
+            incrementViewCount(company.id, 'companies');
+            
             // Update header information
             document.getElementById('modalCompanyName').textContent = company.name;
             document.getElementById('modalCompanyTagline').textContent = company.tagline || 'No tagline available';
             document.getElementById('modalCompanyIndustry').textContent = company.industry || 'N/A';
             document.getElementById('modalCompanyLocation').textContent = company.location || 'N/A';
             document.getElementById('modalCompanyFounded').textContent = `Founded ${company.founded || 'N/A'}`;
+            
+            // Logo system removed
             
             const statusElement = document.getElementById('modalCompanyStatus');
             statusElement.textContent = company.status;
@@ -2015,6 +2683,10 @@
             if (company.rank) {
                 document.getElementById('modalCompanyRank').textContent = company.rank;
             }
+            
+            // Update profile URL
+            const profileUrl = `https://community.oriontec.xyz/BizIntel.html#${company.profileUrl || company.id}`;
+            document.getElementById('profileShareUrl').value = profileUrl;
             
             // Update links
             if (company.website) {
@@ -2033,6 +2705,15 @@
                 const twitterLink = document.getElementById('modalCompanyTwitter');
                 twitterLink.href = company.social.twitter;
                 twitterLink.style.display = 'inline';
+            }
+            
+            // Show edit button if user is signed in (allow all signed-in users to edit)
+            if (currentUser) {
+                document.getElementById('editCompanyBtn').classList.remove('hidden');
+                document.getElementById('addInvestmentBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('editCompanyBtn').classList.add('hidden');
+                document.getElementById('addInvestmentBtn').classList.add('hidden');
             }
             
             // Update all tab content
@@ -2107,18 +2788,21 @@
             if (company.fundingRounds && company.fundingRounds.length > 0) {
                 company.fundingRounds.forEach(round => {
                     const row = document.createElement('tr');
+                    const isPremium = checkPremiumAccess();
+                    const leadInvestors = isPremium ? round.leadInvestors : maskContactInfo(round.leadInvestors, 'investor');
+                    
                     row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${round.round}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${round.amount}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${round.date}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${round.leadInvestors}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${round.valuation || 'N/A'}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">${round.round}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">${round.amount}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden sm:table-cell">${round.date}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden md:table-cell ${!isPremium ? 'premium-blur cursor-pointer' : ''}" ${!isPremium ? 'onclick="showPremiumUpgrade(\'investor details\')"' : ''}>${leadInvestors}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden lg:table-cell">${round.valuation || 'N/A'}</td>
                     `;
                     table.appendChild(row);
                 });
             } else {
                 const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="5" class="px-6 py-4 text-center text-gray-500">No funding rounds available</td>';
+                row.innerHTML = '<td colspan="5" class="px-3 sm:px-6 py-3 sm:py-4 text-center text-gray-500 text-xs sm:text-sm">No funding rounds available</td>';
                 table.appendChild(row);
             }
             
@@ -2216,11 +2900,8 @@
 
         function createLeaderCard(leader) {
             const card = document.createElement('div');
-            card.className = 'flex items-center space-x-3 p-4 bg-gray-50 rounded-lg';
+            card.className = 'p-4 bg-gray-50 rounded-lg';
             card.innerHTML = `
-                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span class="text-white font-semibold text-sm">${leader.name.split(' ').map(n => n[0]).join('')}</span>
-                </div>
                 <div>
                     <h5 class="font-medium text-gray-900">${leader.name}</h5>
                     <p class="text-sm text-gray-600">${leader.position}</p>
@@ -2371,9 +3052,6 @@
                     const card = document.createElement('div');
                     card.className = 'p-4 bg-red-50 rounded-lg text-center';
                     card.innerHTML = `
-                        <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <span class="text-white font-semibold">${competitor.charAt(0)}</span>
-                        </div>
                         <h5 class="font-medium text-gray-900">${competitor}</h5>
                         <p class="text-xs text-gray-500">Direct Competitor</p>
                     `;
@@ -2392,9 +3070,6 @@
                     const card = document.createElement('div');
                     card.className = 'p-4 bg-orange-50 rounded-lg text-center';
                     card.innerHTML = `
-                        <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <span class="text-white font-semibold">${similar.charAt(0)}</span>
-                        </div>
                         <h5 class="font-medium text-gray-900">${similar}</h5>
                         <p class="text-xs text-gray-500">Similar Company</p>
                     `;
@@ -2445,10 +3120,47 @@
         }
 
         function updateContactTab(company) {
-            document.getElementById('modalCompanyAddress').textContent = company.address || 'N/A';
-            document.getElementById('modalCompanyPhone').textContent = company.phone || 'N/A';
-            document.getElementById('modalCompanyEmail').textContent = company.email || 'N/A';
-            document.getElementById('modalInvestorEmail').textContent = company.investorEmail || 'N/A';
+            const isPremium = checkPremiumAccess();
+            
+            // Apply premium masking to contact information
+            const address = company.headquarters?.address || company.address || 'N/A';
+            const phone = company.phone || 'N/A';
+            const email = company.email || 'N/A';
+            const investorEmail = company.investorEmail || 'N/A';
+            
+            document.getElementById('modalCompanyAddress').textContent = isPremium ? address : maskContactInfo(address, 'address');
+            document.getElementById('modalCompanyPhone').textContent = isPremium ? phone : maskContactInfo(phone, 'phone');
+            document.getElementById('modalCompanyEmail').textContent = isPremium ? email : maskContactInfo(email, 'email');
+            document.getElementById('modalInvestorEmail').textContent = isPremium ? investorEmail : maskContactInfo(investorEmail, 'email');
+            
+            // Add premium overlay if not premium user
+            if (!isPremium) {
+                const contactElements = [
+                    document.getElementById('modalCompanyAddress').parentElement,
+                    document.getElementById('modalCompanyPhone').parentElement,
+                    document.getElementById('modalCompanyEmail').parentElement,
+                    document.getElementById('modalInvestorEmail').parentElement
+                ];
+                
+                contactElements.forEach(element => {
+                    element.classList.add('premium-overlay');
+                    element.style.cursor = 'pointer';
+                    element.onclick = () => showPremiumUpgrade('full contact information');
+                });
+            }
+            
+            // Update map link
+            if (company.headquarters?.mapUrl) {
+                const mapLink = document.getElementById('modalCompanyMapLink');
+                mapLink.href = company.headquarters.mapUrl;
+                mapLink.style.display = 'inline-flex';
+            }
+            
+            // Update activity stats
+            document.getElementById('modalCompanyViews').textContent = company.views || 0;
+            document.getElementById('modalCompanyEdits').textContent = company.edits || 0;
+            document.getElementById('modalCompanyScore').textContent = company.activityScore || 0;
+            document.getElementById('modalCompanyUpdated').textContent = company.lastUpdated || 'Never';
             
             // Social media links
             const socialContainer = document.getElementById('modalCompanySocial');
@@ -2475,6 +3187,108 @@
             } else {
                 socialContainer.innerHTML = '<p class="text-gray-500">No social media links available</p>';
             }
+        }
+
+        // Utility Functions
+        function incrementViewCount(id, collection) {
+            if (!currentUser) return;
+            
+            db.collection(collection).doc(id).update({
+                views: firebase.firestore.FieldValue.increment(1),
+                lastViewed: new Date().toISOString()
+            }).catch(error => {
+                console.log('Error updating view count:', error);
+            });
+        }
+
+        function isUserAuthorizedToEdit(company) {
+            // Check if user is a founder or current leadership
+            if (company.leadership) {
+                return company.leadership.some(leader => 
+                    leader.type === 'current' && 
+                    currentUser.email && 
+                    (leader.name.toLowerCase().includes(currentUser.displayName?.toLowerCase() || '') ||
+                     currentUser.email.includes(leader.name.toLowerCase().replace(' ', '.')))
+                );
+            }
+            return false;
+        }
+
+        function copyProfileUrl() {
+            const urlInput = document.getElementById('profileShareUrl');
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                // Show success message
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.classList.add('bg-green-600');
+                button.classList.remove('bg-blue-600');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('bg-green-600');
+                    button.classList.add('bg-blue-600');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy URL:', err);
+            }
+        }
+
+        function calculateActivityScore(company) {
+            let score = 0;
+            
+            // Base score for having complete profile
+            if (company.description) score += 10;
+            if (company.website) score += 5;
+            if (company.social && Object.keys(company.social).length > 0) score += 5;
+            
+            // Views contribution (max 30 points)
+            const viewScore = Math.min(30, (company.views || 0) / 100);
+            score += viewScore;
+            
+            // Edits contribution (max 20 points)
+            const editScore = Math.min(20, (company.edits || 0) * 2);
+            score += editScore;
+            
+            // Recent activity bonus (max 15 points)
+            if (company.lastUpdated) {
+                const daysSinceUpdate = (new Date() - new Date(company.lastUpdated)) / (1000 * 60 * 60 * 24);
+                if (daysSinceUpdate < 7) score += 15;
+                else if (daysSinceUpdate < 30) score += 10;
+                else if (daysSinceUpdate < 90) score += 5;
+            }
+            
+            // Funding data bonus (max 10 points)
+            if (company.fundingRounds && company.fundingRounds.length > 0) score += 10;
+            
+            return Math.min(100, Math.round(score));
+        }
+
+        function updateCompanyRanking() {
+            // Calculate activity scores and update rankings
+            companies.forEach(company => {
+                company.activityScore = calculateActivityScore(company);
+            });
+            
+            // Sort by activity score
+            companies.sort((a, b) => (b.activityScore || 0) - (a.activityScore || 0));
+            
+            // Update rankings
+            companies.forEach((company, index) => {
+                company.rank = `#${index + 1}`;
+                
+                // Update in Firestore
+                db.collection('companies').doc(company.id).update({
+                    rank: company.rank,
+                    activityScore: company.activityScore
+                }).catch(error => {
+                    console.log('Error updating ranking:', error);
+                });
+            });
         }
 
         function closeCompanyModal() {
@@ -2518,6 +3332,36 @@
         function closeAddPersonModal() {
             document.getElementById('addPersonModal').classList.add('hidden');
             document.getElementById('addPersonForm').reset();
+            // Reset modal title
+            document.querySelector('#addPersonModal h3').textContent = 'Add New Person';
+            document.querySelector('#addPersonForm button[type="submit"]').textContent = 'Add Person';
+        }
+        
+        function editPerson(person) {
+            // Populate form with existing data
+            document.getElementById('personFirstName').value = person.firstName || person.name?.split(' ')[0] || '';
+            document.getElementById('personLastName').value = person.lastName || person.name?.split(' ').slice(1).join(' ') || '';
+            document.getElementById('personName').value = person.name || '';
+            document.getElementById('personEmail').value = person.email || '';
+            document.getElementById('personRole').value = person.role || '';
+            document.getElementById('personCompany').value = person.companyId || '';
+            document.getElementById('personLocation').value = person.location || '';
+            document.getElementById('personType').value = person.type || 'Employee';
+            document.getElementById('personExperience').value = person.experience || '';
+            document.getElementById('personBio').value = person.bio || '';
+            document.getElementById('personSkills').value = person.skills?.join(', ') || '';
+            document.getElementById('personResponsibilities').value = person.responsibilities?.join('\n') || '';
+            document.getElementById('personLinkedIn').value = person.social?.linkedin || '';
+            document.getElementById('personTwitter').value = person.social?.twitter || '';
+            document.getElementById('personGender').value = person.gender || '';
+            document.getElementById('personAlsoKnownAs').value = person.alsoKnownAs || '';
+            
+            // Update modal title and button
+            document.querySelector('#addPersonModal h3').textContent = 'Edit Person';
+            document.querySelector('#addPersonForm button[type="submit"]').textContent = 'Update Person';
+            
+            // Show modal
+            document.getElementById('addPersonModal').classList.remove('hidden');
         }
 
         function showAddInvestmentModal() {
@@ -2538,12 +3382,46 @@
                 alert('Please sign in with Google to add companies');
                 return;
             }
+            // Update company dropdown in person form
+            updatePeopleFilters();
             document.getElementById('addCompanyModal').classList.remove('hidden');
         }
 
         function closeAddCompanyModal() {
             document.getElementById('addCompanyModal').classList.add('hidden');
             document.getElementById('addCompanyForm').reset();
+            // Reset modal title
+            document.querySelector('#addCompanyModal h3').textContent = 'Add New Company';
+            document.querySelector('#addCompanyForm button[type="submit"]').textContent = 'Add Company';
+        }
+        
+        function editCompany(company) {
+            // Populate form with existing data
+            document.getElementById('companyName').value = company.name || '';
+            document.getElementById('companyLegalName').value = company.legalName || '';
+            document.getElementById('companyTagline').value = company.tagline || '';
+            document.getElementById('companyDescription').value = company.description || '';
+            document.getElementById('companyIndustry').value = company.industry || '';
+            document.getElementById('companyFounded').value = company.founded || '';
+            document.getElementById('companyEmployees').value = company.employees || '';
+            document.getElementById('companyLocation').value = company.location || '';
+            document.getElementById('companyWebsite').value = company.website || '';
+            document.getElementById('companyContactEmail').value = company.email || '';
+            document.getElementById('companyPhone').value = company.phone || '';
+            document.getElementById('companyType').value = company.type || 'Private';
+            document.getElementById('companyStatus').value = company.status || 'Active';
+            document.getElementById('companyAddress').value = company.headquarters?.address || company.address || '';
+            document.getElementById('companyDiversity').value = company.diversitySpotlight?.join(', ') || '';
+            document.getElementById('companyLinkedIn').value = company.social?.linkedin || '';
+            document.getElementById('companyTwitter').value = company.social?.twitter || '';
+            document.getElementById('companyFacebook').value = company.social?.facebook || '';
+            
+            // Update modal title and button
+            document.querySelector('#addCompanyModal h3').textContent = 'Edit Company';
+            document.querySelector('#addCompanyForm button[type="submit"]').textContent = 'Update Company';
+            
+            // Show modal
+            document.getElementById('addCompanyModal').classList.remove('hidden');
         }
 
         // Section Management
@@ -2589,6 +3467,18 @@
 
         // Event Listeners
         function setupEventListeners() {
+            // Add Company Button
+            const addCompanyBtn = document.getElementById('addCompanyBtn');
+            if (addCompanyBtn) {
+                addCompanyBtn.addEventListener('click', showAddCompanyModal);
+            }
+            
+            // Add Person Button  
+            const addPersonBtn = document.getElementById('addPersonBtn');
+            if (addPersonBtn) {
+                addPersonBtn.addEventListener('click', showAddPersonModal);
+            }
+            
             // Add Person Form
             document.getElementById('addPersonForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -2598,8 +3488,13 @@
                     return;
                 }
                 
+                // Check if this is an edit or new person
+                const isEdit = document.querySelector('#addPersonForm button[type="submit"]').textContent === 'Update Person';
+                
                 const personData = {
                     name: document.getElementById('personName').value,
+                    firstName: document.getElementById('personFirstName').value,
+                    lastName: document.getElementById('personLastName').value,
                     email: document.getElementById('personEmail').value,
                     role: document.getElementById('personRole').value,
                     companyId: document.getElementById('personCompany').value,
@@ -2614,21 +3509,37 @@
                         linkedin: document.getElementById('personLinkedIn').value,
                         twitter: document.getElementById('personTwitter').value
                     },
-                    createdBy: currentUser.uid,
-                    createdAt: new Date().toISOString(),
+                    gender: document.getElementById('personGender').value,
+                    alsoKnownAs: document.getElementById('personAlsoKnownAs').value,
                     yearsExperience: parseInt(document.getElementById('personExperience').value?.split('-')[0]) || 0,
                     companiesWorked: 1,
-                    notableProjects: 0
+                    notableProjects: 0,
+                    lastUpdated: new Date().toISOString()
                 };
                 
-                // Add to Firestore
-                db.collection('people').add(personData).then(() => {
-                    alert('Person added successfully!');
-                    closeAddPersonModal();
-                }).catch(error => {
-                    console.error('Error adding person:', error);
-                    alert('Error adding person: ' + error.message);
-                });
+                if (isEdit && currentPerson) {
+                    // Update existing person
+                    db.collection('people').doc(currentPerson.id).update(personData).then(() => {
+                        alert('Person updated successfully!');
+                        closeAddPersonModal();
+                        closePersonModal();
+                    }).catch(error => {
+                        console.error('Error updating person:', error);
+                        alert('Error updating person: ' + error.message);
+                    });
+                } else {
+                    // Add new person
+                    personData.createdBy = currentUser.uid;
+                    personData.createdAt = new Date().toISOString();
+                    
+                    db.collection('people').add(personData).then(() => {
+                        alert('Person added successfully!');
+                        closeAddPersonModal();
+                    }).catch(error => {
+                        console.error('Error adding person:', error);
+                        alert('Error adding person: ' + error.message);
+                    });
+                }
             });
 
             // Add Investment Form
@@ -2698,6 +3609,22 @@
                     return;
                 }
                 
+                // Check if this is an edit or new company
+                const isEdit = document.querySelector('#addCompanyForm button[type="submit"]').textContent === 'Update Company';
+                
+                // Get profile types
+                const profileTypes = [];
+                if (document.getElementById('profileTypeCompany').checked) profileTypes.push('Company');
+                if (document.getElementById('profileTypeInvestment').checked) profileTypes.push('Investment Firm');
+                if (document.getElementById('profileTypeGovernment').checked) profileTypes.push('Government Entity');
+                if (document.getElementById('profileTypeSchool').checked) profileTypes.push('School');
+                
+                // Generate profile URL
+                const profileUrl = document.getElementById('companyName').value.toLowerCase()
+                    .replace(/[^a-z0-9]/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '');
+                
                 const companyData = {
                     name: document.getElementById('companyName').value,
                     legalName: document.getElementById('companyLegalName').value || document.getElementById('companyName').value,
@@ -2708,40 +3635,92 @@
                     employees: document.getElementById('companyEmployees').value,
                     location: document.getElementById('companyLocation').value,
                     website: document.getElementById('companyWebsite').value,
-                    email: document.getElementById('companyEmail').value,
+                    email: document.getElementById('companyContactEmail').value,
+                    phone: document.getElementById('companyPhone').value,
                     type: document.getElementById('companyType').value,
                     status: document.getElementById('companyStatus').value,
                     operatingStatus: 'Active',
+                    profileTypes: profileTypes,
+                    profileUrl: profileUrl,
+                    headquarters: {
+                        address: document.getElementById('companyAddress').value,
+                        mapUrl: document.getElementById('companyAddress').value ? 
+                            `https://maps.google.com/?q=${encodeURIComponent(document.getElementById('companyAddress').value)}` : null
+                    },
+                    diversitySpotlight: document.getElementById('companyDiversity').value.split(',').map(s => s.trim()).filter(s => s),
                     social: {
                         linkedin: document.getElementById('companyLinkedIn').value,
-                        twitter: document.getElementById('companyTwitter').value
+                        twitter: document.getElementById('companyTwitter').value,
+                        facebook: document.getElementById('companyFacebook').value
                     },
-                    createdBy: currentUser.uid,
-                    createdAt: new Date().toISOString(),
-                    fundingRounds: [],
-                    leadership: [],
-                    news: [],
-                    timeline: [
+                    lastUpdated: new Date().toISOString()
+                };
+                
+                if (isEdit && currentCompany) {
+                    // Update existing company
+                    companyData.edits = (currentCompany.edits || 0) + 1;
+                    companyData.activityScore = calculateActivityScore({...currentCompany, ...companyData});
+                    
+                    db.collection('companies').doc(currentCompany.id).update(companyData).then(() => {
+                        alert('Company updated successfully!');
+                        closeAddCompanyModal();
+                        closeCompanyModal();
+                        setTimeout(updateCompanyRanking, 1000);
+                    }).catch(error => {
+                        console.error('Error updating company:', error);
+                        alert('Error updating company: ' + error.message);
+                    });
+                } else {
+                    // Add new company
+                    companyData.createdBy = currentUser.uid;
+                    companyData.createdAt = new Date().toISOString();
+                    companyData.views = 0;
+                    companyData.edits = 1;
+                    companyData.activityScore = 0;
+                    companyData.fundingRounds = [];
+                    companyData.leadership = [];
+                    companyData.news = [];
+                    companyData.timeline = [
                         {
                             date: new Date().toISOString().split('T')[0],
                             event: 'Company added to BizIntel Pro',
                             type: 'milestone'
                         }
-                    ]
-                };
-                
-                // Add to Firestore
-                db.collection('companies').add(companyData).then(() => {
-                    alert('Company added successfully!');
-                    closeAddCompanyModal();
-                }).catch(error => {
-                    console.error('Error adding company:', error);
-                    alert('Error adding company: ' + error.message);
-                });
+                    ];
+                    
+                    companyData.activityScore = calculateActivityScore(companyData);
+                    
+                    db.collection('companies').add(companyData).then(() => {
+                        alert('Company added successfully!');
+                        closeAddCompanyModal();
+                        setTimeout(updateCompanyRanking, 1000);
+                    }).catch(error => {
+                        console.error('Error adding company:', error);
+                        alert('Error adding company: ' + error.message);
+                    });
+                }
             });
 
             // Investment button
-            document.getElementById('addInvestmentBtn').addEventListener('click', showAddInvestmentModal);
+            document.getElementById('addInvestmentBtn')?.addEventListener('click', showAddInvestmentModal);
+            
+            // Edit company button
+            document.getElementById('editCompanyBtn')?.addEventListener('click', function() {
+                if (!currentUser || !currentCompany) {
+                    alert('Please sign in to edit companies');
+                    return;
+                }
+                editCompany(currentCompany);
+            });
+            
+            // Edit person button
+            document.getElementById('editPersonBtn')?.addEventListener('click', function() {
+                if (!currentUser || !currentPerson) {
+                    alert('Please sign in to edit people');
+                    return;
+                }
+                editPerson(currentPerson);
+            });
 
             // Global Search
             document.getElementById('globalSearch').addEventListener('input', function(e) {
@@ -2752,6 +3731,24 @@
                     updateCompaniesGrid();
                 }
             });
+
+            // Additional event listeners for forms and other elements
+
+
+
+            // Auto-generate full name
+            document.getElementById('personFirstName').addEventListener('input', updateFullName);
+            document.getElementById('personLastName').addEventListener('input', updateFullName);
+            
+            function updateFullName() {
+                const firstName = document.getElementById('personFirstName').value;
+                const lastName = document.getElementById('personLastName').value;
+                const fullName = `${firstName} ${lastName}`.trim();
+                document.getElementById('personName').value = fullName;
+            }
+
+            // Update company ranking periodically
+            setInterval(updateCompanyRanking, 300000); // Every 5 minutes
         }
 
         function performSearch(searchTerm) {
@@ -2813,11 +3810,176 @@
             }
         }
 
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        function toggleMobileSearch() {
+            const overlay = document.getElementById('mobileSearchOverlay');
+            overlay.classList.toggle('hidden');
+            if (!overlay.classList.contains('hidden')) {
+                document.getElementById('mobileGlobalSearch').focus();
+            }
+        }
+
+        // Mobile menu event listeners
+        document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+        document.getElementById('mobileSearchBtn').addEventListener('click', toggleMobileSearch);
+        document.getElementById('closeMobileSearch').addEventListener('click', toggleMobileSearch);
+
+        // Mobile search functionality
+        document.getElementById('mobileGlobalSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.length > 2) {
+                performSearch(searchTerm);
+                toggleMobileSearch(); // Close search overlay
+                showSection('companies'); // Show companies section
+            }
+        });
+
+        // Touch gesture support for tab navigation
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function handleTabSwipe() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+            
+            if (Math.abs(swipeDistance) > swipeThreshold) {
+                const activeTab = document.querySelector('.tab-active');
+                if (activeTab) {
+                    const tabs = Array.from(activeTab.parentElement.children);
+                    const currentIndex = tabs.indexOf(activeTab);
+                    
+                    if (swipeDistance > 0 && currentIndex > 0) {
+                        // Swipe right - previous tab
+                        tabs[currentIndex - 1].click();
+                    } else if (swipeDistance < 0 && currentIndex < tabs.length - 1) {
+                        // Swipe left - next tab
+                        tabs[currentIndex + 1].click();
+                    }
+                }
+            }
+        }
+
+        // Add touch event listeners to modal content
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            if (document.getElementById('companyModal').classList.contains('hidden') === false ||
+                document.getElementById('personModal').classList.contains('hidden') === false) {
+                handleTabSwipe();
+            }
+        });
+
+        // Premium system functions
+        function checkPremiumAccess() {
+            if (!currentUser) return false;
+            return currentUser.customClaims?.premium === true || 
+                   localStorage.getItem(`premium_${currentUser.uid}`) === 'true';
+        }
+
+        function maskContactInfo(info, type = 'email') {
+            if (checkPremiumAccess()) return info;
+            
+            if (type === 'email') {
+                const [username, domain] = info.split('@');
+                return `${username.substring(0, 2)}***@${domain}`;
+            } else if (type === 'phone') {
+                return info.replace(/\d(?=\d{4})/g, '*');
+            } else {
+                return info.substring(0, 3) + '***';
+            }
+        }
+
+        function showPremiumUpgrade(feature) {
+            if (checkPremiumAccess()) return true;
+            
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl max-w-md w-full p-6 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-crown text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Premium Feature</h3>
+                    <p class="text-gray-600 mb-4">Unlock ${feature} and advanced analytics with BizIntel Pro Premium</p>
+                    
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 mb-4 border-2 border-green-200">
+                        <div class="flex items-center justify-center mb-2">
+                            <span class="text-2xl font-bold text-green-600">$56</span>
+                            <span class="text-lg text-gray-500 line-through ml-2">$99</span>
+                            <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full ml-2">43% OFF</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Limited Time Offer - Annual Plan</p>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Premium Features Include:</h4>
+                        <ul class="text-sm text-gray-700 space-y-1">
+                            <li>• Full contact information access</li>
+                            <li>• Advanced company analytics</li>
+                            <li>• Export data to CSV/PDF</li>
+                            <li>• Priority customer support</li>
+                            <li>• API access for integrations</li>
+                            <li>• Custom reports and insights</li>
+                        </ul>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="this.closest('.fixed').remove()" class="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">
+                            Maybe Later
+                        </button>
+                        <button onclick="upgradeToPremium()" class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700">
+                            Upgrade Now
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            return false;
+        }
+
+        function upgradeToPremium() {
+            if (!currentUser) {
+                alert('Please sign in first');
+                return;
+            }
+            
+            // Close current modal
+            document.querySelector('.fixed.inset-0').remove();
+            
+            // Show not eligible message
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl max-w-md w-full p-6 text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-times text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Not Eligible</h3>
+                    <p class="text-gray-600 mb-4">Sorry, you are not eligible for premium upgrade at this time.</p>
+                    <p class="text-sm text-gray-500 mb-6">Please contact support for more information about premium eligibility requirements.</p>
+                    <button onclick="this.closest('.fixed').remove()" class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        Close
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
         // Close modals when clicking outside
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('fixed')) {
                 if (e.target.id === 'companyModal') closeCompanyModal();
+                if (e.target.id === 'personModal') closePersonModal();
                 if (e.target.id === 'addCompanyModal') closeAddCompanyModal();
+                if (e.target.id === 'addPersonModal') closeAddPersonModal();
+                if (e.target.id === 'addInvestmentModal') closeAddInvestmentModal();
             }
         });
 
@@ -2825,9 +3987,12 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeCompanyModal();
+                closePersonModal();
                 closeAddCompanyModal();
+                closeAddPersonModal();
+                closeAddInvestmentModal();
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96fe8a8bd246547e',t:'MTc1NTMyMjI0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96fee004d5a55a05',t:'MTc1NTMyNTc0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
