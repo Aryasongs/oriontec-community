@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -24,6 +24,14 @@
         .timeline-dot { position: absolute; left: 11px; top: 8px; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; }
         .funding-chart { min-height: 300px; }
         .rank-badge { background: linear-gradient(45deg, #fbbf24, #f59e0b); }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .premium-blur { filter: blur(3px); transition: filter 0.3s ease; }
+        .premium-overlay { position: relative; }
+        .premium-overlay::after { content: '🔒 Premium'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        @media (max-width: 640px) {
+            .funding-chart { min-height: 200px; }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -41,8 +49,14 @@
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('dashboard')">Dashboard</a>
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('companies')">Companies</a>
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('people')">People</a>
-                            <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('investors')">Investors</a>
-                            <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('analytics')">Analytics</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium relative" onclick="return showPremiumUpgrade('investor database')">
+                                Investors
+                                <span class="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs px-1 rounded-full">PRO</span>
+                            </a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium relative" onclick="return showPremiumUpgrade('advanced analytics')">
+                                Analytics
+                                <span class="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs px-1 rounded-full">PRO</span>
+                            </a>
                         </div>
                     </div>
                     <!-- Mobile Menu Button -->
@@ -65,7 +79,12 @@
                     <div id="userProfile" class="hidden flex items-center space-x-3">
                         <img id="userPhoto" class="w-8 h-8 rounded-full" alt="User">
                         <div class="flex flex-col">
-                            <span id="userName" class="text-sm font-medium"></span>
+                            <div class="flex items-center space-x-2">
+                                <span id="userName" class="text-sm font-medium"></span>
+                                <span id="premiumBadge" class="hidden bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                                    <i class="fas fa-crown mr-1"></i>PRO
+                                </span>
+                            </div>
                             <button id="signOutButton" class="text-xs text-gray-600 hover:text-gray-800 text-left">Sign Out</button>
                         </div>
                     </div>
@@ -470,21 +489,23 @@
                                     <i class="fas fa-plus mr-2"></i>Add Investment
                                 </button>
                             </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Round</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead Investors</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valuation</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="fundingRoundsTable" class="bg-white divide-y divide-gray-200">
-                                        <!-- Funding rounds will be populated here -->
-                                    </tbody>
-                                </table>
+                            <div class="overflow-x-auto -mx-4 sm:mx-0">
+                                <div class="inline-block min-w-full align-middle">
+                                    <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Round</th>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date</th>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Lead Investors</th>
+                                                <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Valuation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="fundingRoundsTable" class="bg-white divide-y divide-gray-200">
+                                            <!-- Funding rounds will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
                             <div class="mt-8">
@@ -692,93 +713,93 @@
 
         <!-- Person Detail Modal -->
         <div id="personModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
-            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
-                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
                     <!-- Person Header -->
-                    <div class="bg-white border-b p-6">
+                    <div class="bg-white border-b p-4 sm:p-6">
                         <div class="flex justify-between items-start mb-4">
-                            <div class="flex items-start space-x-4">
-                                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                                    <span class="text-white font-bold text-2xl" id="modalPersonInitials">JD</span>
+                            <div class="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span class="text-white font-bold text-lg sm:text-2xl" id="modalPersonInitials">JD</span>
                                 </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-3 mb-2">
-                                        <h2 class="text-3xl font-bold text-gray-900" id="modalPersonName">Person Name</h2>
-                                        <button id="editPersonBtn" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium hover:bg-blue-200 hidden">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2">
+                                        <h2 class="text-xl sm:text-3xl font-bold text-gray-900 truncate" id="modalPersonName">Person Name</h2>
+                                        <button id="editPersonBtn" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm font-medium hover:bg-blue-200 hidden mt-1 sm:mt-0 self-start">
                                             <i class="fas fa-edit mr-1"></i>Edit
                                         </button>
                                     </div>
-                                    <p class="text-lg text-gray-600 mb-2" id="modalPersonRole">Current Role</p>
-                                    <p class="text-md text-blue-600 mb-3" id="modalPersonCompany">Company Name</p>
-                                    <div class="flex flex-wrap gap-2 mb-3">
-                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm" id="modalPersonLocation">Location</span>
-                                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm" id="modalPersonExperience">Experience</span>
-                                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm" id="modalPersonType">Type</span>
+                                    <p class="text-sm sm:text-lg text-gray-600 mb-1 sm:mb-2" id="modalPersonRole">Current Role</p>
+                                    <p class="text-sm sm:text-md text-blue-600 mb-2 sm:mb-3 cursor-pointer" id="modalPersonCompany" onclick="showPremiumUpgrade('company details')">Company Name</p>
+                                    <div class="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm" id="modalPersonLocation">Location</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm" id="modalPersonExperience">Experience</span>
+                                        <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs sm:text-sm" id="modalPersonType">Type</span>
                                     </div>
-                                    <div class="flex space-x-4">
-                                        <a href="#" id="modalPersonLinkedIn" class="text-blue-600 hover:text-blue-800" target="_blank">
-                                            <i class="fab fa-linkedin mr-1"></i>LinkedIn
+                                    <div class="flex flex-wrap gap-2 sm:gap-4 text-sm">
+                                        <a href="#" id="modalPersonLinkedIn" class="text-blue-600 hover:text-blue-800 flex items-center" target="_blank" onclick="return showPremiumUpgrade('LinkedIn access')">
+                                            <i class="fab fa-linkedin mr-1"></i><span class="hidden sm:inline">LinkedIn</span>
                                         </a>
-                                        <a href="#" id="modalPersonTwitter" class="text-blue-600 hover:text-blue-800" target="_blank">
-                                            <i class="fab fa-twitter mr-1"></i>Twitter
+                                        <a href="#" id="modalPersonTwitter" class="text-blue-600 hover:text-blue-800 flex items-center" target="_blank" onclick="return showPremiumUpgrade('Twitter access')">
+                                            <i class="fab fa-twitter mr-1"></i><span class="hidden sm:inline">Twitter</span>
                                         </a>
-                                        <a href="#" id="modalPersonEmail" class="text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-envelope mr-1"></i>Email
+                                        <a href="#" id="modalPersonEmail" class="text-blue-600 hover:text-blue-800 flex items-center" onclick="return showPremiumUpgrade('email access')">
+                                            <i class="fas fa-envelope mr-1"></i><span class="hidden sm:inline">Email</span>
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                            <button onclick="closePersonModal()" class="text-gray-400 hover:text-gray-600">
-                                <i class="fas fa-times text-2xl"></i>
+                            <button onclick="closePersonModal()" class="text-gray-400 hover:text-gray-600 p-1 flex-shrink-0">
+                                <i class="fas fa-times text-xl sm:text-2xl"></i>
                             </button>
                         </div>
                     </div>
 
                     <!-- Person Tabs -->
-                    <div class="px-6 border-b bg-white sticky top-0 z-10">
-                        <nav class="flex space-x-8 overflow-x-auto">
-                            <button class="py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap tab-active" onclick="showPersonTab('profile')">Profile</button>
-                            <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showPersonTab('experience')">Experience</button>
-                            <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showPersonTab('education')">Education</button>
-                            <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showPersonTab('achievements')">Achievements</button>
-                            <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showPersonTab('network')">Network</button>
+                    <div class="px-4 sm:px-6 border-b bg-white sticky top-0 z-10">
+                        <nav class="flex space-x-4 sm:space-x-8 overflow-x-auto scrollbar-hide">
+                            <button class="py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap tab-active flex-shrink-0" onclick="showPersonTab('profile')">Profile</button>
+                            <button class="py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0" onclick="showPersonTab('experience')">Experience</button>
+                            <button class="py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0" onclick="showPersonTab('education')">Education</button>
+                            <button class="py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0" onclick="showPersonTab('achievements')">Achievements</button>
+                            <button class="py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0" onclick="showPersonTab('network')">Network</button>
                         </nav>
                     </div>
 
                     <!-- Person Tab Content -->
-                    <div class="p-6">
+                    <div class="p-4 sm:p-6">
                         <!-- Profile Tab -->
                         <div id="profilePersonTab" class="person-tab-content">
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                                 <div class="lg:col-span-2">
-                                    <h4 class="text-xl font-semibold text-gray-900 mb-4">About</h4>
-                                    <p class="text-gray-600 mb-6 leading-relaxed" id="modalPersonBio">Person bio will appear here...</p>
+                                    <h4 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">About</h4>
+                                    <p class="text-gray-600 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base" id="modalPersonBio">Person bio will appear here...</p>
                                     
-                                    <h4 class="text-xl font-semibold text-gray-900 mb-4">Skills & Expertise</h4>
-                                    <div id="modalPersonSkills" class="flex flex-wrap gap-2 mb-6">
+                                    <h4 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Skills & Expertise</h4>
+                                    <div id="modalPersonSkills" class="flex flex-wrap gap-2 mb-4 sm:mb-6">
                                         <!-- Skills will be populated here -->
                                     </div>
 
-                                    <h4 class="text-xl font-semibold text-gray-900 mb-4">Responsibilities</h4>
+                                    <h4 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Responsibilities</h4>
                                     <div id="modalPersonResponsibilities" class="space-y-2">
                                         <!-- Responsibilities will be populated here -->
                                     </div>
                                 </div>
                                 
                                 <div>
-                                    <h4 class="text-xl font-semibold text-gray-900 mb-4">Quick Info</h4>
-                                    <div class="space-y-4">
-                                        <div class="bg-blue-50 rounded-lg p-4">
-                                            <div class="text-lg font-bold text-blue-600" id="modalPersonYearsExp">0</div>
-                                            <div class="text-sm text-blue-800">Years Experience</div>
+                                    <h4 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Quick Info</h4>
+                                    <div class="space-y-3 sm:space-y-4">
+                                        <div class="bg-blue-50 rounded-lg p-3 sm:p-4">
+                                            <div class="text-lg sm:text-xl font-bold text-blue-600" id="modalPersonYearsExp">0</div>
+                                            <div class="text-xs sm:text-sm text-blue-800">Years Experience</div>
                                         </div>
-                                        <div class="bg-green-50 rounded-lg p-4">
-                                            <div class="text-lg font-bold text-green-600" id="modalPersonCompaniesWorked">0</div>
-                                            <div class="text-sm text-green-800">Companies Worked</div>
+                                        <div class="bg-green-50 rounded-lg p-3 sm:p-4">
+                                            <div class="text-lg sm:text-xl font-bold text-green-600" id="modalPersonCompaniesWorked">0</div>
+                                            <div class="text-xs sm:text-sm text-green-800">Companies Worked</div>
                                         </div>
-                                        <div class="bg-purple-50 rounded-lg p-4">
-                                            <div class="text-lg font-bold text-purple-600" id="modalPersonProjects">0</div>
-                                            <div class="text-sm text-purple-800">Notable Projects</div>
+                                        <div class="bg-purple-50 rounded-lg p-3 sm:p-4">
+                                            <div class="text-lg sm:text-xl font-bold text-purple-600" id="modalPersonProjects">0</div>
+                                            <div class="text-xs sm:text-sm text-purple-800">Notable Projects</div>
                                         </div>
                                     </div>
                                 </div>
@@ -843,15 +864,15 @@
 
         <!-- Add Person Modal -->
         <div id="addPersonModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
-            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
-                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
-                    <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-xl">
-                        <h3 class="text-2xl font-bold text-gray-900">Add New Person</h3>
-                        <button onclick="closeAddPersonModal()" class="text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-times text-xl"></i>
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
+                    <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center rounded-t-xl">
+                        <h3 class="text-lg sm:text-2xl font-bold text-gray-900">Add New Person</h3>
+                        <button onclick="closeAddPersonModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                            <i class="fas fa-times text-lg sm:text-xl"></i>
                         </button>
                     </div>
-                    <form id="addPersonForm" class="p-6 space-y-6">
+                    <form id="addPersonForm" class="p-4 sm:p-6 space-y-4 sm:space-y-6">
                         <!-- Profile Type Management -->
                         <div>
                             <h4 class="text-lg font-semibold text-gray-900 mb-4">Manage Profile Type(s)</h4>
@@ -1068,15 +1089,15 @@
 
         <!-- Add Company Modal -->
         <div id="addCompanyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
-            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
-                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
-                    <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-xl">
-                        <h3 class="text-2xl font-bold text-gray-900">Add New Company</h3>
-                        <button onclick="closeAddCompanyModal()" class="text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-times text-xl"></i>
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
+                    <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center rounded-t-xl">
+                        <h3 class="text-lg sm:text-2xl font-bold text-gray-900">Add New Company</h3>
+                        <button onclick="closeAddCompanyModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                            <i class="fas fa-times text-lg sm:text-xl"></i>
                         </button>
                     </div>
-                    <form id="addCompanyForm" class="p-6 space-y-6">
+                    <form id="addCompanyForm" class="p-4 sm:p-6 space-y-4 sm:space-y-6">
                         <!-- Profile Type Management -->
                         <div>
                             <h4 class="text-lg font-semibold text-gray-900 mb-4">Manage Profile Type(s)</h4>
@@ -1281,7 +1302,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-        const storage = firebase.storage();
 
         // Global variables
         let currentUser = null;
@@ -1749,6 +1769,13 @@
                     userProfile.classList.remove('hidden');
                     document.getElementById('userName').textContent = user.displayName;
                     document.getElementById('userPhoto').src = user.photoURL;
+                    
+                    // Show premium badge if user has premium
+                    if (checkPremiumAccess()) {
+                        document.getElementById('premiumBadge').classList.remove('hidden');
+                    } else {
+                        document.getElementById('premiumBadge').classList.add('hidden');
+                    }
                 } else {
                     currentUser = null;
                     authButton.classList.remove('hidden');
@@ -2091,17 +2118,11 @@
                 emailLink.style.display = 'inline';
             }
             
-            // Show edit button if user owns this profile or company
-            if (currentUser && (currentUser.uid === company.createdBy || 
-                (company.leadership && company.leadership.some(leader => 
-                    leader.type === 'current' && currentUser.email && 
-                    (leader.name.toLowerCase().includes(currentUser.displayName?.toLowerCase() || '') ||
-                     currentUser.email.includes(leader.name.toLowerCase().replace(' ', '.'))))))) {
-                document.getElementById('editCompanyBtn').classList.remove('hidden');
-                document.getElementById('addInvestmentBtn').classList.remove('hidden');
+            // Show edit button if user is signed in (allow all signed-in users to edit)
+            if (currentUser) {
+                document.getElementById('editPersonBtn').classList.remove('hidden');
             } else {
-                document.getElementById('editCompanyBtn').classList.add('hidden');
-                document.getElementById('addInvestmentBtn').classList.add('hidden');
+                document.getElementById('editPersonBtn').classList.add('hidden');
             }
             
             // Update all tab content
@@ -2342,13 +2363,8 @@
                 twitterLink.style.display = 'inline';
             }
             
-            // Show edit button if user can edit
-            const canEdit = currentUser && (
-                currentUser.uid === company.createdBy || 
-                isUserAuthorizedToEdit(company)
-            );
-            
-            if (canEdit) {
+            // Show edit button if user is signed in (allow all signed-in users to edit)
+            if (currentUser) {
                 document.getElementById('editCompanyBtn').classList.remove('hidden');
                 document.getElementById('addInvestmentBtn').classList.remove('hidden');
             } else {
@@ -2428,18 +2444,21 @@
             if (company.fundingRounds && company.fundingRounds.length > 0) {
                 company.fundingRounds.forEach(round => {
                     const row = document.createElement('tr');
+                    const isPremium = checkPremiumAccess();
+                    const leadInvestors = isPremium ? round.leadInvestors : maskContactInfo(round.leadInvestors, 'investor');
+                    
                     row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${round.round}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${round.amount}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${round.date}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${round.leadInvestors}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${round.valuation || 'N/A'}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">${round.round}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">${round.amount}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden sm:table-cell">${round.date}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden md:table-cell ${!isPremium ? 'premium-blur cursor-pointer' : ''}" ${!isPremium ? 'onclick="showPremiumUpgrade(\'investor details\')"' : ''}>${leadInvestors}</td>
+                        <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden lg:table-cell">${round.valuation || 'N/A'}</td>
                     `;
                     table.appendChild(row);
                 });
             } else {
                 const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="5" class="px-6 py-4 text-center text-gray-500">No funding rounds available</td>';
+                row.innerHTML = '<td colspan="5" class="px-3 sm:px-6 py-3 sm:py-4 text-center text-gray-500 text-xs sm:text-sm">No funding rounds available</td>';
                 table.appendChild(row);
             }
             
@@ -2766,10 +2785,34 @@
         }
 
         function updateContactTab(company) {
-            document.getElementById('modalCompanyAddress').textContent = company.headquarters?.address || company.address || 'N/A';
-            document.getElementById('modalCompanyPhone').textContent = company.phone || 'N/A';
-            document.getElementById('modalCompanyEmail').textContent = company.email || 'N/A';
-            document.getElementById('modalInvestorEmail').textContent = company.investorEmail || 'N/A';
+            const isPremium = checkPremiumAccess();
+            
+            // Apply premium masking to contact information
+            const address = company.headquarters?.address || company.address || 'N/A';
+            const phone = company.phone || 'N/A';
+            const email = company.email || 'N/A';
+            const investorEmail = company.investorEmail || 'N/A';
+            
+            document.getElementById('modalCompanyAddress').textContent = isPremium ? address : maskContactInfo(address, 'address');
+            document.getElementById('modalCompanyPhone').textContent = isPremium ? phone : maskContactInfo(phone, 'phone');
+            document.getElementById('modalCompanyEmail').textContent = isPremium ? email : maskContactInfo(email, 'email');
+            document.getElementById('modalInvestorEmail').textContent = isPremium ? investorEmail : maskContactInfo(investorEmail, 'email');
+            
+            // Add premium overlay if not premium user
+            if (!isPremium) {
+                const contactElements = [
+                    document.getElementById('modalCompanyAddress').parentElement,
+                    document.getElementById('modalCompanyPhone').parentElement,
+                    document.getElementById('modalCompanyEmail').parentElement,
+                    document.getElementById('modalInvestorEmail').parentElement
+                ];
+                
+                contactElements.forEach(element => {
+                    element.classList.add('premium-overlay');
+                    element.style.cursor = 'pointer';
+                    element.onclick = () => showPremiumUpgrade('full contact information');
+                });
+            }
             
             // Update map link
             if (company.headquarters?.mapUrl) {
@@ -2955,6 +2998,37 @@
         function closeAddPersonModal() {
             document.getElementById('addPersonModal').classList.add('hidden');
             document.getElementById('addPersonForm').reset();
+            // Reset modal title
+            document.querySelector('#addPersonModal h3').textContent = 'Add New Person';
+            document.querySelector('#addPersonForm button[type="submit"]').textContent = 'Add Person';
+        }
+        
+        function editPerson(person) {
+            // Populate form with existing data
+            document.getElementById('personFirstName').value = person.firstName || person.name?.split(' ')[0] || '';
+            document.getElementById('personLastName').value = person.lastName || person.name?.split(' ').slice(1).join(' ') || '';
+            document.getElementById('personName').value = person.name || '';
+            document.getElementById('personEmail').value = person.email || '';
+            document.getElementById('personRole').value = person.role || '';
+            document.getElementById('personCompany').value = person.companyId || '';
+            document.getElementById('personLocation').value = person.location || '';
+            document.getElementById('personType').value = person.type || 'Employee';
+            document.getElementById('personExperience').value = person.experience || '';
+            document.getElementById('personBio').value = person.bio || '';
+            document.getElementById('personSkills').value = person.skills?.join(', ') || '';
+            document.getElementById('personResponsibilities').value = person.responsibilities?.join('\n') || '';
+            document.getElementById('personLinkedIn').value = person.social?.linkedin || '';
+            document.getElementById('personTwitter').value = person.social?.twitter || '';
+            document.getElementById('personImageUrl').value = person.profileImage || '';
+            document.getElementById('personGender').value = person.gender || '';
+            document.getElementById('personAlsoKnownAs').value = person.alsoKnownAs || '';
+            
+            // Update modal title and button
+            document.querySelector('#addPersonModal h3').textContent = 'Edit Person';
+            document.querySelector('#addPersonForm button[type="submit"]').textContent = 'Update Person';
+            
+            // Show modal
+            document.getElementById('addPersonModal').classList.remove('hidden');
         }
 
         function showAddInvestmentModal() {
@@ -2975,12 +3049,47 @@
                 alert('Please sign in with Google to add companies');
                 return;
             }
+            // Update company dropdown in person form
+            updatePeopleFilters();
             document.getElementById('addCompanyModal').classList.remove('hidden');
         }
 
         function closeAddCompanyModal() {
             document.getElementById('addCompanyModal').classList.add('hidden');
             document.getElementById('addCompanyForm').reset();
+            // Reset modal title
+            document.querySelector('#addCompanyModal h3').textContent = 'Add New Company';
+            document.querySelector('#addCompanyForm button[type="submit"]').textContent = 'Add Company';
+        }
+        
+        function editCompany(company) {
+            // Populate form with existing data
+            document.getElementById('companyName').value = company.name || '';
+            document.getElementById('companyLegalName').value = company.legalName || '';
+            document.getElementById('companyTagline').value = company.tagline || '';
+            document.getElementById('companyDescription').value = company.description || '';
+            document.getElementById('companyIndustry').value = company.industry || '';
+            document.getElementById('companyFounded').value = company.founded || '';
+            document.getElementById('companyEmployees').value = company.employees || '';
+            document.getElementById('companyLocation').value = company.location || '';
+            document.getElementById('companyWebsite').value = company.website || '';
+            document.getElementById('companyContactEmail').value = company.email || '';
+            document.getElementById('companyPhone').value = company.phone || '';
+            document.getElementById('companyType').value = company.type || 'Private';
+            document.getElementById('companyStatus').value = company.status || 'Active';
+            document.getElementById('companyLogoUrl').value = company.logoUrl || '';
+            document.getElementById('companyAddress').value = company.headquarters?.address || company.address || '';
+            document.getElementById('companyDiversity').value = company.diversitySpotlight?.join(', ') || '';
+            document.getElementById('companyLinkedIn').value = company.social?.linkedin || '';
+            document.getElementById('companyTwitter').value = company.social?.twitter || '';
+            document.getElementById('companyFacebook').value = company.social?.facebook || '';
+            
+            // Update modal title and button
+            document.querySelector('#addCompanyModal h3').textContent = 'Edit Company';
+            document.querySelector('#addCompanyForm button[type="submit"]').textContent = 'Update Company';
+            
+            // Show modal
+            document.getElementById('addCompanyModal').classList.remove('hidden');
         }
 
         // Section Management
@@ -3035,8 +3144,13 @@
                     return;
                 }
                 
+                // Check if this is an edit or new person
+                const isEdit = document.querySelector('#addPersonForm button[type="submit"]').textContent === 'Update Person';
+                
                 const personData = {
                     name: document.getElementById('personName').value,
+                    firstName: document.getElementById('personFirstName').value,
+                    lastName: document.getElementById('personLastName').value,
                     email: document.getElementById('personEmail').value,
                     role: document.getElementById('personRole').value,
                     companyId: document.getElementById('personCompany').value,
@@ -3051,21 +3165,38 @@
                         linkedin: document.getElementById('personLinkedIn').value,
                         twitter: document.getElementById('personTwitter').value
                     },
-                    createdBy: currentUser.uid,
-                    createdAt: new Date().toISOString(),
+                    profileImage: document.getElementById('personImageUrl').value,
+                    gender: document.getElementById('personGender').value,
+                    alsoKnownAs: document.getElementById('personAlsoKnownAs').value,
                     yearsExperience: parseInt(document.getElementById('personExperience').value?.split('-')[0]) || 0,
                     companiesWorked: 1,
-                    notableProjects: 0
+                    notableProjects: 0,
+                    lastUpdated: new Date().toISOString()
                 };
                 
-                // Add to Firestore
-                db.collection('people').add(personData).then(() => {
-                    alert('Person added successfully!');
-                    closeAddPersonModal();
-                }).catch(error => {
-                    console.error('Error adding person:', error);
-                    alert('Error adding person: ' + error.message);
-                });
+                if (isEdit && currentPerson) {
+                    // Update existing person
+                    db.collection('people').doc(currentPerson.id).update(personData).then(() => {
+                        alert('Person updated successfully!');
+                        closeAddPersonModal();
+                        closePersonModal();
+                    }).catch(error => {
+                        console.error('Error updating person:', error);
+                        alert('Error updating person: ' + error.message);
+                    });
+                } else {
+                    // Add new person
+                    personData.createdBy = currentUser.uid;
+                    personData.createdAt = new Date().toISOString();
+                    
+                    db.collection('people').add(personData).then(() => {
+                        alert('Person added successfully!');
+                        closeAddPersonModal();
+                    }).catch(error => {
+                        console.error('Error adding person:', error);
+                        alert('Error adding person: ' + error.message);
+                    });
+                }
             });
 
             // Add Investment Form
@@ -3135,6 +3266,9 @@
                     return;
                 }
                 
+                // Check if this is an edit or new company
+                const isEdit = document.querySelector('#addCompanyForm button[type="submit"]').textContent === 'Update Company';
+                
                 // Get profile types
                 const profileTypes = [];
                 if (document.getElementById('profileTypeCompany').checked) profileTypes.push('Company');
@@ -3177,41 +3311,74 @@
                         twitter: document.getElementById('companyTwitter').value,
                         facebook: document.getElementById('companyFacebook').value
                     },
-                    createdBy: currentUser.uid,
-                    createdAt: new Date().toISOString(),
-                    lastUpdated: new Date().toISOString(),
-                    views: 0,
-                    edits: 1,
-                    activityScore: 0,
-                    fundingRounds: [],
-                    leadership: [],
-                    news: [],
-                    timeline: [
+                    lastUpdated: new Date().toISOString()
+                };
+                
+                if (isEdit && currentCompany) {
+                    // Update existing company
+                    companyData.edits = (currentCompany.edits || 0) + 1;
+                    companyData.activityScore = calculateActivityScore({...currentCompany, ...companyData});
+                    
+                    db.collection('companies').doc(currentCompany.id).update(companyData).then(() => {
+                        alert('Company updated successfully!');
+                        closeAddCompanyModal();
+                        closeCompanyModal();
+                        setTimeout(updateCompanyRanking, 1000);
+                    }).catch(error => {
+                        console.error('Error updating company:', error);
+                        alert('Error updating company: ' + error.message);
+                    });
+                } else {
+                    // Add new company
+                    companyData.createdBy = currentUser.uid;
+                    companyData.createdAt = new Date().toISOString();
+                    companyData.views = 0;
+                    companyData.edits = 1;
+                    companyData.activityScore = 0;
+                    companyData.fundingRounds = [];
+                    companyData.leadership = [];
+                    companyData.news = [];
+                    companyData.timeline = [
                         {
                             date: new Date().toISOString().split('T')[0],
                             event: 'Company added to BizIntel Pro',
                             type: 'milestone'
                         }
-                    ]
-                };
-                
-                // Calculate initial activity score
-                companyData.activityScore = calculateActivityScore(companyData);
-                
-                // Add to Firestore
-                db.collection('companies').add(companyData).then(() => {
-                    alert('Company added successfully!');
-                    closeAddCompanyModal();
-                    // Update rankings after adding new company
-                    setTimeout(updateCompanyRanking, 1000);
-                }).catch(error => {
-                    console.error('Error adding company:', error);
-                    alert('Error adding company: ' + error.message);
-                });
+                    ];
+                    
+                    companyData.activityScore = calculateActivityScore(companyData);
+                    
+                    db.collection('companies').add(companyData).then(() => {
+                        alert('Company added successfully!');
+                        closeAddCompanyModal();
+                        setTimeout(updateCompanyRanking, 1000);
+                    }).catch(error => {
+                        console.error('Error adding company:', error);
+                        alert('Error adding company: ' + error.message);
+                    });
+                }
             });
 
             // Investment button
             document.getElementById('addInvestmentBtn').addEventListener('click', showAddInvestmentModal);
+            
+            // Edit company button
+            document.getElementById('editCompanyBtn').addEventListener('click', function() {
+                if (!currentUser || !currentCompany) {
+                    alert('Please sign in to edit companies');
+                    return;
+                }
+                editCompany(currentCompany);
+            });
+            
+            // Edit person button
+            document.getElementById('editPersonBtn').addEventListener('click', function() {
+                if (!currentUser || !currentPerson) {
+                    alert('Please sign in to edit people');
+                    return;
+                }
+                editPerson(currentPerson);
+            });
 
             // Global Search
             document.getElementById('globalSearch').addEventListener('input', function(e) {
@@ -3339,11 +3506,163 @@
             }
         }
 
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        function toggleMobileSearch() {
+            const overlay = document.getElementById('mobileSearchOverlay');
+            overlay.classList.toggle('hidden');
+            if (!overlay.classList.contains('hidden')) {
+                document.getElementById('mobileGlobalSearch').focus();
+            }
+        }
+
+        // Mobile menu event listeners
+        document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+        document.getElementById('mobileSearchBtn').addEventListener('click', toggleMobileSearch);
+        document.getElementById('closeMobileSearch').addEventListener('click', toggleMobileSearch);
+
+        // Mobile search functionality
+        document.getElementById('mobileGlobalSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.length > 2) {
+                performSearch(searchTerm);
+                toggleMobileSearch(); // Close search overlay
+                showSection('companies'); // Show companies section
+            }
+        });
+
+        // Touch gesture support for tab navigation
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function handleTabSwipe() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+            
+            if (Math.abs(swipeDistance) > swipeThreshold) {
+                const activeTab = document.querySelector('.tab-active');
+                if (activeTab) {
+                    const tabs = Array.from(activeTab.parentElement.children);
+                    const currentIndex = tabs.indexOf(activeTab);
+                    
+                    if (swipeDistance > 0 && currentIndex > 0) {
+                        // Swipe right - previous tab
+                        tabs[currentIndex - 1].click();
+                    } else if (swipeDistance < 0 && currentIndex < tabs.length - 1) {
+                        // Swipe left - next tab
+                        tabs[currentIndex + 1].click();
+                    }
+                }
+            }
+        }
+
+        // Add touch event listeners to modal content
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            if (document.getElementById('companyModal').classList.contains('hidden') === false ||
+                document.getElementById('personModal').classList.contains('hidden') === false) {
+                handleTabSwipe();
+            }
+        });
+
+        // Premium system functions
+        function checkPremiumAccess() {
+            if (!currentUser) return false;
+            return currentUser.customClaims?.premium === true || 
+                   localStorage.getItem(`premium_${currentUser.uid}`) === 'true';
+        }
+
+        function maskContactInfo(info, type = 'email') {
+            if (checkPremiumAccess()) return info;
+            
+            if (type === 'email') {
+                const [username, domain] = info.split('@');
+                return `${username.substring(0, 2)}***@${domain}`;
+            } else if (type === 'phone') {
+                return info.replace(/\d(?=\d{4})/g, '*');
+            } else {
+                return info.substring(0, 3) + '***';
+            }
+        }
+
+        function showPremiumUpgrade(feature) {
+            if (checkPremiumAccess()) return true;
+            
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl max-w-md w-full p-6 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-crown text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Premium Feature</h3>
+                    <p class="text-gray-600 mb-4">Unlock ${feature} and advanced analytics with BizIntel Pro Premium</p>
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Premium Features Include:</h4>
+                        <ul class="text-sm text-gray-700 space-y-1">
+                            <li>• Full contact information access</li>
+                            <li>• Advanced company analytics</li>
+                            <li>• Export data to CSV/PDF</li>
+                            <li>• Priority customer support</li>
+                            <li>• API access for integrations</li>
+                            <li>• Custom reports and insights</li>
+                        </ul>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="this.closest('.fixed').remove()" class="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">
+                            Maybe Later
+                        </button>
+                        <button onclick="upgradeToPremium()" class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700">
+                            Upgrade Now
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            return false;
+        }
+
+        function upgradeToPremium() {
+            if (!currentUser) {
+                alert('Please sign in first');
+                return;
+            }
+            
+            // Simulate premium upgrade (in real app, integrate with payment system)
+            if (confirm('Upgrade to Premium for $9.99/month? (Demo - will be activated immediately)')) {
+                localStorage.setItem(`premium_${currentUser.uid}`, 'true');
+                
+                // Update user in Firestore
+                db.collection('users').doc(currentUser.uid).set({
+                    premium: true,
+                    premiumSince: new Date().toISOString(),
+                    email: currentUser.email,
+                    name: currentUser.displayName
+                }, { merge: true });
+                
+                // Close modal and refresh
+                document.querySelector('.fixed.inset-0').remove();
+                alert('Welcome to BizIntel Pro Premium! 🎉');
+                location.reload();
+            }
+        }
+
         // Close modals when clicking outside
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('fixed')) {
                 if (e.target.id === 'companyModal') closeCompanyModal();
+                if (e.target.id === 'personModal') closePersonModal();
                 if (e.target.id === 'addCompanyModal') closeAddCompanyModal();
+                if (e.target.id === 'addPersonModal') closeAddPersonModal();
+                if (e.target.id === 'addInvestmentModal') closeAddInvestmentModal();
             }
         });
 
@@ -3351,9 +3670,12 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeCompanyModal();
+                closePersonModal();
                 closeAddCompanyModal();
+                closeAddPersonModal();
+                closeAddInvestmentModal();
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96fea10c74238531',t:'MTc1NTMyMzE2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96feb0ff30413acb',t:'MTc1NTMyMzgxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
