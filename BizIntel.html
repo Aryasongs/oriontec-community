@@ -584,7 +584,7 @@
         <div id="people" class="section hidden">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">People Directory</h2>
-                <button id="addPersonBtn" class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base w-full sm:w-auto">
+                <button id="addPersonBtn" onclick="handleAddPerson()" class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base w-full sm:w-auto">
                     <i class="fas fa-plus mr-2"></i>Add Person
                 </button>
             </div>
@@ -629,7 +629,7 @@
         <div id="companies" class="section hidden">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Companies Directory</h2>
-                <button id="addCompanyBtn" class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base w-full sm:w-auto">
+                <button id="addCompanyBtn" onclick="handleAddCompany()" class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base w-full sm:w-auto">
                     <i class="fas fa-plus mr-2"></i>Add Company
                 </button>
             </div>
@@ -2082,9 +2082,25 @@
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app...');
             initializeAuth();
             loadInitialData();
             setupEventListeners();
+            
+            // Debug: Check if buttons exist
+            setTimeout(() => {
+                const addCompanyBtn = document.getElementById('addCompanyBtn');
+                const addPersonBtn = document.getElementById('addPersonBtn');
+                console.log('Add Company Button:', addCompanyBtn);
+                console.log('Add Person Button:', addPersonBtn);
+                
+                if (!addCompanyBtn) {
+                    console.error('Add Company button not found!');
+                }
+                if (!addPersonBtn) {
+                    console.error('Add Person button not found!');
+                }
+            }, 1000);
         });
 
         // Authentication
@@ -3467,10 +3483,16 @@
         // Event Listeners
         function setupEventListeners() {
             // Add Company Button
-            document.getElementById('addCompanyBtn')?.addEventListener('click', showAddCompanyModal);
+            const addCompanyBtn = document.getElementById('addCompanyBtn');
+            if (addCompanyBtn) {
+                addCompanyBtn.addEventListener('click', showAddCompanyModal);
+            }
             
-            // Add Person Button
-            document.getElementById('addPersonBtn')?.addEventListener('click', showAddPersonModal);
+            // Add Person Button  
+            const addPersonBtn = document.getElementById('addPersonBtn');
+            if (addPersonBtn) {
+                addPersonBtn.addEventListener('click', showAddPersonModal);
+            }
             
             // Add Person Form
             document.getElementById('addPersonForm').addEventListener('submit', function(e) {
@@ -3724,6 +3746,17 @@
                     updateCompaniesGrid();
                 }
             });
+
+            // Direct button handlers as backup
+            window.handleAddCompany = function() {
+                console.log('Add Company clicked');
+                showAddCompanyModal();
+            };
+            
+            window.handleAddPerson = function() {
+                console.log('Add Person clicked');
+                showAddPersonModal();
+            };
 
 
 
@@ -3985,5 +4018,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96fecd0b34e948e3',t:'MTc1NTMyNDk2Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96fed53904323a39',t:'MTc1NTMyNTMwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
