@@ -1139,7 +1139,7 @@
                                         </button>
                                     </div>
                                     <p class="text-sm sm:text-lg text-gray-600 mb-1 sm:mb-2" id="modalPersonRole">Current Role</p>
-                                    <p class="text-sm sm:text-md text-blue-600 mb-2 sm:mb-3 cursor-pointer" id="modalPersonCompany" onclick="showPremiumUpgrade('company details')">Company Name</p>
+                                    <p class="text-sm sm:text-md text-blue-600 mb-2 sm:mb-3 cursor-pointer hover:text-blue-800 hover:underline" id="modalPersonCompany" onclick="openLinkedCompany()">Company Name</p>
                                     <div class="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
                                         <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm" id="modalPersonLocation">Location</span>
                                         <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm" id="modalPersonExperience">Experience</span>
@@ -1529,6 +1529,166 @@
             </div>
         </div>
 
+        <!-- Add Leader Modal -->
+        <div id="addLeaderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
+            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
+                <div class="bg-white rounded-xl max-w-2xl w-full">
+                    <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-xl">
+                        <h3 class="text-2xl font-bold text-gray-900">Add Team Member</h3>
+                        <button onclick="closeAddLeaderModal()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <form id="addLeaderForm" class="p-6 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                <input type="text" id="leaderName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Position/Title *</label>
+                                <input type="text" id="leaderPosition" required placeholder="e.g., CEO, CTO, VP Engineering" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" id="leaderEmail" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                <input type="date" id="leaderStartDate" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">End Date (for past leaders)</label>
+                                <input type="date" id="leaderEndDate" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Person Type</label>
+                                <select id="leaderPersonType" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                    <option value="Employee">Employee</option>
+                                    <option value="Founder">Founder</option>
+                                    <option value="Executive">Executive</option>
+                                    <option value="Manager">Manager</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bio/Description</label>
+                            <textarea id="leaderBio" rows="3" placeholder="Brief description of role and background" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-4 border-t">
+                            <button type="button" onclick="closeAddLeaderModal()" class="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add Leader</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Board Member Modal -->
+        <div id="addBoardMemberModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
+            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
+                <div class="bg-white rounded-xl max-w-2xl w-full">
+                    <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-xl">
+                        <h3 class="text-2xl font-bold text-gray-900">Add Board Member</h3>
+                        <button onclick="closeAddBoardMemberModal()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <form id="addBoardMemberForm" class="p-6 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                <input type="text" id="boardMemberName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Position *</label>
+                                <select id="boardMemberPosition" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Position</option>
+                                    <option value="Chairman">Chairman</option>
+                                    <option value="Chairwoman">Chairwoman</option>
+                                    <option value="Board Member">Board Member</option>
+                                    <option value="Independent Director">Independent Director</option>
+                                    <option value="Advisor">Advisor</option>
+                                    <option value="Observer">Observer</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Company/Organization</label>
+                                <input type="text" id="boardMemberCompany" placeholder="Current company or organization" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Appointment Date</label>
+                                <input type="date" id="boardMemberDate" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bio/Background</label>
+                            <textarea id="boardMemberBio" rows="3" placeholder="Professional background and expertise" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-4 border-t">
+                            <button type="button" onclick="closeAddBoardMemberModal()" class="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Add Board Member</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Acquisition Modal -->
+        <div id="addAcquisitionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
+            <div class="flex items-start justify-center min-h-screen p-4 pt-16">
+                <div class="bg-white rounded-xl max-w-2xl w-full">
+                    <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-xl">
+                        <h3 class="text-2xl font-bold text-gray-900">Add Acquisition</h3>
+                        <button onclick="closeAddAcquisitionModal()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <form id="addAcquisitionForm" class="p-6 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+                                <input type="text" id="acquisitionCompany" required placeholder="Name of acquired company" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Acquisition Amount *</label>
+                                <input type="text" id="acquisitionAmount" required placeholder="e.g., $2.6B, $218M, Undisclosed" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Acquisition Date *</label>
+                                <input type="date" id="acquisitionDate" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Acquisition Type</label>
+                                <select id="acquisitionType" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                    <option value="Full Acquisition">Full Acquisition</option>
+                                    <option value="Merger">Merger</option>
+                                    <option value="Asset Purchase">Asset Purchase</option>
+                                    <option value="Acqui-hire">Acqui-hire</option>
+                                    <option value="Strategic Investment">Strategic Investment</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                            <textarea id="acquisitionDescription" required rows="3" placeholder="Brief description of the acquired company and rationale" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Strategic Rationale</label>
+                            <textarea id="acquisitionRationale" rows="2" placeholder="Why this acquisition was made (optional)" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-4 border-t">
+                            <button type="button" onclick="closeAddAcquisitionModal()" class="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Add Acquisition</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <!-- Add Company Modal -->
         <div id="addCompanyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
             <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
@@ -1824,6 +1984,8 @@
         let currentCompany = null;
         let currentPerson = null;
         let fundingChart = null;
+        let currentLeaderType = 'current';
+        let currentEditingAcquisition = null;
 
         // Sample people data
         const samplePeople = [
@@ -2568,7 +2730,7 @@
                     <div class="flex-1 min-w-0">
                         <h3 class="text-lg font-semibold text-gray-900 truncate">${person.name}</h3>
                         <p class="text-gray-600 text-sm mb-1">${person.role}</p>
-                        <p class="text-blue-600 text-sm font-medium">${person.company}</p>
+                        <p class="text-blue-600 text-sm font-medium cursor-pointer hover:text-blue-800 hover:underline" onclick="event.stopPropagation(); openCompanyFromPersonCard('${person.companyId || ''}', '${person.company}')">${person.company}</p>
                     </div>
                 </div>
                 <p class="text-gray-600 text-sm mb-4 line-clamp-2">${person.bio || 'No bio available'}</p>
@@ -3020,8 +3182,29 @@
             if (company.founders && company.founders.length > 0) {
                 company.founders.forEach(founder => {
                     const founderElement = document.createElement('div');
-                    founderElement.className = 'text-sm text-gray-900';
-                    founderElement.textContent = founder;
+                    
+                    // Check if founder has a linked profile
+                    const linkedPerson = people.find(p => 
+                        p.name === founder || 
+                        p.name.toLowerCase() === founder.toLowerCase() ||
+                        (p.firstName && p.lastName && `${p.firstName} ${p.lastName}` === founder)
+                    );
+                    
+                    if (linkedPerson) {
+                        founderElement.className = 'text-sm text-blue-600 cursor-pointer hover:text-blue-800 hover:underline flex items-center';
+                        founderElement.innerHTML = `
+                            ${founder}
+                            <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                        `;
+                        founderElement.onclick = () => {
+                            closeCompanyModal();
+                            setTimeout(() => showPersonDetail(linkedPerson), 300);
+                        };
+                    } else {
+                        founderElement.className = 'text-sm text-gray-900';
+                        founderElement.textContent = founder;
+                    }
+                    
                     foundersContainer.appendChild(founderElement);
                 });
             } else {
@@ -3205,24 +3388,27 @@
                         const card = createLeaderCard(leader, true);
                         currentContainer.appendChild(card);
                     });
-                } else {
-                    currentContainer.innerHTML = '<p class="text-gray-500">No current leadership information available</p>';
                 }
-            } else {
-                currentContainer.innerHTML = '<p class="text-gray-500">No current leadership information available</p>';
             }
             
-            // Add team member button for company owners
-            if (currentUser && isUserAuthorizedToEdit(company)) {
+            // Add team member button for signed-in users
+            if (currentUser) {
                 const addButton = document.createElement('div');
                 addButton.className = 'p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50';
                 addButton.innerHTML = `
                     <i class="fas fa-plus text-gray-400 text-2xl mb-2"></i>
                     <p class="text-gray-600 font-medium">Add Team Member</p>
-                    <p class="text-gray-500 text-sm">Link existing person or create new</p>
+                    <p class="text-gray-500 text-sm">Add current leadership</p>
                 `;
-                addButton.onclick = () => showLinkPersonModal(company.id);
+                addButton.onclick = () => showAddLeaderModal(company.id, 'current');
                 currentContainer.appendChild(addButton);
+            }
+            
+            if (currentContainer.children.length === 1 && currentUser) {
+                const noDataMsg = document.createElement('p');
+                noDataMsg.className = 'text-gray-500 col-span-full text-center py-4';
+                noDataMsg.textContent = 'No current leadership information available';
+                currentContainer.insertBefore(noDataMsg, currentContainer.firstChild);
             }
             
             // Board members
@@ -3234,8 +3420,26 @@
                     const card = createLeaderCard(member, false);
                     boardContainer.appendChild(card);
                 });
-            } else {
-                boardContainer.innerHTML = '<p class="text-gray-500">No board members information available</p>';
+            }
+            
+            // Add board member button for signed-in users
+            if (currentUser) {
+                const addBoardButton = document.createElement('div');
+                addBoardButton.className = 'p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-green-400 hover:bg-green-50';
+                addBoardButton.innerHTML = `
+                    <i class="fas fa-plus text-gray-400 text-2xl mb-2"></i>
+                    <p class="text-gray-600 font-medium">Add Board Member</p>
+                    <p class="text-gray-500 text-sm">Add board member or advisor</p>
+                `;
+                addBoardButton.onclick = () => showAddBoardMemberModal(company.id);
+                boardContainer.appendChild(addBoardButton);
+            }
+            
+            if (boardContainer.children.length === 1 && currentUser) {
+                const noDataMsg = document.createElement('p');
+                noDataMsg.className = 'text-gray-500 col-span-full text-center py-4';
+                noDataMsg.textContent = 'No board members information available';
+                boardContainer.insertBefore(noDataMsg, boardContainer.firstChild);
             }
             
             // Past leadership
@@ -3249,11 +3453,27 @@
                         const card = createLeaderCard(leader, true);
                         pastContainer.appendChild(card);
                     });
-                } else {
-                    pastContainer.innerHTML = '<p class="text-gray-500">No past leadership information available</p>';
                 }
-            } else {
-                pastContainer.innerHTML = '<p class="text-gray-500">No past leadership information available</p>';
+            }
+            
+            // Add past leader button for signed-in users
+            if (currentUser) {
+                const addPastButton = document.createElement('div');
+                addPastButton.className = 'p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50';
+                addPastButton.innerHTML = `
+                    <i class="fas fa-plus text-gray-400 text-2xl mb-2"></i>
+                    <p class="text-gray-600 font-medium">Add Past Leader</p>
+                    <p class="text-gray-500 text-sm">Add former leadership</p>
+                `;
+                addPastButton.onclick = () => showAddLeaderModal(company.id, 'past');
+                pastContainer.appendChild(addPastButton);
+            }
+            
+            if (pastContainer.children.length === 1 && currentUser) {
+                const noDataMsg = document.createElement('p');
+                noDataMsg.className = 'text-gray-500 col-span-full text-center py-4';
+                noDataMsg.textContent = 'No past leadership information available';
+                pastContainer.insertBefore(noDataMsg, pastContainer.firstChild);
             }
         }
 
@@ -3308,6 +3528,80 @@
             }
         }
 
+        function openLinkedCompany() {
+            if (!currentPerson || !currentPerson.companyId) {
+                // Try to find company by name if no ID
+                const companyName = currentPerson?.company;
+                if (companyName) {
+                    const company = companies.find(c => c.name === companyName);
+                    if (company) {
+                        closePersonModal();
+                        setTimeout(() => showCompanyDetail(company), 300);
+                        return;
+                    }
+                }
+                alert('Company profile not found or not linked');
+                return;
+            }
+            
+            const company = companies.find(c => c.id === currentPerson.companyId);
+            if (company) {
+                closePersonModal();
+                setTimeout(() => showCompanyDetail(company), 300);
+            } else {
+                // Load company from database if not in local array
+                db.collection('companies').doc(currentPerson.companyId).get().then(doc => {
+                    if (doc.exists) {
+                        const companyData = { id: doc.id, ...doc.data() };
+                        closePersonModal();
+                        setTimeout(() => showCompanyDetail(companyData), 300);
+                    } else {
+                        alert('Company profile not found');
+                    }
+                }).catch(error => {
+                    console.error('Error loading company:', error);
+                    alert('Error loading company profile');
+                });
+            }
+        }
+
+        function openCompanyFromPersonCard(companyId, companyName) {
+            // First try to find by ID
+            if (companyId) {
+                const company = companies.find(c => c.id === companyId);
+                if (company) {
+                    showCompanyDetail(company);
+                    return;
+                }
+            }
+            
+            // Then try to find by name
+            if (companyName) {
+                const company = companies.find(c => c.name === companyName);
+                if (company) {
+                    showCompanyDetail(company);
+                    return;
+                }
+            }
+            
+            // If not found locally, try database
+            if (companyId) {
+                db.collection('companies').doc(companyId).get().then(doc => {
+                    if (doc.exists) {
+                        const companyData = { id: doc.id, ...doc.data() };
+                        showCompanyDetail(companyData);
+                    } else {
+                        alert('Company profile not found');
+                    }
+                }).catch(error => {
+                    console.error('Error loading company:', error);
+                    alert('Error loading company profile');
+                });
+            } else {
+                alert('Company profile not found or not linked');
+            }
+        }
+
         function updateAcquisitionsTab(company) {
             const acquiredContainer = document.getElementById('companiesAcquiredGrid');
             const detailsContainer = document.getElementById('acquisitionDetailsGrid');
@@ -3316,14 +3610,15 @@
             detailsContainer.innerHTML = '';
             
             if (company.acquisitions && company.acquisitions.length > 0) {
-                company.acquisitions.forEach(acquisition => {
+                company.acquisitions.forEach((acquisition, index) => {
                     // Company card
                     const companyCard = document.createElement('div');
-                    companyCard.className = 'p-4 bg-gray-50 rounded-lg';
+                    companyCard.className = 'p-4 bg-gray-50 rounded-lg relative';
                     companyCard.innerHTML = `
                         <h5 class="font-medium text-gray-900 mb-2">${acquisition.company}</h5>
                         <p class="text-sm text-gray-600 mb-2">${acquisition.description}</p>
                         <p class="text-xs text-gray-500">${acquisition.date}</p>
+                        ${currentUser ? `<button onclick="editAcquisition(${index})" class="absolute top-2 right-2 text-gray-400 hover:text-blue-600"><i class="fas fa-edit"></i></button>` : ''}
                     `;
                     acquiredContainer.appendChild(companyCard);
                     
@@ -3342,7 +3637,34 @@
                     `;
                     detailsContainer.appendChild(detailCard);
                 });
-            } else {
+            }
+            
+            // Add acquisition button for signed-in users
+            if (currentUser) {
+                const addAcquisitionButton = document.createElement('div');
+                addAcquisitionButton.className = 'p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50';
+                addAcquisitionButton.innerHTML = `
+                    <i class="fas fa-plus text-gray-400 text-2xl mb-2"></i>
+                    <p class="text-gray-600 font-medium">Add Acquisition</p>
+                    <p class="text-gray-500 text-sm">Add company acquisition</p>
+                `;
+                addAcquisitionButton.onclick = () => showAddAcquisitionModal(company.id);
+                acquiredContainer.appendChild(addAcquisitionButton);
+                
+                const addDetailButton = document.createElement('div');
+                addDetailButton.className = 'p-4 bg-purple-50 rounded-lg text-center';
+                addDetailButton.innerHTML = `
+                    <p class="text-sm text-purple-600 font-medium">Acquisition details will appear here when you add acquisitions</p>
+                `;
+                detailsContainer.appendChild(addDetailButton);
+            }
+            
+            if (acquiredContainer.children.length === 1 && currentUser) {
+                const noDataMsg = document.createElement('p');
+                noDataMsg.className = 'text-gray-500 col-span-full text-center py-4';
+                noDataMsg.textContent = 'No acquisitions available';
+                acquiredContainer.insertBefore(noDataMsg, acquiredContainer.firstChild);
+            } else if (!currentUser && (!company.acquisitions || company.acquisitions.length === 0)) {
                 acquiredContainer.innerHTML = '<p class="text-gray-500">No acquisitions available</p>';
                 detailsContainer.innerHTML = '<p class="text-gray-500">No acquisition details available</p>';
             }
@@ -3883,6 +4205,85 @@
             document.getElementById('addInvestmentForm').reset();
         }
 
+        // Leader Modal Functions
+        function showAddLeaderModal(companyId, leaderType = 'current') {
+            if (!currentUser) {
+                alert('Please sign in to add team members');
+                return;
+            }
+            currentLeaderType = leaderType;
+            document.getElementById('addLeaderModal').classList.remove('hidden');
+            
+            // Update modal title based on type
+            const title = leaderType === 'current' ? 'Add Team Member' : 'Add Past Leader';
+            document.querySelector('#addLeaderModal h3').textContent = title;
+            
+            // Show/hide end date field based on type
+            const endDateField = document.getElementById('leaderEndDate').parentElement;
+            if (leaderType === 'past') {
+                endDateField.style.display = 'block';
+            } else {
+                endDateField.style.display = 'none';
+            }
+        }
+
+        function closeAddLeaderModal() {
+            document.getElementById('addLeaderModal').classList.add('hidden');
+            document.getElementById('addLeaderForm').reset();
+        }
+
+        // Board Member Modal Functions
+        function showAddBoardMemberModal(companyId) {
+            if (!currentUser) {
+                alert('Please sign in to add board members');
+                return;
+            }
+            document.getElementById('addBoardMemberModal').classList.remove('hidden');
+        }
+
+        function closeAddBoardMemberModal() {
+            document.getElementById('addBoardMemberModal').classList.add('hidden');
+            document.getElementById('addBoardMemberForm').reset();
+        }
+
+        // Acquisition Modal Functions
+        function showAddAcquisitionModal(companyId) {
+            if (!currentUser) {
+                alert('Please sign in to add acquisitions');
+                return;
+            }
+            currentEditingAcquisition = null;
+            document.getElementById('addAcquisitionModal').classList.remove('hidden');
+            document.querySelector('#addAcquisitionModal h3').textContent = 'Add Acquisition';
+            document.querySelector('#addAcquisitionForm button[type="submit"]').textContent = 'Add Acquisition';
+        }
+
+        function closeAddAcquisitionModal() {
+            document.getElementById('addAcquisitionModal').classList.add('hidden');
+            document.getElementById('addAcquisitionForm').reset();
+            currentEditingAcquisition = null;
+        }
+
+        function editAcquisition(index) {
+            if (!currentUser || !currentCompany) return;
+            
+            const acquisition = currentCompany.acquisitions[index];
+            currentEditingAcquisition = index;
+            
+            // Populate form
+            document.getElementById('acquisitionCompany').value = acquisition.company;
+            document.getElementById('acquisitionAmount').value = acquisition.amount;
+            document.getElementById('acquisitionDate').value = acquisition.date;
+            document.getElementById('acquisitionType').value = acquisition.type || 'Full Acquisition';
+            document.getElementById('acquisitionDescription').value = acquisition.description;
+            document.getElementById('acquisitionRationale').value = acquisition.rationale || '';
+            
+            // Update modal
+            document.querySelector('#addAcquisitionModal h3').textContent = 'Edit Acquisition';
+            document.querySelector('#addAcquisitionForm button[type="submit"]').textContent = 'Update Acquisition';
+            document.getElementById('addAcquisitionModal').classList.remove('hidden');
+        }
+
         function showAddCompanyModal() {
             if (!currentUser) {
                 alert('Please sign in with Google to add companies');
@@ -4138,6 +4539,124 @@
                 }).catch(error => {
                     console.error('Error adding investment:', error);
                     alert('Error adding investment: ' + error.message);
+                });
+            });
+
+            // Add Leader Form
+            document.getElementById('addLeaderForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!currentUser || !currentCompany) {
+                    alert('Please sign in and select a company');
+                    return;
+                }
+                
+                const leaderData = {
+                    name: document.getElementById('leaderName').value,
+                    position: document.getElementById('leaderPosition').value,
+                    email: document.getElementById('leaderEmail').value,
+                    startDate: document.getElementById('leaderStartDate').value,
+                    endDate: document.getElementById('leaderEndDate').value,
+                    personType: document.getElementById('leaderPersonType').value,
+                    bio: document.getElementById('leaderBio').value,
+                    type: currentLeaderType,
+                    addedAt: new Date().toISOString()
+                };
+                
+                const updatedLeadership = [...(currentCompany.leadership || []), leaderData];
+                
+                db.collection('companies').doc(currentCompany.id).update({
+                    leadership: updatedLeadership,
+                    lastUpdated: new Date().toISOString()
+                }).then(() => {
+                    alert('Team member added successfully!');
+                    closeAddLeaderModal();
+                    // Refresh the leadership tab
+                    currentCompany.leadership = updatedLeadership;
+                    updateLeadershipTab(currentCompany);
+                }).catch(error => {
+                    console.error('Error adding leader:', error);
+                    alert('Error adding team member: ' + error.message);
+                });
+            });
+
+            // Add Board Member Form
+            document.getElementById('addBoardMemberForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!currentUser || !currentCompany) {
+                    alert('Please sign in and select a company');
+                    return;
+                }
+                
+                const boardMemberData = {
+                    name: document.getElementById('boardMemberName').value,
+                    position: document.getElementById('boardMemberPosition').value,
+                    company: document.getElementById('boardMemberCompany').value,
+                    appointmentDate: document.getElementById('boardMemberDate').value,
+                    bio: document.getElementById('boardMemberBio').value,
+                    addedAt: new Date().toISOString()
+                };
+                
+                const updatedBoardMembers = [...(currentCompany.boardMembers || []), boardMemberData];
+                
+                db.collection('companies').doc(currentCompany.id).update({
+                    boardMembers: updatedBoardMembers,
+                    lastUpdated: new Date().toISOString()
+                }).then(() => {
+                    alert('Board member added successfully!');
+                    closeAddBoardMemberModal();
+                    // Refresh the leadership tab
+                    currentCompany.boardMembers = updatedBoardMembers;
+                    updateLeadershipTab(currentCompany);
+                }).catch(error => {
+                    console.error('Error adding board member:', error);
+                    alert('Error adding board member: ' + error.message);
+                });
+            });
+
+            // Add Acquisition Form
+            document.getElementById('addAcquisitionForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!currentUser || !currentCompany) {
+                    alert('Please sign in and select a company');
+                    return;
+                }
+                
+                const acquisitionData = {
+                    company: document.getElementById('acquisitionCompany').value,
+                    amount: document.getElementById('acquisitionAmount').value,
+                    date: document.getElementById('acquisitionDate').value,
+                    type: document.getElementById('acquisitionType').value,
+                    description: document.getElementById('acquisitionDescription').value,
+                    rationale: document.getElementById('acquisitionRationale').value,
+                    addedAt: new Date().toISOString()
+                };
+                
+                let updatedAcquisitions = [...(currentCompany.acquisitions || [])];
+                
+                if (currentEditingAcquisition !== null) {
+                    // Update existing acquisition
+                    updatedAcquisitions[currentEditingAcquisition] = acquisitionData;
+                } else {
+                    // Add new acquisition
+                    updatedAcquisitions.push(acquisitionData);
+                }
+                
+                db.collection('companies').doc(currentCompany.id).update({
+                    acquisitions: updatedAcquisitions,
+                    lastUpdated: new Date().toISOString()
+                }).then(() => {
+                    const action = currentEditingAcquisition !== null ? 'updated' : 'added';
+                    alert(`Acquisition ${action} successfully!`);
+                    closeAddAcquisitionModal();
+                    // Refresh the acquisitions tab
+                    currentCompany.acquisitions = updatedAcquisitions;
+                    updateAcquisitionsTab(currentCompany);
+                }).catch(error => {
+                    console.error('Error saving acquisition:', error);
+                    alert('Error saving acquisition: ' + error.message);
                 });
             });
 
@@ -4547,6 +5066,9 @@
                 if (e.target.id === 'addPersonModal') closeAddPersonModal();
                 if (e.target.id === 'addInvestmentModal') closeAddInvestmentModal();
                 if (e.target.id === 'linkPersonModal') closeLinkPersonModal();
+                if (e.target.id === 'addLeaderModal') closeAddLeaderModal();
+                if (e.target.id === 'addBoardMemberModal') closeAddBoardMemberModal();
+                if (e.target.id === 'addAcquisitionModal') closeAddAcquisitionModal();
             }
         });
 
@@ -4559,8 +5081,11 @@
                 closeAddPersonModal();
                 closeAddInvestmentModal();
                 closeLinkPersonModal();
+                closeAddLeaderModal();
+                closeAddBoardMemberModal();
+                closeAddAcquisitionModal();
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96fefc9706f547cd',t:'MTc1NTMyNjkxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ff114c94ea5518',t:'MTc1NTMyNzc2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
