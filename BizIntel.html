@@ -49,6 +49,7 @@
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('dashboard')">Dashboard</a>
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('companies')">Companies</a>
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('people')">People</a>
+                            <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium" onclick="showSection('jobs')">Jobs</a>
                             <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium relative" onclick="showSection('investors')">
                                 Investors
                                 <span class="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs px-1 rounded-full">PRO</span>
@@ -103,6 +104,9 @@
                 </a>
                 <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50" onclick="showSection('people'); toggleMobileMenu()">
                     <i class="fas fa-users mr-3"></i>People
+                </a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50" onclick="showSection('jobs'); toggleMobileMenu()">
+                    <i class="fas fa-briefcase mr-3"></i>Jobs
                 </a>
                 <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 relative" onclick="showSection('investors'); toggleMobileMenu()">
                     <i class="fas fa-handshake mr-3"></i>Investors
@@ -625,6 +629,112 @@
             </div>
         </div>
 
+        <!-- Jobs Section -->
+        <div id="jobs" class="section hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Job Opportunities</h2>
+                    <p class="text-gray-600 mt-1">Discover career opportunities at top companies</p>
+                </div>
+                <button id="postJobBtn" onclick="handlePostJob()" class="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base w-full sm:w-auto hidden">
+                    <i class="fas fa-plus mr-2"></i>Post Job
+                </button>
+            </div>
+
+            <!-- Job Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-2 sm:p-3 rounded-full bg-green-100">
+                            <i class="fas fa-briefcase text-green-600 text-lg sm:text-xl"></i>
+                        </div>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Active Jobs</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900" id="activeJobsCount">0</p>
+                            <p class="text-xs text-green-600">+15% this week</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-2 sm:p-3 rounded-full bg-blue-100">
+                            <i class="fas fa-users text-blue-600 text-lg sm:text-xl"></i>
+                        </div>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Total Applications</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900" id="totalApplicationsCount">0</p>
+                            <p class="text-xs text-blue-600">+22% this month</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-2 sm:p-3 rounded-full bg-purple-100">
+                            <i class="fas fa-building text-purple-600 text-lg sm:text-xl"></i>
+                        </div>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Hiring Companies</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900" id="hiringCompaniesCount">0</p>
+                            <p class="text-xs text-purple-600">+8% this quarter</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-2 sm:p-3 rounded-full bg-orange-100">
+                            <i class="fas fa-chart-line text-orange-600 text-lg sm:text-xl"></i>
+                        </div>
+                        <div class="ml-3 sm:ml-4">
+                            <p class="text-xs sm:text-sm font-medium text-gray-600">Avg. Salary</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900" id="avgSalary">$0</p>
+                            <p class="text-xs text-orange-600">+12% YoY</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Filters -->
+            <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+                    <select id="jobTypeFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Job Types</option>
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Internship">Internship</option>
+                        <option value="Remote">Remote</option>
+                    </select>
+                    <select id="jobLocationFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Locations</option>
+                        <option value="Remote">Remote</option>
+                        <option value="San Francisco">San Francisco</option>
+                        <option value="New York">New York</option>
+                        <option value="London">London</option>
+                        <option value="Austin">Austin</option>
+                        <option value="Berlin">Berlin</option>
+                    </select>
+                    <select id="jobExperienceFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Experience</option>
+                        <option value="Entry Level">Entry Level</option>
+                        <option value="Mid Level">Mid Level</option>
+                        <option value="Senior Level">Senior Level</option>
+                        <option value="Executive">Executive</option>
+                    </select>
+                    <select id="jobCompanyFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Companies</option>
+                    </select>
+                    <button onclick="applyJobFilters()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-filter mr-2"></i>Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Jobs Grid -->
+            <div id="jobsGrid" class="space-y-4">
+                <!-- Jobs will be loaded here -->
+            </div>
+        </div>
+
         <!-- Companies Section -->
         <div id="companies" class="section hidden">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
@@ -737,6 +847,7 @@
                             <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showTab('news')">News & Press</button>
                             <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showTab('competitors')">Competitors</button>
                             <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showTab('events')">Events & Milestones</button>
+                            <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showTab('jobs')">Jobs</button>
                             <button class="py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm whitespace-nowrap" onclick="showTab('contact')">Contact Info</button>
                         </nav>
                     </div>
@@ -1032,6 +1143,19 @@
                             <h4 class="text-xl font-semibold text-gray-900 mb-4">Company Timeline</h4>
                             <div id="timelineGrid" class="relative pl-8">
                                 <!-- Timeline will be populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Jobs Tab -->
+                        <div id="jobsTab" class="tab-content hidden">
+                            <div class="flex justify-between items-center mb-6">
+                                <h4 class="text-xl font-semibold text-gray-900">Open Positions</h4>
+                                <button id="postJobForCompanyBtn" onclick="postJobForCompany()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm hidden">
+                                    <i class="fas fa-plus mr-2"></i>Post Job
+                                </button>
+                            </div>
+                            <div id="companyJobsGrid" class="space-y-4">
+                                <!-- Company jobs will be populated here -->
                             </div>
                         </div>
 
@@ -1689,6 +1813,292 @@
             </div>
         </div>
 
+        <!-- Post Job Modal -->
+        <div id="postJobModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
+                    <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center rounded-t-xl">
+                        <h3 class="text-lg sm:text-2xl font-bold text-gray-900">Post New Job</h3>
+                        <button onclick="closePostJobModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                            <i class="fas fa-times text-lg sm:text-xl"></i>
+                        </button>
+                    </div>
+                    <form id="postJobForm" class="p-4 sm:p-6 space-y-4 sm:space-y-6">
+                        <!-- Job Basic Information -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Job Information</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
+                                    <input type="text" id="jobTitle" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Company *</label>
+                                    <select id="jobCompany" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select Company</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                                    <select id="jobDepartment" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select Department</option>
+                                        <option value="Engineering">Engineering</option>
+                                        <option value="Product">Product</option>
+                                        <option value="Design">Design</option>
+                                        <option value="Marketing">Marketing</option>
+                                        <option value="Sales">Sales</option>
+                                        <option value="Operations">Operations</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="HR">Human Resources</option>
+                                        <option value="Legal">Legal</option>
+                                        <option value="Customer Success">Customer Success</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Type *</label>
+                                    <select id="jobType" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select Type</option>
+                                        <option value="Full-time">Full-time</option>
+                                        <option value="Part-time">Part-time</option>
+                                        <option value="Contract">Contract</option>
+                                        <option value="Internship">Internship</option>
+                                        <option value="Remote">Remote</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Experience Level *</label>
+                                    <select id="jobExperience" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select Level</option>
+                                        <option value="Entry Level">Entry Level (0-2 years)</option>
+                                        <option value="Mid Level">Mid Level (3-5 years)</option>
+                                        <option value="Senior Level">Senior Level (6+ years)</option>
+                                        <option value="Executive">Executive Level</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                                    <input type="text" id="jobLocation" required placeholder="e.g., San Francisco, CA or Remote" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Salary Range</label>
+                                    <input type="text" id="jobSalary" placeholder="e.g., $80,000 - $120,000" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Job Description *</label>
+                                    <textarea id="jobDescription" required rows="6" placeholder="Describe the role, responsibilities, and what you're looking for..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Requirements</label>
+                                    <textarea id="jobRequirements" rows="4" placeholder="List the required skills, experience, and qualifications..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Benefits</label>
+                                    <textarea id="jobBenefits" rows="3" placeholder="Health insurance, 401k, flexible hours, etc..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Application Deadline</label>
+                                    <input type="date" id="jobDeadline" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+                                    <input type="email" id="jobContactEmail" placeholder="hr@company.com" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-4 border-t">
+                            <button type="button" onclick="closePostJobModal()" class="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Post Job</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Detail Modal -->
+        <div id="jobDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
+                    <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center rounded-t-xl">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-lg sm:text-2xl font-bold text-gray-900 truncate" id="modalJobTitle">Job Title</h3>
+                            <p class="text-sm sm:text-base text-blue-600 cursor-pointer hover:text-blue-800" id="modalJobCompany">Company Name</p>
+                        </div>
+                        <button onclick="closeJobDetailModal()" class="text-gray-400 hover:text-gray-600 p-1 flex-shrink-0">
+                            <i class="fas fa-times text-lg sm:text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2">
+                                <div class="mb-6">
+                                    <div class="flex flex-wrap gap-2 mb-4">
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm" id="modalJobType">Job Type</span>
+                                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm" id="modalJobExperience">Experience</span>
+                                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm" id="modalJobLocation">Location</span>
+                                        <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm" id="modalJobDepartment">Department</span>
+                                    </div>
+                                    <div class="mb-4">
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Job Description</h4>
+                                        <div class="text-gray-700 whitespace-pre-line" id="modalJobDescription">Job description will appear here...</div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Requirements</h4>
+                                        <div class="text-gray-700 whitespace-pre-line" id="modalJobRequirements">Requirements will appear here...</div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Benefits</h4>
+                                        <div class="text-gray-700 whitespace-pre-line" id="modalJobBenefits">Benefits will appear here...</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                                    <h4 class="font-semibold text-gray-900 mb-3">Job Details</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Salary:</span>
+                                            <span class="font-medium" id="modalJobSalary">Not specified</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Posted:</span>
+                                            <span class="font-medium" id="modalJobPosted">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Deadline:</span>
+                                            <span class="font-medium" id="modalJobDeadline">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Applications:</span>
+                                            <span class="font-medium" id="modalJobApplications">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <button id="applyJobBtn" onclick="applyForJob()" class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 font-medium">
+                                        <i class="fas fa-paper-plane mr-2"></i>Apply Now
+                                    </button>
+                                    <button onclick="saveJob()" class="w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+                                        <i class="fas fa-bookmark mr-2"></i>Save Job
+                                    </button>
+                                    <button onclick="shareJob()" class="w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+                                        <i class="fas fa-share mr-2"></i>Share Job
+                                    </button>
+                                </div>
+                                
+                                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                                    <h5 class="font-semibold text-blue-900 mb-2">Premium Features</h5>
+                                    <ul class="text-sm text-blue-800 space-y-1">
+                                        <li>• Priority application review</li>
+                                        <li>• Direct contact with hiring manager</li>
+                                        <li>• Application status tracking</li>
+                                        <li>• Interview preparation resources</li>
+                                        <li>• Salary negotiation guidance</li>
+                                        <li>• Resume optimization tips</li>
+                                        <li>• Company insider insights</li>
+                                    </ul>
+                                    <button onclick="showPremiumUpgrade('premium job features')" class="w-full mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                                        <i class="fas fa-crown mr-2"></i>Upgrade to Premium
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Application Modal -->
+        <div id="jobApplicationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
+            <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
+                <div class="bg-white rounded-xl max-w-2xl w-full max-h-screen overflow-y-auto mx-2 sm:mx-0">
+                    <div class="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center rounded-t-xl">
+                        <h3 class="text-lg sm:text-xl font-bold text-gray-900">Apply for Job</h3>
+                        <button onclick="closeJobApplicationModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+                    <form id="jobApplicationForm" class="p-4 sm:p-6 space-y-4">
+                        <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                            <h4 class="font-semibold text-blue-900 mb-1" id="applicationJobTitle">Job Title</h4>
+                            <p class="text-blue-700 text-sm" id="applicationCompanyName">Company Name</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                <input type="text" id="applicantName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                <input type="email" id="applicantEmail" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                <input type="tel" id="applicantPhone" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">LinkedIn Profile</label>
+                                <input type="url" id="applicantLinkedIn" placeholder="https://linkedin.com/in/..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cover Letter *</label>
+                            <textarea id="applicantCoverLetter" required rows="6" placeholder="Tell us why you're interested in this role and what makes you a great fit..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Resume/CV *</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                <i class="fas fa-cloud-upload-alt text-gray-400 text-3xl mb-2"></i>
+                                <p class="text-gray-600 mb-2">Upload your resume (PDF, DOC, DOCX)</p>
+                                <input type="file" id="applicantResume" accept=".pdf,.doc,.docx" class="hidden">
+                                <button type="button" onclick="document.getElementById('applicantResume').click()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                    Choose File
+                                </button>
+                                <p class="text-xs text-gray-500 mt-2">Max file size: 5MB</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
+                            <select id="applicantExperience" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Experience</option>
+                                <option value="0-1">0-1 years</option>
+                                <option value="2-3">2-3 years</option>
+                                <option value="4-6">4-6 years</option>
+                                <option value="7-10">7-10 years</option>
+                                <option value="10+">10+ years</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Expected Salary</label>
+                            <input type="text" id="applicantSalary" placeholder="e.g., $80,000 - $100,000" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Availability</label>
+                            <select id="applicantAvailability" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Availability</option>
+                                <option value="Immediately">Immediately</option>
+                                <option value="2 weeks">2 weeks notice</option>
+                                <option value="1 month">1 month notice</option>
+                                <option value="2-3 months">2-3 months</option>
+                            </select>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-4 border-t">
+                            <button type="button" onclick="closeJobApplicationModal()" class="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Submit Application</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <!-- Add Company Modal -->
         <div id="addCompanyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
             <div class="flex items-start justify-center min-h-screen p-2 sm:p-4 pt-4 sm:pt-16">
@@ -1987,8 +2397,72 @@
         let currentLeaderType = 'current';
         let currentEditingAcquisition = null;
 
+        // Global variables for jobs
+        let jobs = [];
+        let currentJob = null;
+
         // Sample people data
         const samplePeople = [
+            {
+                id: 'gursharn-arya',
+                name: 'Gursharn Arya',
+                firstName: 'Gursharn',
+                lastName: 'Arya',
+                email: 'gursharn@dozeragroup.com',
+                role: 'Chairman & Founder',
+                company: 'Dozera Group',
+                companyId: 'dozera-group',
+                location: 'San Francisco, California, USA',
+                type: 'Founder',
+                experience: '10+',
+                profileType: 'Individual Investor',
+                gender: 'Male',
+                profileUrl: 'gursharn-arya',
+                views: 45230,
+                edits: 289,
+                activityScore: 100,
+                lastUpdated: '2024-01-15',
+                bio: 'Visionary entrepreneur and business magnate. Chairman & Founder of Dozera Group, overseeing 100+ companies across technology, finance, healthcare, and emerging markets. Pioneer in AI, blockchain, and sustainable technology solutions.',
+                skills: ['Strategic Leadership', 'Corporate Development', 'Investment Strategy', 'Technology Innovation', 'Global Expansion', 'Mergers & Acquisitions', 'Venture Capital', 'Digital Transformation'],
+                responsibilities: [
+                    'Leading Dozera Group\'s global expansion across 50+ countries',
+                    'Strategic oversight of 100+ portfolio companies',
+                    'Investment decisions for $50B+ in assets under management',
+                    'Innovation strategy for emerging technologies',
+                    'Board leadership across multiple industries',
+                    'Sustainable business development initiatives'
+                ],
+                yearsExperience: 25,
+                companiesWorked: 8,
+                notableProjects: 45,
+                workExperience: [
+                    { company: 'Dozera Group', role: 'Chairman & Founder', duration: '2010 - Present', description: 'Built global conglomerate with 100+ companies' },
+                    { company: 'Oriontec', role: 'Founder & CEO', duration: '2008 - Present', description: 'Leading technology innovation company' },
+                    { company: 'Cereus Pay', role: 'Co-founder', duration: '2015 - Present', description: 'Revolutionary payment solutions platform' },
+                    { company: 'TechVentures Inc', role: 'Managing Partner', duration: '2005 - 2010', description: 'Early-stage technology investments' }
+                ],
+                education: [
+                    { institution: 'Stanford University', degree: 'MBA in Business Administration', year: '2005' },
+                    { institution: 'MIT', degree: 'MS in Computer Science', year: '2003' },
+                    { institution: 'UC Berkeley', degree: 'BS in Electrical Engineering', year: '2001' }
+                ],
+                awards: [
+                    { title: 'Global Entrepreneur of the Year', year: '2023', description: 'For building the world\'s largest technology conglomerate' },
+                    { title: 'Forbes Billionaire List', year: '2022', description: 'Recognized among top 50 global billionaires' },
+                    { title: 'Time 100 Most Influential People', year: '2021', description: 'For transformative impact on global technology' },
+                    { title: 'Innovation Leadership Award', year: '2020', description: 'For advancing AI and blockchain technologies' }
+                ],
+                mediaMentions: [
+                    { title: 'Dozera Group Announces $10B AI Investment Fund', source: 'Wall Street Journal', date: '2024-01-10' },
+                    { title: 'The Visionary Behind 100+ Companies', source: 'Forbes', date: '2023-12-15' },
+                    { title: 'Gursharn Arya: Building the Future of Technology', source: 'TechCrunch', date: '2023-11-20' }
+                ],
+                social: {
+                    linkedin: 'https://linkedin.com/in/gursharn-arya',
+                    twitter: 'https://twitter.com/gursharnarya'
+                },
+                createdAt: '2023-01-01'
+            },
             {
                 id: 'elon-musk',
                 name: 'Elon Musk',
@@ -2132,6 +2606,170 @@
 
         // Sample data for testing
         const sampleCompanies = [
+            {
+                id: 'dozera-group',
+                name: 'Dozera Group',
+                legalName: 'Dozera Group Holdings Inc.',
+                tagline: 'Building the future through innovation and strategic investments',
+                description: 'Dozera Group is a global conglomerate and investment holding company that owns and operates over 100 companies across technology, finance, healthcare, energy, and emerging markets. Founded by visionary entrepreneur Gursharn Arya, the group has become one of the world\'s largest and most diversified business empires.',
+                fullDescription: 'Dozera Group stands as a testament to visionary leadership and strategic innovation. Founded in 2010 by Chairman Gursharn Arya, the company has grown from a small technology startup to a global conglomerate managing over $50 billion in assets across 100+ portfolio companies. Our diverse portfolio spans cutting-edge technology companies like Oriontec and Cereus Pay, to traditional industries transformed through digital innovation. We are committed to sustainable growth, technological advancement, and creating value for stakeholders worldwide. Our companies operate in over 50 countries, employing more than 500,000 people globally.',
+                industry: 'Conglomerate',
+                founded: 2010,
+                employees: '1000+',
+                location: 'San Francisco, California, USA',
+                website: 'https://dozeragroup.com',
+                type: 'Private',
+                status: 'Active',
+                rank: '#1',
+                email: 'info@dozeragroup.com',
+                phone: '+1-415-555-0100',
+                address: '1 Dozera Plaza, San Francisco, CA 94105, USA',
+                investorEmail: 'investors@dozeragroup.com',
+                operatingStatus: 'Active',
+                alternateNames: ['Dozera Holdings', 'Dozera Group Inc'],
+                founders: ['Gursharn Arya'],
+                profileUrl: 'dozera-group',
+                profileType: 'Company',
+                views: 89420,
+                edits: 156,
+                activityScore: 100,
+                lastUpdated: '2024-01-15',
+                diversitySpotlight: ['Global Innovation', 'Sustainable Technology', 'Digital Transformation'],
+                headquarters: {
+                    address: '1 Dozera Plaza, San Francisco, CA 94105, USA',
+                    coordinates: { lat: 37.7749, lng: -122.4194 },
+                    mapUrl: 'https://maps.google.com/?q=1+Dozera+Plaza,+San+Francisco,+CA+94105'
+                },
+                fundingRounds: [
+                    { round: 'Private Equity', amount: '$25B', date: '2023-06-15', leadInvestors: 'Self-funded', valuation: '$150B' },
+                    { round: 'Series D', amount: '$10B', date: '2020-03-20', leadInvestors: 'Sovereign Wealth Funds', valuation: '$75B' },
+                    { round: 'Series C', amount: '$5B', date: '2018-01-10', leadInvestors: 'Global Investment Partners', valuation: '$35B' }
+                ],
+                totalFunding: '$40B',
+                latestValuation: '$150B',
+                leadership: [
+                    { name: 'Gursharn Arya', position: 'Chairman & Founder', type: 'current', personId: 'gursharn-arya' },
+                    { name: 'Sarah Chen', position: 'CEO', type: 'current' },
+                    { name: 'Michael Rodriguez', position: 'CFO', type: 'current' },
+                    { name: 'Dr. Priya Patel', position: 'CTO', type: 'current' }
+                ],
+                boardMembers: [
+                    { name: 'Gursharn Arya', position: 'Chairman' },
+                    { name: 'Jennifer Walsh', position: 'Independent Director' },
+                    { name: 'Robert Kim', position: 'Board Member' }
+                ],
+                acquisitions: [
+                    { company: 'TechFlow Solutions', amount: '$2.8B', date: '2023-11-15', description: 'AI-powered workflow automation platform', type: 'Full Acquisition' },
+                    { company: 'GreenEnergy Corp', amount: '$1.5B', date: '2023-08-22', description: 'Renewable energy technology company', type: 'Full Acquisition' },
+                    { company: 'DataVault Systems', amount: '$950M', date: '2023-05-10', description: 'Enterprise data security solutions', type: 'Full Acquisition' }
+                ],
+                subsidiaries: [
+                    'Oriontec', 'Cereus Pay', 'Apple Inc', 'Google LLC', 'Samsung Electronics', 'Microsoft Corporation',
+                    'Amazon.com Inc', 'Meta Platforms', 'Netflix Inc', 'Adobe Inc', 'Salesforce Inc', 'Oracle Corporation',
+                    'IBM Corporation', 'Intel Corporation', 'NVIDIA Corporation', 'Cisco Systems', 'VMware Inc',
+                    'ServiceNow Inc', 'Workday Inc', 'Zoom Video Communications'
+                ],
+                social: {
+                    linkedin: 'https://linkedin.com/company/dozera-group',
+                    twitter: 'https://twitter.com/dozeragroup',
+                    facebook: 'https://facebook.com/dozeragroup'
+                }
+            },
+            {
+                id: 'oriontec',
+                name: 'Oriontec',
+                legalName: 'Oriontec Technologies Inc.',
+                tagline: 'Pioneering the next generation of technology solutions',
+                description: 'Oriontec is a leading technology innovation company and subsidiary of Dozera Group, specializing in artificial intelligence, quantum computing, and advanced software solutions. We develop cutting-edge technologies that power the digital transformation of businesses worldwide.',
+                industry: 'Technology',
+                founded: 2008,
+                employees: '201-1000',
+                location: 'San Francisco, California, USA',
+                website: 'https://oriontec.com',
+                type: 'Private',
+                status: 'Active',
+                rank: '#2',
+                parentCompany: 'Dozera Group',
+                profileUrl: 'oriontec',
+                social: {
+                    linkedin: 'https://linkedin.com/company/oriontec',
+                    twitter: 'https://twitter.com/oriontec'
+                }
+            },
+            {
+                id: 'cereus-pay',
+                name: 'Cereus Pay',
+                legalName: 'Cereus Payment Solutions Inc.',
+                tagline: 'Revolutionary payment solutions for the digital economy',
+                description: 'Cereus Pay is a fintech subsidiary of Dozera Group, providing innovative payment processing, digital wallets, and blockchain-based financial services to businesses and consumers globally.',
+                industry: 'Fintech',
+                founded: 2015,
+                employees: '51-200',
+                location: 'New York, New York, USA',
+                website: 'https://cereuspay.com',
+                type: 'Private',
+                status: 'Active',
+                rank: '#3',
+                parentCompany: 'Dozera Group',
+                profileUrl: 'cereus-pay',
+                social: {
+                    linkedin: 'https://linkedin.com/company/cereus-pay',
+                    twitter: 'https://twitter.com/cereuspay'
+                }
+            },
+            {
+                id: 'apple-inc-dozera',
+                name: 'Apple Inc',
+                legalName: 'Apple Inc.',
+                tagline: 'Think Different - Innovation in every product',
+                description: 'Apple Inc. is a multinational technology company and subsidiary of Dozera Group, designing and manufacturing consumer electronics, software, and online services. Known for revolutionary products like iPhone, iPad, Mac, and innovative services.',
+                industry: 'Technology',
+                founded: 1976,
+                employees: '1000+',
+                location: 'Cupertino, California, USA',
+                website: 'https://apple.com',
+                type: 'Public',
+                status: 'Active',
+                rank: '#4',
+                parentCompany: 'Dozera Group',
+                stockSymbol: 'NASDAQ:AAPL',
+                profileUrl: 'apple-inc-dozera'
+            },
+            {
+                id: 'google-llc-dozera',
+                name: 'Google LLC',
+                legalName: 'Google LLC',
+                tagline: 'Organize the world\'s information and make it universally accessible',
+                description: 'Google LLC is a multinational technology company and subsidiary of Dozera Group, specializing in Internet-related services and products including search engines, cloud computing, and advertising technologies.',
+                industry: 'Technology',
+                founded: 1998,
+                employees: '1000+',
+                location: 'Mountain View, California, USA',
+                website: 'https://google.com',
+                type: 'Public',
+                status: 'Active',
+                rank: '#5',
+                parentCompany: 'Dozera Group',
+                stockSymbol: 'NASDAQ:GOOGL',
+                profileUrl: 'google-llc-dozera'
+            },
+            {
+                id: 'samsung-electronics-dozera',
+                name: 'Samsung Electronics',
+                legalName: 'Samsung Electronics Co., Ltd.',
+                tagline: 'Inspire the world, create the future',
+                description: 'Samsung Electronics is a multinational electronics company and subsidiary of Dozera Group, manufacturing a wide variety of consumer and industry electronics including smartphones, semiconductors, and home appliances.',
+                industry: 'Electronics',
+                founded: 1969,
+                employees: '1000+',
+                location: 'Seoul, South Korea',
+                website: 'https://samsung.com',
+                type: 'Public',
+                status: 'Active',
+                rank: '#6',
+                parentCompany: 'Dozera Group',
+                profileUrl: 'samsung-electronics-dozera'
+            },
             {
                 id: 'tesla-motors',
                 name: 'Tesla Motors',
@@ -2419,6 +3057,67 @@
             }
         ];
 
+        // Sample jobs data
+        const sampleJobs = [
+            {
+                id: 'job-1',
+                title: 'Senior Software Engineer',
+                company: 'Dozera Group',
+                companyId: 'dozera-group',
+                department: 'Engineering',
+                type: 'Full-time',
+                experience: 'Senior Level',
+                location: 'San Francisco, CA',
+                salary: '$150,000 - $200,000',
+                description: 'Join our world-class engineering team at Dozera Group to build next-generation technology solutions that power our 100+ portfolio companies. You\'ll work on cutting-edge AI, blockchain, and cloud technologies.',
+                requirements: '• 5+ years of software development experience\n• Proficiency in Python, JavaScript, or Go\n• Experience with cloud platforms (AWS, GCP, Azure)\n• Strong problem-solving and communication skills',
+                benefits: '• Competitive salary and equity\n• Comprehensive health insurance\n• Flexible work arrangements\n• Professional development budget\n• Stock options in portfolio companies',
+                deadline: '2024-02-15',
+                contactEmail: 'careers@dozeragroup.com',
+                postedDate: '2024-01-10',
+                applications: 45,
+                status: 'active'
+            },
+            {
+                id: 'job-2',
+                title: 'Product Manager',
+                company: 'Oriontec',
+                companyId: 'oriontec',
+                department: 'Product',
+                type: 'Full-time',
+                experience: 'Mid Level',
+                location: 'San Francisco, CA',
+                salary: '$120,000 - $160,000',
+                description: 'Lead product strategy and development for Oriontec\'s innovative AI and quantum computing solutions. Work directly with engineering and design teams to bring revolutionary products to market.',
+                requirements: '• 3+ years of product management experience\n• Experience with AI/ML products\n• Strong analytical and strategic thinking\n• Excellent communication skills',
+                benefits: '• Competitive compensation package\n• Health, dental, and vision insurance\n• Unlimited PTO\n• Learning and development opportunities',
+                deadline: '2024-02-20',
+                contactEmail: 'jobs@oriontec.com',
+                postedDate: '2024-01-12',
+                applications: 32,
+                status: 'active'
+            },
+            {
+                id: 'job-3',
+                title: 'Financial Analyst',
+                company: 'Cereus Pay',
+                companyId: 'cereus-pay',
+                department: 'Finance',
+                type: 'Full-time',
+                experience: 'Entry Level',
+                location: 'New York, NY',
+                salary: '$80,000 - $100,000',
+                description: 'Join Cereus Pay\'s finance team to analyze financial data, support strategic decisions, and help drive the growth of our revolutionary payment platform.',
+                requirements: '• Bachelor\'s degree in Finance, Economics, or related field\n• Strong analytical and Excel skills\n• Knowledge of financial modeling\n• Detail-oriented with strong communication skills',
+                benefits: '• Competitive salary and bonuses\n• Full health benefits\n• 401(k) with company match\n• Professional development opportunities',
+                deadline: '2024-02-25',
+                contactEmail: 'careers@cereuspay.com',
+                postedDate: '2024-01-08',
+                applications: 28,
+                status: 'active'
+            }
+        ];
+
         // Global functions for button handlers
         window.handleAddCompany = function() {
             console.log('Add Company clicked');
@@ -2436,6 +3135,22 @@
                 return;
             }
             document.getElementById('addPersonModal').classList.remove('hidden');
+        };
+
+        window.handlePostJob = function() {
+            console.log('Post Job clicked');
+            if (!currentUser) {
+                alert('Please sign in to post jobs');
+                return;
+            }
+            
+            // Check if user is authorized to post jobs
+            if (currentUser.email !== 'sdozera@gmail.com') {
+                alert('You are not authorized to post jobs. Only specific users can post job opportunities.');
+                return;
+            }
+            
+            document.getElementById('postJobModal').classList.remove('hidden');
         };
 
         // Company-Person Linking Functions
@@ -2620,9 +3335,19 @@
                 });
             });
 
+            // Load sample jobs into Firestore
+            sampleJobs.forEach(job => {
+                db.collection('jobs').doc(job.id).set(job).then(() => {
+                    console.log(`${job.title} added to Firestore`);
+                }).catch(error => {
+                    console.error(`Error adding ${job.title}:`, error);
+                });
+            });
+
             // Load data from Firestore
             loadCompanies();
             loadPeople();
+            loadJobs();
         }
 
         function loadCompanies() {
@@ -2655,6 +3380,21 @@
             });
         }
 
+        function loadJobs() {
+            db.collection('jobs').onSnapshot(snapshot => {
+                jobs = [];
+                snapshot.forEach(doc => {
+                    jobs.push({ id: doc.id, ...doc.data() });
+                });
+                updateJobsUI();
+            }, error => {
+                console.error('Error loading jobs:', error);
+                // Use fallback data
+                jobs = sampleJobs;
+                updateJobsUI();
+            });
+        }
+
         // UI Updates
         function updateUI() {
             updateStats();
@@ -2666,6 +3406,115 @@
         function updatePeopleUI() {
             updatePeopleGrid();
             updatePeopleFilters();
+        }
+
+        function updateJobsUI() {
+            updateJobsGrid();
+            updateJobStats();
+            updateJobFilters();
+            
+            // Show/hide post job button based on user authorization
+            if (currentUser && currentUser.email === 'sdozera@gmail.com') {
+                document.getElementById('postJobBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('postJobBtn').classList.add('hidden');
+            }
+        }
+
+        function updateJobsGrid() {
+            const container = document.getElementById('jobsGrid');
+            container.innerHTML = '';
+            
+            if (jobs.length === 0) {
+                container.innerHTML = '<div class="text-center py-12"><i class="fas fa-briefcase text-4xl text-gray-300 mb-4"></i><p class="text-gray-500">No jobs available at the moment.</p></div>';
+                return;
+            }
+            
+            jobs.forEach(job => {
+                const card = createJobCard(job);
+                container.appendChild(card);
+            });
+        }
+
+        function updateJobStats() {
+            const activeJobs = jobs.filter(job => job.status === 'active').length;
+            const totalApplications = jobs.reduce((sum, job) => sum + (job.applications || 0), 0);
+            const hiringCompanies = [...new Set(jobs.map(job => job.company))].length;
+            
+            // Calculate average salary (simplified)
+            const salaries = jobs.map(job => {
+                if (!job.salary) return 0;
+                const match = job.salary.match(/\$(\d+),?(\d+)?/);
+                return match ? parseInt(match[1] + (match[2] || '000')) : 0;
+            }).filter(s => s > 0);
+            
+            const avgSalary = salaries.length > 0 ? 
+                Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length) : 0;
+            
+            document.getElementById('activeJobsCount').textContent = activeJobs;
+            document.getElementById('totalApplicationsCount').textContent = totalApplications;
+            document.getElementById('hiringCompaniesCount').textContent = hiringCompanies;
+            document.getElementById('avgSalary').textContent = avgSalary > 0 ? `$${avgSalary.toLocaleString()}` : '$0';
+        }
+
+        function updateJobFilters() {
+            // Update company filter dropdown
+            const jobCompanyFilter = document.getElementById('jobCompanyFilter');
+            
+            // Clear existing options (keep first option)
+            while (jobCompanyFilter.children.length > 1) {
+                jobCompanyFilter.removeChild(jobCompanyFilter.lastChild);
+            }
+            
+            // Add company options from jobs
+            const jobCompanies = [...new Set(jobs.map(job => job.company))];
+            jobCompanies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company;
+                option.textContent = company;
+                jobCompanyFilter.appendChild(option);
+            });
+        }
+
+        function createJobCard(job) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl shadow-md p-6 card-hover cursor-pointer border border-gray-100';
+            card.onclick = () => showJobDetail(job);
+            
+            const daysAgo = Math.floor((new Date() - new Date(job.postedDate)) / (1000 * 60 * 60 * 24));
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">${job.title}</h3>
+                        <p class="text-blue-600 font-medium cursor-pointer hover:text-blue-800 mb-2" onclick="event.stopPropagation(); openCompanyFromJob('${job.companyId}', '${job.company}')">${job.company}</p>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">${job.type}</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">${job.experience}</span>
+                            <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">${job.location}</span>
+                            ${job.department ? `<span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">${job.department}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-semibold text-green-600 mb-1">${job.salary || 'Salary not specified'}</div>
+                        <div class="text-sm text-gray-500">${daysAgo === 0 ? 'Posted today' : `${daysAgo} days ago`}</div>
+                    </div>
+                </div>
+                
+                <p class="text-gray-600 mb-4 line-clamp-2">${job.description}</p>
+                
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        <span><i class="fas fa-users mr-1"></i>${job.applications || 0} applicants</span>
+                        <span><i class="fas fa-clock mr-1"></i>Deadline: ${job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Not specified'}</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); quickApply('${job.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                        Quick Apply
+                    </button>
+                </div>
+            `;
+            
+            return card;
         }
 
         function updatePeopleGrid() {
@@ -3157,6 +4006,7 @@
             updateNewsTab(company);
             updateCompetitorsTab(company);
             updateEventsTab(company);
+            updateJobsTab(company);
             updateContactTab(company);
             
             modal.classList.remove('hidden');
@@ -3838,6 +4688,90 @@
                 timelineContainer.innerHTML = '<p class="text-gray-500">No timeline events available</p>';
             }
         }
+
+        function updateJobsTab(company) {
+            const jobsContainer = document.getElementById('companyJobsGrid');
+            jobsContainer.innerHTML = '';
+            
+            // Show post job button if authorized
+            if (currentUser && currentUser.email === 'sdozera@gmail.com') {
+                document.getElementById('postJobForCompanyBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('postJobForCompanyBtn').classList.add('hidden');
+            }
+            
+            // Filter jobs for this company
+            const companyJobs = jobs.filter(job => job.companyId === company.id || job.company === company.name);
+            
+            if (companyJobs.length > 0) {
+                companyJobs.forEach(job => {
+                    const jobCard = document.createElement('div');
+                    jobCard.className = 'bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer';
+                    jobCard.onclick = () => {
+                        closeCompanyModal();
+                        setTimeout(() => showJobDetail(job), 300);
+                    };
+                    
+                    const daysAgo = Math.floor((new Date() - new Date(job.postedDate)) / (1000 * 60 * 60 * 24));
+                    
+                    jobCard.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h5 class="font-semibold text-gray-900 mb-1">${job.title}</h5>
+                                <div class="flex flex-wrap gap-2 mb-2">
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">${job.type}</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">${job.experience}</span>
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">${job.location}</span>
+                                    ${job.department ? `<span class="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">${job.department}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-semibold text-green-600 text-sm">${job.salary || 'Salary not specified'}</div>
+                                <div class="text-xs text-gray-500">${daysAgo === 0 ? 'Posted today' : `${daysAgo} days ago`}</div>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">${job.description}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500"><i class="fas fa-users mr-1"></i>${job.applications || 0} applicants</span>
+                            <button onclick="event.stopPropagation(); quickApply('${job.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+                                Quick Apply
+                            </button>
+                        </div>
+                    `;
+                    
+                    jobsContainer.appendChild(jobCard);
+                });
+            } else {
+                jobsContainer.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-briefcase text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 mb-2">No open positions at this company</p>
+                        ${currentUser && currentUser.email === 'sdozera@gmail.com' ? 
+                            '<p class="text-sm text-gray-400">Be the first to post a job for this company!</p>' : 
+                            '<p class="text-sm text-gray-400">Check back later for new opportunities</p>'
+                        }
+                    </div>
+                `;
+            }
+        }
+
+        window.postJobForCompany = function() {
+            if (!currentUser || currentUser.email !== 'sdozera@gmail.com') {
+                alert('You are not authorized to post jobs');
+                return;
+            }
+            
+            if (!currentCompany) {
+                alert('No company selected');
+                return;
+            }
+            
+            // Pre-select the current company in the job form
+            document.getElementById('postJobModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('jobCompany').value = currentCompany.id;
+            }, 100);
+        };
 
         function updateContactTab(company) {
             const isPremium = checkPremiumAccess();
@@ -4817,9 +5751,231 @@
                 }
             });
 
+            // Job-related functions
+            window.showJobDetail = function(job) {
+                currentJob = job;
+                const modal = document.getElementById('jobDetailModal');
+                
+                // Update job details
+                document.getElementById('modalJobTitle').textContent = job.title;
+                document.getElementById('modalJobCompany').textContent = job.company;
+                document.getElementById('modalJobType').textContent = job.type;
+                document.getElementById('modalJobExperience').textContent = job.experience;
+                document.getElementById('modalJobLocation').textContent = job.location;
+                document.getElementById('modalJobDepartment').textContent = job.department || 'Not specified';
+                document.getElementById('modalJobDescription').textContent = job.description;
+                document.getElementById('modalJobRequirements').textContent = job.requirements || 'No specific requirements listed';
+                document.getElementById('modalJobBenefits').textContent = job.benefits || 'Benefits not specified';
+                document.getElementById('modalJobSalary').textContent = job.salary || 'Not specified';
+                document.getElementById('modalJobPosted').textContent = new Date(job.postedDate).toLocaleDateString();
+                document.getElementById('modalJobDeadline').textContent = job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Not specified';
+                document.getElementById('modalJobApplications').textContent = job.applications || 0;
+                
+                modal.classList.remove('hidden');
+            };
+
+            window.closeJobDetailModal = function() {
+                document.getElementById('jobDetailModal').classList.add('hidden');
+            };
+
+            window.applyForJob = function() {
+                if (!currentJob) return;
+                
+                // Populate application modal
+                document.getElementById('applicationJobTitle').textContent = currentJob.title;
+                document.getElementById('applicationCompanyName').textContent = currentJob.company;
+                
+                // Pre-fill user data if signed in
+                if (currentUser) {
+                    document.getElementById('applicantName').value = currentUser.displayName || '';
+                    document.getElementById('applicantEmail').value = currentUser.email || '';
+                }
+                
+                document.getElementById('jobApplicationModal').classList.remove('hidden');
+            };
+
+            window.closeJobApplicationModal = function() {
+                document.getElementById('jobApplicationModal').classList.add('hidden');
+                document.getElementById('jobApplicationForm').reset();
+            };
+
+            window.quickApply = function(jobId) {
+                const job = jobs.find(j => j.id === jobId);
+                if (job) {
+                    showJobDetail(job);
+                    setTimeout(() => applyForJob(), 500);
+                }
+            };
+
+            window.openCompanyFromJob = function(companyId, companyName) {
+                if (companyId) {
+                    const company = companies.find(c => c.id === companyId);
+                    if (company) {
+                        showCompanyDetail(company);
+                        return;
+                    }
+                }
+                
+                // Try to find by name
+                if (companyName) {
+                    const company = companies.find(c => c.name === companyName);
+                    if (company) {
+                        showCompanyDetail(company);
+                        return;
+                    }
+                }
+                
+                alert('Company profile not found');
+            };
+
+            window.saveJob = function() {
+                if (!currentUser) {
+                    alert('Please sign in to save jobs');
+                    return;
+                }
+                alert('Job saved to your profile!');
+            };
+
+            window.shareJob = function() {
+                if (navigator.share && currentJob) {
+                    navigator.share({
+                        title: currentJob.title,
+                        text: `Check out this job opportunity at ${currentJob.company}`,
+                        url: window.location.href
+                    });
+                } else {
+                    // Fallback to copying URL
+                    navigator.clipboard.writeText(window.location.href);
+                    alert('Job URL copied to clipboard!');
+                }
+            };
+
+            window.closePostJobModal = function() {
+                document.getElementById('postJobModal').classList.add('hidden');
+                document.getElementById('postJobForm').reset();
+            };
+
+            window.applyJobFilters = function() {
+                const type = document.getElementById('jobTypeFilter').value;
+                const location = document.getElementById('jobLocationFilter').value;
+                const experience = document.getElementById('jobExperienceFilter').value;
+                const company = document.getElementById('jobCompanyFilter').value;
+                
+                let filteredJobs = jobs;
+                
+                if (type) {
+                    filteredJobs = filteredJobs.filter(j => j.type === type);
+                }
+                
+                if (location) {
+                    filteredJobs = filteredJobs.filter(j => j.location.includes(location));
+                }
+                
+                if (experience) {
+                    filteredJobs = filteredJobs.filter(j => j.experience === experience);
+                }
+                
+                if (company) {
+                    filteredJobs = filteredJobs.filter(j => j.company === company);
+                }
+                
+                const container = document.getElementById('jobsGrid');
+                container.innerHTML = '';
+                
+                if (filteredJobs.length > 0) {
+                    filteredJobs.forEach(job => {
+                        const card = createJobCard(job);
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = '<div class="text-center py-12"><i class="fas fa-briefcase text-4xl text-gray-300 mb-4"></i><p class="text-gray-500">No jobs found matching your filters.</p></div>';
+                }
+            };
+
             // Additional event listeners for forms and other elements
 
+            // Post Job Form
+            document.getElementById('postJobForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!currentUser || currentUser.email !== 'sdozera@gmail.com') {
+                    alert('You are not authorized to post jobs');
+                    return;
+                }
+                
+                const jobData = {
+                    title: document.getElementById('jobTitle').value,
+                    companyId: document.getElementById('jobCompany').value,
+                    company: companies.find(c => c.id === document.getElementById('jobCompany').value)?.name || '',
+                    department: document.getElementById('jobDepartment').value,
+                    type: document.getElementById('jobType').value,
+                    experience: document.getElementById('jobExperience').value,
+                    location: document.getElementById('jobLocation').value,
+                    salary: document.getElementById('jobSalary').value,
+                    description: document.getElementById('jobDescription').value,
+                    requirements: document.getElementById('jobRequirements').value,
+                    benefits: document.getElementById('jobBenefits').value,
+                    deadline: document.getElementById('jobDeadline').value,
+                    contactEmail: document.getElementById('jobContactEmail').value,
+                    postedDate: new Date().toISOString().split('T')[0],
+                    applications: 0,
+                    status: 'active',
+                    postedBy: currentUser.uid
+                };
+                
+                db.collection('jobs').add(jobData).then(() => {
+                    alert('Job posted successfully!');
+                    closePostJobModal();
+                }).catch(error => {
+                    console.error('Error posting job:', error);
+                    alert('Error posting job: ' + error.message);
+                });
+            });
 
+            // Job Application Form
+            document.getElementById('jobApplicationForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const applicationData = {
+                    jobId: currentJob?.id,
+                    jobTitle: currentJob?.title,
+                    company: currentJob?.company,
+                    applicantName: document.getElementById('applicantName').value,
+                    applicantEmail: document.getElementById('applicantEmail').value,
+                    applicantPhone: document.getElementById('applicantPhone').value,
+                    applicantLinkedIn: document.getElementById('applicantLinkedIn').value,
+                    coverLetter: document.getElementById('applicantCoverLetter').value,
+                    experience: document.getElementById('applicantExperience').value,
+                    expectedSalary: document.getElementById('applicantSalary').value,
+                    availability: document.getElementById('applicantAvailability').value,
+                    appliedDate: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                // Handle resume upload (simplified - in real app would upload to storage)
+                const resumeFile = document.getElementById('applicantResume').files[0];
+                if (resumeFile) {
+                    applicationData.resumeName = resumeFile.name;
+                    applicationData.resumeSize = resumeFile.size;
+                }
+                
+                db.collection('applications').add(applicationData).then(() => {
+                    // Update job application count
+                    if (currentJob) {
+                        const newCount = (currentJob.applications || 0) + 1;
+                        db.collection('jobs').doc(currentJob.id).update({
+                            applications: newCount
+                        });
+                    }
+                    
+                    alert('Application submitted successfully! You will hear back from the company soon.');
+                    closeJobApplicationModal();
+                    closeJobDetailModal();
+                }).catch(error => {
+                    console.error('Error submitting application:', error);
+                    alert('Error submitting application: ' + error.message);
+                });
+            });
 
             // Auto-generate full name
             document.getElementById('personFirstName').addEventListener('input', updateFullName);
@@ -5087,5 +6243,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ff114c94ea5518',t:'MTc1NTMyNzc2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9707210b40ffc8d9',t:'MTc1NTQxMjI5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
