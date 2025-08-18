@@ -1902,7 +1902,7 @@
                 
             } catch (error) {
                 console.error('Sign up error:', error);
-                alert('Error creating account: ' + error.message);
+                showCenteredDialog('Account Creation Failed', 'Error creating account: ' + error.message, 'error');
             }
         }
 
@@ -1929,7 +1929,7 @@
 
             } catch (error) {
                 console.error('Google sign in error:', error);
-                alert('Error signing in with Google: ' + error.message);
+                showCenteredDialog('Google Sign In Failed', 'Error signing in with Google: ' + error.message, 'error');
             }
         }
 
@@ -2578,7 +2578,7 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 
             } catch (error) {
                 console.error('Error sending message:', error);
-                alert('Failed to send message. Please try again.');
+                showCenteredDialog('Message Send Failed', 'Failed to send message. Please check your connection and try again.', 'error');
             }
         }
 
@@ -2630,6 +2630,11 @@ Need help? Just ask! We're here 24/7. 🚀`,
 
         // Voice Message Functions
         function recordVoice() {
+            if (!currentChat) {
+                showCenteredDialog('No Chat Selected', 'Please select a chat first to send voice messages.', 'warning');
+                return;
+            }
+
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
@@ -2648,11 +2653,15 @@ Need help? Just ask! We're here 24/7. 🚀`,
                         
                         mediaRecorder.start();
                         
-                        // Show recording UI
-                        const recordBtn = event.target;
-                        recordBtn.style.background = '#ff4757';
+                        // Show recording UI with better feedback
+                        const recordBtn = document.querySelector('[title="Voice Message"]');
+                        recordBtn.style.background = 'linear-gradient(135deg, #ff4757, #ff3742)';
                         recordBtn.innerHTML = '<i class="fas fa-stop"></i>';
                         recordBtn.onclick = stopRecording;
+                        recordBtn.title = 'Stop Recording';
+                        
+                        // Show recording indicator
+                        showRecordingIndicator();
                         
                         // Auto stop after 60 seconds
                         setTimeout(() => {
@@ -2662,10 +2671,80 @@ Need help? Just ask! We're here 24/7. 🚀`,
                         }, 60000);
                     })
                     .catch(err => {
-                        alert('Microphone access denied. Please allow microphone access to record voice messages.');
+                        console.error('Microphone error:', err);
+                        showCenteredDialog('Microphone Access Denied', 'Please allow microphone access to record voice messages. Check your browser settings and try again.', 'error');
                     });
             } else {
-                alert('Voice recording not supported in this browser');
+                showCenteredDialog('Not Supported', 'Voice recording is not supported in this browser. Please use a modern browser like Chrome, Firefox, or Safari.', 'error');
+            }
+        }
+
+        function showRecordingIndicator() {
+            // Remove existing indicator
+            const existingIndicator = document.querySelector('.recording-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'recording-indicator';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 71, 87, 0.95);
+                color: white;
+                padding: 20px 30px;
+                border-radius: 20px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                z-index: 9999;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 10px 30px rgba(255, 71, 87, 0.3);
+                animation: recordingPulse 1s infinite;
+            `;
+            
+            indicator.innerHTML = `
+                <div style="
+                    width: 12px;
+                    height: 12px;
+                    background: white;
+                    border-radius: 50%;
+                    animation: recordingBlink 1s infinite;
+                "></div>
+                <span style="font-weight: 600; font-size: 16px;">Recording Voice Message...</span>
+                <div style="font-size: 12px; opacity: 0.9;">Tap stop when done</div>
+            `;
+            
+            document.body.appendChild(indicator);
+            
+            // Add recording animations
+            const recordingStyles = document.createElement('style');
+            recordingStyles.textContent = `
+                @keyframes recordingPulse {
+                    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+                    50% { transform: translate(-50%, -50%) scale(1.05); }
+                }
+                
+                @keyframes recordingBlink {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.3; }
+                }
+            `;
+            document.head.appendChild(recordingStyles);
+        }
+
+        function hideRecordingIndicator() {
+            const indicator = document.querySelector('.recording-indicator');
+            if (indicator) {
+                indicator.style.animation = 'dialogFadeOut 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(indicator)) {
+                        indicator.remove();
+                    }
+                }, 300);
             }
         }
 
@@ -2674,10 +2753,19 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 mediaRecorder.stop();
                 
                 // Reset record button
-                const recordBtn = document.querySelector('[title="Voice Message"]');
-                recordBtn.style.background = '';
-                recordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-                recordBtn.onclick = recordVoice;
+                const recordBtn = document.querySelector('[title="Stop Recording"]');
+                if (recordBtn) {
+                    recordBtn.style.background = '';
+                    recordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    recordBtn.onclick = recordVoice;
+                    recordBtn.title = 'Voice Message';
+                }
+                
+                // Hide recording indicator
+                hideRecordingIndicator();
+                
+                // Show processing message
+                showCenteredDialog('Processing...', 'Your voice message is being processed and will be sent shortly.', 'info');
             }
         }
 
@@ -2686,28 +2774,61 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 // Convert to base64 for storage
                 const reader = new FileReader();
                 reader.onload = async function(e) {
-                    const base64Audio = e.target.result;
-                    
-                    const message = {
-                        sender: currentUser.uid,
-                        text: base64Audio,
-                        timestamp: firebase.database.ServerValue.TIMESTAMP,
-                        type: 'voice',
-                        duration: '0:' + Math.floor(Math.random() * 60).toString().padStart(2, '0'),
-                        seen: false
-                    };
-                    
-                    const messageRef = database.ref(`chats/${currentChat}/messages`).push();
-                    await messageRef.set(message);
-                    
-                    await database.ref(`chats/${currentChat}`).update({
-                        lastMessage: '🎤 Voice message',
-                        lastMessageTime: firebase.database.ServerValue.TIMESTAMP
-                    });
+                    try {
+                        const base64Audio = e.target.result;
+                        
+                        const message = {
+                            sender: currentUser.uid,
+                            text: base64Audio,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            type: 'voice',
+                            duration: '0:' + Math.floor(Math.random() * 60).toString().padStart(2, '0'),
+                            seen: false
+                        };
+                        
+                        const messageRef = database.ref(`chats/${currentChat}/messages`).push();
+                        await messageRef.set(message);
+                        
+                        // Update chat info with proper timestamp
+                        const updateData = {
+                            lastMessage: '🎤 Voice message',
+                            lastMessageTime: firebase.database.ServerValue.TIMESTAMP
+                        };
+                        
+                        // Increment unread count for other participants
+                        const chatSnapshot = await database.ref(`chats/${currentChat}`).once('value');
+                        const chatData = chatSnapshot.val();
+                        
+                        if (chatData && chatData.participants) {
+                            chatData.participants.forEach(participantId => {
+                                if (participantId !== currentUser.uid) {
+                                    updateData[`unreadCount_${participantId}`] = firebase.database.ServerValue.increment(1);
+                                }
+                            });
+                        }
+                        
+                        await database.ref(`chats/${currentChat}`).update(updateData);
+                        
+                        // Close processing dialog and show success
+                        closeCenteredDialog();
+                        showCenteredDialog('Voice Message Sent!', 'Your voice message has been sent successfully.', 'success');
+                        
+                        // Force refresh chat list
+                        setTimeout(() => {
+                            loadChats();
+                        }, 500);
+                        
+                    } catch (error) {
+                        console.error('Error sending voice message:', error);
+                        closeCenteredDialog();
+                        showCenteredDialog('Send Failed', 'Failed to send voice message. Please check your connection and try again.', 'error');
+                    }
                 };
                 reader.readAsDataURL(audioBlob);
             } catch (error) {
-                console.error('Error sending voice message:', error);
+                console.error('Error processing voice message:', error);
+                closeCenteredDialog();
+                showCenteredDialog('Processing Failed', 'Failed to process voice message. Please try recording again.', 'error');
             }
         }
 
@@ -2853,9 +2974,208 @@ Need help? Just ask! We're here 24/7. 🚀`,
         }
 
         function showHomeView() {
+            loadHomeContacts();
             document.getElementById('welcomeScreen').classList.remove('hidden');
             document.getElementById('chatArea').classList.add('hidden');
             document.getElementById('messageInputContainer').style.display = 'none';
+        }
+
+        // Load contacts for home page
+        async function loadHomeContacts() {
+            if (!currentUser) return;
+
+            try {
+                const snapshot = await database.ref('chats').once('value');
+                const chats = snapshot.val() || {};
+                
+                // Get user chats
+                const userChats = Object.entries(chats).filter(([chatId, chatData]) => 
+                    chatData.participants && chatData.participants.includes(currentUser.uid)
+                );
+                
+                let contactsHTML = '';
+                
+                if (userChats.length === 0) {
+                    contactsHTML = `
+                        <div style="text-align: center; padding: 40px; color: #666;">
+                            <i class="fas fa-users" style="font-size: 64px; margin-bottom: 20px; opacity: 0.3; color: #667eea;"></i>
+                            <h3 style="margin-bottom: 15px; color: #333;">No Contacts Yet</h3>
+                            <p style="margin-bottom: 25px; line-height: 1.5;">Start connecting with friends, family, and colleagues on Pulse!</p>
+                            <button onclick="switchView('contacts')" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 15px 30px; border-radius: 15px; cursor: pointer; font-weight: 600; font-size: 16px;">
+                                <i class="fas fa-user-plus"></i> Add Your First Contact
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    contactsHTML = `
+                        <div style="padding: 25px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                                <h2 style="font-size: 28px; font-weight: 600; color: #333; margin: 0;">Your Contacts</h2>
+                                <button onclick="switchView('contacts')" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: 500; font-size: 14px;">
+                                    <i class="fas fa-user-plus"></i> Add Contact
+                                </button>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                    `;
+                    
+                    for (const [chatId, chatData] of userChats) {
+                        const otherUserId = chatData.participants.find(id => id !== currentUser.uid);
+                        let userData;
+                        
+                        if (otherUserId === 'pulse-official') {
+                            userData = {
+                                name: 'Pulse Official',
+                                email: 'official@pulse.com',
+                                profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMzZweCIgZm9udC13ZWlnaHQ9ImJvbGQiPjwvdGV4dD48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50MCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2N2VlYTtzdG9wLW9wYWNpdHk6MSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6Izc2NGJhMjtzdG9wLW9wYWNpdHk6MSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjwvc3ZnPg==',
+                                status: 'Always Online',
+                                country: 'US',
+                                isPremium: true,
+                                isVerified: true,
+                                isOfficial: true,
+                                accountType: 'business',
+                                customStatus: '🚀 Official Pulse Support - Here to help 24/7'
+                            };
+                        } else if (otherUserId === 'gursharn-arya') {
+                            userData = {
+                                name: 'Gursharn Arya',
+                                email: 'sgursharn076@gmail.com',
+                                profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMjhweCIgZm9udC13ZWlnaHQ9ImJvbGQiPkdBPC90ZXh0PjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQwIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZENzAwO3N0b3Atb3BhY2l0eToxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZBNTAwO3N0b3Atb3BhY2l0eToxIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PC9zdmc+',
+                                status: 'Online',
+                                country: 'IN',
+                                isPremium: true,
+                                isVerified: true,
+                                isFounder: true,
+                                accountType: 'business',
+                                customStatus: '👑 Pulse Premium Creator & Developer'
+                            };
+                        } else {
+                            const userSnapshot = await database.ref('users/' + otherUserId).once('value');
+                            userData = userSnapshot.val();
+                        }
+                        
+                        if (userData) {
+                            const unreadCount = chatData[`unreadCount_${currentUser.uid}`] || 0;
+                            const isOnline = userData.status === 'Online' || userData.status === 'Always Online';
+                            
+                            contactsHTML += `
+                                <div onclick="openChatFromHome('${chatId}', '${otherUserId}')" style="background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 30px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
+                                    ${unreadCount > 0 ? `<div style="position: absolute; top: 15px; right: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 12px; min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; padding: 0 8px;">${unreadCount}</div>` : ''}
+                                    
+                                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                                        <div style="width: 60px; height: 60px; border-radius: 18px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px; position: relative; overflow: hidden;">
+                                            ${userData.profilePic ? 
+                                                `<img src="${userData.profilePic}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;">` : 
+                                                userData.name.charAt(0).toUpperCase()
+                                            }
+                                            ${userData.isPremium ? '<div style="position: absolute; bottom: -3px; right: -3px; background: linear-gradient(45deg, #FFD700, #FFA500); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; border: 2px solid white;">✓</div>' : ''}
+                                            ${isOnline ? '<div style="position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; background: #4CAF50; border-radius: 50%; border: 2px solid white;"></div>' : ''}
+                                        </div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 600; color: #333; display: flex; align-items: center; gap: 8px;">
+                                                ${userData.name}
+                                                ${userData.isVerified ? '<i class="fas fa-check-circle" style="color: #4CAF50; font-size: 14px;"></i>' : ''}
+                                                ${userData.accountType === 'business' ? '<span style="background: #4CAF50; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: bold;">BIZ</span>' : ''}
+                                            </h3>
+                                            <p style="margin: 0; font-size: 14px; color: #666; display: flex; align-items: center; gap: 8px;">
+                                                <span>${getCountryFlag(userData.country)}</span>
+                                                ${isOnline ? 
+                                                    '<span style="color: #4CAF50; font-weight: 500;">Online</span>' : 
+                                                    `<span>Last seen ${formatTime(userData.lastSeen)}</span>`
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="background: rgba(102, 126, 234, 0.05); padding: 12px 15px; border-radius: 12px; margin-bottom: 15px;">
+                                        <p style="margin: 0; font-size: 13px; color: #667eea; font-weight: 500; line-height: 1.4;">
+                                            ${userData.customStatus || 'Available on Pulse'}
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="font-size: 12px; color: #999;">
+                                            ${chatData.lastMessage ? (chatData.lastMessage.length > 30 ? chatData.lastMessage.substring(0, 30) + '...' : chatData.lastMessage) : 'No messages yet'}
+                                        </div>
+                                        <div style="font-size: 11px; color: #999;">
+                                            ${formatTime(chatData.lastMessageTime)}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    contactsHTML += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('welcomeScreen').innerHTML = contactsHTML;
+                
+            } catch (error) {
+                console.error('Error loading home contacts:', error);
+                document.getElementById('welcomeScreen').innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 15px; color: #ff6b6b;"></i>
+                        <h3 style="margin-bottom: 15px; color: #333;">Error Loading Contacts</h3>
+                        <p style="margin-bottom: 25px;">Please check your connection and try again.</p>
+                        <button onclick="showHomeView()" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 15px 30px; border-radius: 15px; cursor: pointer; font-weight: 600;">
+                            <i class="fas fa-refresh"></i> Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Open chat from home page
+        async function openChatFromHome(chatId, otherUserId) {
+            try {
+                // Switch to chats view
+                switchView('chats');
+                
+                // Get user data
+                let userData;
+                if (otherUserId === 'pulse-official') {
+                    userData = {
+                        name: 'Pulse Official',
+                        email: 'official@pulse.com',
+                        profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMzZweCIgZm9udC13ZWlnaHQ9ImJvbGQiPjwvdGV4dD48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50MCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2N2VlYTtzdG9wLW9wYWNpdHk6MSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6Izc2NGJhMjtzdG9wLW9wYWNpdHk6MSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjwvc3ZnPg==',
+                        status: 'Always Online',
+                        country: 'US',
+                        isPremium: true,
+                        isVerified: true,
+                        isOfficial: true,
+                        accountType: 'business'
+                    };
+                } else if (otherUserId === 'gursharn-arya') {
+                    userData = {
+                        name: 'Gursharn Arya',
+                        email: 'sgursharn076@gmail.com',
+                        profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMjhweCIgZm9udC13ZWlnaHQ9ImJvbGQiPkdBPC90ZXh0PjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQwIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZENzAwO3N0b3Atb3BhY2l0eToxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZBNTAwO3N0b3Atb3BhY2l0eToxIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PC9zdmc+',
+                        status: 'Online',
+                        country: 'IN',
+                        isPremium: true,
+                        isVerified: true,
+                        isFounder: true,
+                        accountType: 'business'
+                    };
+                } else {
+                    const userSnapshot = await database.ref('users/' + otherUserId).once('value');
+                    userData = userSnapshot.val();
+                }
+                
+                if (userData) {
+                    // Wait for chat list to load, then open chat
+                    setTimeout(() => {
+                        openChat(chatId, userData);
+                    }, 500);
+                }
+                
+            } catch (error) {
+                console.error('Error opening chat from home:', error);
+                showCenteredDialog('Error', 'Failed to open chat. Please try again.', 'error');
+            }
         }
 
         function showChatsView() {
@@ -3524,7 +3844,7 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 
                 await database.ref(`chats/${chatId}/messages`).push(connectionMessage);
                 
-                alert(`Contact added successfully! You can now chat with ${userData.name}.`);
+                showCenteredDialog('Contact Added!', `${userData.name} has been added successfully! You can now start chatting.`, 'success');
                 closeModal('addContactModal');
                 
                 // Force immediate refresh of chat list
@@ -3537,7 +3857,7 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 
             } catch (error) {
                 console.error('Error adding contact:', error);
-                alert('Error adding contact. Please try again.');
+                showCenteredDialog('Contact Addition Failed', 'Error adding contact. Please check your connection and try again.', 'error');
             }
         }
 
@@ -3582,6 +3902,185 @@ Need help? Just ask! We're here 24/7. 🚀`,
             }
         }
 
+        // Centered Dialog System
+        function showCenteredDialog(title, message, type = 'info', callback = null) {
+            // Remove existing dialogs
+            const existingDialogs = document.querySelectorAll('.centered-dialog');
+            existingDialogs.forEach(dialog => dialog.remove());
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'centered-dialog';
+            
+            let iconClass = 'fas fa-info-circle';
+            let iconColor = '#667eea';
+            
+            switch(type) {
+                case 'success':
+                    iconClass = 'fas fa-check-circle';
+                    iconColor = '#4CAF50';
+                    break;
+                case 'error':
+                    iconClass = 'fas fa-exclamation-triangle';
+                    iconColor = '#ff6b6b';
+                    break;
+                case 'warning':
+                    iconClass = 'fas fa-exclamation-circle';
+                    iconColor = '#FFA500';
+                    break;
+                case 'question':
+                    iconClass = 'fas fa-question-circle';
+                    iconColor = '#667eea';
+                    break;
+            }
+            
+            dialog.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(10px);
+                animation: dialogFadeIn 0.3s ease;
+            `;
+            
+            dialog.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 25px;
+                    padding: 40px;
+                    max-width: 450px;
+                    width: 90%;
+                    text-align: center;
+                    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+                    position: relative;
+                    animation: dialogSlideIn 0.3s ease;
+                ">
+                    <div style="
+                        width: 80px;
+                        height: 80px;
+                        border-radius: 50%;
+                        background: ${iconColor}15;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 25px auto;
+                    ">
+                        <i class="${iconClass}" style="font-size: 36px; color: ${iconColor};"></i>
+                    </div>
+                    
+                    <h3 style="
+                        font-size: 24px;
+                        font-weight: 600;
+                        color: #333;
+                        margin-bottom: 15px;
+                        line-height: 1.3;
+                    ">${title}</h3>
+                    
+                    <p style="
+                        font-size: 16px;
+                        color: #666;
+                        line-height: 1.5;
+                        margin-bottom: 30px;
+                    ">${message}</p>
+                    
+                    <button onclick="closeCenteredDialog(${callback ? 'true' : 'false'})" style="
+                        background: linear-gradient(135deg, ${iconColor}, ${iconColor}dd);
+                        color: white;
+                        border: none;
+                        padding: 15px 35px;
+                        border-radius: 15px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                        min-width: 120px;
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        ${type === 'question' ? 'Yes' : 'OK'}
+                    </button>
+                    
+                    ${type === 'question' ? `
+                        <button onclick="closeCenteredDialog(false)" style="
+                            background: transparent;
+                            color: #666;
+                            border: 2px solid #ddd;
+                            padding: 13px 35px;
+                            border-radius: 15px;
+                            cursor: pointer;
+                            font-weight: 600;
+                            font-size: 16px;
+                            margin-left: 15px;
+                            transition: all 0.3s ease;
+                            min-width: 120px;
+                        " onmouseover="this.style.borderColor='#999'; this.style.color='#333'" onmouseout="this.style.borderColor='#ddd'; this.style.color='#666'">
+                            No
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            // Store callback for later use
+            if (callback) {
+                dialog.setAttribute('data-callback', callback.toString());
+            }
+            
+            // Auto close after 5 seconds for non-question dialogs
+            if (type !== 'question') {
+                setTimeout(() => {
+                    if (document.body.contains(dialog)) {
+                        closeCenteredDialog(false);
+                    }
+                }, 5000);
+            }
+        }
+
+        function closeCenteredDialog(executeCallback = false) {
+            const dialog = document.querySelector('.centered-dialog');
+            if (dialog) {
+                if (executeCallback && dialog.getAttribute('data-callback')) {
+                    try {
+                        const callback = new Function('return ' + dialog.getAttribute('data-callback'))();
+                        callback();
+                    } catch (error) {
+                        console.error('Error executing dialog callback:', error);
+                    }
+                }
+                
+                dialog.style.animation = 'dialogFadeOut 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(dialog)) {
+                        dialog.remove();
+                    }
+                }, 300);
+            }
+        }
+
+        // Add CSS animations for dialogs
+        const dialogStyles = document.createElement('style');
+        dialogStyles.textContent = `
+            @keyframes dialogFadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes dialogFadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            
+            @keyframes dialogSlideIn {
+                from { opacity: 0; transform: translateY(-30px) scale(0.9); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+        `;
+        document.head.appendChild(dialogStyles);
+
         // Initialize app when page loads
         window.addEventListener('load', () => {
             initializeApp();
@@ -3615,5 +4114,5 @@ Need help? Just ask! We're here 24/7. 🚀`,
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97115cacb6ab85f7',t:'MTc1NTUxOTU5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971169cc265159dc',t:'MTc1NTUyMDEzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
