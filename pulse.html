@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse - Real-time Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .ios-shadow {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message-bubble {
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        
+        .typing-indicator {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        
+        .status-ring {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            padding: 2px;
+            border-radius: 50%;
+        }
+        
+        .chat-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+        }
+        
+        .message-input {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .instagram-gradient {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen overflow-hidden">
+    <!-- Main Container -->
+    <div class="flex h-full">
+        <!-- Sidebar -->
+        <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-500 to-pink-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="status-ring">
+                            <img id="userAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23667eea'/%3E%3Ctext x='20' y='26' text-anchor='middle' fill='white' font-size='16' font-weight='bold'%3EP%3C/text%3E%3C/svg%3E" 
+                                 class="w-10 h-10 rounded-full bg-white" alt="Profile">
+                        </div>
+                        <div>
+                            <h2 id="userName" class="text-white font-semibold">Pulse User</h2>
+                            <p class="text-white/80 text-sm" id="userStatus">Online</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="showSettings()" class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/20">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <button onclick="logout()" class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/20">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="p-4">
+                <div class="relative">
+                    <input type="text" placeholder="Search chats..." 
+                           class="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Status Stories -->
+            <div class="px-4 pb-4">
+                <div class="flex space-x-3 overflow-x-auto">
+                    <div class="flex-shrink-0 text-center">
+                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-300">
+                            <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">Your Story</p>
+                    </div>
+                    <div class="flex-shrink-0 text-center">
+                        <div class="status-ring">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%23ff6b6b'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='18' font-weight='bold'%3EA%3C/text%3E%3C/svg%3E" 
+                                 class="w-12 h-12 rounded-full bg-white">
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">Arya</p>
+                    </div>
+                    <div class="flex-shrink-0 text-center">
+                        <div class="status-ring">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%234ecdc4'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='18' font-weight='bold'%3ER%3C/text%3E%3C/svg%3E" 
+                                 class="w-12 h-12 rounded-full bg-white">
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">Rahul</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat List -->
+            <div class="flex-1 overflow-y-auto">
+                <div id="chatList" class="space-y-1">
+                    <!-- Chat items will be populated here -->
+                </div>
+            </div>
+
+            <!-- New Chat Button -->
+            <div class="p-4">
+                <button onclick="showNewChatModal()" class="w-full instagram-gradient text-white py-3 rounded-full font-medium hover:opacity-90 transition-opacity">
+                    + New Chat
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Chat Header -->
+            <div id="chatHeader" class="hidden p-4 bg-white border-b border-gray-200 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img id="chatAvatar" class="w-10 h-10 rounded-full" alt="Chat Avatar">
+                    <div>
+                        <h3 id="chatName" class="font-semibold text-gray-900"></h3>
+                        <p id="chatStatus" class="text-sm text-gray-500"></p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="startVideoCall()" class="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="startVoiceCall()" class="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="showChatInfo()" class="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Welcome Screen -->
+            <div id="welcomeScreen" class="flex-1 flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+                <div class="text-center">
+                    <div class="w-32 h-32 mx-auto mb-6 instagram-gradient rounded-full flex items-center justify-center">
+                        <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome to Pulse</h2>
+                    <p class="text-gray-600 mb-6">Select a chat to start messaging</p>
+                    <button onclick="showNewChatModal()" class="instagram-gradient text-white px-6 py-3 rounded-full font-medium hover:opacity-90 transition-opacity">
+                        Start New Chat
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="messagesArea" class="hidden flex-1 overflow-y-auto p-4 bg-gray-50">
+                <div id="messagesList" class="space-y-4">
+                    <!-- Messages will be populated here -->
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div id="typingIndicator" class="hidden px-4 py-2 text-sm text-gray-500">
+                <span class="typing-indicator">Someone is typing...</span>
+            </div>
+
+            <!-- Message Input -->
+            <div id="messageInput" class="hidden p-4 bg-white border-t border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <button onclick="showEmojiPicker()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50">
+                        😊
+                    </button>
+                    <button onclick="attachFile()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                    <div class="flex-1 relative">
+                        <input type="text" id="messageText" placeholder="Type a message..." 
+                               class="w-full px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               onkeypress="handleMessageKeyPress(event)">
+                    </div>
+                    <button onclick="sendMessage()" class="p-2 instagram-gradient text-white rounded-full hover:opacity-90">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 w-96 ios-shadow">
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 mx-auto mb-4 instagram-gradient rounded-full flex items-center justify-center">
+                    <span class="text-white text-2xl font-bold">P</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Welcome to Pulse</h2>
+                <p class="text-gray-600">Connect with friends and family</p>
+            </div>
+
+            <div id="loginForm">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
+                        <select id="accountType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="toggleBusinessFields()">
+                            <option value="personal">Personal</option>
+                            <option value="business">Business</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="email" id="loginEmail" placeholder="Email address" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <input type="password" id="loginPassword" placeholder="Password" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    
+                    <!-- Business Fields -->
+                    <div id="businessFields" class="hidden space-y-4">
+                        <div>
+                            <input type="text" id="businessName" placeholder="Business Name" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <input type="text" id="legalName" placeholder="Legal Name" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <input type="text" id="headquarters" placeholder="Headquarters Address" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <input type="text" id="gstNumber" placeholder="GST Number" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <input type="text" id="country" placeholder="Country" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="login()" class="w-full mt-6 instagram-gradient text-white py-3 rounded-lg font-medium hover:opacity-90">
+                    Sign In
+                </button>
+
+                <div class="mt-4 text-center">
+                    <button onclick="signInWithGoogle()" class="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+
+                <p class="mt-4 text-center text-sm text-gray-600">
+                    Don't have an account? 
+                    <button onclick="showRegister()" class="text-purple-600 hover:text-purple-700 font-medium">Sign up</button>
+                </p>
+            </div>
+
+            <div id="registerForm" class="hidden">
+                <div class="space-y-4">
+                    <div>
+                        <input type="text" id="registerName" placeholder="Full Name" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <input type="email" id="registerEmail" placeholder="Email address" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <input type="tel" id="registerPhone" placeholder="Phone Number" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <input type="password" id="registerPassword" placeholder="Password" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+
+                <button onclick="register()" class="w-full mt-6 instagram-gradient text-white py-3 rounded-lg font-medium hover:opacity-90">
+                    Create Account
+                </button>
+
+                <p class="mt-4 text-center text-sm text-gray-600">
+                    Already have an account? 
+                    <button onclick="showLogin()" class="text-purple-600 hover:text-purple-700 font-medium">Sign in</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Chat Modal -->
+    <div id="newChatModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-96 ios-shadow">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Start New Chat</h3>
+            <div class="space-y-4">
+                <input type="email" id="newChatEmail" placeholder="Enter email address" 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <div class="flex space-x-3">
+                    <button onclick="startNewChat()" class="flex-1 instagram-gradient text-white py-2 rounded-lg font-medium hover:opacity-90">
+                        Start Chat
+                    </button>
+                    <button onclick="closeNewChatModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2XeuTfHZ7FYKLoYb4epKp3upmVqG0fzE",
+            authDomain: "pulse-17f40.firebaseapp.com",
+            databaseURL: "https://pulse-17f40-default-rtdb.firebaseio.com",
+            projectId: "pulse-17f40",
+            storageBucket: "pulse-17f40.firebasestorage.app",
+            messagingSenderId: "259780854138",
+            appId: "1:259780854138:web:89c265fd22a34a7f1fd6c3"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        // Global variables
+        let currentUser = null;
+        let currentChatId = null;
+        let currentChatUser = null;
+
+        // Authentication state observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginModal').classList.add('hidden');
+                loadUserData();
+                loadChats();
+            } else {
+                document.getElementById('loginModal').classList.remove('hidden');
+            }
+        });
+
+        // Toggle business fields
+        function toggleBusinessFields() {
+            const accountType = document.getElementById('accountType').value;
+            const businessFields = document.getElementById('businessFields');
+            
+            if (accountType === 'business') {
+                businessFields.classList.remove('hidden');
+            } else {
+                businessFields.classList.add('hidden');
+            }
+        }
+
+        // Authentication functions
+        function showLogin() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        }
+
+        async function register() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const phone = document.getElementById('registerPhone').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            if (!name || !email || !password) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Save user data to database
+                await database.ref('users/' + user.uid).set({
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    profilePic: generateAvatar(name),
+                    status: 'Online',
+                    lastSeen: Date.now(),
+                    customStatus: 'Hey there! I am using Pulse.',
+                    accountType: 'personal',
+                    createdAt: Date.now()
+                });
+                
+            } catch (error) {
+                alert('Registration failed: ' + error.message);
+            }
+        }
+
+        async function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                // Check if user exists in database
+                const userRef = database.ref('users/' + user.uid);
+                const snapshot = await userRef.once('value');
+                
+                if (!snapshot.exists()) {
+                    // Create new user record
+                    await userRef.set({
+                        name: user.displayName,
+                        email: user.email,
+                        profilePic: user.photoURL || generateAvatar(user.displayName),
+                        status: 'Online',
+                        lastSeen: Date.now(),
+                        customStatus: 'Hey there! I am using Pulse.',
+                        accountType: 'personal',
+                        createdAt: Date.now()
+                    });
+                }
+            } catch (error) {
+                alert('Google sign-in failed: ' + error.message);
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                auth.signOut();
+            }
+        }
+
+        // Generate avatar SVG
+        function generateAvatar(name) {
+            const initial = name ? name.charAt(0).toUpperCase() : 'U';
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='${encodeURIComponent(color)}'/%3E%3Ctext x='20' y='26' text-anchor='middle' fill='white' font-size='16' font-weight='bold'%3E${initial}%3C/text%3E%3C/svg%3E`;
+        }
+
+        // Load user data
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            const userRef = database.ref('users/' + currentUser.uid);
+            const snapshot = await userRef.once('value');
+            const userData = snapshot.val();
+            
+            if (userData) {
+                document.getElementById('userName').textContent = userData.name;
+                document.getElementById('userStatus').textContent = userData.customStatus || 'Online';
+                document.getElementById('userAvatar').src = userData.profilePic;
+            }
+        }
+
+        // Load chats
+        function loadChats() {
+            if (!currentUser) return;
+            
+            const chatsRef = database.ref('chats');
+            chatsRef.on('value', (snapshot) => {
+                const chats = snapshot.val() || {};
+                const chatList = document.getElementById('chatList');
+                chatList.innerHTML = '';
+                
+                Object.keys(chats).forEach(chatId => {
+                    const chat = chats[chatId];
+                    if (chat.participants && chat.participants.includes(currentUser.uid)) {
+                        createChatItem(chatId, chat);
+                    }
+                });
+            });
+        }
+
+        // Create chat item
+        async function createChatItem(chatId, chat) {
+            const otherUserId = chat.participants.find(id => id !== currentUser.uid);
+            const userRef = database.ref('users/' + otherUserId);
+            const userSnapshot = await userRef.once('value');
+            const otherUser = userSnapshot.val();
+            
+            if (!otherUser) return;
+            
+            const lastMessage = chat.lastMessage || {};
+            const chatItem = document.createElement('div');
+            chatItem.className = 'chat-item p-4 cursor-pointer border-b border-gray-100 hover:bg-gray-50';
+            chatItem.onclick = () => openChat(chatId, otherUser);
+            
+            chatItem.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <img src="${otherUser.profilePic}" class="w-12 h-12 rounded-full" alt="${otherUser.name}">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-semibold text-gray-900 truncate">${otherUser.name}</h4>
+                            <span class="text-xs text-gray-500">${formatTime(lastMessage.timestamp)}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 truncate">${lastMessage.text || 'No messages yet'}</p>
+                    </div>
+                    ${chat.unreadCount ? `<div class="w-5 h-5 bg-purple-500 text-white text-xs rounded-full flex items-center justify-center">${chat.unreadCount}</div>` : ''}
+                </div>
+            `;
+            
+            document.getElementById('chatList').appendChild(chatItem);
+        }
+
+        // Open chat
+        function openChat(chatId, otherUser) {
+            currentChatId = chatId;
+            currentChatUser = otherUser;
+            
+            // Update UI
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('chatHeader').classList.remove('hidden');
+            document.getElementById('messagesArea').classList.remove('hidden');
+            document.getElementById('messageInput').classList.remove('hidden');
+            
+            // Update chat header
+            document.getElementById('chatAvatar').src = otherUser.profilePic;
+            document.getElementById('chatName').textContent = otherUser.name;
+            document.getElementById('chatStatus').textContent = otherUser.status === 'Online' ? 'Online' : `Last seen ${formatTime(otherUser.lastSeen)}`;
+            
+            // Load messages
+            loadMessages(chatId);
+        }
+
+        // Load messages
+        function loadMessages(chatId) {
+            const messagesRef = database.ref('chats/' + chatId + '/messages');
+            messagesRef.on('value', (snapshot) => {
+                const messages = snapshot.val() || {};
+                const messagesList = document.getElementById('messagesList');
+                messagesList.innerHTML = '';
+                
+                Object.keys(messages).sort((a, b) => messages[a].timestamp - messages[b].timestamp).forEach(messageId => {
+                    const message = messages[messageId];
+                    createMessageBubble(message);
+                });
+                
+                // Scroll to bottom
+                messagesList.scrollTop = messagesList.scrollHeight;
+            });
+        }
+
+        // Create message bubble
+        function createMessageBubble(message) {
+            const messageDiv = document.createElement('div');
+            const isOwn = message.sender === currentUser.uid;
+            
+            messageDiv.className = `flex ${isOwn ? 'justify-end' : 'justify-start'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble ${isOwn ? 'bg-purple-500 text-white' : 'bg-white text-gray-800'} px-4 py-2 rounded-2xl ios-shadow">
+                    <p class="text-sm">${message.text}</p>
+                    <div class="flex items-center justify-end space-x-1 mt-1">
+                        <span class="text-xs ${isOwn ? 'text-purple-200' : 'text-gray-500'}">${formatTime(message.timestamp)}</span>
+                        ${isOwn ? `<span class="text-xs ${message.seen ? 'text-blue-300' : 'text-purple-200'}">✓✓</span>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('messagesList').appendChild(messageDiv);
+        }
+
+        // Send message
+        async function sendMessage() {
+            const messageText = document.getElementById('messageText').value.trim();
+            if (!messageText || !currentChatId) return;
+            
+            const messageId = database.ref().child('chats').child(currentChatId).child('messages').push().key;
+            const message = {
+                sender: currentUser.uid,
+                text: messageText,
+                timestamp: Date.now(),
+                type: 'text',
+                seen: false
+            };
+            
+            // Send message
+            await database.ref('chats/' + currentChatId + '/messages/' + messageId).set(message);
+            
+            // Update last message
+            await database.ref('chats/' + currentChatId + '/lastMessage').set(message);
+            
+            // Clear input
+            document.getElementById('messageText').value = '';
+        }
+
+        // Handle message key press
+        function handleMessageKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // New chat functions
+        function showNewChatModal() {
+            document.getElementById('newChatModal').classList.remove('hidden');
+        }
+
+        function closeNewChatModal() {
+            document.getElementById('newChatModal').classList.add('hidden');
+            document.getElementById('newChatEmail').value = '';
+        }
+
+        async function startNewChat() {
+            const email = document.getElementById('newChatEmail').value.trim();
+            if (!email) return;
+            
+            // Find user by email
+            const usersRef = database.ref('users');
+            const snapshot = await usersRef.orderByChild('email').equalTo(email).once('value');
+            const users = snapshot.val();
+            
+            if (!users) {
+                alert('User not found');
+                return;
+            }
+            
+            const otherUserId = Object.keys(users)[0];
+            const otherUser = users[otherUserId];
+            
+            // Create chat
+            const chatId = [currentUser.uid, otherUserId].sort().join('_');
+            await database.ref('chats/' + chatId).set({
+                participants: [currentUser.uid, otherUserId],
+                createdAt: Date.now(),
+                lastMessage: {
+                    text: '',
+                    timestamp: Date.now()
+                }
+            });
+            
+            closeNewChatModal();
+            openChat(chatId, otherUser);
+        }
+
+        // Utility functions
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            const now = new Date();
+            
+            if (date.toDateString() === now.toDateString()) {
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        // Placeholder functions for additional features
+        function showSettings() {
+            alert('Settings feature coming soon!');
+        }
+
+        function showEmojiPicker() {
+            const emojis = ['😊', '😂', '❤️', '👍', '👎', '😢', '😮', '😡'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            document.getElementById('messageText').value += emoji;
+        }
+
+        function attachFile() {
+            alert('File attachment feature coming soon!');
+        }
+
+        function startVideoCall() {
+            alert('Video call feature coming soon!');
+        }
+
+        function startVoiceCall() {
+            alert('Voice call feature coming soon!');
+        }
+
+        function showChatInfo() {
+            alert('Chat info feature coming soon!');
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // App is ready
+            console.log('Pulse Chat App initialized');
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970f7563a29247bc',t:'MTc1NTQ5OTYzMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
