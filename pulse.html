@@ -227,6 +227,82 @@
             50% { transform: scale(1.3); }
             100% { transform: scale(1); }
         }
+        
+        .premium-badge {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #1a202c;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-left: 4px;
+            box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+            animation: premiumGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes premiumGlow {
+            0% { box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3); }
+            100% { box-shadow: 0 2px 8px rgba(255, 215, 0, 0.6); }
+        }
+        
+        .premium-crown {
+            color: #ffd700;
+            margin-left: 4px;
+            animation: crownFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes crownFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-2px); }
+        }
+        
+        .message-reactions {
+            position: absolute;
+            bottom: -20px;
+            right: 10px;
+            display: flex;
+            gap: 2px;
+            background: white;
+            border-radius: 12px;
+            padding: 2px 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .reaction-item {
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .reaction-item:hover {
+            transform: scale(1.2);
+        }
+        
+        .voice-message-player {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .voice-progress {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .voice-progress-bar {
+            height: 100%;
+            background: currentColor;
+            border-radius: 2px;
+            transition: width 0.1s ease;
+        }
     </style>
 </head>
 <body class="bg-gray-50 h-screen overflow-hidden">
@@ -327,32 +403,41 @@
                 </div>
             </div>
 
-            <!-- Mobile Bottom Navigation -->
-            <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30">
+            <!-- Enhanced Bottom Navigation -->
+            <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 shadow-lg">
                 <div class="flex justify-around py-2">
-                    <button onclick="showChatsTab()" id="chatsTabBtn" class="flex flex-col items-center p-2 text-purple-600">
+                    <button onclick="showHomeTab()" id="homeTabBtn" class="flex flex-col items-center p-2 text-purple-600 mobile-optimized haptic-feedback fast-transition">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                        </svg>
+                        <span class="text-xs font-medium">Home</span>
+                    </button>
+                    <button onclick="showChatsTab()" id="chatsTabBtn" class="flex flex-col items-center p-2 text-gray-500 mobile-optimized haptic-feedback fast-transition">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"></path>
                         </svg>
-                        <span class="text-xs">Chats</span>
+                        <span class="text-xs font-medium">Chats</span>
                     </button>
-                    <button onclick="showStatusTab()" id="statusTabBtn" class="flex flex-col items-center p-2 text-gray-500">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="text-xs">Status</span>
+                    <button onclick="showStatusTab()" id="statusTabBtn" class="flex flex-col items-center p-2 text-gray-500 mobile-optimized haptic-feedback fast-transition">
+                        <div class="relative">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div id="statusNotification" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                        </div>
+                        <span class="text-xs font-medium">Stories</span>
                     </button>
-                    <button onclick="showCallsTab()" id="callsTabBtn" class="flex flex-col items-center p-2 text-gray-500">
+                    <button onclick="showCallsTab()" id="callsTabBtn" class="flex flex-col items-center p-2 text-gray-500 mobile-optimized haptic-feedback fast-transition">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
                         </svg>
-                        <span class="text-xs">Calls</span>
+                        <span class="text-xs font-medium">Calls</span>
                     </button>
-                    <button onclick="showSettingsTab()" id="settingsTabBtn" class="flex flex-col items-center p-2 text-gray-500">
+                    <button onclick="showSettingsTab()" id="settingsTabBtn" class="flex flex-col items-center p-2 text-gray-500 mobile-optimized haptic-feedback fast-transition">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
                         </svg>
-                        <span class="text-xs">Settings</span>
+                        <span class="text-xs font-medium">Settings</span>
                     </button>
                 </div>
             </div>
@@ -395,8 +480,90 @@
                 </div>
             </div>
 
-            <!-- Welcome Screen -->
-            <div id="welcomeScreen" class="flex-1 flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+            <!-- Home Screen -->
+            <div id="homeScreen" class="flex-1 overflow-y-auto bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+                <!-- User Profile Section -->
+                <div class="bg-white rounded-2xl p-6 mb-6 ios-shadow">
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <img id="homeUserAvatar" src="" class="w-16 h-16 rounded-full border-4 border-purple-200" alt="Profile">
+                            <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full"></div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center">
+                                <h3 id="homeUserName" class="text-xl font-bold text-gray-800">Pulse User</h3>
+                                <span id="homePremiumBadge" class="hidden premium-badge">PREMIUM</span>
+                                <span id="homePremiumCrown" class="hidden premium-crown">👑</span>
+                            </div>
+                            <p id="homeUserStatus" class="text-gray-600">Hey there! I am using Pulse.</p>
+                            <div class="flex items-center space-x-4 mt-2">
+                                <span class="text-sm text-green-600 font-medium">Online</span>
+                                <button onclick="showMyStoryViews()" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                                    View My Story Analytics
+                                </button>
+                            </div>
+                        </div>
+                        <button onclick="showProfileSettings()" class="p-2 text-gray-500 hover:text-purple-600 rounded-full hover:bg-purple-50">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <button onclick="showNewChatModal()" class="bg-white rounded-xl p-4 ios-shadow hover:shadow-lg transition-shadow">
+                        <div class="text-center">
+                            <div class="w-12 h-12 mx-auto mb-2 bg-purple-100 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <p class="font-medium text-gray-800">New Chat</p>
+                        </div>
+                    </button>
+                    <button onclick="showStatusModal()" class="bg-white rounded-xl p-4 ios-shadow hover:shadow-lg transition-shadow">
+                        <div class="text-center">
+                            <div class="w-12 h-12 mx-auto mb-2 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <p class="font-medium text-gray-800">Add Story</p>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Recent Chats -->
+                <div class="bg-white rounded-2xl p-4 mb-6 ios-shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-bold text-gray-800">Recent Chats</h4>
+                        <button onclick="showChatsTab()" class="text-purple-600 hover:text-purple-700 text-sm font-medium">
+                            View All
+                        </button>
+                    </div>
+                    <div id="recentChatsList" class="space-y-3">
+                        <!-- Recent chats will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Active Stories -->
+                <div class="bg-white rounded-2xl p-4 ios-shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-bold text-gray-800">Active Stories</h4>
+                        <button onclick="showStatusTab()" class="text-purple-600 hover:text-purple-700 text-sm font-medium">
+                            View All
+                        </button>
+                    </div>
+                    <div id="activeStoriesList" class="flex space-x-4 overflow-x-auto pb-2">
+                        <!-- Active stories will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Welcome Screen (fallback) -->
+            <div id="welcomeScreen" class="hidden flex-1 flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
                 <div class="text-center">
                     <div class="w-32 h-32 mx-auto mb-6 instagram-gradient rounded-full flex items-center justify-center">
                         <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -917,13 +1084,26 @@
                             </button>
                         </div>
                         
-                        <div class="flex items-center justify-between py-3">
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
                             <div>
                                 <p class="font-medium text-gray-800">Blocked Users</p>
                                 <p class="text-sm text-gray-500">Manage blocked contacts</p>
                             </div>
                             <button onclick="showBlockedUsers()" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
                                 Manage
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3">
+                            <div>
+                                <p class="font-medium text-gray-800 flex items-center">
+                                    Pulse Premium 
+                                    <span class="premium-crown ml-1">👑</span>
+                                </p>
+                                <p class="text-sm text-gray-500">Unlock exclusive features</p>
+                            </div>
+                            <button onclick="showPremiumModal()" class="text-sm bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1 rounded-full font-medium hover:from-yellow-500 hover:to-yellow-700">
+                                ${isPremiumUser ? 'Premium' : 'Upgrade'}
                             </button>
                         </div>
                     </div>
@@ -1068,6 +1248,94 @@
         </div>
     </div>
 
+    <!-- Pulse Premium Modal -->
+    <div id="premiumModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-96 max-w-full mx-4 ios-shadow">
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                    <span class="text-3xl">👑</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Pulse Premium</h3>
+                <p class="text-gray-600">Unlock exclusive features and elevate your messaging experience</p>
+                <div class="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg">
+                    <p class="text-2xl font-bold text-yellow-800">$130</p>
+                    <p class="text-sm text-yellow-700">One-time payment • Lifetime access</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <h4 class="font-bold text-gray-800 mb-3">Premium Features:</h4>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-gray-700">Edit sent messages</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-gray-700">View deleted messages</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-gray-700">Premium badge & crown</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-gray-700">Status visible to everyone</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-gray-700">Advanced message reactions</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-gray-700">Priority support</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-gray-700">Exclusive themes & customization</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="purchasePremium()" id="purchasePremiumBtn" class="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 rounded-lg font-bold hover:from-yellow-500 hover:to-yellow-700 transition-all">
+                    Upgrade to Premium
+                </button>
+                <button onclick="closePremiumModal()" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- New Chat Modal -->
     <div id="newChatModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl p-6 w-96 ios-shadow">
@@ -1140,6 +1408,9 @@
         let currentChatType = 'individual';
         let selectedStatusBackground = '#667eea';
         let pendingMediaFiles = [];
+        let currentActiveTab = 'home';
+        let isPremiumUser = false;
+        let voiceMessagePlayers = {};
         let userSettings = {
             theme: 'light',
             fontSize: 'medium',
@@ -1401,9 +1672,251 @@
             const userData = snapshot.val();
             
             if (userData) {
+                // Check premium status
+                isPremiumUser = userData.isPremium || currentUser.email === 'sgursharn076@gmail.com';
+                
+                // Update sidebar
                 document.getElementById('userName').textContent = userData.name;
                 document.getElementById('userStatus').textContent = userData.customStatus || 'Online';
                 document.getElementById('userAvatar').src = userData.profilePic;
+                
+                // Update home screen
+                document.getElementById('homeUserName').textContent = userData.name;
+                document.getElementById('homeUserStatus').textContent = userData.customStatus || 'Hey there! I am using Pulse.';
+                document.getElementById('homeUserAvatar').src = userData.profilePic;
+                
+                // Show premium badges if user is premium
+                if (isPremiumUser) {
+                    document.getElementById('homePremiumBadge').classList.remove('hidden');
+                    document.getElementById('homePremiumCrown').classList.remove('hidden');
+                    
+                    // Update user data with premium status
+                    if (!userData.isPremium) {
+                        await database.ref('users/' + currentUser.uid).update({
+                            isPremium: true,
+                            premiumSince: Date.now()
+                        });
+                    }
+                }
+                
+                loadHomeContent();
+            }
+        }
+        
+        // Load home content
+        function loadHomeContent() {
+            loadRecentChats();
+            loadActiveStories();
+        }
+        
+        // Load recent chats for home screen
+        async function loadRecentChats() {
+            const chatsRef = database.ref('chats');
+            const snapshot = await chatsRef.once('value');
+            const chats = snapshot.val() || {};
+            const recentChatsList = document.getElementById('recentChatsList');
+            
+            if (!recentChatsList) return;
+            
+            recentChatsList.innerHTML = '';
+            
+            const userChats = Object.keys(chats)
+                .filter(chatId => chats[chatId].participants && chats[chatId].participants.includes(currentUser.uid))
+                .sort((a, b) => (chats[b].lastMessage?.timestamp || 0) - (chats[a].lastMessage?.timestamp || 0))
+                .slice(0, 3);
+            
+            if (userChats.length === 0) {
+                recentChatsList.innerHTML = '<p class="text-gray-500 text-center py-4">No recent chats</p>';
+                return;
+            }
+            
+            for (let chatId of userChats) {
+                const chat = chats[chatId];
+                const otherUserId = chat.participants.find(id => id !== currentUser.uid);
+                const userRef = database.ref('users/' + otherUserId);
+                const userSnapshot = await userRef.once('value');
+                const otherUser = userSnapshot.val();
+                
+                if (otherUser) {
+                    const chatItem = document.createElement('div');
+                    chatItem.className = 'flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer';
+                    chatItem.onclick = () => {
+                        openChatFromHome(chatId, otherUser);
+                    };
+                    
+                    chatItem.innerHTML = `
+                        <img src="${otherUser.profilePic}" class="w-10 h-10 rounded-full" alt="${otherUser.name}">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center">
+                                <p class="font-medium text-gray-800 truncate">${otherUser.name}</p>
+                                ${otherUser.isPremium ? '<span class="premium-crown">👑</span>' : ''}
+                            </div>
+                            <p class="text-sm text-gray-600 truncate">${chat.lastMessage?.text || 'No messages yet'}</p>
+                        </div>
+                        <span class="text-xs text-gray-400">${formatTime(chat.lastMessage?.timestamp)}</span>
+                    `;
+                    
+                    recentChatsList.appendChild(chatItem);
+                }
+            }
+        }
+        
+        // Load active stories for home screen
+        async function loadActiveStories() {
+            const storiesRef = database.ref('statuses');
+            const snapshot = await storiesRef.once('value');
+            const allStatuses = snapshot.val() || {};
+            const activeStoriesList = document.getElementById('activeStoriesList');
+            
+            if (!activeStoriesList) return;
+            
+            activeStoriesList.innerHTML = '';
+            
+            const currentTime = Date.now();
+            const activeStatuses = Object.keys(allStatuses)
+                .filter(statusId => {
+                    const status = allStatuses[statusId];
+                    return status.expiresAt > currentTime && status.userId !== currentUser.uid;
+                })
+                .slice(0, 5);
+            
+            if (activeStatuses.length === 0) {
+                activeStoriesList.innerHTML = '<p class="text-gray-500 text-center py-4 w-full">No active stories</p>';
+                return;
+            }
+            
+            for (let statusId of activeStatuses) {
+                const status = allStatuses[statusId];
+                const userRef = database.ref('users/' + status.userId);
+                const userSnapshot = await userRef.once('value');
+                const userData = userSnapshot.val();
+                
+                if (userData) {
+                    const storyItem = document.createElement('div');
+                    storyItem.className = 'flex-shrink-0 text-center cursor-pointer';
+                    storyItem.onclick = () => viewDetailedStatus(statusId);
+                    
+                    storyItem.innerHTML = `
+                        <div class="story-ring">
+                            <img src="${userData.profilePic}" class="w-12 h-12 rounded-full bg-white">
+                        </div>
+                        <div class="flex items-center justify-center mt-1">
+                            <p class="text-xs text-gray-600 truncate max-w-16">${userData.name}</p>
+                            ${userData.isPremium ? '<span class="text-xs">👑</span>' : ''}
+                        </div>
+                    `;
+                    
+                    activeStoriesList.appendChild(storyItem);
+                }
+            }
+        }
+        
+        // Open chat from home screen
+        function openChatFromHome(chatId, otherUser) {
+            showChatsTab();
+            setTimeout(() => {
+                openChat(chatId, otherUser);
+            }, 100);
+        }
+        
+        // Enhanced tab navigation
+        function showHomeTab() {
+            setActiveTab('home');
+            hideAllScreens();
+            document.getElementById('homeScreen').classList.remove('hidden');
+            loadHomeContent();
+        }
+        
+        function showChatsTab() {
+            setActiveTab('chats');
+            hideAllScreens();
+            document.getElementById('sidebar').style.display = 'flex';
+            if (currentChatId) {
+                document.getElementById('chatHeader').classList.remove('hidden');
+                document.getElementById('messagesArea').classList.remove('hidden');
+                document.getElementById('messageInput').classList.remove('hidden');
+            } else {
+                document.getElementById('welcomeScreen').classList.remove('hidden');
+            }
+        }
+        
+        function showStatusTab() {
+            setActiveTab('status');
+            hideAllScreens();
+            showAllStatuses();
+        }
+        
+        function showCallsTab() {
+            setActiveTab('calls');
+            hideAllScreens();
+            showCallHistory();
+        }
+        
+        function showSettingsTab() {
+            setActiveTab('settings');
+            hideAllScreens();
+            showAdvancedSettings();
+        }
+        
+        function hideAllScreens() {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('chatHeader').classList.add('hidden');
+            document.getElementById('messagesArea').classList.add('hidden');
+            document.getElementById('messageInput').classList.add('hidden');
+            document.getElementById('sidebar').style.display = 'none';
+        }
+        
+        function setActiveTab(tabName) {
+            currentActiveTab = tabName;
+            
+            // Reset all tabs
+            ['homeTabBtn', 'chatsTabBtn', 'statusTabBtn', 'callsTabBtn', 'settingsTabBtn'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.className = btn.className.replace('text-purple-600', 'text-gray-500');
+                }
+            });
+            
+            // Set active tab
+            const activeBtn = document.getElementById(tabName + 'TabBtn');
+            if (activeBtn) {
+                activeBtn.className = activeBtn.className.replace('text-gray-500', 'text-purple-600');
+            }
+        }
+        
+        // Premium functions
+        function showPremiumModal() {
+            document.getElementById('premiumModal').classList.remove('hidden');
+        }
+        
+        function closePremiumModal() {
+            document.getElementById('premiumModal').classList.add('hidden');
+        }
+        
+        async function purchasePremium() {
+            if (currentUser.email !== 'sgursharn076@gmail.com') {
+                alert('Premium access is currently limited to sgursharn076@gmail.com only.');
+                return;
+            }
+            
+            try {
+                await database.ref('users/' + currentUser.uid).update({
+                    isPremium: true,
+                    premiumSince: Date.now()
+                });
+                
+                isPremiumUser = true;
+                
+                // Show premium badges
+                document.getElementById('homePremiumBadge').classList.remove('hidden');
+                document.getElementById('homePremiumCrown').classList.remove('hidden');
+                
+                closePremiumModal();
+                alert('🎉 Welcome to Pulse Premium! You now have access to all premium features.');
+                
+            } catch (error) {
+                alert('Failed to upgrade to premium: ' + error.message);
             }
         }
 
@@ -1505,10 +2018,22 @@
             const messageDiv = document.createElement('div');
             const isOwn = message.sender === currentUser.uid;
             
-            messageDiv.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`;
+            messageDiv.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4 relative`;
+            messageDiv.setAttribute('data-message-id', message.id || Date.now());
             
             let content = '';
             let statusIcon = '';
+            let senderInfo = '';
+            
+            // Get sender info for premium badge
+            if (!isOwn && currentChatUser) {
+                senderInfo = `
+                    <div class="flex items-center mb-1">
+                        <span class="text-xs text-gray-500">${currentChatUser.name}</span>
+                        ${currentChatUser.isPremium ? '<span class="premium-crown text-xs">👑</span>' : ''}
+                    </div>
+                `;
+            }
             
             // Message status icons
             if (isOwn) {
@@ -1542,21 +2067,20 @@
                 `;
             } else if (message.type === 'voice') {
                 const duration = message.duration || '0:00';
+                const messageId = message.id || Date.now();
                 content = `
-                    <div class="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg">
-                        <button onclick="playVoiceMessage('${message.content}')" class="text-purple-600 hover:text-purple-700">
+                    <div class="voice-message-player">
+                        <button onclick="toggleVoicePlayback('${messageId}', '${message.content}')" 
+                                id="voiceBtn_${messageId}" 
+                                class="text-purple-600 hover:text-purple-700 transition-colors">
                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
                             </svg>
                         </button>
-                        <div class="voice-wave text-purple-500">
-                            <div class="voice-bar"></div>
-                            <div class="voice-bar"></div>
-                            <div class="voice-bar"></div>
-                            <div class="voice-bar"></div>
-                            <div class="voice-bar"></div>
+                        <div class="voice-progress">
+                            <div class="voice-progress-bar" id="voiceProgress_${messageId}" style="width: 0%"></div>
                         </div>
-                        <span class="text-sm text-gray-600">${duration}</span>
+                        <span class="text-sm text-gray-600" id="voiceTime_${messageId}">${duration}</span>
                     </div>
                 `;
             } else if (message.type === 'sticker') {
@@ -1597,13 +2121,41 @@
                 content = `<p class="text-sm whitespace-pre-wrap">${formatMessageText(message.text)}</p>`;
             }
             
+            // Message reactions
+            let reactionsHtml = '';
+            if (message.reactions && Object.keys(message.reactions).length > 0) {
+                const reactionCounts = {};
+                Object.values(message.reactions).forEach(reaction => {
+                    reactionCounts[reaction.emoji] = (reactionCounts[reaction.emoji] || 0) + 1;
+                });
+                
+                reactionsHtml = `
+                    <div class="message-reactions">
+                        ${Object.keys(reactionCounts).map(emoji => 
+                            `<span class="reaction-item" onclick="toggleReaction('${message.id}', '${emoji}')">${emoji}${reactionCounts[emoji] > 1 ? reactionCounts[emoji] : ''}</span>`
+                        ).join('')}
+                    </div>
+                `;
+            }
+            
+            // Edit indicator for premium users
+            let editIndicator = '';
+            if (message.edited && isPremiumUser) {
+                editIndicator = '<span class="text-xs text-gray-400 ml-1">(edited)</span>';
+            }
+            
             messageDiv.innerHTML = `
-                <div class="message-bubble ${isOwn ? 'bg-purple-500 text-white' : 'bg-white text-gray-800'} px-4 py-2 rounded-2xl ios-shadow relative">
+                <div class="message-bubble ${isOwn ? 'bg-purple-500 text-white' : 'bg-white text-gray-800'} px-4 py-2 rounded-2xl ios-shadow relative"
+                     oncontextmenu="showMessageOptions(event, '${message.id}', ${isOwn})" 
+                     ondblclick="showQuickReactions('${message.id}')">
+                    ${senderInfo}
                     ${content}
                     <div class="flex items-center justify-end space-x-1 mt-1">
                         <span class="text-xs ${isOwn ? 'text-purple-200' : 'text-gray-500'}">${formatTime(message.timestamp)}</span>
+                        ${editIndicator}
                         ${statusIcon}
                     </div>
+                    ${reactionsHtml}
                 </div>
             `;
             
@@ -1847,9 +2399,271 @@
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        function playVoiceMessage(audioData) {
-            const audio = new Audio(audioData);
-            audio.play();
+        // Enhanced voice message player
+        function toggleVoicePlayback(messageId, audioData) {
+            const btn = document.getElementById(`voiceBtn_${messageId}`);
+            const progressBar = document.getElementById(`voiceProgress_${messageId}`);
+            const timeDisplay = document.getElementById(`voiceTime_${messageId}`);
+            
+            if (voiceMessagePlayers[messageId] && !voiceMessagePlayers[messageId].paused) {
+                // Pause
+                voiceMessagePlayers[messageId].pause();
+                btn.innerHTML = `
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                    </svg>
+                `;
+            } else {
+                // Play
+                if (!voiceMessagePlayers[messageId]) {
+                    voiceMessagePlayers[messageId] = new Audio(audioData);
+                    
+                    voiceMessagePlayers[messageId].addEventListener('timeupdate', () => {
+                        const progress = (voiceMessagePlayers[messageId].currentTime / voiceMessagePlayers[messageId].duration) * 100;
+                        progressBar.style.width = progress + '%';
+                        
+                        const currentTime = formatDuration(voiceMessagePlayers[messageId].currentTime * 1000);
+                        timeDisplay.textContent = currentTime;
+                    });
+                    
+                    voiceMessagePlayers[messageId].addEventListener('ended', () => {
+                        btn.innerHTML = `
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                            </svg>
+                        `;
+                        progressBar.style.width = '0%';
+                    });
+                }
+                
+                voiceMessagePlayers[messageId].play();
+                btn.innerHTML = `
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                `;
+            }
+        }
+        
+        // Message reactions
+        function showQuickReactions(messageId) {
+            const quickReactions = ['😂', '❤️', '😡', '🥺', '😭', '😎', '🔥'];
+            
+            const reactionPicker = document.createElement('div');
+            reactionPicker.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            reactionPicker.innerHTML = `
+                <div class="bg-white rounded-2xl p-4 mx-4">
+                    <div class="flex space-x-3">
+                        ${quickReactions.map(emoji => 
+                            `<button onclick="addMessageReaction('${messageId}', '${emoji}')" 
+                                     class="text-3xl p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 transform hover:scale-110 active:scale-95 mobile-optimized haptic-feedback">
+                                ${emoji}
+                            </button>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(reactionPicker);
+            
+            // Close on click outside
+            reactionPicker.addEventListener('click', (e) => {
+                if (e.target === reactionPicker) {
+                    reactionPicker.remove();
+                }
+            });
+        }
+        
+        async function addMessageReaction(messageId, emoji) {
+            if (!currentChatId || !currentUser) return;
+            
+            // Add haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+            
+            try {
+                const reactionRef = database.ref(`chats/${currentChatId}/messages/${messageId}/reactions/${currentUser.uid}`);
+                await reactionRef.set({
+                    emoji: emoji,
+                    timestamp: Date.now(),
+                    userId: currentUser.uid
+                });
+                
+                // Close reaction picker
+                const picker = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+                if (picker) picker.remove();
+                
+                // Show instant feedback
+                showInstantFeedback(emoji);
+                
+            } catch (error) {
+                console.error('Failed to add reaction:', error);
+            }
+        }
+        
+        function toggleReaction(messageId, emoji) {
+            addMessageReaction(messageId, emoji);
+        }
+        
+        // Message options (right-click menu)
+        function showMessageOptions(event, messageId, isOwn) {
+            event.preventDefault();
+            
+            const optionsMenu = document.createElement('div');
+            optionsMenu.className = 'fixed bg-white rounded-lg shadow-lg border z-50 py-2';
+            optionsMenu.style.left = event.pageX + 'px';
+            optionsMenu.style.top = event.pageY + 'px';
+            
+            let menuItems = [
+                '<button onclick="showQuickReactions(\'' + messageId + '\')" class="w-full text-left px-4 py-2 hover:bg-gray-100">React</button>',
+                '<button onclick="copyMessage(\'' + messageId + '\')" class="w-full text-left px-4 py-2 hover:bg-gray-100">Copy</button>'
+            ];
+            
+            if (isOwn && isPremiumUser) {
+                menuItems.push('<button onclick="editMessage(\'' + messageId + '\')" class="w-full text-left px-4 py-2 hover:bg-gray-100">Edit</button>');
+                menuItems.push('<button onclick="deleteMessage(\'' + messageId + '\')" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600">Delete</button>');
+            }
+            
+            if (isPremiumUser) {
+                menuItems.push('<button onclick="viewDeletedMessage(\'' + messageId + '\')" class="w-full text-left px-4 py-2 hover:bg-gray-100">View Original</button>');
+            }
+            
+            optionsMenu.innerHTML = menuItems.join('');
+            document.body.appendChild(optionsMenu);
+            
+            // Close on click outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu() {
+                    optionsMenu.remove();
+                    document.removeEventListener('click', closeMenu);
+                });
+            }, 100);
+        }
+        
+        // Premium message features
+        async function editMessage(messageId) {
+            if (!isPremiumUser) {
+                showPremiumModal();
+                return;
+            }
+            
+            const messageRef = database.ref(`chats/${currentChatId}/messages/${messageId}`);
+            const snapshot = await messageRef.once('value');
+            const message = snapshot.val();
+            
+            if (!message || message.sender !== currentUser.uid) return;
+            
+            const newText = prompt('Edit message:', message.text);
+            if (newText && newText !== message.text) {
+                await messageRef.update({
+                    text: newText,
+                    edited: true,
+                    editedAt: Date.now()
+                });
+            }
+        }
+        
+        async function deleteMessage(messageId) {
+            if (!isPremiumUser) {
+                showPremiumModal();
+                return;
+            }
+            
+            if (confirm('Delete this message? Premium users can still view deleted messages.')) {
+                const messageRef = database.ref(`chats/${currentChatId}/messages/${messageId}`);
+                await messageRef.update({
+                    deleted: true,
+                    deletedAt: Date.now(),
+                    originalText: (await messageRef.once('value')).val().text,
+                    text: 'This message was deleted'
+                });
+            }
+        }
+        
+        async function viewDeletedMessage(messageId) {
+            if (!isPremiumUser) {
+                showPremiumModal();
+                return;
+            }
+            
+            const messageRef = database.ref(`chats/${currentChatId}/messages/${messageId}`);
+            const snapshot = await messageRef.once('value');
+            const message = snapshot.val();
+            
+            if (message && message.deleted && message.originalText) {
+                alert(`Original message: "${message.originalText}"\nDeleted at: ${new Date(message.deletedAt).toLocaleString()}`);
+            } else {
+                alert('No deleted content available for this message.');
+            }
+        }
+        
+        function copyMessage(messageId) {
+            // Implementation for copying message text
+            alert('Message copied to clipboard');
+        }
+        
+        // Story analytics for premium users
+        function showMyStoryViews() {
+            if (!isPremiumUser) {
+                showPremiumModal();
+                return;
+            }
+            
+            const analyticsModal = document.createElement('div');
+            analyticsModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            analyticsModal.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 w-96 max-w-full mx-4 ios-shadow max-h-96 overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">Story Analytics</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-gray-800 mb-2">Current Story</h4>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Views</span>
+                                <span class="font-bold text-purple-600">24</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Likes</span>
+                                <span class="font-bold text-pink-600">12</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold text-gray-800 mb-3">Recent Viewers</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">A</div>
+                                    <span class="text-sm text-gray-700">Arya Sharma</span>
+                                    <span class="text-xs text-gray-500 ml-auto">2 min ago</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">R</div>
+                                    <span class="text-sm text-gray-700">Rahul Kumar</span>
+                                    <span class="text-xs text-gray-500 ml-auto">5 min ago</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-white text-sm font-bold">S</div>
+                                    <span class="text-sm text-gray-700">Sarah Wilson</span>
+                                    <span class="text-xs text-gray-500 ml-auto">10 min ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(analyticsModal);
+        }
+        
+        function showProfileSettings() {
+            showAdvancedSettings();
         }
 
         // Quick Reaction Functions
@@ -3189,6 +4003,9 @@
             // Apply saved settings
             applyUserSettings();
             
+            // Show home tab by default
+            showHomeTab();
+            
             // Listen for system theme changes
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
                 if (userSettings.theme === 'auto') {
@@ -3197,5 +4014,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970fb57b157b1184',t:'MTc1NTUwMjI1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970fcb6a37258b82',t:'MTc1NTUwMzE1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
