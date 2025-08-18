@@ -2080,19 +2080,53 @@
 
         // Setup Realtime Listeners
         function setupRealtimeListeners() {
-            // Listen for new messages
+            // Listen for new chats being created
+            database.ref('chats').on('child_added', (snapshot) => {
+                const chatId = snapshot.key;
+                const chatData = snapshot.val();
+                
+                // Check if this chat involves current user
+                if (chatData.participants && chatData.participants.includes(currentUser.uid)) {
+                    loadChats(); // Refresh chat list when new chat is added
+                }
+            });
+            
+            // Listen for chat updates (new messages, etc.)
             database.ref('chats').on('child_changed', (snapshot) => {
                 const chatId = snapshot.key;
-                if (currentChat === chatId) {
-                    loadMessages(chatId);
+                const chatData = snapshot.val();
+                
+                // Check if this chat involves current user
+                if (chatData.participants && chatData.participants.includes(currentUser.uid)) {
+                    // If we're currently in this chat, reload messages
+                    if (currentChat === chatId) {
+                        loadMessages(chatId);
+                    }
+                    // Always refresh chat list to show updated last message
+                    loadChats();
                 }
-                updateChatList();
             });
 
             // Listen for user status changes
             database.ref('users').on('child_changed', (snapshot) => {
-                updateChatList();
+                loadChats(); // Refresh to update online status
             });
+            
+            // Listen for new messages in current chat
+            if (currentChat) {
+                database.ref(`chats/${currentChat}/messages`).on('child_added', (snapshot) => {
+                    const messageId = snapshot.key;
+                    const message = snapshot.val();
+                    
+                    // Only add if message doesn't already exist in UI
+                    if (!document.querySelector(`[data-message-id="${messageId}"]`)) {
+                        const messagesContainer = document.getElementById('messagesContainer');
+                        const messageElement = createMessageElement(messageId, message);
+                        messagesContainer.appendChild(messageElement);
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                });
+            }
         }
 
         // Setup Pulse Official Account
@@ -2251,19 +2285,65 @@ Need help? Just ask! We're here 24/7. 🚀`,
                     chatData.participants && chatData.participants.includes(currentUser.uid)
                 );
                 
-                // Sort by last message time
-                userChats.sort(([,a], [,b]) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0));
+                // Sort by last message time (handle undefined timestamps)
+                userChats.sort(([,a], [,b]) => {
+                    const timeA = a.lastMessageTime || a.createdAt || 0;
+                    const timeB = b.lastMessageTime || b.createdAt || 0;
+                    return timeB - timeA;
+                });
                 
                 for (const [chatId, chatData] of userChats) {
                     const otherUserId = chatData.participants.find(id => id !== currentUser.uid);
-                    const userSnapshot = await database.ref('users/' + otherUserId).once('value');
-                    const userData = userSnapshot.val();
+                    
+                    // Handle system users and regular users
+                    let userData;
+                    if (otherUserId === 'pulse-official') {
+                        userData = {
+                            name: 'Pulse Official',
+                            email: 'official@pulse.com',
+                            profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMzZweCIgZm9udC13ZWlnaHQ9ImJvbGQiPjwvdGV4dD48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50MCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2N2VlYTtzdG9wLW9wYWNpdHk6MSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6Izc2NGJhMjtzdG9wLW9wYWNpdHk6MSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjwvc3ZnPg==',
+                            status: 'Always Online',
+                            country: 'US',
+                            isPremium: true,
+                            isVerified: true,
+                            isOfficial: true,
+                            accountType: 'business'
+                        };
+                    } else if (otherUserId === 'gursharn-arya') {
+                        userData = {
+                            name: 'Gursharn Arya',
+                            email: 'sgursharn076@gmail.com',
+                            profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMjhweCIgZm9udC13ZWlnaHQ9ImJvbGQiPkdBPC90ZXh0PjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQwIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZENzAwO3N0b3Atb3BhY2l0eToxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZBNTAwO3N0b3Atb3BhY2l0eToxIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PC9zdmc+',
+                            status: 'Online',
+                            country: 'IN',
+                            isPremium: true,
+                            isVerified: true,
+                            isFounder: true,
+                            accountType: 'business'
+                        };
+                    } else {
+                        const userSnapshot = await database.ref('users/' + otherUserId).once('value');
+                        userData = userSnapshot.val();
+                    }
                     
                     if (userData) {
                         const chatElement = createChatElement(chatId, userData, chatData);
                         chatList.appendChild(chatElement);
                     }
                 }
+                
+                // Setup realtime listener for chat updates
+                database.ref('chats').off('child_changed'); // Remove previous listeners
+                database.ref('chats').on('child_changed', (snapshot) => {
+                    const chatId = snapshot.key;
+                    const chatData = snapshot.val();
+                    
+                    // Check if this chat involves current user
+                    if (chatData.participants && chatData.participants.includes(currentUser.uid)) {
+                        loadChats(); // Reload chats to update the list
+                    }
+                });
+                
             } catch (error) {
                 console.error('Error loading chats:', error);
             }
@@ -2461,21 +2541,44 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 const messageRef = database.ref(`chats/${currentChat}/messages`).push();
                 await messageRef.set(message);
                 
-                // Update chat info
-                await database.ref(`chats/${currentChat}`).update({
-                    lastMessage: messageText,
+                // Update chat info with proper timestamp
+                const updateData = {
+                    lastMessage: messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText,
                     lastMessageTime: firebase.database.ServerValue.TIMESTAMP
-                });
+                };
+                
+                // Increment unread count for other participants
+                const chatSnapshot = await database.ref(`chats/${currentChat}`).once('value');
+                const chatData = chatSnapshot.val();
+                
+                if (chatData && chatData.participants) {
+                    chatData.participants.forEach(participantId => {
+                        if (participantId !== currentUser.uid) {
+                            updateData[`unreadCount_${participantId}`] = firebase.database.ServerValue.increment(1);
+                        }
+                    });
+                }
+                
+                await database.ref(`chats/${currentChat}`).update(updateData);
                 
                 messageInput.value = '';
                 
-                // Update message status after delay
+                // Auto-resize textarea
+                messageInput.style.height = 'auto';
+                
+                // Update message status after delay (simulate delivery)
                 setTimeout(async () => {
                     await messageRef.update({ seen: true });
                 }, 1000);
                 
+                // Force refresh chat list to show updated last message
+                setTimeout(() => {
+                    loadChats();
+                }, 500);
+                
             } catch (error) {
                 console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
             }
         }
 
@@ -3389,14 +3492,23 @@ Need help? Just ask! We're here 24/7. 🚀`,
                     return;
                 }
                 
-                // Create new chat
+                // Get user data first
+                const userSnapshot = await database.ref(`users/${userId}`).once('value');
+                const userData = userSnapshot.val();
+                
+                if (!userData) {
+                    alert('User not found. Please try again.');
+                    return;
+                }
+                
+                // Create new chat with proper structure
                 const chatData = {
                     participants: [currentUser.uid, userId],
                     createdAt: firebase.database.ServerValue.TIMESTAMP,
-                    lastMessage: '',
+                    lastMessage: '🎉 You are now connected! Start chatting.',
                     lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
                     [`unreadCount_${currentUser.uid}`]: 0,
-                    [`unreadCount_${userId}`]: 0
+                    [`unreadCount_${userId}`]: 1
                 };
                 
                 await database.ref(`chats/${chatId}`).set(chatData);
@@ -3404,7 +3516,7 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 // Send connection message
                 const connectionMessage = {
                     sender: 'system',
-                    text: `🎉 You are now connected! Start chatting with each other.`,
+                    text: `🎉 You are now connected with ${userData.name}! Start chatting with each other.`,
                     timestamp: firebase.database.ServerValue.TIMESTAMP,
                     type: 'system',
                     seen: false
@@ -3412,16 +3524,16 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 
                 await database.ref(`chats/${chatId}/messages`).push(connectionMessage);
                 
-                alert('Contact added successfully! You can now start chatting.');
+                alert(`Contact added successfully! You can now chat with ${userData.name}.`);
                 closeModal('addContactModal');
                 
-                // Refresh chat list and open new chat
-                loadChats();
+                // Force immediate refresh of chat list
+                await loadChats();
+                
+                // Open the new chat after a short delay
                 setTimeout(() => {
-                    database.ref(`users/${userId}`).once('value', (snapshot) => {
-                        openChat(chatId, snapshot.val());
-                    });
-                }, 1000);
+                    openChat(chatId, userData);
+                }, 800);
                 
             } catch (error) {
                 console.error('Error adding contact:', error);
@@ -3503,5 +3615,5 @@ Need help? Just ask! We're here 24/7. 🚀`,
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9711504dc40147dc',t:'MTc1NTUxOTA4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97115cacb6ab85f7',t:'MTc1NTUxOTU5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
