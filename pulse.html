@@ -2695,27 +2695,55 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 transform: translate(-50%, -50%);
                 background: rgba(255, 71, 87, 0.95);
                 color: white;
-                padding: 20px 30px;
-                border-radius: 20px;
+                padding: 25px 35px;
+                border-radius: 25px;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 gap: 15px;
                 z-index: 9999;
-                backdrop-filter: blur(10px);
-                box-shadow: 0 10px 30px rgba(255, 71, 87, 0.3);
-                animation: recordingPulse 1s infinite;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 15px 40px rgba(255, 71, 87, 0.4);
+                animation: recordingPulse 1.5s infinite;
+                text-align: center;
+                min-width: 280px;
             `;
             
             indicator.innerHTML = `
                 <div style="
-                    width: 12px;
-                    height: 12px;
-                    background: white;
+                    width: 60px;
+                    height: 60px;
+                    background: rgba(255, 255, 255, 0.2);
                     border-radius: 50%;
-                    animation: recordingBlink 1s infinite;
-                "></div>
-                <span style="font-weight: 600; font-size: 16px;">Recording Voice Message...</span>
-                <div style="font-size: 12px; opacity: 0.9;">Tap stop when done</div>
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                ">
+                    <div style="
+                        width: 20px;
+                        height: 20px;
+                        background: white;
+                        border-radius: 50%;
+                        animation: recordingBlink 1s infinite;
+                    "></div>
+                </div>
+                <div style="font-weight: 700; font-size: 18px; margin-bottom: 5px;">🎤 Recording Voice Message</div>
+                <div style="font-size: 14px; opacity: 0.9; line-height: 1.4;">
+                    Speak clearly into your microphone<br>
+                    <span style="font-size: 12px; opacity: 0.8;">Tap the stop button when finished</span>
+                </div>
+                <div style="
+                    display: flex;
+                    gap: 8px;
+                    margin-top: 10px;
+                ">
+                    <div style="width: 4px; height: 20px; background: rgba(255,255,255,0.6); border-radius: 2px; animation: waveAnimation 1s infinite 0s;"></div>
+                    <div style="width: 4px; height: 25px; background: rgba(255,255,255,0.7); border-radius: 2px; animation: waveAnimation 1s infinite 0.1s;"></div>
+                    <div style="width: 4px; height: 30px; background: rgba(255,255,255,0.8); border-radius: 2px; animation: waveAnimation 1s infinite 0.2s;"></div>
+                    <div style="width: 4px; height: 25px; background: rgba(255,255,255,0.7); border-radius: 2px; animation: waveAnimation 1s infinite 0.3s;"></div>
+                    <div style="width: 4px; height: 20px; background: rgba(255,255,255,0.6); border-radius: 2px; animation: waveAnimation 1s infinite 0.4s;"></div>
+                </div>
             `;
             
             document.body.appendChild(indicator);
@@ -2725,12 +2753,17 @@ Need help? Just ask! We're here 24/7. 🚀`,
             recordingStyles.textContent = `
                 @keyframes recordingPulse {
                     0%, 100% { transform: translate(-50%, -50%) scale(1); }
-                    50% { transform: translate(-50%, -50%) scale(1.05); }
+                    50% { transform: translate(-50%, -50%) scale(1.02); }
                 }
                 
                 @keyframes recordingBlink {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.3; }
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.4; transform: scale(0.8); }
+                }
+                
+                @keyframes waveAnimation {
+                    0%, 100% { transform: scaleY(0.5); opacity: 0.6; }
+                    50% { transform: scaleY(1); opacity: 1; }
                 }
             `;
             document.head.appendChild(recordingStyles);
@@ -2978,6 +3011,17 @@ Need help? Just ask! We're here 24/7. 🚀`,
             document.getElementById('welcomeScreen').classList.remove('hidden');
             document.getElementById('chatArea').classList.add('hidden');
             document.getElementById('messageInputContainer').style.display = 'none';
+            
+            // Set up auto-refresh for home page every 30 seconds
+            if (window.homeRefreshInterval) {
+                clearInterval(window.homeRefreshInterval);
+            }
+            
+            window.homeRefreshInterval = setInterval(() => {
+                if (currentView === 'home') {
+                    loadHomeContacts();
+                }
+            }, 30000); // Refresh every 30 seconds
         }
 
         // Load contacts for home page
@@ -3017,6 +3061,13 @@ Need help? Just ask! We're here 24/7. 🚀`,
                             </div>
                             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                     `;
+                    
+                    // Sort chats by last message time
+                    userChats.sort(([,a], [,b]) => {
+                        const timeA = a.lastMessageTime || a.createdAt || 0;
+                        const timeB = b.lastMessageTime || b.createdAt || 0;
+                        return timeB - timeA;
+                    });
                     
                     for (const [chatId, chatData] of userChats) {
                         const otherUserId = chatData.participants.find(id => id !== currentUser.uid);
@@ -3058,7 +3109,7 @@ Need help? Just ask! We're here 24/7. 🚀`,
                             const isOnline = userData.status === 'Online' || userData.status === 'Always Online';
                             
                             contactsHTML += `
-                                <div onclick="openChatFromHome('${chatId}', '${otherUserId}')" style="background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 30px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
+                                <div onclick="openChatFromHome('${chatId}', '${JSON.stringify(userData).replace(/'/g, "\\'")}', '${otherUserId}')" style="background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 30px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
                                     ${unreadCount > 0 ? `<div style="position: absolute; top: 15px; right: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 12px; min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; padding: 0 8px;">${unreadCount}</div>` : ''}
                                     
                                     <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
@@ -3115,6 +3166,7 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 
             } catch (error) {
                 console.error('Error loading home contacts:', error);
+                showCenteredDialog('Error Loading Contacts', 'Please check your connection and try again.', 'error');
                 document.getElementById('welcomeScreen').innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #666;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 15px; color: #ff6b6b;"></i>
@@ -3129,52 +3181,67 @@ Need help? Just ask! We're here 24/7. 🚀`,
         }
 
         // Open chat from home page
-        async function openChatFromHome(chatId, otherUserId) {
+        async function openChatFromHome(chatId, userDataString, otherUserId) {
             try {
-                // Switch to chats view
-                switchView('chats');
-                
-                // Get user data
+                // Parse user data from string
                 let userData;
-                if (otherUserId === 'pulse-official') {
-                    userData = {
-                        name: 'Pulse Official',
-                        email: 'official@pulse.com',
-                        profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMzZweCIgZm9udC13ZWlnaHQ9ImJvbGQiPjwvdGV4dD48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50MCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2N2VlYTtzdG9wLW9wYWNpdHk6MSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6Izc2NGJhMjtzdG9wLW9wYWNpdHk6MSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjwvc3ZnPg==',
-                        status: 'Always Online',
-                        country: 'US',
-                        isPremium: true,
-                        isVerified: true,
-                        isOfficial: true,
-                        accountType: 'business'
-                    };
-                } else if (otherUserId === 'gursharn-arya') {
-                    userData = {
-                        name: 'Gursharn Arya',
-                        email: 'sgursharn076@gmail.com',
-                        profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMjhweCIgZm9udC13ZWlnaHQ9ImJvbGQiPkdBPC90ZXh0PjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQwIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZENzAwO3N0b3Atb3BhY2l0eToxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZBNTAwO3N0b3Atb3BhY2l0eToxIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PC9zdmc+',
-                        status: 'Online',
-                        country: 'IN',
-                        isPremium: true,
-                        isVerified: true,
-                        isFounder: true,
-                        accountType: 'business'
-                    };
-                } else {
-                    const userSnapshot = await database.ref('users/' + otherUserId).once('value');
-                    userData = userSnapshot.val();
+                try {
+                    userData = JSON.parse(userDataString);
+                } catch (parseError) {
+                    // Fallback to fetching user data
+                    if (otherUserId === 'pulse-official') {
+                        userData = {
+                            name: 'Pulse Official',
+                            email: 'official@pulse.com',
+                            profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMzZweCIgZm9udC13ZWlnaHQ9ImJvbGQiPjwvdGV4dD48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50MCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2N2VlYTtzdG9wLW9wYWNpdHk6MSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6Izc2NGJhMjtzdG9wLW9wYWNpdHk6MSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjwvc3ZnPg==',
+                            status: 'Always Online',
+                            country: 'US',
+                            isPremium: true,
+                            isVerified: true,
+                            isOfficial: true,
+                            accountType: 'business'
+                        };
+                    } else if (otherUserId === 'gursharn-arya') {
+                        userData = {
+                            name: 'Gursharn Arya',
+                            email: 'sgursharn076@gmail.com',
+                            profilePic: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIvPjx0ZXh0IHg9IjUwIiB5PSI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMjhweCIgZm9udC13ZWlnaHQ9ImJvbGQiPkdBPC90ZXh0PjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQwIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZENzAwO3N0b3Atb3BhY2l0eToxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZBNTAwO3N0b3Atb3BhY2l0eToxIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PC9zdmc+',
+                            status: 'Online',
+                            country: 'IN',
+                            isPremium: true,
+                            isVerified: true,
+                            isFounder: true,
+                            accountType: 'business'
+                        };
+                    } else {
+                        const userSnapshot = await database.ref('users/' + otherUserId).once('value');
+                        userData = userSnapshot.val();
+                    }
                 }
                 
-                if (userData) {
-                    // Wait for chat list to load, then open chat
-                    setTimeout(() => {
-                        openChat(chatId, userData);
-                    }, 500);
+                if (!userData) {
+                    showCenteredDialog('Error', 'User data not found. Please try again.', 'error');
+                    return;
                 }
+                
+                // Switch to chats view first
+                currentView = 'chats';
+                
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                document.querySelector('.nav-item:nth-child(2)').classList.add('active'); // Chats tab
+                
+                // Load chats and then open the specific chat
+                await loadChats();
+                
+                // Wait a moment for chat list to render, then open chat
+                setTimeout(() => {
+                    openChat(chatId, userData);
+                }, 300);
                 
             } catch (error) {
                 console.error('Error opening chat from home:', error);
-                showCenteredDialog('Error', 'Failed to open chat. Please try again.', 'error');
+                showCenteredDialog('Chat Open Failed', 'Failed to open chat. Please try again.', 'error');
             }
         }
 
@@ -3844,16 +3911,30 @@ Need help? Just ask! We're here 24/7. 🚀`,
                 
                 await database.ref(`chats/${chatId}/messages`).push(connectionMessage);
                 
-                showCenteredDialog('Contact Added!', `${userData.name} has been added successfully! You can now start chatting.`, 'success');
+                showCenteredDialog('Contact Added Successfully!', `🎉 ${userData.name} has been added to your contacts! The chat is now ready.`, 'success');
                 closeModal('addContactModal');
                 
-                // Force immediate refresh of chat list
+                // Force immediate refresh of chat list and home page
                 await loadChats();
+                if (currentView === 'home') {
+                    loadHomeContacts();
+                }
                 
-                // Open the new chat after a short delay
-                setTimeout(() => {
+                // Auto-switch to chats view and open the new chat
+                setTimeout(async () => {
+                    // Switch to chats view
+                    currentView = 'chats';
+                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                    document.querySelector('.nav-item:nth-child(2)').classList.add('active'); // Chats tab
+                    
+                    // Open the new chat
                     openChat(chatId, userData);
-                }, 800);
+                    
+                    // Show additional success message in chat
+                    setTimeout(() => {
+                        showCenteredDialog('Ready to Chat!', `You can now send messages, voice notes, and media to ${userData.name}. Start the conversation!`, 'info');
+                    }, 1000);
+                }, 1200);
                 
             } catch (error) {
                 console.error('Error adding contact:', error);
@@ -4114,5 +4195,5 @@ Need help? Just ask! We're here 24/7. 🚀`,
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971169cc265159dc',t:'MTc1NTUyMDEzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97116e95f79317d7',t:'MTc1NTUyMDMyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
