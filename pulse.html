@@ -1753,18 +1753,23 @@
             } else {
                 document.getElementById('welcomeScreen').classList.remove('hidden');
             }
+            
+            // Update mobile tab colors
+            updateMobileTabColors('chats');
         }
         
         function showStatusTab() {
             setActiveTab('status');
             hideAllScreens();
             showAllStatuses();
+            updateMobileTabColors('status');
         }
         
         function showCallsTab() {
             setActiveTab('calls');
             hideAllScreens();
             showCallHistory();
+            updateMobileTabColors('calls');
         }
         
         function hideAllScreens() {
@@ -1772,24 +1777,33 @@
             document.getElementById('chatHeader').classList.add('hidden');
             document.getElementById('messagesArea').classList.add('hidden');
             document.getElementById('messageInput').classList.add('hidden');
-            document.getElementById('sidebar').style.display = 'none';
+            
+            // Keep sidebar visible on mobile for chats tab
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').style.display = 'flex';
+            } else {
+                document.getElementById('sidebar').style.display = 'none';
+            }
         }
         
         function setActiveTab(tabName) {
             currentActiveTab = tabName;
-            
+            updateMobileTabColors(tabName);
+        }
+        
+        function updateMobileTabColors(activeTab) {
             // Reset all tabs
             ['chatsTabBtn', 'statusTabBtn', 'callsTabBtn'].forEach(id => {
                 const btn = document.getElementById(id);
                 if (btn) {
-                    btn.className = btn.className.replace('text-green-600', 'text-gray-600');
+                    btn.className = btn.className.replace('text-green-600', 'text-gray-500');
                 }
             });
             
             // Set active tab
-            const activeBtn = document.getElementById(tabName + 'TabBtn');
+            const activeBtn = document.getElementById(activeTab + 'TabBtn');
             if (activeBtn) {
-                activeBtn.className = activeBtn.className.replace('text-gray-600', 'text-green-600');
+                activeBtn.className = activeBtn.className.replace('text-gray-500', 'text-green-600');
             }
         }
         
@@ -1891,7 +1905,11 @@
             
             // Update chat header
             document.getElementById('chatAvatar').src = otherUser.profilePic;
-            document.getElementById('chatName').textContent = otherUser.name;
+            const chatNameElement = document.getElementById('chatName');
+            chatNameElement.innerHTML = `
+                ${otherUser.name}
+                ${otherUser.isPremium ? '<svg class="w-4 h-4 text-blue-500 ml-1 inline" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' : ''}
+            `;
             document.getElementById('chatStatus').textContent = otherUser.status === 'Online' ? 'Online' : `Last seen ${formatTime(otherUser.lastSeen)}`;
             
             // Close mobile menu when opening chat on mobile
@@ -3630,7 +3648,11 @@
             
             // Update chat header
             document.getElementById('chatAvatar').src = otherUser.profilePic;
-            document.getElementById('chatName').textContent = otherUser.name;
+            const chatNameElement = document.getElementById('chatName');
+            chatNameElement.innerHTML = `
+                ${otherUser.name}
+                ${otherUser.isPremium ? '<svg class="w-4 h-4 text-blue-500 ml-1 inline" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' : ''}
+            `;
             document.getElementById('chatStatus').textContent = otherUser.status === 'Online' ? 'Online' : `Last seen ${formatTime(otherUser.lastSeen)}`;
             
             // Close mobile menu when opening chat on mobile
@@ -4074,5 +4096,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970feee444263e15',t:'MTc1NTUwNDYxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970ffb5fe74e3a23',t:'MTc1NTUwNTEyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
