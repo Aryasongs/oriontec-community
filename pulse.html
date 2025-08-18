@@ -308,12 +308,7 @@
 <body class="bg-gray-50 h-screen overflow-hidden">
     <!-- Main Container -->
     <div class="flex h-full relative">
-        <!-- Mobile Menu Button -->
-        <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="md:hidden fixed top-4 left-4 z-50 bg-purple-500 text-white p-2 rounded-full shadow-lg">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-            </svg>
-        </button>
+
 
         <!-- Sidebar -->
         <div id="sidebar" class="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col fixed md:relative inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
@@ -326,7 +321,12 @@
                                  class="w-10 h-10 rounded-full bg-white" alt="Profile">
                         </div>
                         <div>
-                            <h2 id="userName" class="text-white font-semibold">Pulse User</h2>
+                            <div class="flex items-center">
+                                <h2 id="userName" class="text-white font-semibold">Pulse User</h2>
+                                <svg id="userVerificationBadge" class="w-4 h-4 text-blue-400 ml-1 hidden" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
                             <p class="text-white/80 text-sm" id="userStatus">Online</p>
                         </div>
                     </div>
@@ -1607,8 +1607,10 @@
                 
                 // Show premium badges if user is premium
                 if (isPremiumUser) {
-                    document.getElementById('homePremiumBadge').classList.remove('hidden');
-                    document.getElementById('homePremiumCrown').classList.remove('hidden');
+                    const verificationBadge = document.getElementById('userVerificationBadge');
+                    if (verificationBadge) {
+                        verificationBadge.classList.remove('hidden');
+                    }
                     
                     // Update user data with premium status
                     if (!userData.isPremium) {
@@ -1763,12 +1765,6 @@
             setActiveTab('calls');
             hideAllScreens();
             showCallHistory();
-        }
-        
-        function showSettingsTab() {
-            setActiveTab('settings');
-            hideAllScreens();
-            showAdvancedSettings();
         }
         
         function hideAllScreens() {
@@ -4078,5 +4074,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970fe41d56de3ba3',t:'MTc1NTUwNDE2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970feee444263e15',t:'MTc1NTUwNDYxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
