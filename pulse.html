@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pulse - Real-time Chat</title>
+    <title>Pulse - Advanced Messaging Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -12,6 +12,21 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         * { font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --bg-color: #f8fafc;
+            --text-color: #1a202c;
+            --border-color: #e2e8f0;
+        }
+        
+        [data-theme="dark"] {
+            --bg-color: #1a202c;
+            --text-color: #f7fafc;
+            --border-color: #2d3748;
+        }
         
         .glass-effect {
             background: rgba(255, 255, 255, 0.1);
@@ -26,10 +41,34 @@
         .message-bubble {
             max-width: 70%;
             word-wrap: break-word;
+            position: relative;
         }
         
         .typing-indicator {
             animation: pulse 1.5s infinite;
+        }
+        
+        .typing-dots {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .typing-dots span {
+            height: 8px;
+            width: 8px;
+            background: currentColor;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 1px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
         }
         
         @keyframes pulse {
@@ -61,6 +100,88 @@
         .instagram-gradient {
             background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
         }
+        
+        .story-ring {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            padding: 3px;
+            border-radius: 50%;
+        }
+        
+        .story-viewed {
+            background: #e5e7eb;
+            padding: 3px;
+            border-radius: 50%;
+        }
+        
+        .voice-wave {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .voice-bar {
+            width: 3px;
+            background: currentColor;
+            border-radius: 2px;
+            animation: voice-wave 1s ease-in-out infinite;
+        }
+        
+        .voice-bar:nth-child(1) { height: 10px; animation-delay: 0s; }
+        .voice-bar:nth-child(2) { height: 15px; animation-delay: 0.1s; }
+        .voice-bar:nth-child(3) { height: 20px; animation-delay: 0.2s; }
+        .voice-bar:nth-child(4) { height: 15px; animation-delay: 0.3s; }
+        .voice-bar:nth-child(5) { height: 10px; animation-delay: 0.4s; }
+        
+        @keyframes voice-wave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+        
+        .message-status {
+            font-size: 12px;
+            margin-left: 4px;
+        }
+        
+        .message-sent { color: #9ca3af; }
+        .message-delivered { color: #9ca3af; }
+        .message-seen { color: #3b82f6; }
+        
+        .chat-wallpaper {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23f1f5f9" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%23f1f5f9" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="%23f1f5f9" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="%23f8fafc"/><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+        
+        .dark .chat-wallpaper {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain-dark" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23374151" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%23374151" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="%23374151" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="%231f2937"/><rect width="100" height="100" fill="url(%23grain-dark)"/></svg>');
+        }
+        
+        .sticker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .sticker-item {
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+        
+        .sticker-item:hover {
+            transform: scale(1.1);
+        }
+        
+        .recording-animation {
+            animation: recording-pulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes recording-pulse {
+            0%, 100% { background-color: #ef4444; }
+            50% { background-color: #dc2626; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 h-screen overflow-hidden">
@@ -89,12 +210,17 @@
                         </div>
                     </div>
                     <div class="flex space-x-2">
-                        <button onclick="showSettings()" class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/20">
+                        <button onclick="showSettings()" class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/20" title="Profile Settings">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <button onclick="showAdvancedSettings()" class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/20" title="Advanced Settings">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
                             </svg>
                         </button>
-                        <button onclick="logout()" class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/20">
+                        <button onclick="logout()" class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/20" title="Logout">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"></path>
                             </svg>
@@ -118,26 +244,33 @@
             <div class="px-4 pb-4">
                 <div class="flex space-x-3 overflow-x-auto">
                     <div class="flex-shrink-0 text-center">
-                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-300">
+                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-300" onclick="showStatusModal()">
                             <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
                             </svg>
                         </div>
-                        <p class="text-xs text-gray-600 mt-1">Your Story</p>
+                        <p class="text-xs text-gray-600 mt-1">Add Story</p>
                     </div>
                     <div class="flex-shrink-0 text-center">
-                        <div class="status-ring">
+                        <div class="story-ring">
                             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%23ff6b6b'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='18' font-weight='bold'%3EA%3C/text%3E%3C/svg%3E" 
-                                 class="w-12 h-12 rounded-full bg-white">
+                                 class="w-12 h-12 rounded-full bg-white cursor-pointer" onclick="viewStatus('arya')">
                         </div>
                         <p class="text-xs text-gray-600 mt-1">Arya</p>
                     </div>
                     <div class="flex-shrink-0 text-center">
-                        <div class="status-ring">
+                        <div class="story-viewed">
                             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%234ecdc4'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='18' font-weight='bold'%3ER%3C/text%3E%3C/svg%3E" 
-                                 class="w-12 h-12 rounded-full bg-white">
+                                 class="w-12 h-12 rounded-full bg-white cursor-pointer" onclick="viewStatus('rahul')">
                         </div>
                         <p class="text-xs text-gray-600 mt-1">Rahul</p>
+                    </div>
+                    <div class="flex-shrink-0 text-center">
+                        <div class="story-ring">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%23f093fb'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='18' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E" 
+                                 class="w-12 h-12 rounded-full bg-white cursor-pointer" onclick="viewStatus('sarah')">
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">Sarah</p>
                     </div>
                 </div>
             </div>
@@ -217,23 +350,82 @@
 
             <!-- Message Input -->
             <div id="messageInput" class="hidden p-4 bg-white border-t border-gray-200">
-                <div class="flex items-center space-x-3">
-                    <button onclick="showEmojiPicker()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50">
-                        😊
-                    </button>
-                    <button onclick="attachFile()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"></path>
-                        </svg>
-                    </button>
+                <!-- Media Preview Area -->
+                <div id="mediaPreview" class="hidden mb-3 p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Media Preview</span>
+                        <button onclick="clearMediaPreview()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="mediaPreviewContent" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Voice Recording UI -->
+                <div id="voiceRecording" class="hidden mb-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="recording-animation w-3 h-3 rounded-full"></div>
+                        <span class="text-sm text-red-700">Recording voice message...</span>
+                        <div class="voice-wave text-red-500">
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                        </div>
+                        <span id="recordingTime" class="text-sm text-red-700 ml-auto">0:00</span>
+                    </div>
+                    <div class="flex space-x-2 mt-3">
+                        <button onclick="stopRecording()" class="flex-1 bg-red-500 text-white py-2 rounded-lg text-sm hover:bg-red-600">
+                            Send
+                        </button>
+                        <button onclick="cancelRecording()" class="px-4 bg-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-400">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <!-- Media Buttons -->
+                    <div class="flex space-x-1">
+                        <button onclick="showEmojiPicker()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50" title="Emoji">
+                            😊
+                        </button>
+                        <button onclick="showStickerPicker()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50" title="Stickers">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <button onclick="attachFile()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50" title="Attach File">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <button onclick="capturePhoto()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50" title="Camera">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586l-.707-.707A1 1 0 0013 4H7a1 1 0 00-.707.293L5.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Message Input -->
                     <div class="flex-1 relative">
                         <input type="text" id="messageText" placeholder="Type a message..." 
                                class="w-full px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
-                               onkeypress="handleMessageKeyPress(event)">
+                               onkeypress="handleMessageKeyPress(event)" oninput="handleTyping()">
                     </div>
-                    <button onclick="sendMessage()" class="p-2 instagram-gradient text-white rounded-full hover:opacity-90">
+
+                    <!-- Send/Voice Button -->
+                    <button id="sendButton" onclick="sendMessage()" class="p-2 instagram-gradient text-white rounded-full hover:opacity-90" title="Send">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+                        </svg>
+                    </button>
+                    <button id="voiceButton" onclick="startVoiceRecording()" class="hidden p-2 bg-green-500 text-white rounded-full hover:bg-green-600" title="Voice Message">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path>
                         </svg>
                     </button>
                 </div>
@@ -242,6 +434,105 @@
     </div>
 
     <!-- Modals -->
+    <!-- Profile Setup Modal -->
+    <div id="profileSetupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-96 max-w-full mx-4 ios-shadow max-h-96 overflow-y-auto">
+            <div class="text-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Complete Your Profile</h3>
+                <p class="text-gray-600 text-sm">Set up your profile to get started</p>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- Profile Picture Upload -->
+                <div class="text-center">
+                    <div class="relative inline-block">
+                        <img id="profilePreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%23667eea'/%3E%3Ctext x='40' y='50' text-anchor='middle' fill='white' font-size='24' font-weight='bold'%3EP%3C/text%3E%3C/svg%3E" 
+                             class="w-20 h-20 rounded-full mx-auto border-4 border-purple-200">
+                        <button onclick="selectProfilePicture()" class="absolute bottom-0 right-0 bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <input type="file" id="profilePictureInput" accept="image/*" class="hidden" onchange="handleProfilePicture(event)">
+                    <p class="text-xs text-gray-500 mt-2">Click to upload profile picture</p>
+                </div>
+                
+                <!-- Name -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Display Name *</label>
+                    <input type="text" id="profileName" placeholder="Enter your name" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                
+                <!-- Bio -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                    <textarea id="profileBio" placeholder="Tell us about yourself..." rows="3"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Max 150 characters</p>
+                </div>
+                
+                <!-- Status -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status Message</label>
+                    <select id="profileStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="Available">Available</option>
+                        <option value="Busy">Busy</option>
+                        <option value="Away">Away</option>
+                        <option value="Do not disturb">Do not disturb</option>
+                        <option value="Custom">Custom Status</option>
+                    </select>
+                </div>
+                
+                <!-- Custom Status Input -->
+                <div id="customStatusDiv" class="hidden">
+                    <input type="text" id="customStatus" placeholder="Enter custom status..." 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                
+                <!-- Privacy Settings -->
+                <div class="border-t pt-4">
+                    <h4 class="font-medium text-gray-800 mb-3">Privacy Settings</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Last Seen</span>
+                            <select id="lastSeenPrivacy" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                <option value="everyone">Everyone</option>
+                                <option value="contacts">My Contacts</option>
+                                <option value="nobody">Nobody</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Profile Photo</span>
+                            <select id="profilePhotoPrivacy" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                <option value="everyone">Everyone</option>
+                                <option value="contacts">My Contacts</option>
+                                <option value="nobody">Nobody</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Read Receipts</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="readReceipts" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-6">
+                <button onclick="saveProfile()" class="flex-1 instagram-gradient text-white py-2 rounded-lg font-medium hover:opacity-90">
+                    Complete Setup
+                </button>
+                <button onclick="skipProfile()" class="px-4 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300">
+                    Skip
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Login Modal -->
     <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl p-8 w-96 ios-shadow">
@@ -250,7 +541,7 @@
                     <span class="text-white text-2xl font-bold">P</span>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800">Welcome to Pulse</h2>
-                <p class="text-gray-600">Connect with friends and family</p>
+                <p class="text-gray-600">Advanced Messaging Platform</p>
             </div>
 
             <div id="loginForm">
@@ -355,13 +646,238 @@
         </div>
     </div>
 
+    <!-- Status/Story Modal -->
+    <div id="statusModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-96 max-w-full mx-4 ios-shadow">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Add Status</h3>
+                <button onclick="closeStatusModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- Status Type -->
+                <div class="flex space-x-2">
+                    <button onclick="setStatusType('text')" id="textStatusBtn" class="flex-1 py-2 px-4 bg-purple-500 text-white rounded-lg text-sm font-medium">
+                        Text
+                    </button>
+                    <button onclick="setStatusType('image')" id="imageStatusBtn" class="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">
+                        Image
+                    </button>
+                    <button onclick="setStatusType('video')" id="videoStatusBtn" class="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">
+                        Video
+                    </button>
+                </div>
+                
+                <!-- Text Status -->
+                <div id="textStatusContent">
+                    <textarea id="statusText" placeholder="What's on your mind?" rows="4"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"></textarea>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="setStatusBackground('#667eea')" class="w-8 h-8 rounded-full" style="background: #667eea;"></button>
+                        <button onclick="setStatusBackground('#f093fb')" class="w-8 h-8 rounded-full" style="background: #f093fb;"></button>
+                        <button onclick="setStatusBackground('#4ecdc4')" class="w-8 h-8 rounded-full" style="background: #4ecdc4;"></button>
+                        <button onclick="setStatusBackground('#ff6b6b')" class="w-8 h-8 rounded-full" style="background: #ff6b6b;"></button>
+                        <button onclick="setStatusBackground('#45b7d1')" class="w-8 h-8 rounded-full" style="background: #45b7d1;"></button>
+                    </div>
+                </div>
+                
+                <!-- Media Status -->
+                <div id="mediaStatusContent" class="hidden">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                        <input type="file" id="statusMediaInput" accept="image/*,video/*" class="hidden" onchange="handleStatusMedia(event)">
+                        <button onclick="document.getElementById('statusMediaInput').click()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                            </svg>
+                            <p class="text-sm">Click to upload media</p>
+                        </button>
+                    </div>
+                    <div id="statusMediaPreview" class="hidden mt-3"></div>
+                </div>
+                
+                <!-- Privacy Settings -->
+                <div class="border-t pt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Who can see this status?</label>
+                    <select id="statusPrivacy" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="everyone">Everyone</option>
+                        <option value="contacts">My Contacts</option>
+                        <option value="close_friends">Close Friends</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-6">
+                <button onclick="postStatus()" class="flex-1 instagram-gradient text-white py-2 rounded-lg font-medium hover:opacity-90">
+                    Post Status
+                </button>
+                <button onclick="closeStatusModal()" class="px-4 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Settings Modal -->
+    <div id="advancedSettingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-96 max-w-full mx-4 ios-shadow max-h-96 overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Advanced Settings</h3>
+                <button onclick="closeAdvancedSettings()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- Theme Settings -->
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-3">Appearance</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Theme</span>
+                            <select id="themeSelect" onchange="changeTheme()" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                                <option value="auto">Auto</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Chat Wallpaper</span>
+                            <button onclick="changeChatWallpaper()" class="text-sm text-purple-600 hover:text-purple-700">
+                                Change
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Font Size</span>
+                            <select id="fontSize" onchange="changeFontSize()" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                <option value="small">Small</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Privacy Settings -->
+                <div class="border-t pt-4">
+                    <h4 class="font-semibold text-gray-800 mb-3">Privacy & Security</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Two-Step Verification</span>
+                            <button onclick="setupTwoFactor()" class="text-sm text-purple-600 hover:text-purple-700">
+                                Setup
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Blocked Users</span>
+                            <button onclick="manageBlockedUsers()" class="text-sm text-purple-600 hover:text-purple-700">
+                                Manage
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Chat Lock</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="chatLock" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notifications -->
+                <div class="border-t pt-4">
+                    <h4 class="font-semibold text-gray-800 mb-3">Notifications</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Message Notifications</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="messageNotifications" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Group Notifications</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="groupNotifications" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Call Notifications</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="callNotifications" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Storage & Data -->
+                <div class="border-t pt-4">
+                    <h4 class="font-semibold text-gray-800 mb-3">Storage & Data</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Auto-download Media</span>
+                            <select id="autoDownload" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                <option value="wifi">WiFi Only</option>
+                                <option value="always">Always</option>
+                                <option value="never">Never</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700">Clear Chat History</span>
+                            <button onclick="clearAllChats()" class="text-sm text-red-600 hover:text-red-700">
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-6">
+                <button onclick="saveAdvancedSettings()" class="flex-1 instagram-gradient text-white py-2 rounded-lg font-medium hover:opacity-90">
+                    Save Settings
+                </button>
+                <button onclick="closeAdvancedSettings()" class="px-4 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- New Chat Modal -->
     <div id="newChatModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl p-6 w-96 ios-shadow">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Start New Chat</h3>
             <div class="space-y-4">
-                <input type="email" id="newChatEmail" placeholder="Enter email address" 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <div class="flex space-x-2 mb-4">
+                    <button onclick="setChatType('individual')" id="individualChatBtn" class="flex-1 py-2 px-4 bg-purple-500 text-white rounded-lg text-sm font-medium">
+                        Individual
+                    </button>
+                    <button onclick="setChatType('group')" id="groupChatBtn" class="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">
+                        Group
+                    </button>
+                </div>
+                
+                <div id="individualChatContent">
+                    <input type="email" id="newChatEmail" placeholder="Enter email address" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                
+                <div id="groupChatContent" class="hidden space-y-3">
+                    <input type="text" id="groupName" placeholder="Group name" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <textarea id="groupDescription" placeholder="Group description (optional)" rows="2"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"></textarea>
+                    <input type="email" id="groupMembers" placeholder="Add members (comma separated emails)" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                
                 <div class="flex space-x-3">
                     <button onclick="startNewChat()" class="flex-1 instagram-gradient text-white py-2 rounded-lg font-medium hover:opacity-90">
                         Start Chat
@@ -397,18 +913,147 @@
         let currentChatId = null;
         let currentChatUser = null;
         let isMobileMenuOpen = false;
+        let typingTimeout = null;
+        let mediaRecorder = null;
+        let recordingStream = null;
+        let recordingStartTime = null;
+        let recordingTimer = null;
+        let currentStatusType = 'text';
+        let currentChatType = 'individual';
+        let selectedStatusBackground = '#667eea';
+        let pendingMediaFiles = [];
+        let userSettings = {
+            theme: 'light',
+            fontSize: 'medium',
+            notifications: true,
+            readReceipts: true,
+            lastSeen: 'everyone',
+            profilePhoto: 'everyone',
+            autoDownload: 'wifi'
+        };
 
         // Authentication state observer
-        auth.onAuthStateChanged((user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
                 document.getElementById('loginModal').classList.add('hidden');
-                loadUserData();
-                loadChats();
+                
+                // Check if profile setup is needed
+                const userRef = database.ref('users/' + user.uid);
+                const snapshot = await userRef.once('value');
+                const userData = snapshot.val();
+                
+                if (!userData || !userData.profileSetupComplete) {
+                    document.getElementById('profileSetupModal').classList.remove('hidden');
+                } else {
+                    loadUserData();
+                    loadChats();
+                    loadUserSettings();
+                }
             } else {
                 document.getElementById('loginModal').classList.remove('hidden');
             }
         });
+
+        // Profile Setup Functions
+        function selectProfilePicture() {
+            document.getElementById('profilePictureInput').click();
+        }
+
+        function handleProfilePicture(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                alert('Profile picture must be less than 5MB');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profilePreview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Show/hide custom status input
+        document.getElementById('profileStatus').addEventListener('change', function() {
+            const customDiv = document.getElementById('customStatusDiv');
+            if (this.value === 'Custom') {
+                customDiv.classList.remove('hidden');
+            } else {
+                customDiv.classList.add('hidden');
+            }
+        });
+
+        async function saveProfile() {
+            const name = document.getElementById('profileName').value.trim();
+            const bio = document.getElementById('profileBio').value.trim();
+            const status = document.getElementById('profileStatus').value;
+            const customStatus = document.getElementById('customStatus').value.trim();
+            const lastSeenPrivacy = document.getElementById('lastSeenPrivacy').value;
+            const profilePhotoPrivacy = document.getElementById('profilePhotoPrivacy').value;
+            const readReceipts = document.getElementById('readReceipts').checked;
+            
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            if (bio.length > 150) {
+                alert('Bio must be 150 characters or less');
+                return;
+            }
+            
+            try {
+                const profilePic = document.getElementById('profilePreview').src;
+                const finalStatus = status === 'Custom' ? customStatus : status;
+                
+                await database.ref('users/' + currentUser.uid).set({
+                    name: name,
+                    email: currentUser.email,
+                    bio: bio,
+                    status: finalStatus,
+                    profilePic: profilePic,
+                    privacy: {
+                        lastSeen: lastSeenPrivacy,
+                        profilePhoto: profilePhotoPrivacy,
+                        readReceipts: readReceipts
+                    },
+                    profileSetupComplete: true,
+                    createdAt: Date.now(),
+                    lastSeen: Date.now(),
+                    isOnline: true
+                });
+                
+                document.getElementById('profileSetupModal').classList.add('hidden');
+                loadUserData();
+                loadChats();
+                loadUserSettings();
+                
+            } catch (error) {
+                alert('Failed to save profile: ' + error.message);
+            }
+        }
+
+        function skipProfile() {
+            if (confirm('Are you sure you want to skip profile setup? You can complete it later in settings.')) {
+                database.ref('users/' + currentUser.uid).update({
+                    profileSetupComplete: true,
+                    name: currentUser.displayName || 'Pulse User',
+                    email: currentUser.email,
+                    profilePic: generateAvatar(currentUser.displayName || 'Pulse User'),
+                    createdAt: Date.now(),
+                    lastSeen: Date.now(),
+                    isOnline: true
+                });
+                
+                document.getElementById('profileSetupModal').classList.add('hidden');
+                loadUserData();
+                loadChats();
+                loadUserSettings();
+            }
+        }
 
         // Toggle business fields
         function toggleBusinessFields() {
@@ -637,46 +1282,75 @@
             });
         }
 
-        // Create message bubble
+        // Create message bubble with enhanced features
         function createMessageBubble(message) {
             const messageDiv = document.createElement('div');
             const isOwn = message.sender === currentUser.uid;
             
-            messageDiv.className = `flex ${isOwn ? 'justify-end' : 'justify-start'}`;
+            messageDiv.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`;
             
             let content = '';
+            let statusIcon = '';
+            
+            // Message status icons
+            if (isOwn) {
+                if (message.seen) {
+                    statusIcon = '<span class="message-status message-seen">✓✓</span>';
+                } else if (message.delivered) {
+                    statusIcon = '<span class="message-status message-delivered">✓✓</span>';
+                } else {
+                    statusIcon = '<span class="message-status message-sent">✓</span>';
+                }
+            }
             
             if (message.type === 'image') {
                 content = `
                     <div class="mb-2">
-                        <img src="${message.fileUrl}" alt="${message.fileName}" class="max-w-xs rounded-lg cursor-pointer" onclick="window.open('${message.fileUrl}', '_blank')">
+                        <img src="${message.content || message.fileUrl}" alt="${message.fileName || 'Image'}" 
+                             class="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+                             onclick="openImageViewer('${message.content || message.fileUrl}')">
                     </div>
-                    <p class="text-sm">${message.fileName}</p>
+                    ${message.text ? `<p class="text-sm mt-2">${message.text}</p>` : ''}
                 `;
             } else if (message.type === 'video') {
                 content = `
                     <div class="mb-2">
                         <video controls class="max-w-xs rounded-lg">
-                            <source src="${message.fileUrl}" type="video/mp4">
+                            <source src="${message.content || message.fileUrl}" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
                     </div>
-                    <p class="text-sm">${message.fileName}</p>
+                    ${message.text ? `<p class="text-sm mt-2">${message.text}</p>` : ''}
                 `;
-            } else if (message.type === 'audio') {
+            } else if (message.type === 'voice') {
+                const duration = message.duration || '0:00';
+                content = `
+                    <div class="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg">
+                        <button onclick="playVoiceMessage('${message.content}')" class="text-purple-600 hover:text-purple-700">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div class="voice-wave text-purple-500">
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                            <div class="voice-bar"></div>
+                        </div>
+                        <span class="text-sm text-gray-600">${duration}</span>
+                    </div>
+                `;
+            } else if (message.type === 'sticker') {
                 content = `
                     <div class="mb-2">
-                        <audio controls class="w-full">
-                            <source src="${message.fileUrl}" type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
+                        <img src="${message.content}" alt="Sticker" class="w-24 h-24 object-contain">
                     </div>
-                    <p class="text-sm">${message.fileName}</p>
                 `;
             } else if (message.type === 'file') {
                 const fileSize = message.fileSize ? (message.fileSize / 1024 / 1024).toFixed(2) + ' MB' : '';
                 content = `
-                    <div class="flex items-center space-x-3 p-2 bg-gray-100 rounded-lg mb-2">
+                    <div class="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg">
                         <svg class="w-8 h-8 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
                         </svg>
@@ -684,7 +1358,7 @@
                             <p class="text-sm font-medium">${message.fileName}</p>
                             <p class="text-xs text-gray-500">${fileSize}</p>
                         </div>
-                        <button onclick="window.open('${message.fileUrl}', '_blank')" class="text-blue-500 hover:text-blue-700">
+                        <button onclick="downloadFile('${message.content}', '${message.fileName}')" class="text-blue-500 hover:text-blue-700">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
@@ -701,20 +1375,98 @@
             } else if (message.type === 'error') {
                 content = `<p class="text-sm text-red-500">${message.text}</p>`;
             } else {
-                content = `<p class="text-sm">${message.text}</p>`;
+                // Regular text message with emoji support
+                content = `<p class="text-sm whitespace-pre-wrap">${formatMessageText(message.text)}</p>`;
             }
             
             messageDiv.innerHTML = `
-                <div class="message-bubble ${isOwn ? 'bg-purple-500 text-white' : 'bg-white text-gray-800'} px-4 py-2 rounded-2xl ios-shadow">
+                <div class="message-bubble ${isOwn ? 'bg-purple-500 text-white' : 'bg-white text-gray-800'} px-4 py-2 rounded-2xl ios-shadow relative">
                     ${content}
                     <div class="flex items-center justify-end space-x-1 mt-1">
                         <span class="text-xs ${isOwn ? 'text-purple-200' : 'text-gray-500'}">${formatTime(message.timestamp)}</span>
-                        ${isOwn ? `<span class="text-xs ${message.seen ? 'text-blue-300' : 'text-purple-200'}">✓✓</span>` : ''}
+                        ${statusIcon}
                     </div>
                 </div>
             `;
             
             document.getElementById('messagesList').appendChild(messageDiv);
+        }
+
+        // Format message text with emoji and link support
+        function formatMessageText(text) {
+            if (!text) return '';
+            
+            // Convert URLs to links
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            text = text.replace(urlRegex, '<a href="$1" target="_blank" class="underline">$1</a>');
+            
+            return text;
+        }
+
+        // Handle typing indicator
+        function handleTyping() {
+            if (!currentChatId) return;
+            
+            const messageText = document.getElementById('messageText').value;
+            const sendButton = document.getElementById('sendButton');
+            const voiceButton = document.getElementById('voiceButton');
+            
+            // Toggle send/voice button
+            if (messageText.trim()) {
+                sendButton.classList.remove('hidden');
+                voiceButton.classList.add('hidden');
+            } else {
+                sendButton.classList.add('hidden');
+                voiceButton.classList.remove('hidden');
+            }
+            
+            // Send typing indicator
+            if (messageText.trim()) {
+                database.ref('chats/' + currentChatId + '/typing/' + currentUser.uid).set({
+                    isTyping: true,
+                    timestamp: Date.now()
+                });
+                
+                // Clear typing indicator after 3 seconds
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    database.ref('chats/' + currentChatId + '/typing/' + currentUser.uid).remove();
+                }, 3000);
+            } else {
+                database.ref('chats/' + currentChatId + '/typing/' + currentUser.uid).remove();
+            }
+        }
+
+        // Listen for typing indicators
+        function listenForTyping(chatId) {
+            const typingRef = database.ref('chats/' + chatId + '/typing');
+            typingRef.on('value', (snapshot) => {
+                const typingData = snapshot.val() || {};
+                const typingUsers = Object.keys(typingData).filter(uid => 
+                    uid !== currentUser.uid && 
+                    typingData[uid].isTyping && 
+                    Date.now() - typingData[uid].timestamp < 5000
+                );
+                
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingUsers.length > 0) {
+                    typingIndicator.innerHTML = `
+                        <div class="px-4 py-2 text-sm text-gray-500">
+                            <div class="flex items-center space-x-2">
+                                <div class="typing-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <span>Someone is typing...</span>
+                            </div>
+                        </div>
+                    `;
+                    typingIndicator.classList.remove('hidden');
+                } else {
+                    typingIndicator.classList.add('hidden');
+                }
+            });
         }
 
         // Send message
@@ -788,6 +1540,257 @@
             
             closeNewChatModal();
             openChat(chatId, otherUser);
+        }
+
+        // Voice Recording Functions
+        async function startVoiceRecording() {
+            try {
+                recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(recordingStream);
+                
+                const audioChunks = [];
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        const base64Audio = e.target.result;
+                        const duration = formatDuration(Date.now() - recordingStartTime);
+                        
+                        await sendVoiceMessage(base64Audio, duration);
+                    };
+                    reader.readAsDataURL(audioBlob);
+                };
+                
+                mediaRecorder.start();
+                recordingStartTime = Date.now();
+                
+                // Show recording UI
+                document.getElementById('voiceRecording').classList.remove('hidden');
+                
+                // Start timer
+                let seconds = 0;
+                recordingTimer = setInterval(() => {
+                    seconds++;
+                    document.getElementById('recordingTime').textContent = formatDuration(seconds * 1000);
+                }, 1000);
+                
+            } catch (error) {
+                alert('Could not access microphone: ' + error.message);
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                recordingStream.getTracks().forEach(track => track.stop());
+                clearInterval(recordingTimer);
+                document.getElementById('voiceRecording').classList.add('hidden');
+            }
+        }
+
+        function cancelRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                recordingStream.getTracks().forEach(track => track.stop());
+                clearInterval(recordingTimer);
+                document.getElementById('voiceRecording').classList.add('hidden');
+            }
+        }
+
+        async function sendVoiceMessage(audioData, duration) {
+            if (!currentChatId) return;
+            
+            const messageId = database.ref().child('chats').child(currentChatId).child('messages').push().key;
+            const message = {
+                sender: currentUser.uid,
+                type: 'voice',
+                content: audioData,
+                duration: duration,
+                timestamp: Date.now(),
+                seen: false,
+                delivered: false
+            };
+            
+            await database.ref('chats/' + currentChatId + '/messages/' + messageId).set(message);
+            await database.ref('chats/' + currentChatId + '/lastMessage').set({
+                text: '🎵 Voice message',
+                timestamp: Date.now()
+            });
+        }
+
+        function formatDuration(ms) {
+            const seconds = Math.floor(ms / 1000);
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function playVoiceMessage(audioData) {
+            const audio = new Audio(audioData);
+            audio.play();
+        }
+
+        // Sticker Functions
+        function showStickerPicker() {
+            const stickerModal = document.createElement('div');
+            stickerModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            stickerModal.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 w-80 max-w-full mx-4 ios-shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">Choose Sticker</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="sticker-grid">
+                        ${generateStickerPack().map(sticker => 
+                            `<img src="${sticker}" class="sticker-item" onclick="sendSticker('${sticker}')" alt="Sticker">`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(stickerModal);
+        }
+
+        function generateStickerPack() {
+            // Generate Base64 sticker pack (simple emoji-based stickers)
+            const emojis = ['😀', '😂', '🥰', '😎', '🤔', '😴', '🎉', '❤️', '👍', '👎', '🔥', '💯', '🎵', '⚡', '🌟', '💎'];
+            return emojis.map(emoji => {
+                return `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23f0f0f0" rx="10"/><text x="30" y="40" text-anchor="middle" font-size="30">${emoji}</text></svg>`;
+            });
+        }
+
+        async function sendSticker(stickerData) {
+            if (!currentChatId) return;
+            
+            const messageId = database.ref().child('chats').child(currentChatId).child('messages').push().key;
+            const message = {
+                sender: currentUser.uid,
+                type: 'sticker',
+                content: stickerData,
+                timestamp: Date.now(),
+                seen: false,
+                delivered: false
+            };
+            
+            await database.ref('chats/' + currentChatId + '/messages/' + messageId).set(message);
+            await database.ref('chats/' + currentChatId + '/lastMessage').set({
+                text: '🎭 Sticker',
+                timestamp: Date.now()
+            });
+            
+            document.querySelector('.fixed').remove();
+        }
+
+        // Camera Functions
+        async function capturePhoto() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                
+                const cameraModal = document.createElement('div');
+                cameraModal.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+                cameraModal.innerHTML = `
+                    <div class="text-center">
+                        <video id="cameraPreview" autoplay class="max-w-md rounded-lg mb-4"></video>
+                        <canvas id="photoCanvas" class="hidden"></canvas>
+                        <div class="flex space-x-4">
+                            <button onclick="takePhoto()" class="bg-white text-black px-6 py-3 rounded-full font-medium hover:bg-gray-100">
+                                📸 Capture
+                            </button>
+                            <button onclick="closeCameraModal()" class="bg-red-500 text-white px-6 py-3 rounded-full font-medium hover:bg-red-600">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(cameraModal);
+                
+                document.getElementById('cameraPreview').srcObject = stream;
+                window.currentCameraStream = stream;
+                
+            } catch (error) {
+                alert('Could not access camera: ' + error.message);
+            }
+        }
+
+        function takePhoto() {
+            const video = document.getElementById('cameraPreview');
+            const canvas = document.getElementById('photoCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            const photoData = canvas.toDataURL('image/jpeg', 0.8);
+            sendImageMessage(photoData);
+            closeCameraModal();
+        }
+
+        function closeCameraModal() {
+            if (window.currentCameraStream) {
+                window.currentCameraStream.getTracks().forEach(track => track.stop());
+            }
+            document.querySelector('.fixed').remove();
+        }
+
+        async function sendImageMessage(imageData, caption = '') {
+            if (!currentChatId) return;
+            
+            const messageId = database.ref().child('chats').child(currentChatId).child('messages').push().key;
+            const message = {
+                sender: currentUser.uid,
+                type: 'image',
+                content: imageData,
+                text: caption,
+                timestamp: Date.now(),
+                seen: false,
+                delivered: false
+            };
+            
+            await database.ref('chats/' + currentChatId + '/messages/' + messageId).set(message);
+            await database.ref('chats/' + currentChatId + '/lastMessage').set({
+                text: caption || '📷 Photo',
+                timestamp: Date.now()
+            });
+        }
+
+        // Media Preview Functions
+        function clearMediaPreview() {
+            document.getElementById('mediaPreview').classList.add('hidden');
+            document.getElementById('mediaPreviewContent').innerHTML = '';
+            pendingMediaFiles = [];
+        }
+
+        function openImageViewer(imageUrl) {
+            const viewer = document.createElement('div');
+            viewer.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+            viewer.innerHTML = `
+                <div class="relative">
+                    <img src="${imageUrl}" class="max-w-full max-h-full object-contain">
+                    <button onclick="this.closest('.fixed').remove()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(viewer);
+        }
+
+        function downloadFile(fileData, fileName) {
+            const link = document.createElement('a');
+            link.href = fileData;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // Utility functions
@@ -1268,11 +2271,336 @@
             }
         });
 
+        // Status/Story Functions
+        function showStatusModal() {
+            document.getElementById('statusModal').classList.remove('hidden');
+        }
+
+        function closeStatusModal() {
+            document.getElementById('statusModal').classList.add('hidden');
+            document.getElementById('statusText').value = '';
+            document.getElementById('statusMediaPreview').classList.add('hidden');
+        }
+
+        function setStatusType(type) {
+            currentStatusType = type;
+            
+            // Update button styles
+            document.getElementById('textStatusBtn').className = type === 'text' ? 
+                'flex-1 py-2 px-4 bg-purple-500 text-white rounded-lg text-sm font-medium' :
+                'flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium';
+            document.getElementById('imageStatusBtn').className = type === 'image' ? 
+                'flex-1 py-2 px-4 bg-purple-500 text-white rounded-lg text-sm font-medium' :
+                'flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium';
+            document.getElementById('videoStatusBtn').className = type === 'video' ? 
+                'flex-1 py-2 px-4 bg-purple-500 text-white rounded-lg text-sm font-medium' :
+                'flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium';
+            
+            // Show/hide content
+            if (type === 'text') {
+                document.getElementById('textStatusContent').classList.remove('hidden');
+                document.getElementById('mediaStatusContent').classList.add('hidden');
+            } else {
+                document.getElementById('textStatusContent').classList.add('hidden');
+                document.getElementById('mediaStatusContent').classList.remove('hidden');
+            }
+        }
+
+        function setStatusBackground(color) {
+            selectedStatusBackground = color;
+            document.getElementById('statusText').style.backgroundColor = color;
+            document.getElementById('statusText').style.color = 'white';
+        }
+
+        function handleStatusMedia(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File must be less than 10MB');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('statusMediaPreview');
+                preview.innerHTML = file.type.startsWith('image/') ?
+                    `<img src="${e.target.result}" class="max-w-full rounded-lg">` :
+                    `<video src="${e.target.result}" controls class="max-w-full rounded-lg"></video>`;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function postStatus() {
+            const text = document.getElementById('statusText').value.trim();
+            const privacy = document.getElementById('statusPrivacy').value;
+            
+            if (currentStatusType === 'text' && !text) {
+                alert('Please enter status text');
+                return;
+            }
+            
+            if ((currentStatusType === 'image' || currentStatusType === 'video') && 
+                document.getElementById('statusMediaPreview').classList.contains('hidden')) {
+                alert('Please select media');
+                return;
+            }
+            
+            try {
+                const statusId = database.ref().child('statuses').push().key;
+                let content = '';
+                
+                if (currentStatusType === 'text') {
+                    content = text;
+                } else {
+                    const mediaElement = document.querySelector('#statusMediaPreview img, #statusMediaPreview video');
+                    content = mediaElement.src;
+                }
+                
+                const status = {
+                    userId: currentUser.uid,
+                    type: currentStatusType,
+                    content: content,
+                    text: text,
+                    background: selectedStatusBackground,
+                    privacy: privacy,
+                    timestamp: Date.now(),
+                    expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
+                    views: []
+                };
+                
+                await database.ref('statuses/' + statusId).set(status);
+                closeStatusModal();
+                alert('Status posted successfully!');
+                
+            } catch (error) {
+                alert('Failed to post status: ' + error.message);
+            }
+        }
+
+        // Advanced Settings Functions
+        function showAdvancedSettings() {
+            document.getElementById('advancedSettingsModal').classList.remove('hidden');
+            loadCurrentSettings();
+        }
+
+        function closeAdvancedSettings() {
+            document.getElementById('advancedSettingsModal').classList.add('hidden');
+        }
+
+        function loadCurrentSettings() {
+            document.getElementById('themeSelect').value = userSettings.theme;
+            document.getElementById('fontSize').value = userSettings.fontSize;
+            document.getElementById('messageNotifications').checked = userSettings.notifications;
+            document.getElementById('autoDownload').value = userSettings.autoDownload;
+        }
+
+        function changeTheme() {
+            const theme = document.getElementById('themeSelect').value;
+            userSettings.theme = theme;
+            
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.body.classList.add('dark');
+            } else if (theme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.body.classList.remove('dark');
+            } else {
+                // Auto theme based on system preference
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                document.body.classList.toggle('dark', isDark);
+            }
+        }
+
+        function changeFontSize() {
+            const fontSize = document.getElementById('fontSize').value;
+            userSettings.fontSize = fontSize;
+            
+            const root = document.documentElement;
+            switch (fontSize) {
+                case 'small':
+                    root.style.fontSize = '14px';
+                    break;
+                case 'large':
+                    root.style.fontSize = '18px';
+                    break;
+                default:
+                    root.style.fontSize = '16px';
+            }
+        }
+
+        function changeChatWallpaper() {
+            const wallpapers = [
+                'chat-wallpaper',
+                'bg-gradient-to-br from-blue-50 to-purple-50',
+                'bg-gradient-to-br from-green-50 to-blue-50',
+                'bg-gradient-to-br from-pink-50 to-yellow-50',
+                'bg-gray-100'
+            ];
+            
+            const currentWallpaper = localStorage.getItem('chatWallpaper') || 'chat-wallpaper';
+            const currentIndex = wallpapers.indexOf(currentWallpaper);
+            const nextIndex = (currentIndex + 1) % wallpapers.length;
+            const newWallpaper = wallpapers[nextIndex];
+            
+            localStorage.setItem('chatWallpaper', newWallpaper);
+            document.getElementById('messagesArea').className = 
+                document.getElementById('messagesArea').className.replace(/bg-\S+/g, '') + ' ' + newWallpaper;
+        }
+
+        function setupTwoFactor() {
+            alert('Two-factor authentication setup would be implemented here');
+        }
+
+        function manageBlockedUsers() {
+            alert('Blocked users management would be implemented here');
+        }
+
+        function clearAllChats() {
+            if (confirm('Are you sure you want to clear all chat history? This cannot be undone.')) {
+                // Implementation would clear all chats
+                alert('All chats cleared');
+            }
+        }
+
+        async function saveAdvancedSettings() {
+            try {
+                userSettings.notifications = document.getElementById('messageNotifications').checked;
+                userSettings.autoDownload = document.getElementById('autoDownload').value;
+                
+                await database.ref('users/' + currentUser.uid + '/settings').set(userSettings);
+                closeAdvancedSettings();
+                alert('Settings saved successfully!');
+                
+            } catch (error) {
+                alert('Failed to save settings: ' + error.message);
+            }
+        }
+
+        async function loadUserSettings() {
+            if (!currentUser) return;
+            
+            try {
+                const settingsRef = database.ref('users/' + currentUser.uid + '/settings');
+                const snapshot = await settingsRef.once('value');
+                const settings = snapshot.val();
+                
+                if (settings) {
+                    userSettings = { ...userSettings, ...settings };
+                    applyUserSettings();
+                }
+            } catch (error) {
+                console.error('Failed to load user settings:', error);
+            }
+        }
+
+        function applyUserSettings() {
+            // Apply theme
+            changeTheme();
+            
+            // Apply font size
+            changeFontSize();
+            
+            // Apply wallpaper
+            const savedWallpaper = localStorage.getItem('chatWallpaper');
+            if (savedWallpaper) {
+                const messagesArea = document.getElementById('messagesArea');
+                if (messagesArea) {
+                    messagesArea.className = messagesArea.className.replace(/bg-\S+/g, '') + ' ' + savedWallpaper;
+                }
+            }
+        }
+
+        // Chat Type Functions
+        function setChatType(type) {
+            currentChatType = type;
+            
+            // Update button styles
+            document.getElementById('individualChatBtn').className = type === 'individual' ? 
+                'flex-1 py-2 px-4 bg-purple-500 text-white rounded-lg text-sm font-medium' :
+                'flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium';
+            document.getElementById('groupChatBtn').className = type === 'group' ? 
+                'flex-1 py-2 px-4 bg-purple-500 text-white rounded-lg text-sm font-medium' :
+                'flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium';
+            
+            // Show/hide content
+            if (type === 'individual') {
+                document.getElementById('individualChatContent').classList.remove('hidden');
+                document.getElementById('groupChatContent').classList.add('hidden');
+            } else {
+                document.getElementById('individualChatContent').classList.add('hidden');
+                document.getElementById('groupChatContent').classList.remove('hidden');
+            }
+        }
+
+        // Update existing functions to include typing listeners
+        function openChat(chatId, otherUser) {
+            currentChatId = chatId;
+            currentChatUser = otherUser;
+            
+            // Update UI
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('chatHeader').classList.remove('hidden');
+            document.getElementById('messagesArea').classList.remove('hidden');
+            document.getElementById('messageInput').classList.remove('hidden');
+            
+            // Update chat header
+            document.getElementById('chatAvatar').src = otherUser.profilePic;
+            document.getElementById('chatName').textContent = otherUser.name;
+            document.getElementById('chatStatus').textContent = otherUser.status === 'Online' ? 'Online' : `Last seen ${formatTime(otherUser.lastSeen)}`;
+            
+            // Close mobile menu when opening chat on mobile
+            if (window.innerWidth < 768) {
+                closeMobileMenu();
+            }
+            
+            // Load messages and typing indicators
+            loadMessages(chatId);
+            listenForTyping(chatId);
+        }
+
+        // Status Viewing Function
+        function viewStatus(userName) {
+            const statusViewer = document.createElement('div');
+            statusViewer.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+            statusViewer.innerHTML = `
+                <div class="relative w-full max-w-md mx-4">
+                    <div class="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 text-white text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23ff6b6b'/%3E%3Ctext x='32' y='40' text-anchor='middle' fill='white' font-size='24' font-weight='bold'%3E${userName.charAt(0).toUpperCase()}%3C/text%3E%3C/svg%3E" 
+                                 class="w-full h-full object-cover" alt="${userName}">
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">${userName.charAt(0).toUpperCase() + userName.slice(1)}</h3>
+                        <p class="text-lg mb-4">Hey there! I'm using Pulse 🚀</p>
+                        <p class="text-sm opacity-75">2 hours ago</p>
+                    </div>
+                    <button onclick="this.closest('.fixed').remove()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(statusViewer);
+        }
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             // App is ready
-            console.log('Pulse Chat App initialized');
+            console.log('Pulse Advanced Messaging Platform initialized');
+            
+            // Apply saved settings
+            applyUserSettings();
+            
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (userSettings.theme === 'auto') {
+                    changeTheme();
+                }
+            });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970f921c64a94454',t:'MTc1NTUwMDgxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970f9d8d223e3bf8',t:'MTc1NTUwMTI3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
