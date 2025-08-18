@@ -480,87 +480,7 @@
                 </div>
             </div>
 
-            <!-- Home Screen -->
-            <div id="homeScreen" class="flex-1 overflow-y-auto bg-gradient-to-br from-purple-50 to-pink-50 p-4">
-                <!-- User Profile Section -->
-                <div class="bg-white rounded-2xl p-6 mb-6 ios-shadow">
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                            <img id="homeUserAvatar" src="" class="w-16 h-16 rounded-full border-4 border-purple-200" alt="Profile">
-                            <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full"></div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center">
-                                <h3 id="homeUserName" class="text-xl font-bold text-gray-800">Pulse User</h3>
-                                <span id="homePremiumBadge" class="hidden premium-badge">PREMIUM</span>
-                                <span id="homePremiumCrown" class="hidden premium-crown">👑</span>
-                            </div>
-                            <p id="homeUserStatus" class="text-gray-600">Hey there! I am using Pulse.</p>
-                            <div class="flex items-center space-x-4 mt-2">
-                                <span class="text-sm text-green-600 font-medium">Online</span>
-                                <button onclick="showMyStoryViews()" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
-                                    View My Story Analytics
-                                </button>
-                            </div>
-                        </div>
-                        <button onclick="showProfileSettings()" class="p-2 text-gray-500 hover:text-purple-600 rounded-full hover:bg-purple-50">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <button onclick="showNewChatModal()" class="bg-white rounded-xl p-4 ios-shadow hover:shadow-lg transition-shadow">
-                        <div class="text-center">
-                            <div class="w-12 h-12 mx-auto mb-2 bg-purple-100 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            <p class="font-medium text-gray-800">New Chat</p>
-                        </div>
-                    </button>
-                    <button onclick="showStatusModal()" class="bg-white rounded-xl p-4 ios-shadow hover:shadow-lg transition-shadow">
-                        <div class="text-center">
-                            <div class="w-12 h-12 mx-auto mb-2 bg-green-100 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            <p class="font-medium text-gray-800">Add Story</p>
-                        </div>
-                    </button>
-                </div>
-
-                <!-- Recent Chats -->
-                <div class="bg-white rounded-2xl p-4 mb-6 ios-shadow">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-lg font-bold text-gray-800">Recent Chats</h4>
-                        <button onclick="showChatsTab()" class="text-purple-600 hover:text-purple-700 text-sm font-medium">
-                            View All
-                        </button>
-                    </div>
-                    <div id="recentChatsList" class="space-y-3">
-                        <!-- Recent chats will be populated here -->
-                    </div>
-                </div>
-
-                <!-- Active Stories -->
-                <div class="bg-white rounded-2xl p-4 ios-shadow">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-lg font-bold text-gray-800">Active Stories</h4>
-                        <button onclick="showStatusTab()" class="text-purple-600 hover:text-purple-700 text-sm font-medium">
-                            View All
-                        </button>
-                    </div>
-                    <div id="activeStoriesList" class="flex space-x-4 overflow-x-auto pb-2">
-                        <!-- Active stories will be populated here -->
-                    </div>
-                </div>
-            </div>
 
             <!-- Welcome Screen (fallback) -->
             <div id="welcomeScreen" class="hidden flex-1 flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
@@ -1820,13 +1740,6 @@
         }
         
         // Enhanced tab navigation
-        function showHomeTab() {
-            setActiveTab('home');
-            hideAllScreens();
-            document.getElementById('homeScreen').classList.remove('hidden');
-            loadHomeContent();
-        }
-        
         function showChatsTab() {
             setActiveTab('chats');
             hideAllScreens();
@@ -1859,7 +1772,6 @@
         }
         
         function hideAllScreens() {
-            document.getElementById('homeScreen').classList.add('hidden');
             document.getElementById('welcomeScreen').classList.add('hidden');
             document.getElementById('chatHeader').classList.add('hidden');
             document.getElementById('messagesArea').classList.add('hidden');
@@ -1871,17 +1783,17 @@
             currentActiveTab = tabName;
             
             // Reset all tabs
-            ['homeTabBtn', 'chatsTabBtn', 'statusTabBtn', 'callsTabBtn', 'settingsTabBtn'].forEach(id => {
+            ['chatsTabBtn', 'statusTabBtn', 'callsTabBtn'].forEach(id => {
                 const btn = document.getElementById(id);
                 if (btn) {
-                    btn.className = btn.className.replace('text-purple-600', 'text-gray-500');
+                    btn.className = btn.className.replace('text-green-600', 'text-gray-600');
                 }
             });
             
             // Set active tab
             const activeBtn = document.getElementById(tabName + 'TabBtn');
             if (activeBtn) {
-                activeBtn.className = activeBtn.className.replace('text-gray-500', 'text-purple-600');
+                activeBtn.className = activeBtn.className.replace('text-gray-600', 'text-green-600');
             }
         }
         
@@ -3808,36 +3720,84 @@
                     viewerName: document.getElementById('userName').textContent
                 });
                 
+                // Get user info
+                const userRef = database.ref('users/' + status.userId);
+                const userSnapshot = await userRef.once('value');
+                const userData = userSnapshot.val();
+                
+                // Get likes and views count
+                const likesRef = database.ref('statuses/' + statusId + '/likes');
+                const likesSnapshot = await likesRef.once('value');
+                const likes = likesSnapshot.val() || {};
+                const likesCount = Object.keys(likes).length;
+                const isLiked = likes[currentUser.uid];
+                
+                const viewsSnapshot = await viewsRef.once('value');
+                const views = viewsSnapshot.val() || {};
+                const viewsCount = Object.keys(views).length;
+                
                 const statusViewer = document.createElement('div');
-                statusViewer.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+                statusViewer.className = 'fixed inset-0 bg-black flex flex-col z-50';
                 
                 let content = '';
                 if (status.type === 'text') {
                     content = `
-                        <div class="rounded-2xl p-8 text-white text-center max-w-md" style="background: ${status.background || '#667eea'}">
-                            <h3 class="text-xl font-bold mb-4">User ${status.userId.slice(0, 8)}</h3>
-                            <p class="text-lg mb-4">${status.content}</p>
-                            <p class="text-sm opacity-75">${formatTime(status.timestamp)}</p>
+                        <div class="flex-1 flex items-center justify-center">
+                            <div class="rounded-2xl p-8 text-white text-center max-w-md" style="background: ${status.background || '#667eea'}">
+                                <p class="text-lg mb-4">${status.content}</p>
+                            </div>
                         </div>
                     `;
                 } else if (status.type === 'image') {
                     content = `
-                        <div class="bg-white rounded-2xl p-4 max-w-md">
-                            <img src="${status.content}" class="w-full rounded-lg mb-4" alt="Status Image">
-                            ${status.text ? `<p class="text-gray-800 mb-2">${status.text}</p>` : ''}
-                            <p class="text-sm text-gray-500">${formatTime(status.timestamp)}</p>
+                        <div class="flex-1 flex items-center justify-center">
+                            <img src="${status.content}" class="max-w-full max-h-full object-contain" alt="Status Image">
                         </div>
                     `;
                 }
                 
                 statusViewer.innerHTML = `
-                    <div class="relative">
-                        ${content}
-                        <button onclick="this.closest('.fixed').remove()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between p-4 text-white">
+                        <div class="flex items-center space-x-3">
+                            <img src="${userData?.profilePic || ''}" class="w-10 h-10 rounded-full" alt="${userData?.name || 'User'}">
+                            <div>
+                                <div class="flex items-center">
+                                    <p class="font-semibold">${userData?.name || 'User'}</p>
+                                    ${userData?.isPremium ? '<span class="verification-tick ml-1"><svg class="w-4 h-4 blue-tick" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></span>' : ''}
+                                </div>
+                                <p class="text-sm opacity-75">${formatTime(status.timestamp)}</p>
+                            </div>
+                        </div>
+                        <button onclick="this.closest('.fixed').remove()" class="text-white p-2">
                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
                         </button>
+                    </div>
+                    
+                    ${content}
+                    
+                    <!-- Bottom Actions -->
+                    <div class="p-4 text-white">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-4">
+                                <button onclick="toggleStatusLike('${statusId}')" class="flex items-center space-x-2">
+                                    <svg class="w-6 h-6 ${isLiked ? 'text-red-500' : 'text-white'}" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>${likesCount}</span>
+                                </button>
+                                <button onclick="showStatusViewers('${statusId}')" class="flex items-center space-x-2">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>${viewsCount}</span>
+                                </button>
+                            </div>
+                        </div>
+                        ${status.text ? `<p class="text-sm mb-2">${status.text}</p>` : ''}
                     </div>
                 `;
                 
@@ -3849,6 +3809,80 @@
                 
             } catch (error) {
                 console.error('Failed to view status:', error);
+            }
+        }
+        
+        async function toggleStatusLike(statusId) {
+            try {
+                const likesRef = database.ref('statuses/' + statusId + '/likes/' + currentUser.uid);
+                const snapshot = await likesRef.once('value');
+                
+                if (snapshot.exists()) {
+                    // Unlike
+                    await likesRef.remove();
+                } else {
+                    // Like
+                    await likesRef.set({
+                        likedAt: Date.now(),
+                        likerName: document.getElementById('userName').textContent
+                    });
+                }
+                
+                // Refresh the status view
+                const statusViewer = document.querySelector('.fixed.inset-0.bg-black');
+                if (statusViewer) {
+                    statusViewer.remove();
+                    setTimeout(() => viewDetailedStatus(statusId), 100);
+                }
+                
+            } catch (error) {
+                console.error('Failed to toggle like:', error);
+            }
+        }
+        
+        async function showStatusViewers(statusId) {
+            try {
+                const viewsRef = database.ref('statuses/' + statusId + '/views');
+                const snapshot = await viewsRef.once('value');
+                const views = snapshot.val() || {};
+                
+                const viewersModal = document.createElement('div');
+                viewersModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                viewersModal.innerHTML = `
+                    <div class="bg-white rounded-2xl p-6 w-80 max-w-full mx-4 ios-shadow max-h-96 overflow-y-auto">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">Viewed by ${Object.keys(views).length}</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            ${Object.keys(views).length === 0 ? 
+                                '<p class="text-gray-500 text-center py-4">No views yet</p>' :
+                                Object.keys(views).map(viewerId => {
+                                    const view = views[viewerId];
+                                    return `
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                                    ${view.viewerName ? view.viewerName.charAt(0).toUpperCase() : 'U'}
+                                                </div>
+                                                <span class="text-sm text-gray-700">${view.viewerName || 'Unknown User'}</span>
+                                            </div>
+                                            <span class="text-xs text-gray-500">${formatTime(view.viewedAt)}</span>
+                                        </div>
+                                    `;
+                                }).join('')
+                            }
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(viewersModal);
+                
+            } catch (error) {
+                console.error('Failed to show viewers:', error);
             }
         }
 
@@ -3906,16 +3940,46 @@
             }
         }
 
-        function changeProfilePicture() {
+        async function changeProfilePicture() {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
-            input.onchange = function(event) {
+            input.onchange = async function(event) {
                 const file = event.target.files[0];
                 if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Profile picture must be less than 5MB');
+                        return;
+                    }
+                    
                     const reader = new FileReader();
-                    reader.onload = function(e) {
-                        document.getElementById('settingsProfilePic').src = e.target.result;
+                    reader.onload = async function(e) {
+                        const newProfilePic = e.target.result;
+                        
+                        // Update preview
+                        document.getElementById('settingsProfilePic').src = newProfilePic;
+                        
+                        try {
+                            // Update in database
+                            await database.ref('users/' + currentUser.uid).update({
+                                profilePic: newProfilePic
+                            });
+                            
+                            // Update all UI elements
+                            document.getElementById('userAvatar').src = newProfilePic;
+                            document.getElementById('homeUserAvatar').src = newProfilePic;
+                            
+                            // Update chat header if in chat
+                            const chatAvatar = document.getElementById('chatAvatar');
+                            if (chatAvatar && currentChatUser && currentChatUser.uid === currentUser.uid) {
+                                chatAvatar.src = newProfilePic;
+                            }
+                            
+                            alert('Profile picture updated successfully!');
+                            
+                        } catch (error) {
+                            alert('Failed to update profile picture: ' + error.message);
+                        }
                     };
                     reader.readAsDataURL(file);
                 }
@@ -4003,8 +4067,8 @@
             // Apply saved settings
             applyUserSettings();
             
-            // Show home tab by default
-            showHomeTab();
+            // Show chats tab by default
+            showChatsTab();
             
             // Listen for system theme changes
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -4014,5 +4078,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970fcb6a37258b82',t:'MTc1NTUwMzE1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970fe41d56de3ba3',t:'MTc1NTUwNDE2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
