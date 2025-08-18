@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pulse - Connect & Chat</title>
     
     <!-- Firebase SDKs -->
@@ -3224,20 +3224,30 @@ Need help? Just ask! We're here 24/7. 🚀`,
                     return;
                 }
                 
-                // Switch to chats view first
-                currentView = 'chats';
+                // Directly open chat without switching views
+                currentChat = chatId;
                 
-                // Update active nav item
-                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-                document.querySelector('.nav-item:nth-child(2)').classList.add('active'); // Chats tab
+                // Show chat area immediately
+                document.getElementById('welcomeScreen').classList.add('hidden');
+                document.getElementById('chatArea').classList.remove('hidden');
+                document.getElementById('messageInputContainer').style.display = 'block';
                 
-                // Load chats and then open the specific chat
-                await loadChats();
+                // Update chat header
+                updateChatHeader(userData);
                 
-                // Wait a moment for chat list to render, then open chat
+                // Load messages
+                await loadMessages(chatId);
+                
+                // Mark messages as read
+                await markMessagesAsRead(chatId);
+                
+                // Update active chat item in sidebar if visible
+                document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
+                
+                // Load chats in background to update sidebar
                 setTimeout(() => {
-                    openChat(chatId, userData);
-                }, 300);
+                    loadChats();
+                }, 100);
                 
             } catch (error) {
                 console.error('Error opening chat from home:', error);
@@ -4195,5 +4205,5 @@ Need help? Just ask! We're here 24/7. 🚀`,
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97116e95f79317d7',t:'MTc1NTUyMDMyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9711747fc65eb5d1',t:'MTc1NTUyMDU2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
