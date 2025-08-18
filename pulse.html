@@ -182,6 +182,51 @@
             0%, 100% { background-color: #ef4444; }
             50% { background-color: #dc2626; }
         }
+        
+        @keyframes feedbackPop {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0;
+            }
+        }
+        
+        .instant-feedback {
+            animation: feedbackPop 0.6s ease-out forwards;
+        }
+        
+        .mobile-optimized {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .haptic-feedback:active {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
+        }
+        
+        .fast-transition {
+            transition: all 0.15s ease-out;
+        }
+        
+        .instant-reaction {
+            animation: reactionBounce 0.3s ease-out;
+        }
+        
+        @keyframes reactionBounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body class="bg-gray-50 h-screen overflow-hidden">
@@ -282,8 +327,38 @@
                 </div>
             </div>
 
-            <!-- New Chat Button -->
-            <div class="p-4">
+            <!-- Mobile Bottom Navigation -->
+            <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30">
+                <div class="flex justify-around py-2">
+                    <button onclick="showChatsTab()" id="chatsTabBtn" class="flex flex-col items-center p-2 text-purple-600">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-xs">Chats</span>
+                    </button>
+                    <button onclick="showStatusTab()" id="statusTabBtn" class="flex flex-col items-center p-2 text-gray-500">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-xs">Status</span>
+                    </button>
+                    <button onclick="showCallsTab()" id="callsTabBtn" class="flex flex-col items-center p-2 text-gray-500">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                        </svg>
+                        <span class="text-xs">Calls</span>
+                    </button>
+                    <button onclick="showSettingsTab()" id="settingsTabBtn" class="flex flex-col items-center p-2 text-gray-500">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-xs">Settings</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Desktop New Chat Button -->
+            <div class="hidden md:block p-4">
                 <button onclick="showNewChatModal()" class="w-full instagram-gradient text-white py-3 rounded-full font-medium hover:opacity-90 transition-opacity">
                     + New Chat
                 </button>
@@ -291,7 +366,7 @@
         </div>
 
         <!-- Chat Area -->
-        <div class="flex-1 flex flex-col md:ml-0 ml-0">
+        <div class="flex-1 flex flex-col md:ml-0 ml-0 md:pb-0 pb-16">
             <!-- Chat Header -->
             <div id="chatHeader" class="hidden p-4 bg-white border-b border-gray-200 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -393,10 +468,8 @@
                         <button onclick="showEmojiPicker()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50" title="Emoji">
                             😊
                         </button>
-                        <button onclick="showStickerPicker()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50" title="Stickers">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clip-rule="evenodd"></path>
-                            </svg>
+                        <button onclick="showReactionPicker()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50" title="Quick Reactions">
+                            ❤️
                         </button>
                         <button onclick="attachFile()" class="p-2 text-gray-600 hover:text-purple-600 rounded-full hover:bg-purple-50" title="Attach File">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -721,11 +794,11 @@
         </div>
     </div>
 
-    <!-- Advanced Settings Modal -->
+    <!-- Enhanced Settings Modal with Tabs -->
     <div id="advancedSettingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-2xl p-6 w-96 max-w-full mx-4 ios-shadow max-h-96 overflow-y-auto">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-800">Advanced Settings</h3>
+        <div class="bg-white rounded-2xl w-full max-w-md mx-4 ios-shadow max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 class="text-xl font-bold text-gray-800">Settings</h3>
                 <button onclick="closeAdvancedSettings()" class="text-gray-500 hover:text-gray-700">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -733,119 +806,264 @@
                 </button>
             </div>
             
-            <div class="space-y-6">
-                <!-- Theme Settings -->
-                <div>
-                    <h4 class="font-semibold text-gray-800 mb-3">Appearance</h4>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Theme</span>
-                            <select id="themeSelect" onchange="changeTheme()" class="text-sm border border-gray-300 rounded px-2 py-1">
+            <!-- Settings Tabs -->
+            <div class="flex border-b border-gray-200">
+                <button onclick="showSettingsTab('profile')" id="profileTab" class="flex-1 py-3 px-4 text-sm font-medium text-purple-600 border-b-2 border-purple-600">
+                    Profile
+                </button>
+                <button onclick="showSettingsTab('privacy')" id="privacyTab" class="flex-1 py-3 px-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    Privacy
+                </button>
+                <button onclick="showSettingsTab('appearance')" id="appearanceTab" class="flex-1 py-3 px-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    Theme
+                </button>
+                <button onclick="showSettingsTab('notifications')" id="notificationsTab" class="flex-1 py-3 px-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    Alerts
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto max-h-96">
+                <!-- Profile Settings Tab -->
+                <div id="profileSettings" class="p-6 space-y-4">
+                    <div class="text-center mb-6">
+                        <div class="relative inline-block">
+                            <img id="settingsProfilePic" src="" class="w-20 h-20 rounded-full mx-auto border-4 border-purple-200">
+                            <button onclick="changeProfilePicture()" class="absolute bottom-0 right-0 bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
+                        <input type="text" id="settingsName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">About</label>
+                        <textarea id="settingsBio" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Message</label>
+                        <input type="text" id="settingsStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" id="settingsPhone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+                
+                <!-- Privacy Settings Tab -->
+                <div id="privacySettings" class="hidden p-6 space-y-4">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Last Seen</p>
+                                <p class="text-sm text-gray-500">Who can see when you were last online</p>
+                            </div>
+                            <select id="lastSeenPrivacy" class="text-sm border border-gray-300 rounded px-3 py-1">
+                                <option value="everyone">Everyone</option>
+                                <option value="contacts">My Contacts</option>
+                                <option value="nobody">Nobody</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Profile Photo</p>
+                                <p class="text-sm text-gray-500">Who can see your profile photo</p>
+                            </div>
+                            <select id="profilePhotoPrivacy" class="text-sm border border-gray-300 rounded px-3 py-1">
+                                <option value="everyone">Everyone</option>
+                                <option value="contacts">My Contacts</option>
+                                <option value="nobody">Nobody</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Status</p>
+                                <p class="text-sm text-gray-500">Who can see your status updates</p>
+                            </div>
+                            <select id="statusPrivacy" class="text-sm border border-gray-300 rounded px-3 py-1">
+                                <option value="everyone">Everyone</option>
+                                <option value="contacts">My Contacts</option>
+                                <option value="close_friends">Close Friends</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Read Receipts</p>
+                                <p class="text-sm text-gray-500">Show blue ticks when messages are read</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="readReceipts" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Two-Step Verification</p>
+                                <p class="text-sm text-gray-500">Add extra security to your account</p>
+                            </div>
+                            <button onclick="setupTwoFactor()" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                                Setup
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3">
+                            <div>
+                                <p class="font-medium text-gray-800">Blocked Users</p>
+                                <p class="text-sm text-gray-500">Manage blocked contacts</p>
+                            </div>
+                            <button onclick="showBlockedUsers()" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                                Manage
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Appearance Settings Tab -->
+                <div id="appearanceSettings" class="hidden p-6 space-y-4">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Theme</p>
+                                <p class="text-sm text-gray-500">Choose your preferred theme</p>
+                            </div>
+                            <select id="themeSelect" onchange="changeTheme()" class="text-sm border border-gray-300 rounded px-3 py-1">
                                 <option value="light">Light</option>
                                 <option value="dark">Dark</option>
                                 <option value="auto">Auto</option>
                             </select>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Chat Wallpaper</span>
-                            <button onclick="changeChatWallpaper()" class="text-sm text-purple-600 hover:text-purple-700">
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Font Size</p>
+                                <p class="text-sm text-gray-500">Adjust text size</p>
+                            </div>
+                            <select id="fontSize" onchange="changeFontSize()" class="text-sm border border-gray-300 rounded px-3 py-1">
+                                <option value="small">Small</option>
+                                <option value="medium">Medium</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Chat Wallpaper</p>
+                                <p class="text-sm text-gray-500">Customize chat background</p>
+                            </div>
+                            <button onclick="changeChatWallpaper()" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
                                 Change
                             </button>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Font Size</span>
-                            <select id="fontSize" onchange="changeFontSize()" class="text-sm border border-gray-300 rounded px-2 py-1">
-                                <option value="small">Small</option>
-                                <option value="medium" selected>Medium</option>
-                                <option value="large">Large</option>
+                        
+                        <div class="flex items-center justify-between py-3">
+                            <div>
+                                <p class="font-medium text-gray-800">Chat Bubble Style</p>
+                                <p class="text-sm text-gray-500">Choose bubble appearance</p>
+                            </div>
+                            <select id="bubbleStyle" onchange="changeBubbleStyle()" class="text-sm border border-gray-300 rounded px-3 py-1">
+                                <option value="rounded">Rounded</option>
+                                <option value="square">Square</option>
+                                <option value="minimal">Minimal</option>
                             </select>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Privacy Settings -->
-                <div class="border-t pt-4">
-                    <h4 class="font-semibold text-gray-800 mb-3">Privacy & Security</h4>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Two-Step Verification</span>
-                            <button onclick="setupTwoFactor()" class="text-sm text-purple-600 hover:text-purple-700">
-                                Setup
-                            </button>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Blocked Users</span>
-                            <button onclick="manageBlockedUsers()" class="text-sm text-purple-600 hover:text-purple-700">
-                                Manage
-                            </button>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Chat Lock</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="chatLock" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Notifications -->
-                <div class="border-t pt-4">
-                    <h4 class="font-semibold text-gray-800 mb-3">Notifications</h4>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Message Notifications</span>
+                <!-- Notifications Settings Tab -->
+                <div id="notificationsSettings" class="hidden p-6 space-y-4">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Message Notifications</p>
+                                <p class="text-sm text-gray-500">Get notified for new messages</p>
+                            </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="messageNotifications" class="sr-only peer" checked>
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                             </label>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Group Notifications</span>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Group Notifications</p>
+                                <p class="text-sm text-gray-500">Get notified for group messages</p>
+                            </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="groupNotifications" class="sr-only peer" checked>
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                             </label>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Call Notifications</span>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Call Notifications</p>
+                                <p class="text-sm text-gray-500">Get notified for incoming calls</p>
+                            </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="callNotifications" class="sr-only peer" checked>
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                             </label>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Storage & Data -->
-                <div class="border-t pt-4">
-                    <h4 class="font-semibold text-gray-800 mb-3">Storage & Data</h4>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Auto-download Media</span>
-                            <select id="autoDownload" class="text-sm border border-gray-300 rounded px-2 py-1">
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Notification Sound</p>
+                                <p class="text-sm text-gray-500">Choose notification tone</p>
+                            </div>
+                            <select id="notificationSound" class="text-sm border border-gray-300 rounded px-3 py-1">
+                                <option value="default">Default</option>
+                                <option value="chime">Chime</option>
+                                <option value="bell">Bell</option>
+                                <option value="pop">Pop</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                            <div>
+                                <p class="font-medium text-gray-800">Vibration</p>
+                                <p class="text-sm text-gray-500">Vibrate on notifications</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="vibrationEnabled" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3">
+                            <div>
+                                <p class="font-medium text-gray-800">Auto-download Media</p>
+                                <p class="text-sm text-gray-500">When to download media automatically</p>
+                            </div>
+                            <select id="autoDownload" class="text-sm border border-gray-300 rounded px-3 py-1">
                                 <option value="wifi">WiFi Only</option>
                                 <option value="always">Always</option>
                                 <option value="never">Never</option>
                             </select>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-700">Clear Chat History</span>
-                            <button onclick="clearAllChats()" class="text-sm text-red-600 hover:text-red-700">
-                                Clear All
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="flex space-x-3 mt-6">
-                <button onclick="saveAdvancedSettings()" class="flex-1 instagram-gradient text-white py-2 rounded-lg font-medium hover:opacity-90">
-                    Save Settings
-                </button>
-                <button onclick="closeAdvancedSettings()" class="px-4 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300">
-                    Cancel
-                </button>
+            <div class="p-6 border-t border-gray-200">
+                <div class="flex space-x-3">
+                    <button onclick="saveAdvancedSettings()" class="flex-1 instagram-gradient text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity">
+                        Save Changes
+                    </button>
+                    <button onclick="closeAdvancedSettings()" class="px-6 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1634,46 +1852,43 @@
             audio.play();
         }
 
-        // Sticker Functions
-        function showStickerPicker() {
-            const stickerModal = document.createElement('div');
-            stickerModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-            stickerModal.innerHTML = `
+        // Quick Reaction Functions
+        function showReactionPicker() {
+            const reactionModal = document.createElement('div');
+            reactionModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            reactionModal.innerHTML = `
                 <div class="bg-white rounded-2xl p-6 w-80 max-w-full mx-4 ios-shadow">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-gray-800">Choose Sticker</h3>
+                        <h3 class="text-lg font-bold text-gray-800">Quick Reactions</h3>
                         <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
                         </button>
                     </div>
-                    <div class="sticker-grid">
-                        ${generateStickerPack().map(sticker => 
-                            `<img src="${sticker}" class="sticker-item" onclick="sendSticker('${sticker}')" alt="Sticker">`
+                    <div class="grid grid-cols-4 gap-3">
+                        ${['❤️', '😂', '😮', '😢', '😡', '👍', '👎', '🔥', '💯', '🎉', '😍', '🤔', '👏', '💪', '🙏', '✨'].map(emoji => 
+                            `<button onclick="sendQuickReaction('${emoji}')" class="text-4xl p-3 hover:bg-gray-100 rounded-lg transition-all duration-200 transform hover:scale-110 active:scale-95">${emoji}</button>`
                         ).join('')}
                     </div>
                 </div>
             `;
-            document.body.appendChild(stickerModal);
+            document.body.appendChild(reactionModal);
         }
 
-        function generateStickerPack() {
-            // Generate Base64 sticker pack (simple emoji-based stickers)
-            const emojis = ['😀', '😂', '🥰', '😎', '🤔', '😴', '🎉', '❤️', '👍', '👎', '🔥', '💯', '🎵', '⚡', '🌟', '💎'];
-            return emojis.map(emoji => {
-                return `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23f0f0f0" rx="10"/><text x="30" y="40" text-anchor="middle" font-size="30">${emoji}</text></svg>`;
-            });
-        }
-
-        async function sendSticker(stickerData) {
+        async function sendQuickReaction(emoji) {
             if (!currentChatId) return;
+            
+            // Add haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
             
             const messageId = database.ref().child('chats').child(currentChatId).child('messages').push().key;
             const message = {
                 sender: currentUser.uid,
-                type: 'sticker',
-                content: stickerData,
+                type: 'reaction',
+                text: emoji,
                 timestamp: Date.now(),
                 seen: false,
                 delivered: false
@@ -1681,11 +1896,28 @@
             
             await database.ref('chats/' + currentChatId + '/messages/' + messageId).set(message);
             await database.ref('chats/' + currentChatId + '/lastMessage').set({
-                text: '🎭 Sticker',
+                text: emoji,
                 timestamp: Date.now()
             });
             
             document.querySelector('.fixed').remove();
+            
+            // Show instant feedback
+            showInstantFeedback(emoji);
+        }
+
+        function showInstantFeedback(emoji) {
+            const feedback = document.createElement('div');
+            feedback.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl z-50 pointer-events-none';
+            feedback.style.animation = 'feedbackPop 0.6s ease-out forwards';
+            feedback.textContent = emoji;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => {
+                if (document.body.contains(feedback)) {
+                    document.body.removeChild(feedback);
+                }
+            }, 600);
         }
 
         // Camera Functions
@@ -2180,11 +2412,100 @@
             document.body.appendChild(infoModal);
         }
 
-        function blockUser() {
-            if (confirm(`Are you sure you want to block ${currentChatUser.name}?`)) {
-                // In a real app, you would implement blocking logic here
-                alert(`${currentChatUser.name} has been blocked.`);
+        async function blockUser() {
+            if (!currentChatUser || !currentUser) return;
+            
+            if (confirm(`Are you sure you want to block ${currentChatUser.name}? They won't be able to send you messages or see your status.`)) {
+                try {
+                    // Add to blocked users list
+                    const blockedUsersRef = database.ref('users/' + currentUser.uid + '/blockedUsers');
+                    await blockedUsersRef.child(currentChatUser.uid || 'unknown').set({
+                        name: currentChatUser.name,
+                        email: currentChatUser.email,
+                        profilePic: currentChatUser.profilePic,
+                        blockedAt: Date.now()
+                    });
+                    
+                    // Remove from chats
+                    if (currentChatId) {
+                        await database.ref('chats/' + currentChatId).remove();
+                    }
+                    
+                    alert(`${currentChatUser.name} has been blocked successfully.`);
+                    document.querySelector('.fixed').remove();
+                    
+                    // Return to welcome screen
+                    document.getElementById('welcomeScreen').classList.remove('hidden');
+                    document.getElementById('chatHeader').classList.add('hidden');
+                    document.getElementById('messagesArea').classList.add('hidden');
+                    document.getElementById('messageInput').classList.add('hidden');
+                    
+                    // Refresh chat list
+                    loadChats();
+                    
+                } catch (error) {
+                    alert('Failed to block user: ' + error.message);
+                }
+            }
+        }
+
+        async function showBlockedUsers() {
+            try {
+                const blockedUsersRef = database.ref('users/' + currentUser.uid + '/blockedUsers');
+                const snapshot = await blockedUsersRef.once('value');
+                const blockedUsers = snapshot.val() || {};
+                
+                const blockedModal = document.createElement('div');
+                blockedModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                blockedModal.innerHTML = `
+                    <div class="bg-white rounded-2xl p-6 w-96 max-w-full mx-4 ios-shadow max-h-96 overflow-y-auto">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Blocked Users</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            ${Object.keys(blockedUsers).length === 0 ? 
+                                '<p class="text-gray-500 text-center py-8">No blocked users</p>' :
+                                Object.keys(blockedUsers).map(userId => {
+                                    const user = blockedUsers[userId];
+                                    return `
+                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <div class="flex items-center space-x-3">
+                                                <img src="${user.profilePic}" class="w-10 h-10 rounded-full" alt="${user.name}">
+                                                <div>
+                                                    <p class="font-medium text-gray-800">${user.name}</p>
+                                                    <p class="text-sm text-gray-500">Blocked ${new Date(user.blockedAt).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                            <button onclick="unblockUser('${userId}')" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                                                Unblock
+                                            </button>
+                                        </div>
+                                    `;
+                                }).join('')
+                            }
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(blockedModal);
+                
+            } catch (error) {
+                alert('Failed to load blocked users: ' + error.message);
+            }
+        }
+
+        async function unblockUser(userId) {
+            try {
+                await database.ref('users/' + currentUser.uid + '/blockedUsers/' + userId).remove();
+                alert('User unblocked successfully');
                 document.querySelector('.fixed').remove();
+            } catch (error) {
+                alert('Failed to unblock user: ' + error.message);
             }
         }
 
@@ -2238,7 +2559,7 @@
             }
         }
 
-        // Mobile menu functions
+        // Mobile menu and tab functions
         function toggleMobileMenu() {
             const sidebar = document.getElementById('sidebar');
             isMobileMenuOpen = !isMobileMenuOpen;
@@ -2257,6 +2578,45 @@
             isMobileMenuOpen = false;
             sidebar.classList.add('-translate-x-full');
             sidebar.classList.remove('translate-x-0');
+        }
+
+        // Mobile Tab Navigation
+        function showChatsTab() {
+            setActiveTab('chats');
+            // Show chats content
+            document.getElementById('chatList').style.display = 'block';
+            // Hide other content
+        }
+
+        function showStatusTab() {
+            setActiveTab('status');
+            showAllStatuses();
+        }
+
+        function showCallsTab() {
+            setActiveTab('calls');
+            showCallHistory();
+        }
+
+        function showSettingsTab() {
+            setActiveTab('settings');
+            showAdvancedSettings();
+        }
+
+        function setActiveTab(tabName) {
+            // Reset all tabs
+            ['chatsTabBtn', 'statusTabBtn', 'callsTabBtn', 'settingsTabBtn'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.className = btn.className.replace('text-purple-600', 'text-gray-500');
+                }
+            });
+            
+            // Set active tab
+            const activeBtn = document.getElementById(tabName + 'TabBtn');
+            if (activeBtn) {
+                activeBtn.className = activeBtn.className.replace('text-gray-500', 'text-purple-600');
+            }
         }
 
         // Close mobile menu when clicking outside
@@ -2561,29 +2921,264 @@
             listenForTyping(chatId);
         }
 
-        // Status Viewing Function
-        function viewStatus(userName) {
-            const statusViewer = document.createElement('div');
-            statusViewer.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
-            statusViewer.innerHTML = `
-                <div class="relative w-full max-w-md mx-4">
-                    <div class="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 text-white text-center">
-                        <div class="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden">
-                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23ff6b6b'/%3E%3Ctext x='32' y='40' text-anchor='middle' fill='white' font-size='24' font-weight='bold'%3E${userName.charAt(0).toUpperCase()}%3C/text%3E%3C/svg%3E" 
-                                 class="w-full h-full object-cover" alt="${userName}">
+        // Enhanced Status Functions
+        async function showAllStatuses() {
+            try {
+                const statusesRef = database.ref('statuses');
+                const snapshot = await statusesRef.once('value');
+                const allStatuses = snapshot.val() || {};
+                
+                // Filter non-expired statuses
+                const currentTime = Date.now();
+                const activeStatuses = Object.keys(allStatuses).filter(statusId => {
+                    const status = allStatuses[statusId];
+                    return status.expiresAt > currentTime && status.userId !== currentUser.uid;
+                });
+                
+                const statusModal = document.createElement('div');
+                statusModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                statusModal.innerHTML = `
+                    <div class="bg-white rounded-2xl p-6 w-96 max-w-full mx-4 ios-shadow max-h-96 overflow-y-auto">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">All Status Updates</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
                         </div>
-                        <h3 class="text-xl font-bold mb-2">${userName.charAt(0).toUpperCase() + userName.slice(1)}</h3>
-                        <p class="text-lg mb-4">Hey there! I'm using Pulse 🚀</p>
-                        <p class="text-sm opacity-75">2 hours ago</p>
+                        
+                        <div class="space-y-3">
+                            ${activeStatuses.length === 0 ? 
+                                '<p class="text-gray-500 text-center py-8">No status updates available</p>' :
+                                activeStatuses.map(statusId => {
+                                    const status = allStatuses[statusId];
+                                    return `
+                                        <div onclick="viewDetailedStatus('${statusId}')" class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                                            <div class="story-ring">
+                                                <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                                                    ${status.userId.charAt(0).toUpperCase()}
+                                                </div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="font-medium text-gray-800">User ${status.userId.slice(0, 8)}</p>
+                                                <p class="text-sm text-gray-500">${status.type === 'text' ? status.content.slice(0, 30) + '...' : status.type.charAt(0).toUpperCase() + status.type.slice(1)}</p>
+                                                <p class="text-xs text-gray-400">${formatTime(status.timestamp)}</p>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')
+                            }
+                        </div>
                     </div>
-                    <button onclick="this.closest('.fixed').remove()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                        </svg>
-                    </button>
+                `;
+                document.body.appendChild(statusModal);
+                
+            } catch (error) {
+                console.error('Failed to load statuses:', error);
+            }
+        }
+
+        async function viewDetailedStatus(statusId) {
+            try {
+                const statusRef = database.ref('statuses/' + statusId);
+                const snapshot = await statusRef.once('value');
+                const status = snapshot.val();
+                
+                if (!status) return;
+                
+                // Mark as viewed
+                const viewsRef = database.ref('statuses/' + statusId + '/views');
+                await viewsRef.child(currentUser.uid).set({
+                    viewedAt: Date.now(),
+                    viewerName: document.getElementById('userName').textContent
+                });
+                
+                const statusViewer = document.createElement('div');
+                statusViewer.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+                
+                let content = '';
+                if (status.type === 'text') {
+                    content = `
+                        <div class="rounded-2xl p-8 text-white text-center max-w-md" style="background: ${status.background || '#667eea'}">
+                            <h3 class="text-xl font-bold mb-4">User ${status.userId.slice(0, 8)}</h3>
+                            <p class="text-lg mb-4">${status.content}</p>
+                            <p class="text-sm opacity-75">${formatTime(status.timestamp)}</p>
+                        </div>
+                    `;
+                } else if (status.type === 'image') {
+                    content = `
+                        <div class="bg-white rounded-2xl p-4 max-w-md">
+                            <img src="${status.content}" class="w-full rounded-lg mb-4" alt="Status Image">
+                            ${status.text ? `<p class="text-gray-800 mb-2">${status.text}</p>` : ''}
+                            <p class="text-sm text-gray-500">${formatTime(status.timestamp)}</p>
+                        </div>
+                    `;
+                }
+                
+                statusViewer.innerHTML = `
+                    <div class="relative">
+                        ${content}
+                        <button onclick="this.closest('.fixed').remove()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                
+                // Close previous modal
+                const existingModal = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+                if (existingModal) existingModal.remove();
+                
+                document.body.appendChild(statusViewer);
+                
+            } catch (error) {
+                console.error('Failed to view status:', error);
+            }
+        }
+
+        function viewStatus(userName) {
+            // This is for the demo status rings in the sidebar
+            viewDetailedStatus('demo_' + userName);
+        }
+
+        // Enhanced Settings Tab Functions
+        function showSettingsTab(tabName) {
+            // Hide all tabs
+            ['profileSettings', 'privacySettings', 'appearanceSettings', 'notificationsSettings'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.classList.add('hidden');
+            });
+            
+            // Show selected tab
+            const selectedTab = document.getElementById(tabName + 'Settings');
+            if (selectedTab) selectedTab.classList.remove('hidden');
+            
+            // Update tab buttons
+            ['profileTab', 'privacyTab', 'appearanceTab', 'notificationsTab'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.className = 'flex-1 py-3 px-4 text-sm font-medium text-gray-500 hover:text-gray-700';
+                }
+            });
+            
+            const activeBtn = document.getElementById(tabName + 'Tab');
+            if (activeBtn) {
+                activeBtn.className = 'flex-1 py-3 px-4 text-sm font-medium text-purple-600 border-b-2 border-purple-600';
+            }
+            
+            // Load current user data for profile tab
+            if (tabName === 'profile' && currentUser) {
+                loadProfileSettings();
+            }
+        }
+
+        async function loadProfileSettings() {
+            try {
+                const userRef = database.ref('users/' + currentUser.uid);
+                const snapshot = await userRef.once('value');
+                const userData = snapshot.val();
+                
+                if (userData) {
+                    document.getElementById('settingsName').value = userData.name || '';
+                    document.getElementById('settingsBio').value = userData.bio || '';
+                    document.getElementById('settingsStatus').value = userData.customStatus || '';
+                    document.getElementById('settingsPhone').value = userData.phone || '';
+                    document.getElementById('settingsProfilePic').src = userData.profilePic || '';
+                }
+            } catch (error) {
+                console.error('Failed to load profile settings:', error);
+            }
+        }
+
+        function changeProfilePicture() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('settingsProfilePic').src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        }
+
+        function changeBubbleStyle() {
+            const style = document.getElementById('bubbleStyle').value;
+            // Apply bubble style changes
+            const messages = document.querySelectorAll('.message-bubble');
+            messages.forEach(bubble => {
+                bubble.classList.remove('rounded-2xl', 'rounded-lg', 'rounded-none');
+                switch(style) {
+                    case 'rounded':
+                        bubble.classList.add('rounded-2xl');
+                        break;
+                    case 'square':
+                        bubble.classList.add('rounded-none');
+                        break;
+                    case 'minimal':
+                        bubble.classList.add('rounded-lg');
+                        break;
+                }
+            });
+        }
+
+        function showCallHistory() {
+            const callModal = document.createElement('div');
+            callModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            callModal.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 w-96 max-w-full mx-4 ios-shadow max-h-96 overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">Call History</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Arya Sharma</p>
+                                    <p class="text-sm text-gray-500">Incoming • 2:34</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400">Today, 3:45 PM</p>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Rahul Kumar</p>
+                                    <p class="text-sm text-gray-500">Missed</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400">Yesterday, 8:20 PM</p>
+                        </div>
+                        
+                        <p class="text-gray-500 text-center py-4 text-sm">Call history will appear here</p>
+                    </div>
                 </div>
             `;
-            document.body.appendChild(statusViewer);
+            document.body.appendChild(callModal);
         }
 
         // Initialize app
@@ -2602,5 +3197,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970f9d8d223e3bf8',t:'MTc1NTUwMTI3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970fb57b157b1184',t:'MTc1NTUwMjI1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
