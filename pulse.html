@@ -311,7 +311,7 @@
 
 
         <!-- Sidebar -->
-        <div id="sidebar" class="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col fixed md:relative inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div id="sidebar" class="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col fixed md:relative inset-y-0 left-0 z-40 transform translate-x-0 transition-transform duration-300 ease-in-out">
             <!-- Header -->
             <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-500 to-pink-500">
                 <div class="flex items-center justify-between">
@@ -406,13 +406,7 @@
             <!-- Enhanced Bottom Navigation -->
             <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 shadow-lg">
                 <div class="flex justify-around py-2">
-                    <button onclick="showHomeTab()" id="homeTabBtn" class="flex flex-col items-center p-2 text-purple-600 mobile-optimized haptic-feedback fast-transition">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-                        </svg>
-                        <span class="text-xs font-medium">Home</span>
-                    </button>
-                    <button onclick="showChatsTab()" id="chatsTabBtn" class="flex flex-col items-center p-2 text-gray-500 mobile-optimized haptic-feedback fast-transition">
+                    <button onclick="showChatsTab()" id="chatsTabBtn" class="flex flex-col items-center p-2 text-green-600 mobile-optimized haptic-feedback fast-transition">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"></path>
                         </svg>
@@ -425,19 +419,13 @@
                             </svg>
                             <div id="statusNotification" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
                         </div>
-                        <span class="text-xs font-medium">Stories</span>
+                        <span class="text-xs font-medium">Status</span>
                     </button>
                     <button onclick="showCallsTab()" id="callsTabBtn" class="flex flex-col items-center p-2 text-gray-500 mobile-optimized haptic-feedback fast-transition">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
                         </svg>
                         <span class="text-xs font-medium">Calls</span>
-                    </button>
-                    <button onclick="showSettingsTab()" id="settingsTabBtn" class="flex flex-col items-center p-2 text-gray-500 mobile-optimized haptic-feedback fast-transition">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="text-xs font-medium">Settings</span>
                     </button>
                 </div>
             </div>
@@ -1744,17 +1732,23 @@
         // Enhanced tab navigation
         function showChatsTab() {
             setActiveTab('chats');
-            hideAllScreens();
+            
+            // Show sidebar and chat content
+            document.getElementById('sidebar').classList.remove('hidden');
             document.getElementById('sidebar').style.display = 'flex';
+            
             if (currentChatId) {
+                document.getElementById('welcomeScreen').classList.add('hidden');
                 document.getElementById('chatHeader').classList.remove('hidden');
                 document.getElementById('messagesArea').classList.remove('hidden');
                 document.getElementById('messageInput').classList.remove('hidden');
             } else {
+                document.getElementById('chatHeader').classList.add('hidden');
+                document.getElementById('messagesArea').classList.add('hidden');
+                document.getElementById('messageInput').classList.add('hidden');
                 document.getElementById('welcomeScreen').classList.remove('hidden');
             }
             
-            // Update mobile tab colors
             updateMobileTabColors('chats');
         }
         
@@ -1777,13 +1771,7 @@
             document.getElementById('chatHeader').classList.add('hidden');
             document.getElementById('messagesArea').classList.add('hidden');
             document.getElementById('messageInput').classList.add('hidden');
-            
-            // Keep sidebar visible on mobile for chats tab
-            if (window.innerWidth < 768) {
-                document.getElementById('sidebar').style.display = 'flex';
-            } else {
-                document.getElementById('sidebar').style.display = 'none';
-            }
+            document.getElementById('sidebar').classList.add('hidden');
         }
         
         function setActiveTab(tabName) {
@@ -4085,8 +4073,14 @@
             // Apply saved settings
             applyUserSettings();
             
-            // Show chats tab by default
-            showChatsTab();
+            // Show chats tab by default on mobile, ensure sidebar is visible
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.remove('hidden');
+                document.getElementById('sidebar').style.display = 'flex';
+                showChatsTab();
+            } else {
+                showChatsTab();
+            }
             
             // Listen for system theme changes
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -4096,5 +4090,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970ffb5fe74e3a23',t:'MTc1NTUwNTEyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970fffa176fd403d',t:'MTc1NTUwNTI5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
