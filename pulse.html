@@ -144,6 +144,48 @@
             color: #3b82f6;
             transform: scale(1.1);
         }
+        
+        .mobile-sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .mobile-sidebar.open {
+            transform: translateX(0);
+        }
+        
+        .sidebar-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        @media (max-width: 768px) {
+            .desktop-sidebar {
+                display: none;
+            }
+            
+            .mobile-chat-header {
+                display: flex;
+            }
+            
+            .desktop-chat-header {
+                display: none;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .mobile-sidebar {
+                transform: translateX(0) !important;
+            }
+            
+            .mobile-chat-header {
+                display: none;
+            }
+            
+            .desktop-chat-header {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 h-screen overflow-hidden">
@@ -243,10 +285,13 @@
         </div>
     </div>
 
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 sidebar-overlay z-40 hidden md:hidden" onclick="closeMobileSidebar()"></div>
+    
     <!-- Main App Container -->
     <div id="mainApp" class="flex h-full hidden">
         <!-- Sidebar -->
-        <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
+        <div id="sidebar" class="w-80 bg-white border-r border-gray-200 flex flex-col desktop-sidebar md:relative fixed inset-y-0 left-0 z-50 mobile-sidebar">
             <!-- Header -->
             <div class="p-4 border-b border-gray-100 ios-blur bg-white/80">
                 <div class="flex items-center justify-between mb-4">
@@ -316,9 +361,47 @@
         </div>
         
         <!-- Chat Area -->
-        <div class="flex-1 flex flex-col">
-            <!-- Chat Header -->
-            <div id="chatHeader" class="p-4 bg-white border-b border-gray-200 ios-blur bg-white/80 hidden">
+        <div class="flex-1 flex flex-col md:ml-0 ml-0">
+            <!-- Mobile Chat Header -->
+            <div id="mobileChatHeader" class="mobile-chat-header p-4 bg-white border-b border-gray-200 ios-blur bg-white/80 hidden items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <button onclick="openMobileSidebar()" class="p-2 rounded-full hover:bg-gray-100 transition-colors md:hidden">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <button onclick="goBackToChats()" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <img id="mobileChatAvatar" class="w-8 h-8 rounded-full" src="">
+                            <div id="mobileOnlineIndicator" class="online-dot hidden"></div>
+                        </div>
+                        <div>
+                            <h3 id="mobileChatName" class="font-semibold text-gray-900 text-sm"></h3>
+                            <p id="mobileChatStatus" class="text-xs text-gray-500"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex space-x-1">
+                    <button onclick="startVideoCall()" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="startVoiceCall()" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Desktop Chat Header -->
+            <div id="chatHeader" class="desktop-chat-header p-4 bg-white border-b border-gray-200 ios-blur bg-white/80 hidden">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div class="relative">
@@ -1210,21 +1293,61 @@
             return flags[countryCode] || flags['IN'];
         }
 
+        // Mobile sidebar functions
+        function openMobileSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.remove('hidden');
+        }
+        
+        function closeMobileSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.add('hidden');
+        }
+        
+        function goBackToChats() {
+            // Hide chat, show welcome screen on mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('welcomeScreen').classList.remove('hidden');
+                document.getElementById('mobileChatHeader').classList.add('hidden');
+                document.getElementById('messagesArea').classList.add('hidden');
+                document.getElementById('messageInput').classList.add('hidden');
+                currentChat = null;
+            }
+        }
+
         // Open chat
         function openChat(chat) {
             currentChat = chat;
             
+            // Close mobile sidebar if open
+            closeMobileSidebar();
+            
             // Hide welcome screen, show chat
             document.getElementById('welcomeScreen').classList.add('hidden');
-            document.getElementById('chatHeader').classList.remove('hidden');
+            
+            // Show appropriate header based on screen size
+            if (window.innerWidth <= 768) {
+                document.getElementById('mobileChatHeader').classList.remove('hidden');
+                document.getElementById('chatHeader').classList.add('hidden');
+                
+                // Update mobile chat header
+                document.getElementById('mobileChatAvatar').src = chat.avatar;
+                document.getElementById('mobileChatName').textContent = chat.name;
+                document.getElementById('mobileChatStatus').textContent = chat.status;
+                document.getElementById('mobileOnlineIndicator').classList.toggle('hidden', !chat.online);
+            } else {
+                document.getElementById('chatHeader').classList.remove('hidden');
+                document.getElementById('mobileChatHeader').classList.add('hidden');
+                
+                // Update desktop chat header
+                document.getElementById('chatAvatar').src = chat.avatar;
+                document.getElementById('chatName').textContent = chat.name;
+                document.getElementById('chatStatus').textContent = chat.status;
+                document.getElementById('onlineIndicator').classList.toggle('hidden', !chat.online);
+            }
+            
             document.getElementById('messagesArea').classList.remove('hidden');
             document.getElementById('messageInput').classList.remove('hidden');
-            
-            // Update chat header
-            document.getElementById('chatAvatar').src = chat.avatar;
-            document.getElementById('chatName').textContent = chat.name;
-            document.getElementById('chatStatus').textContent = chat.status;
-            document.getElementById('onlineIndicator').classList.toggle('hidden', !chat.online);
             
             // Load messages
             loadMessages(chat.id);
@@ -1949,11 +2072,31 @@
             }
         }
 
+        // Handle window resize for responsive behavior
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                // Desktop view - close mobile sidebar
+                closeMobileSidebar();
+                
+                // Switch to desktop header if chat is open
+                if (currentChat) {
+                    document.getElementById('chatHeader').classList.remove('hidden');
+                    document.getElementById('mobileChatHeader').classList.add('hidden');
+                }
+            } else {
+                // Mobile view - switch to mobile header if chat is open
+                if (currentChat) {
+                    document.getElementById('mobileChatHeader').classList.remove('hidden');
+                    document.getElementById('chatHeader').classList.add('hidden');
+                }
+            }
+        });
+
         // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', () => {
             initializeApp();
             loadSavedTheme();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97180f1ec40f3a2c',t:'MTc1NTU4OTgxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9718110110b1c6aa',t:'MTc1NTU4OTg5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
