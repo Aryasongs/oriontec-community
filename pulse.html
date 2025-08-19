@@ -778,14 +778,72 @@
             // Hide bottom navigation initially
             document.getElementById('bottomNavigation').classList.add('hidden');
             
-            // Check if user is logged in
-            const savedUser = localStorage.getItem('pulseUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                showMainApp();
-            } else {
-                showLoginScreen();
-            }
+            // Listen for authentication state changes
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in
+                    database.ref('users/' + user.uid).once('value')
+                        .then((snapshot) => {
+                            if (snapshot.exists()) {
+                                currentUser = snapshot.val();
+                                localStorage.setItem('pulseUser', JSON.stringify(currentUser));
+                                showMainApp();
+                                setupUserPresence();
+                            } else {
+                                // User exists in auth but not in database, create profile
+                                currentUser = {
+                                    uid: user.uid,
+                                    name: user.displayName || user.email.split('@')[0],
+                                    email: user.email,
+                                    country: getUserCountry(),
+                                    accountType: 'personal',
+                                    profilePic: user.photoURL,
+                                    bio: 'Hey there! I\'m using Pulse',
+                                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+                                };
+                                
+                                database.ref('users/' + user.uid).set(currentUser)
+                                    .then(() => {
+                                        localStorage.setItem('pulseUser', JSON.stringify(currentUser));
+                                        showMainApp();
+                                        setupUserPresence();
+                                    });
+                            }
+                        });
+                } else {
+                    // User is signed out
+                    currentUser = null;
+                    localStorage.removeItem('pulseUser');
+                    showLoginScreen();
+                }
+            });
+        }
+        
+        // Setup user presence (online/offline status)
+        function setupUserPresence() {
+            if (!currentUser) return;
+            
+            const userStatusRef = database.ref('users/' + currentUser.uid + '/status');
+            const isOfflineForDatabase = {
+                state: 'offline',
+                lastSeen: firebase.database.ServerValue.TIMESTAMP,
+            };
+            
+            const isOnlineForDatabase = {
+                state: 'online',
+                lastSeen: firebase.database.ServerValue.TIMESTAMP,
+            };
+            
+            database.ref('.info/connected').on('value', (snapshot) => {
+                if (snapshot.val() === false) {
+                    return;
+                }
+                
+                userStatusRef.onDisconnect().set(isOfflineForDatabase).then(() => {
+                    userStatusRef.set(isOnlineForDatabase);
+                });
+            });
         }
 
         // Authentication functions
@@ -816,18 +874,30 @@
         }
 
         function loginWithGoogle() {
-            // Simulate Google login
-            currentUser = {
-                uid: 'google-user-' + Date.now(),
-                name: 'Google User',
-                email: 'user@gmail.com',
-                country: getUserCountry(),
-                accountType: 'personal',
-                profilePic: null,
-                bio: 'Hey there! I\'m using Pulse'
-            };
-            localStorage.setItem('pulseUser', JSON.stringify(currentUser));
-            showMainApp();
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    const user = result.user;
+                    currentUser = {
+                        uid: user.uid,
+                        name: user.displayName,
+                        email: user.email,
+                        profilePic: user.photoURL,
+                        country: getUserCountry(),
+                        accountType: 'personal',
+                        bio: 'Hey there! I\'m using Pulse'
+                    };
+                    
+                    // Save user data to Firebase Database
+                    database.ref('users/' + user.uid).set(currentUser);
+                    localStorage.setItem('pulseUser', JSON.stringify(currentUser));
+                    showMainApp();
+                })
+                .catch((error) => {
+                    console.error('Google login error:', error);
+                    alert('Login failed: ' + error.message);
+                });
         }
 
         function loginWithEmail() {
@@ -839,24 +909,37 @@
                 return;
             }
 
-            // Check for special accounts
-            if (email === 'sgursharn076@gmail.com') {
-                currentUser = realAccounts.find(acc => acc.email === email);
-                currentUser.uid = 'gursharn_arya';
-            } else {
-                currentUser = {
-                    uid: 'user-' + Date.now(),
-                    name: email.split('@')[0],
-                    email: email,
-                    country: getUserCountry(),
-                    accountType: 'personal',
-                    profilePic: null,
-                    bio: 'Hey there! I\'m using Pulse'
-                };
-            }
-            
-            localStorage.setItem('pulseUser', JSON.stringify(currentUser));
-            showMainApp();
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    // Get user data from Firebase Database
+                    database.ref('users/' + user.uid).once('value')
+                        .then((snapshot) => {
+                            if (snapshot.exists()) {
+                                currentUser = snapshot.val();
+                            } else {
+                                // Create basic user profile if doesn't exist
+                                currentUser = {
+                                    uid: user.uid,
+                                    name: user.displayName || email.split('@')[0],
+                                    email: user.email,
+                                    country: getUserCountry(),
+                                    accountType: 'personal',
+                                    profilePic: user.photoURL,
+                                    bio: 'Hey there! I\'m using Pulse'
+                                };
+                                database.ref('users/' + user.uid).set(currentUser);
+                            }
+                            
+                            localStorage.setItem('pulseUser', JSON.stringify(currentUser));
+                            showMainApp();
+                        });
+                })
+                .catch((error) => {
+                    console.error('Email login error:', error);
+                    alert('Login failed: ' + error.message);
+                });
         }
 
         function registerUser() {
@@ -872,33 +955,71 @@
                 return;
             }
 
-            currentUser = {
-                uid: 'user-' + Date.now(),
-                name: name,
-                email: email,
-                phone: phone,
-                bio: bio || 'Hey there! I\'m using Pulse',
-                country: getUserCountry(),
-                accountType: accountType,
-                profilePic: null
-            };
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    // Update user profile
+                    user.updateProfile({
+                        displayName: name
+                    });
+                    
+                    // Create user data object
+                    currentUser = {
+                        uid: user.uid,
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        bio: bio || 'Hey there! I\'m using Pulse',
+                        country: getUserCountry(),
+                        accountType: accountType,
+                        profilePic: null,
+                        createdAt: firebase.database.ServerValue.TIMESTAMP,
+                        lastSeen: firebase.database.ServerValue.TIMESTAMP
+                    };
 
-            if (accountType === 'business') {
-                currentUser.businessName = document.getElementById('registerBusinessName').value;
-                currentUser.legalName = document.getElementById('registerLegalName').value;
-                currentUser.headquarters = document.getElementById('registerHeadquarters').value;
-                currentUser.gstNumber = document.getElementById('registerGST').value;
-            }
-            
-            localStorage.setItem('pulseUser', JSON.stringify(currentUser));
-            showMainApp();
+                    if (accountType === 'business') {
+                        currentUser.businessName = document.getElementById('registerBusinessName').value;
+                        currentUser.legalName = document.getElementById('registerLegalName').value;
+                        currentUser.headquarters = document.getElementById('registerHeadquarters').value;
+                        currentUser.gstNumber = document.getElementById('registerGST').value;
+                    }
+                    
+                    // Save to Firebase Database
+                    database.ref('users/' + user.uid).set(currentUser)
+                        .then(() => {
+                            localStorage.setItem('pulseUser', JSON.stringify(currentUser));
+                            showMainApp();
+                        })
+                        .catch((error) => {
+                            console.error('Error saving user data:', error);
+                            alert('Registration completed but failed to save profile data');
+                            showMainApp();
+                        });
+                })
+                .catch((error) => {
+                    console.error('Registration error:', error);
+                    alert('Registration failed: ' + error.message);
+                });
         }
 
         function logout() {
-            localStorage.removeItem('pulseUser');
-            currentUser = null;
-            document.getElementById('bottomNavigation').classList.add('hidden');
-            showLoginScreen();
+            auth.signOut()
+                .then(() => {
+                    // Update last seen
+                    if (currentUser) {
+                        database.ref('users/' + currentUser.uid + '/lastSeen').set(firebase.database.ServerValue.TIMESTAMP);
+                    }
+                    
+                    localStorage.removeItem('pulseUser');
+                    currentUser = null;
+                    document.getElementById('bottomNavigation').classList.add('hidden');
+                    showLoginScreen();
+                })
+                .catch((error) => {
+                    console.error('Logout error:', error);
+                    alert('Logout failed: ' + error.message);
+                });
         }
 
         function sendWelcomeMessage() {
@@ -983,60 +1104,100 @@
             }, 30000); // 30 seconds for demo (change to 86400000 for 24 hours)
         }
 
-        // Render chat list
+        // Render chat list with real-time updates
         function renderChatList() {
+            if (!currentUser) return;
+            
             const chatList = document.getElementById('chatList');
-            chatList.innerHTML = '';
-
-            realAccounts.forEach(chat => {
-                const chatItem = document.createElement('div');
-                chatItem.className = 'p-4 hover:bg-gray-50 cursor-pointer transition-colors';
-                chatItem.onclick = () => openChat(chat);
-
-                const countryFlag = getCountryFlag(chat.country);
-                const verifiedBadge = chat.verified ? `
-                    <div class="verified-tick ml-1">
-                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                    </div>
-                ` : '';
-
-                const businessBadge = chat.business ? `
-                    <span class="business-badge text-white ml-2">BUSINESS</span>
-                ` : '';
-
-                const premiumBadge = chat.premium ? `
-                    <span class="premium-badge ml-2">PREMIUM</span>
-                ` : '';
-
-                chatItem.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <div class="relative">
-                            <img src="${chat.avatar}" alt="${chat.name}" class="w-12 h-12 rounded-full">
-                            ${chat.online ? '<div class="online-dot"></div>' : ''}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center flex-wrap">
-                                    <h4 class="font-semibold text-gray-900 truncate">${chat.name}</h4>
-                                    ${verifiedBadge}
-                                    ${premiumBadge}
-                                    ${businessBadge}
-                                    <img src="${countryFlag}" alt="${chat.country}" class="country-flag ml-2">
-                                </div>
-                                <span class="text-xs text-gray-500">${chat.time}</span>
-                            </div>
-                            <div class="flex justify-between items-center mt-1">
-                                <p class="text-sm text-gray-600 truncate">${chat.lastMessage}</p>
-                                ${chat.unread > 0 ? `<span class="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">${chat.unread}</span>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                chatList.appendChild(chatItem);
+            
+            // Listen for real-time chat updates
+            database.ref('chats/' + currentUser.uid).on('value', (snapshot) => {
+                chatList.innerHTML = '';
+                
+                // Add real accounts first
+                realAccounts.forEach(chat => {
+                    renderChatItem(chat, chatList);
+                });
+                
+                // Add user chats from Firebase
+                if (snapshot.exists()) {
+                    const chats = [];
+                    snapshot.forEach((childSnapshot) => {
+                        const chatData = childSnapshot.val();
+                        const chatUserId = childSnapshot.key;
+                        
+                        // Skip if it's already in realAccounts
+                        if (!realAccounts.find(acc => acc.id === chatUserId)) {
+                            chats.push({
+                                id: chatUserId,
+                                ...chatData.chatWith,
+                                lastMessage: chatData.lastMessage || 'No messages yet',
+                                time: chatData.lastMessageTime ? formatTime(chatData.lastMessageTime) : '',
+                                unread: chatData.unreadCount || 0,
+                                online: false // Will be updated by presence system
+                            });
+                        }
+                    });
+                    
+                    // Sort by last message time
+                    chats.sort((a, b) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0));
+                    
+                    chats.forEach(chat => {
+                        renderChatItem(chat, chatList);
+                    });
+                }
             });
+        }
+        
+        // Render individual chat item
+        function renderChatItem(chat, container) {
+            const chatItem = document.createElement('div');
+            chatItem.className = 'p-4 hover:bg-gray-50 cursor-pointer transition-colors';
+            chatItem.onclick = () => openChat(chat);
+
+            const countryFlag = getCountryFlag(chat.country || 'IN');
+            const verifiedBadge = chat.verified ? `
+                <div class="verified-tick ml-1">
+                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            ` : '';
+
+            const businessBadge = chat.business ? `
+                <span class="business-badge text-white ml-2">BUSINESS</span>
+            ` : '';
+
+            const premiumBadge = chat.premium ? `
+                <span class="premium-badge ml-2">PREMIUM</span>
+            ` : '';
+
+            chatItem.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <img src="${chat.avatar || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23E5E7EB\'/%3E%3Ctext x=\'24\' y=\'30\' text-anchor=\'middle\' fill=\'%236B7280\' font-size=\'16\'%3E${(chat.name || 'U').charAt(0).toUpperCase()}%3C/text%3E%3C/svg%3E'}" alt="${chat.name}" class="w-12 h-12 rounded-full">
+                        ${chat.online ? '<div class="online-dot"></div>' : ''}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center flex-wrap">
+                                <h4 class="font-semibold text-gray-900 truncate">${chat.name}</h4>
+                                ${verifiedBadge}
+                                ${premiumBadge}
+                                ${businessBadge}
+                                <img src="${countryFlag}" alt="${chat.country || 'IN'}" class="country-flag ml-2">
+                            </div>
+                            <span class="text-xs text-gray-500">${chat.time}</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <p class="text-sm text-gray-600 truncate">${chat.lastMessage}</p>
+                            ${chat.unread > 0 ? `<span class="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">${chat.unread}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(chatItem);
         }
 
         // Get country flag
@@ -1069,74 +1230,136 @@
             loadMessages(chat.id);
         }
 
-        // Load messages
-        function loadMessages(chatId) {
+        // Load messages with real-time listener
+        function loadMessages(chatUserId) {
+            if (!currentUser) return;
+            
             const messagesArea = document.getElementById('messagesArea');
-            messagesArea.innerHTML = '';
+            const chatId = getChatId(currentUser.uid, chatUserId);
             
-            const messages = sampleMessages[chatId] || [];
+            // Remove existing listener if any
+            if (window.currentMessageListener) {
+                window.currentMessageListener.off();
+            }
             
-            messages.forEach(message => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`;
-                
-                const bubbleClass = message.sender === 'me' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-white border border-gray-200';
-                
-                let messageContent = '';
-                
-                if (message.type === 'voice') {
-                    messageContent = `
-                        <div class="flex items-center space-x-2">
-                            <button onclick="playVoiceMessage('${message.id}')" class="p-2 rounded-full bg-blue-600 hover:bg-blue-700">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-                            <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                <div class="bg-blue-500 h-2 rounded-full" style="width: 0%" id="progress-${message.id}"></div>
-                            </div>
-                            <span class="text-xs">0:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}</span>
+            // Set up real-time listener for messages
+            window.currentMessageListener = database.ref('messages/' + chatId)
+                .orderByChild('timestamp')
+                .on('value', (snapshot) => {
+                    messagesArea.innerHTML = '';
+                    
+                    if (snapshot.exists()) {
+                        const messages = [];
+                        snapshot.forEach((childSnapshot) => {
+                            messages.push(childSnapshot.val());
+                        });
+                        
+                        messages.forEach(message => {
+                            displayMessage(message);
+                        });
+                    }
+                    
+                    // Scroll to bottom
+                    messagesArea.scrollTop = messagesArea.scrollHeight;
+                    
+                    // Mark messages as seen
+                    markMessagesAsSeen(chatId, chatUserId);
+                });
+        }
+        
+        // Display individual message
+        function displayMessage(message) {
+            const messagesArea = document.getElementById('messagesArea');
+            const messageDiv = document.createElement('div');
+            const isMyMessage = message.senderId === currentUser.uid;
+            
+            messageDiv.className = `flex ${isMyMessage ? 'justify-end' : 'justify-start'}`;
+            
+            const bubbleClass = isMyMessage 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-white border border-gray-200';
+            
+            let messageContent = '';
+            
+            if (message.type === 'voice') {
+                messageContent = `
+                    <div class="flex items-center space-x-2">
+                        <button onclick="playVoiceMessage('${message.id}')" class="p-2 rounded-full bg-blue-600 hover:bg-blue-700">
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: 0%" id="progress-${message.id}"></div>
                         </div>
-                    `;
-                } else {
-                    messageContent = `<p class="text-sm">${message.text}</p>`;
-                }
-                
-                const reactions = message.reactions ? Object.entries(message.reactions).map(([emoji, count]) => 
-                    `<span class="text-xs bg-gray-100 rounded-full px-2 py-1 mr-1">${emoji} ${count}</span>`
-                ).join('') : '';
-                
-                messageDiv.innerHTML = `
-                    <div class="chat-bubble ${bubbleClass} rounded-2xl px-4 py-2 shadow-sm relative group" 
-                         oncontextmenu="showReactionMenu(event, '${message.id}')" 
-                         data-message-id="${message.id}">
-                        ${messageContent}
-                        ${reactions ? `<div class="mt-1">${reactions}</div>` : ''}
-                        <div class="flex items-center justify-end mt-1 space-x-1">
-                            <span class="message-time">${formatTime(message.timestamp)}</span>
-                            ${message.sender === 'me' ? `
-                                <svg class="w-3 h-3 ${message.seen ? 'text-blue-300' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                </svg>
-                            ` : ''}
-                        </div>
-                        ${currentUser && currentUser.premium && message.sender === 'me' ? `
-                            <button onclick="editMessage('${message.id}')" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-600 text-white rounded-full p-1">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                                </svg>
-                            </button>
-                        ` : ''}
+                        <span class="text-xs">0:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}</span>
                     </div>
                 `;
-                
-                messagesArea.appendChild(messageDiv);
-            });
+            } else if (message.type === 'image') {
+                messageContent = `
+                    <div class="max-w-xs">
+                        <img src="${message.imageUrl}" alt="Image" class="rounded-lg max-w-full h-auto">
+                        ${message.text ? `<p class="text-sm mt-2">${message.text}</p>` : ''}
+                    </div>
+                `;
+            } else {
+                messageContent = `<p class="text-sm">${message.text}</p>`;
+            }
             
-            // Scroll to bottom
-            messagesArea.scrollTop = messagesArea.scrollHeight;
+            const reactions = message.reactions ? Object.entries(message.reactions).map(([emoji, count]) => 
+                `<span class="text-xs bg-gray-100 rounded-full px-2 py-1 mr-1">${emoji} ${count}</span>`
+            ).join('') : '';
+            
+            const timestamp = message.timestamp ? (typeof message.timestamp === 'number' ? message.timestamp : Date.now()) : Date.now();
+            
+            messageDiv.innerHTML = `
+                <div class="chat-bubble ${bubbleClass} rounded-2xl px-4 py-2 shadow-sm relative group" 
+                     oncontextmenu="showReactionMenu(event, '${message.id}')" 
+                     data-message-id="${message.id}">
+                    ${messageContent}
+                    ${reactions ? `<div class="mt-1">${reactions}</div>` : ''}
+                    <div class="flex items-center justify-end mt-1 space-x-1">
+                        <span class="message-time">${formatTime(timestamp)}</span>
+                        ${isMyMessage ? `
+                            <svg class="w-3 h-3 ${message.seen ? 'text-blue-300' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        ` : ''}
+                    </div>
+                    ${currentUser && currentUser.premium && isMyMessage ? `
+                        <button onclick="editMessage('${message.id}')" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-600 text-white rounded-full p-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                            </svg>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            messagesArea.appendChild(messageDiv);
+        }
+        
+        // Mark messages as seen
+        function markMessagesAsSeen(chatId, otherUserId) {
+            if (!currentUser) return;
+            
+            database.ref('messages/' + chatId)
+                .orderByChild('receiverId')
+                .equalTo(currentUser.uid)
+                .once('value', (snapshot) => {
+                    const updates = {};
+                    snapshot.forEach((childSnapshot) => {
+                        const messageId = childSnapshot.key;
+                        updates['/messages/' + chatId + '/' + messageId + '/seen'] = true;
+                    });
+                    
+                    if (Object.keys(updates).length > 0) {
+                        database.ref().update(updates);
+                    }
+                    
+                    // Reset unread count
+                    database.ref('chats/' + currentUser.uid + '/' + otherUserId + '/unreadCount').set(0);
+                });
         }
         
         // Setup premium content
@@ -1262,43 +1485,61 @@
             const messageText = document.getElementById('messageText');
             const text = messageText.value.trim();
             
-            if (!text || !currentChat) return;
+            if (!text || !currentChat || !currentUser) return;
+            
+            const messageId = database.ref().child('messages').push().key;
+            const chatId = getChatId(currentUser.uid, currentChat.id);
             
             const message = {
-                id: 'msg' + Date.now(),
-                sender: 'me',
+                id: messageId,
+                senderId: currentUser.uid,
+                receiverId: currentChat.id,
                 text: text,
-                timestamp: Date.now(),
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
                 seen: false,
-                type: 'text'
+                type: 'text',
+                senderName: currentUser.name,
+                senderAvatar: currentUser.profilePic
             };
             
-            // Add to sample messages
-            if (!sampleMessages[currentChat.id]) {
-                sampleMessages[currentChat.id] = [];
-            }
-            sampleMessages[currentChat.id].push(message);
+            // Save message to Firebase
+            const updates = {};
+            updates['/messages/' + chatId + '/' + messageId] = message;
+            updates['/chats/' + currentUser.uid + '/' + currentChat.id] = {
+                lastMessage: text,
+                lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+                unreadCount: 0,
+                chatWith: {
+                    uid: currentChat.id,
+                    name: currentChat.name,
+                    avatar: currentChat.avatar
+                }
+            };
+            updates['/chats/' + currentChat.id + '/' + currentUser.uid] = {
+                lastMessage: text,
+                lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+                unreadCount: firebase.database.ServerValue.increment(1),
+                chatWith: {
+                    uid: currentUser.uid,
+                    name: currentUser.name,
+                    avatar: currentUser.profilePic
+                }
+            };
             
-            // Update UI
-            loadMessages(currentChat.id);
-            messageText.value = '';
-            
-            // Update chat list
-            const chat = sampleChats.find(c => c.id === currentChat.id);
-            if (chat) {
-                chat.lastMessage = text;
-                chat.time = formatTime(Date.now());
-                renderChatList();
-            }
-            
-            // Simulate typing indicator and response
-            setTimeout(() => {
-                showTypingIndicator();
-                setTimeout(() => {
-                    hideTypingIndicator();
-                    simulateResponse();
-                }, 2000);
-            }, 500);
+            database.ref().update(updates)
+                .then(() => {
+                    messageText.value = '';
+                    // Message will be displayed via real-time listener
+                })
+                .catch((error) => {
+                    console.error('Error sending message:', error);
+                    alert('Failed to send message');
+                });
+        }
+
+        // Get chat ID for two users
+        function getChatId(uid1, uid2) {
+            return uid1 < uid2 ? uid1 + '_' + uid2 : uid2 + '_' + uid1;
         }
 
         // Handle message key press
@@ -1415,7 +1656,7 @@
             alert(`Starting voice call with ${currentChat.name}...`);
         }
 
-        // File attachment
+        // File attachment with Firebase Storage
         function attachFile() {
             const input = document.createElement('input');
             input.type = 'file';
@@ -1423,11 +1664,118 @@
             input.onchange = function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    // In a real app, upload to Firebase Storage
-                    alert(`File "${file.name}" selected for upload`);
+                    uploadFile(file);
                 }
             };
             input.click();
+        }
+        
+        // Upload file to Firebase Storage
+        function uploadFile(file) {
+            if (!currentUser || !currentChat) return;
+            
+            const fileId = Date.now() + '_' + file.name;
+            const storageRef = storage.ref('uploads/' + currentUser.uid + '/' + fileId);
+            
+            // Show upload progress
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'fixed top-4 right-4 bg-white p-4 rounded-lg shadow-lg z-50';
+            progressDiv.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium">Uploading ${file.name}</p>
+                        <div class="w-32 bg-gray-200 rounded-full h-2 mt-1">
+                            <div id="uploadProgress" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(progressDiv);
+            
+            const uploadTask = storageRef.put(file);
+            
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    // Progress
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    document.getElementById('uploadProgress').style.width = progress + '%';
+                },
+                (error) => {
+                    // Error
+                    console.error('Upload error:', error);
+                    alert('Upload failed: ' + error.message);
+                    document.body.removeChild(progressDiv);
+                },
+                () => {
+                    // Success
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        document.body.removeChild(progressDiv);
+                        
+                        // Send message with file
+                        const messageId = database.ref().child('messages').push().key;
+                        const chatId = getChatId(currentUser.uid, currentChat.id);
+                        
+                        let messageType = 'file';
+                        if (file.type.startsWith('image/')) messageType = 'image';
+                        else if (file.type.startsWith('video/')) messageType = 'video';
+                        else if (file.type.startsWith('audio/')) messageType = 'voice';
+                        
+                        const message = {
+                            id: messageId,
+                            senderId: currentUser.uid,
+                            receiverId: currentChat.id,
+                            text: file.name,
+                            fileUrl: downloadURL,
+                            fileName: file.name,
+                            fileSize: file.size,
+                            fileType: file.type,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            seen: false,
+                            type: messageType,
+                            senderName: currentUser.name,
+                            senderAvatar: currentUser.profilePic
+                        };
+                        
+                        // Save message to Firebase
+                        const updates = {};
+                        updates['/messages/' + chatId + '/' + messageId] = message;
+                        updates['/chats/' + currentUser.uid + '/' + currentChat.id] = {
+                            lastMessage: messageType === 'image' ? '📷 Photo' : messageType === 'video' ? '🎥 Video' : messageType === 'voice' ? '🎤 Voice message' : '📎 ' + file.name,
+                            lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+                            unreadCount: 0,
+                            chatWith: {
+                                uid: currentChat.id,
+                                name: currentChat.name,
+                                avatar: currentChat.avatar
+                            }
+                        };
+                        updates['/chats/' + currentChat.id + '/' + currentUser.uid] = {
+                            lastMessage: messageType === 'image' ? '📷 Photo' : messageType === 'video' ? '🎥 Video' : messageType === 'voice' ? '🎤 Voice message' : '📎 ' + file.name,
+                            lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+                            unreadCount: firebase.database.ServerValue.increment(1),
+                            chatWith: {
+                                uid: currentUser.uid,
+                                name: currentUser.name,
+                                avatar: currentUser.profilePic
+                            }
+                        };
+                        
+                        database.ref().update(updates)
+                            .then(() => {
+                                console.log('File message sent successfully');
+                            })
+                            .catch((error) => {
+                                console.error('Error sending file message:', error);
+                                alert('Failed to send file');
+                            });
+                    });
+                }
+            );
         }
 
         // Emoji picker
@@ -1607,5 +1955,5 @@
             loadSavedTheme();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971809cd44c6919e',t:'MTc1NTU4OTU5OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97180f1ec40f3a2c',t:'MTc1NTU4OTgxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
