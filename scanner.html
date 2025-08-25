@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dozera – QR/Barcode Scanner</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0f1115;color:#e8e8e8}
+    header{padding:16px 20px;background:#171a21;position:sticky;top:0}
+    h1{margin:0;font-size:18px}
+    main{max-width:900px;margin:20px auto;padding:0 16px 40px}
+    .pane{background:#151923;border:1px solid #232a35;border-radius:14px;padding:16px;margin-bottom:16px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    video,canvas{width:100%;max-height:50vh;border-radius:12px;background:#0b0e13}
+    .controls button,.controls select,.controls label{background:#222a35;border:1px solid #2b3443;color:#e8e8e8;
+      border-radius:10px;padding:10px 12px;cursor:pointer}
+    .controls button:disabled{opacity:.6;cursor:not-allowed}
+    .dropzone{border:2px dashed #2b3443;border-radius:12px;padding:18px;text-align:center}
+    .dropzone.drag{background:#111722}
+    .result{background:#0e1219;border:1px solid #2b3443;border-radius:10px;padding:12px;white-space:pre-wrap}
+    .muted{opacity:.7}
+    a.btn{display:inline-block;margin-top:8px}
+    .switch{display:inline-flex;gap:8px;align-items:center}
+  </style>
+  <!-- ZXing: multi-format (QR + barcodes) -->
+  <script src="https://unpkg.com/@zxing/library@0.20.0"></script>
+</head>
+<body>
+<header><h1>WR/QR + Barcode Scanner</h1></header>
+<main>
+
+  <!-- Live camera scanner -->
+  <section class="pane">
+    <h2 style="margin-top:0">Live Camera</h2>
+    <div class="row controls">
+      <button id="startBtn">Start Camera</button>
+      <button id="stopBtn" disabled>Stop</button>
+      <button id="torchBtn" disabled>🔦 Torch</button>
+      <select id="cameraSel" title="Choose camera"></select>
+      <label class="switch">
+        <input type="checkbox" id="autoRedirect" checked>
+        <span>Auto-redirect</span>
+      </label>
+      <button id="copyBtn" disabled>Copy Result</button>
+    </div>
+    <video id="preview" playsinline></video>
+    <div id="liveResult" class="result" style="margin-top:12px"></div>
+    <div class="muted" style="margin-top:6px">Tip: HTTPS site + allow camera permission.</div>
+  </section>
+
+  <!-- Image/file scanner -->
+  <section class="pane">
+    <h2 style="margin-top:0">Scan from Image</h2>
+    <div class="row">
+      <input type="file" id="fileInput" accept="image/*" />
+      <span class="muted">You can also drag & drop an image here or paste (Ctrl/Cmd+V).</span>
+    </div>
+    <div id="drop" class="dropzone" style="margin-top:10px">Drop image here…</div>
+    <canvas id="hiddenCanvas" style="display:none"></canvas>
+    <div id="fileResult" class="result" style="margin-top:12px"></div>
+  </section>
+
+</main>
+
+<script>
+(async function(){
+  const codeReader = new ZXing.BrowserMultiFormatReader();
+  const preview = document.getElementById('preview');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const torchBtn = document.getElementById('torchBtn');
+  const cameraSel = document.getElementById('cameraSel');
+  const autoRedirect = document.getElementById('autoRedirect');
+  const copyBtn = document.getElementById('copyBtn');
+  const liveResult = document.getElementById('liveResult');
+  const fileResult = document.getElementById('fileResult');
+  const fileInput = document.getElementById('fileInput');
+  const drop = document.getElementById('drop');
+  const canvas = document.getElementById('hiddenCanvas');
+  let currentStream, trackWithTorch;
+
+  // Utils
+  const isURL = txt => /^https?:\/\/|^data:|^mailto:|^tel:|^sms:|^geo:/i.test(txt);
+  const isImageURL = txt => /^https?:\/\/.+\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(txt) || txt.startsWith('data:image/');
+  function handleDecoded(text, from){
+    const box = from === 'live' ? liveResult : fileResult;
+    box.textContent = text;
+    copyBtn.disabled = false;
+    // haptic/sound
+    try { navigator.vibrate && navigator.vibrate(120) } catch(e){}
+    if (autoRedirect.checked && isURL(text)){
+      if (isImageURL(text)){
+        window.open(text, '_blank'); // open image
+      } else {
+        location.href = text;       // redirect to link
+      }
+    }
+  }
+  function handleError(err, where=''){
+    console.warn('Scan error', where, err);
+  }
+
+  // Populate cameras
+  async function listCameras(){
+    const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
+    cameraSel.innerHTML = '';
+    devices.forEach((d,i)=>{
+      const opt = document.createElement('option');
+      opt.value = d.deviceId; opt.textContent = d.label || `Camera ${i+1}`;
+      cameraSel.appendChild(opt);
+    });
+  }
+
+  // Start camera scanning
+  async function start(camId){
+    stop(); // ensure cleaned
+    liveResult.textContent = '';
+    try{
+      await listCameras();
+      const hints = new Map(); // default supports QR, Code128, EAN, etc.
+      const constraints = {
+        video: { deviceId: camId ? {exact: camId} : undefined, facingMode: camId ? undefined : 'environment' }
+      };
+      currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+      preview.srcObject = currentStream;
+      await preview.play();
+
+      // torch support
+      trackWithTorch = currentStream.getVideoTracks()[0];
+      const caps = trackWithTorch.getCapabilities ? trackWithTorch.getCapabilities() : {};
+      torchBtn.disabled = !caps.torch;
+
+      // start decode loop
+      codeReader.decodeFromVideoDevice(camId || null, preview, (result, err) => {
+        if (result){
+          handleDecoded(result.getText(), 'live');
+        } else if (err && !(err instanceof ZXing.NotFoundException)){
+          handleError(err,'live');
+        }
+      });
+
+      startBtn.disabled = true; stopBtn.disabled = false;
+    }catch(e){
+      handleError(e,'start');
+      alert('Camera start failed. Check permissions / HTTPS / another app using camera.');
+      startBtn.disabled = false; stopBtn.disabled = true;
+    }
+  }
+
+  function stop(){
+    try{ codeReader.reset(); }catch(e){}
+    if (currentStream){
+      currentStream.getTracks().forEach(t=>t.stop());
+      currentStream = null;
+    }
+    startBtn.disabled = false; stopBtn.disabled = true; torchBtn.disabled = true;
+  }
+
+  startBtn.onclick = ()=> start(cameraSel.value || null);
+  stopBtn.onclick = ()=> stop();
+
+  // Torch toggle
+  torchBtn.onclick = async ()=>{
+    if (!trackWithTorch) return;
+    try{
+      const settings = trackWithTorch.getSettings();
+      await trackWithTorch.applyConstraints({ advanced: [{ torch: !settings.torch }] });
+    }catch(e){ console.log('Torch not supported', e); }
+  };
+
+  // React to camera selection changes
+  cameraSel.onchange = ()=> { if(!startBtn.disabled) return; start(cameraSel.value); };
+
+  // Copy
+  copyBtn.onclick = async ()=>{
+    const txt = (liveResult.textContent || fileResult.textContent || '').trim();
+    if (!txt) return;
+    try{ await navigator.clipboard.writeText(txt); copyBtn.textContent='Copied ✓'; setTimeout(()=>copyBtn.textContent='Copy Result',1200); }catch(e){}
+  };
+
+  // File upload / drag & drop / paste
+  async function scanImageFromBlob(blob){
+    fileResult.textContent = 'Decoding…';
+    const imgBitmap = await createImageBitmap(blob);
+    canvas.width = imgBitmap.width; canvas.height = imgBitmap.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(imgBitmap, 0, 0);
+    try{
+      const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+      const binarizer = new ZXing.HybridBinarizer(luminanceSource);
+      const bitmap = new ZXing.BinaryBitmap(binarizer);
+      const reader = new ZXing.MultiFormatReader();
+      const result = reader.decode(bitmap);
+      handleDecoded(result.getText(), 'file');
+    }catch(e){
+      fileResult.textContent = 'No code found in image.';
+      console.debug(e);
+    }
+  }
+
+  fileInput.onchange = ()=> fileInput.files[0] && scanImageFromBlob(fileInput.files[0]);
+
+  // drag-drop
+  ;['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('drag'); }));
+  ;['dragleave','drop'].forEach(ev=>drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('drag'); }));
+  drop.addEventListener('drop', e=>{
+    const f = [...(e.dataTransfer.files||[])].find(x=>x.type.startsWith('image/'));
+    if (f) scanImageFromBlob(f);
+  });
+
+  // paste
+  window.addEventListener('paste', (e)=>{
+    const item = [...(e.clipboardData?.items||[])].find(x=>x.type.startsWith('image/'));
+    if (item) scanImageFromBlob(item.getAsFile());
+  });
+
+  // prepare device list early (needs permission on some browsers)
+  try { await listCameras(); } catch(e){}
+})();
+</script>
+</body>
+</html>
