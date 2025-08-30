@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OrioBuzz - Advanced Social Platform</title>
+    <title>OrioBuzz - Social Media Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-        import { getDatabase, ref, set, get, push, onValue, update, remove, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getDatabase, ref, push, set, onValue, remove, update } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyB2XeuTfHZ7FYKLoYb4epKp3upmVqG0fzE",
@@ -20,2931 +21,653 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const database = getDatabase(app);
+        const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        window.auth = auth;
-        window.database = database;
-        window.provider = provider;
-        window.signInWithPopup = signInWithPopup;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.signOut = signOut;
-        window.ref = ref;
-        window.set = set;
-        window.get = get;
-        window.push = push;
-        window.onValue = onValue;
-        window.update = update;
-        window.remove = remove;
-        window.query = query;
-        window.orderByChild = orderByChild;
-        window.limitToLast = limitToLast;
+        window.firebaseApp = { database, auth, provider, ref, push, set, onValue, remove, update, signInWithPopup, onAuthStateChanged };
     </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .auth-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .auth-card {
-            background: white;
-            padding: 60px 40px;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-            text-align: center;
-            max-width: 450px;
-            width: 100%;
-        }
-
-        .logo {
-            font-size: 3.5rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
-        }
-
-        .tagline {
-            color: #666;
-            margin-bottom: 40px;
-            font-size: 18px;
-            line-height: 1.5;
-        }
-
-        .google-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 18px 35px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .google-btn:hover {
-            background: #3367d6;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(66, 133, 244, 0.3);
-        }
-
-        .main-app {
-            display: none;
-            background: #f8f9fa;
-            min-height: 100vh;
-        }
-
-        .navbar {
-            background: white;
-            padding: 15px 0;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        .nav-logo {
-            font-size: 2.2rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-menu {
-            display: flex;
-            gap: 25px;
-            align-items: center;
-        }
-
-        .nav-item {
-            padding: 12px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: #667eea;
-            color: white;
-            transform: translateY(-1px);
-        }
-
-        .search-container {
-            position: relative;
-            margin: 0 20px;
-        }
-
-        .search-input {
-            width: 350px;
-            padding: 12px 20px 12px 45px;
-            border: 2px solid #e1e8ed;
-            border-radius: 25px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #657786;
-            font-size: 18px;
-        }
-
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-height: 400px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
-
-        .search-result-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e1e8ed;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-result-item:hover {
-            background: #f8f9fa;
-        }
-
-        .content-area {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px 20px;
-            display: grid;
-            grid-template-columns: 320px 1fr 320px;
-            gap: 30px;
-        }
-
-        .sidebar, .right-sidebar {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            height: fit-content;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-
-        .main-content {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-
-        .profile-section {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .profile-avatar {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            position: relative;
-        }
-
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .username {
-            font-weight: bold;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 5px;
-        }
-
         .verified-tick {
-            width: 22px;
-            height: 22px;
-            background: linear-gradient(45deg, #e91e63, #ad1457);
+            background: linear-gradient(45deg, #ff1493, #ff69b4);
             border-radius: 50%;
+            width: 20px;
+            height: 20px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 12px;
-            font-weight: bold;
-            position: relative;
+            margin-left: 4px;
         }
-
-        .verified-tick::before {
-            content: '✓';
-            font-size: 14px;
-        }
-
-        .premium-badge {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-left: 8px;
-        }
-
-        .profile-stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e1e8ed;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-weight: bold;
-            font-size: 20px;
-            color: #667eea;
-        }
-
-        .stat-label {
-            color: #657786;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        .buzz-composer {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border: 2px solid #e1e8ed;
-        }
-
-        .composer-header {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .composer-avatar {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            margin-right: 15px;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .composer-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .buzz-input {
-            width: 100%;
-            border: none;
-            background: transparent;
-            font-size: 18px;
-            resize: none;
-            min-height: 120px;
-            font-family: inherit;
-            outline: none;
-            line-height: 1.5;
-        }
-
-        .buzz-input::placeholder {
-            color: #657786;
-        }
-
-        .composer-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e1e8ed;
-        }
-
-        .action-icons {
-            display: flex;
-            gap: 20px;
-        }
-
-        .action-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+        .buzz-card {
             transition: all 0.3s ease;
-            font-size: 18px;
+            border-left: 4px solid transparent;
         }
-
-        .action-icon:hover {
-            background: #667eea;
-            color: white;
-            transform: scale(1.1);
-        }
-
-        .buzz-btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .buzz-btn:hover {
+        .buzz-card:hover {
+            border-left-color: #ff1493;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.15);
         }
-
-        .buzz-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+        .boost-glow {
+            animation: boost-pulse 2s infinite;
         }
-
-        .buzz-post {
-            border-bottom: 1px solid #e1e8ed;
-            padding: 25px 0;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .buzz-post:hover {
-            background: #f8f9fa;
-            margin: 0 -30px;
-            padding: 25px 30px;
-            border-radius: 15px;
-        }
-
-        .buzz-post:last-child {
-            border-bottom: none;
-        }
-
-        .buzz-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .buzz-avatar {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            margin-right: 15px;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .buzz-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .buzz-user-info {
-            flex: 1;
-        }
-
-        .buzz-username {
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 3px;
-        }
-
-        .buzz-time {
-            color: #657786;
-            font-size: 14px;
-        }
-
-        .buzz-content {
-            margin: 15px 0;
-            line-height: 1.6;
-            font-size: 16px;
-        }
-
-        .hashtag {
-            color: #667eea;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .hashtag:hover {
-            text-decoration: underline;
-        }
-
-        .mention {
-            color: #e91e63;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .mention:hover {
-            text-decoration: underline;
-        }
-
-        .buzz-image {
-            max-width: 100%;
-            border-radius: 15px;
-            margin-top: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .buzz-actions {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #e1e8ed;
-        }
-
-        .buzz-action {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: none;
-            border: none;
-            color: #657786;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .buzz-action:hover {
-            background: #f0f0f0;
-            transform: translateY(-1px);
-        }
-
-        .buzz-action.liked {
-            color: #e91e63;
-            background: rgba(233, 30, 99, 0.1);
-        }
-
-        .buzz-action.shared {
-            color: #1da1f2;
-            background: rgba(29, 161, 242, 0.1);
-        }
-
-        .trending-section {
-            margin-top: 30px;
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .trending-item {
-            padding: 15px 0;
-            border-bottom: 1px solid #e1e8ed;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .trending-item:hover {
-            background: #f8f9fa;
-            margin: 0 -25px;
-            padding: 15px 25px;
-            border-radius: 10px;
-        }
-
-        .trending-topic {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-
-        .trending-count {
-            color: #657786;
-            font-size: 14px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .modal-title {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .close-modal {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #f0f0f0;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .close-modal:hover {
-            background: #e0e0e0;
-            transform: scale(1.1);
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        .btn-secondary:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .boost-indicator {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .algorithm-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .interest-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .interest-tag {
-            background: #f0f0f0;
-            color: #667eea;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .interest-tag:hover, .interest-tag.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .boost-modal {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            color: white;
-        }
-
-        .boost-options {
-            display: grid;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .boost-option {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .boost-option:hover, .boost-option.selected {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: white;
-            transform: translateY(-2px);
-        }
-
-        .boost-title {
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 8px;
-        }
-
-        .boost-description {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 10px;
-        }
-
-        .boost-price {
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .community-item {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .community-item:hover {
-            background: #e9ecef;
-            transform: translateY(-2px);
-        }
-
-        .community-name {
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 8px;
-        }
-
-        .community-description {
-            color: #657786;
-            margin-bottom: 15px;
-        }
-
-        .join-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .join-btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-1px);
-        }
-
-        .user-list-item {
-            display: flex;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #e1e8ed;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .user-list-item:hover {
-            background: #f8f9fa;
-            margin: 0 -25px;
-            padding: 15px 25px;
-            border-radius: 10px;
-        }
-
-        .user-list-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 15px;
-            overflow: hidden;
-        }
-
-        .user-list-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .user-list-info {
-            flex: 1;
-        }
-
-        .user-list-name {
-            font-weight: bold;
-            margin-bottom: 3px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .user-list-email {
-            color: #657786;
-            font-size: 14px;
-        }
-
-        .recommendation-reason {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            padding: 8px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: inline-block;
-        }
-
-        @media (max-width: 768px) {
-            .content-area {
-                grid-template-columns: 1fr;
-                gap: 20px;
-                padding: 20px 15px;
-            }
-            
-            .sidebar, .right-sidebar {
-                display: none;
-            }
-            
-            .nav-menu {
-                gap: 15px;
-            }
-            
-            .nav-item {
-                padding: 10px 15px;
-                font-size: 14px;
-            }
-            
-            .search-input {
-                width: 250px;
-            }
-            
-            .buzz-composer {
-                padding: 20px;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-        }
-
-        .analytics-section {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-        }
-
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .analytics-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-        }
-
-        .analytics-number {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .analytics-label {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .affiliate-badge {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-left: 8px;
-        }
-
-        .follow-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .follow-btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-1px);
-        }
-
-        .follow-btn.following {
-            background: #28a745;
-        }
-
-        .block-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: 10px;
-        }
-
-        .block-btn:hover {
-            background: #c82333;
-            transform: translateY(-1px);
+        @keyframes boost-pulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 20, 147, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 20, 147, 0.8); }
         }
     </style>
 </head>
-<body>
-    <!-- Authentication Section -->
-    <div id="authSection" class="auth-container">
-        <div class="auth-card">
-            <div class="logo">OrioBuzz</div>
-            <p class="tagline">The Ultimate Social Intelligence Platform<br>Connect • Share • Discover</p>
-            <button class="google-btn" onclick="signInWithGoogle()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen text-white">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full mx-4 border border-white/20">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">OrioBuzz</h1>
+                <p class="text-gray-300 mt-2">Connect, Share, Buzz!</p>
+            </div>
+            <button onclick="loginWithGoogle()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center gap-3">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 Continue with Google
             </button>
         </div>
     </div>
 
-    <!-- Main Application -->
-    <div id="mainApp" class="main-app">
-        <nav class="navbar">
-            <div class="nav-content">
-                <div class="nav-logo">OrioBuzz</div>
-                <div class="search-container">
-                    <div class="search-icon">🔍</div>
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search users, hashtags, communities..." onkeyup="performSearch()" onfocus="showSearchResults()" onblur="hideSearchResults()">
-                    <div class="search-results" id="searchResults"></div>
-                </div>
-                <div class="nav-menu">
-                    <div class="nav-item active" onclick="showPage('feed')">
-                        🏠 Home
-                    </div>
-                    <div class="nav-item" onclick="showPage('profile')">
-                        👤 Profile
-                    </div>
-                    <div class="nav-item" onclick="showPage('communities')">
-                        👥 Communities
-                    </div>
-                    <div class="nav-item" onclick="showPage('messages')">
-                        💬 Messages
-                    </div>
-                    <div class="nav-item" onclick="showPage('notifications')">
-                        🔔 Notifications
-                    </div>
-                    <div class="nav-item" onclick="showPage('settings')">
-                        ⚙️ Settings
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <div class="content-area">
-            <!-- Left Sidebar -->
-            <div class="sidebar">
-                <div class="profile-section">
-                    <div class="profile-avatar" id="sidebarAvatar">
-                        <img src="" alt="Profile" id="sidebarAvatarImg">
-                    </div>
-                    <div class="username" id="sidebarUsername">
-                        Username
-                        <span class="verified-tick hidden" id="sidebarVerified"></span>
-                        <span class="premium-badge hidden" id="sidebarPremium">PREMIUM</span>
-                        <span class="affiliate-badge hidden" id="sidebarAffiliate">AFFILIATE</span>
-                    </div>
-                    <div class="profile-stats">
-                        <div class="stat">
-                            <div class="stat-number" id="followersCount">0</div>
-                            <div class="stat-label">Followers</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-number" id="followingCount">0</div>
-                            <div class="stat-label">Following</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-number" id="buzzCount">0</div>
-                            <div class="stat-label">Buzzes</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="section-title">🎯 Your Interests</div>
-                <div class="interest-tags" id="userInterests"></div>
-                
-                <button class="btn" onclick="openModal('profileModal')" style="margin-top: 20px;">✏️ Edit Profile</button>
-            </div>
-
-            <!-- Main Content -->
-            <div class="main-content">
-                <!-- Feed Page -->
-                <div id="feedPage">
-                    <div class="buzz-composer">
-                        <div class="composer-header">
-                            <div class="composer-avatar" id="composerAvatar">
-                                <img src="" alt="Your Avatar" id="composerAvatarImg">
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <!-- Header -->
+        <header class="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">OrioBuzz</h1>
+                <div class="flex items-center gap-4">
+                    <button onclick="showCreateBuzz()" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-4 py-2 rounded-lg font-semibold transition duration-300">
+                        Create Buzz
+                    </button>
+                    <div class="relative">
+                        <button onclick="toggleUserMenu()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg transition duration-300">
+                            <img id="userAvatar" class="w-8 h-8 rounded-full" src="" alt="User">
+                            <span id="userName" class="font-medium"></span>
+                            <span id="userVerified" class="verified-tick hidden">✓</span>
+                        </button>
+                        <div id="userMenu" class="hidden absolute right-0 mt-2 w-64 bg-black/80 backdrop-blur-lg rounded-lg border border-white/20 py-2">
+                            <div class="px-4 py-2 border-b border-white/10">
+                                <div class="font-semibold" id="menuUserName"></div>
+                                <div class="text-sm text-gray-400" id="menuUserEmail"></div>
                             </div>
-                            <textarea class="buzz-input" id="buzzContent" placeholder="What's buzzing? Share your thoughts with hashtags #trending and mentions @username"></textarea>
-                        </div>
-                        <div class="composer-actions">
-                            <div class="action-icons">
-                                <div class="action-icon" onclick="document.getElementById('imageInput').click()" title="Add Image">
-                                    📷
-                                </div>
-                                <div class="action-icon" onclick="addEmoji()" title="Add Emoji">
-                                    😊
-                                </div>
-                                <div class="action-icon" onclick="addHashtag()" title="Add Hashtag">
-                                    #️⃣
-                                </div>
-                                <div class="action-icon" onclick="addMention()" title="Mention User">
-                                    @
-                                </div>
-                                <div class="action-icon" onclick="addLocation()" title="Add Location">
-                                    📍
-                                </div>
-                            </div>
-                            <button class="buzz-btn" onclick="createBuzz()" id="buzzButton">
-                                🚀 Post Buzz
-                            </button>
-                        </div>
-                        <input type="file" id="imageInput" class="file-input" accept="image/*" onchange="handleImageUpload(this)">
-                    </div>
-                    <div id="buzzFeed"></div>
-                </div>
-
-                <!-- Profile Page -->
-                <div id="profilePage" class="hidden">
-                    <div style="text-align: center; margin-bottom: 40px;">
-                        <div class="profile-avatar" id="profileAvatar" style="width: 120px; height: 120px; margin: 0 auto 20px;">
-                            <img src="" alt="Profile" id="profileAvatarImg">
-                        </div>
-                        <h2 class="username" id="profileUsername">
-                            Username
-                            <span class="verified-tick hidden" id="profileVerified"></span>
-                            <span class="premium-badge hidden" id="profilePremium">PREMIUM</span>
-                            <span class="affiliate-badge hidden" id="profileAffiliate">AFFILIATE</span>
-                        </h2>
-                        <p id="profileBio" style="color: #657786; margin: 15px 0; font-size: 16px;">Bio not set</p>
-                        <p id="profileLocation" style="color: #657786; margin: 10px 0;">📍 Location not set</p>
-                        <p id="profileContact" style="color: #657786; margin: 10px 0;">📞 Contact not set</p>
-                        <p id="profileEmail" style="color: #657786; margin: 10px 0;">📧 Email not set</p>
-                        <div class="profile-stats" style="margin-top: 30px; justify-content: center; gap: 40px;">
-                            <div class="stat">
-                                <div class="stat-number" id="profileFollowers">0</div>
-                                <div class="stat-label">Followers</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-number" id="profileFollowing">0</div>
-                                <div class="stat-label">Following</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-number" id="profileBuzzes">0</div>
-                                <div class="stat-label">Buzzes</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="userBuzzFeed"></div>
-                </div>
-
-                <!-- Communities Page -->
-                <div id="communitiesPage" class="hidden">
-                    <h2 style="margin-bottom: 30px;">👥 Communities</h2>
-                    <div id="communitiesList">
-                        <div class="community-item">
-                            <div class="community-name">🚀 Tech Innovators</div>
-                            <div class="community-description">Discuss latest technology trends and innovations</div>
-                            <button class="join-btn" onclick="joinCommunity('tech')">Join Community</button>
-                        </div>
-                        <div class="community-item">
-                            <div class="community-name">💼 Business Network</div>
-                            <div class="community-description">Connect with entrepreneurs and business leaders</div>
-                            <button class="join-btn" onclick="joinCommunity('business')">Join Community</button>
-                        </div>
-                        <div class="community-item">
-                            <div class="community-name">🎨 Creative Hub</div>
-                            <div class="community-description">Share your creative work and get inspired</div>
-                            <button class="join-btn" onclick="joinCommunity('creative')">Join Community</button>
-                        </div>
-                        <div class="community-item">
-                            <div class="community-name">📚 Knowledge Seekers</div>
-                            <div class="community-description">Learn and share knowledge on various topics</div>
-                            <button class="join-btn" onclick="joinCommunity('knowledge')">Join Community</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Messages Page -->
-                <div id="messagesPage" class="hidden">
-                    <h2 style="margin-bottom: 30px;">💬 Messages</h2>
-                    <div style="text-align: center; padding: 60px 20px; color: #657786;">
-                        <div style="font-size: 4rem; margin-bottom: 20px;">💬</div>
-                        <h3>Direct Messages Coming Soon!</h3>
-                        <p>Connect privately with other OrioBuzz users</p>
-                    </div>
-                </div>
-
-                <!-- Notifications Page -->
-                <div id="notificationsPage" class="hidden">
-                    <h2 style="margin-bottom: 30px;">🔔 Notifications</h2>
-                    <div id="notificationsList">
-                        <div style="text-align: center; padding: 60px 20px; color: #657786;">
-                            <div style="font-size: 4rem; margin-bottom: 20px;">🔔</div>
-                            <h3>No notifications yet</h3>
-                            <p>When someone likes, comments, or mentions you, you'll see it here</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Settings Page -->
-                <div id="settingsPage" class="hidden">
-                    <h2 style="margin-bottom: 30px;">⚙️ Settings & Privacy</h2>
-                    <div style="display: grid; gap: 20px;">
-                        <div class="community-item">
-                            <div class="community-name">👤 Account Settings</div>
-                            <div class="community-description">Manage your account information and preferences</div>
-                            <button class="join-btn" onclick="openModal('accountModal')">Manage Account</button>
-                        </div>
-                        <div class="community-item">
-                            <div class="community-name">🔒 Privacy & Safety</div>
-                            <div class="community-description">Control who can see your content and interact with you</div>
-                            <button class="join-btn" onclick="openModal('privacyModal')">Privacy Settings</button>
-                        </div>
-                        <div class="community-item">
-                            <div class="community-name">🔔 Notifications</div>
-                            <div class="community-description">Choose what notifications you want to receive</div>
-                            <button class="join-btn" onclick="openModal('notificationModal')">Notification Settings</button>
-                        </div>
-                        <div class="community-item">
-                            <div class="community-name">🎯 Algorithm Preferences</div>
-                            <div class="community-description">Customize your feed algorithm and content recommendations</div>
-                            <button class="join-btn" onclick="openModal('algorithmModal')">Customize Algorithm</button>
-                        </div>
-                        <div class="community-item">
-                            <div class="community-name">💎 Premium Features</div>
-                            <div class="community-description">Unlock exclusive features with OrioBuzz Premium</div>
-                            <button class="join-btn" onclick="showPremiumFeatures()">View Premium</button>
-                        </div>
-                        <div class="community-item">
-                            <div class="community-name">🚪 Account Actions</div>
-                            <div class="community-description">Logout or manage multiple accounts</div>
-                            <button class="join-btn" onclick="logoutUser()" style="background: #dc3545;">Logout</button>
+                            <button onclick="showProfile()" class="w-full text-left px-4 py-2 hover:bg-white/10 transition duration-300">👤 Profile</button>
+                            <button onclick="showSettings()" class="w-full text-left px-4 py-2 hover:bg-white/10 transition duration-300">⚙️ Settings</button>
+                            <button onclick="logout()" class="w-full text-left px-4 py-2 hover:bg-white/10 transition duration-300 text-red-400">🚪 Logout</button>
                         </div>
                     </div>
                 </div>
             </div>
+        </header>
 
-            <!-- Right Sidebar -->
-            <div class="right-sidebar">
-                <div class="section-title">🔥 Trending Now</div>
-                <div class="trending-section" id="trendingHashtags"></div>
+        <!-- Main Content -->
+        <div class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 sticky top-24">
+                    <h3 class="font-bold text-lg mb-4">Navigation</h3>
+                    <nav class="space-y-2">
+                        <button onclick="showFeed()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition duration-300 flex items-center gap-3">
+                            🏠 Home Feed
+                        </button>
+                        <button onclick="showTrending()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition duration-300 flex items-center gap-3">
+                            🔥 Trending
+                        </button>
+                        <button onclick="showFollowing()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition duration-300 flex items-center gap-3">
+                            👥 Following
+                        </button>
+                        <button onclick="showCommunities()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition duration-300 flex items-center gap-3">
+                            🌐 Communities
+                        </button>
+                    </nav>
+                </div>
+            </div>
 
-                <div class="section-title" style="margin-top: 30px;">👥 Suggested Users</div>
-                <div id="suggestedUsers"></div>
-
-                <div class="section-title" style="margin-top: 30px;">🎯 For You</div>
-                <div id="algorithmInsights"></div>
+            <!-- Feed -->
+            <div class="lg:col-span-3">
+                <div id="feedContainer">
+                    <!-- Buzzes will be loaded here -->
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
-    <div id="profileModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">✏️ Edit Profile</div>
-                <button class="close-modal" onclick="closeModal('profileModal')">×</button>
+    <!-- Create Buzz Modal -->
+    <div id="createBuzzModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 max-w-2xl w-full border border-white/20">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold">Create New Buzz</h3>
+                <button onclick="hideCreateBuzz()" class="text-gray-400 hover:text-white transition duration-300">✕</button>
             </div>
-            <div class="form-group">
-                <label class="form-label">Username</label>
-                <input type="text" class="form-input" id="editUsername" placeholder="Enter your username">
+            <div class="space-y-4">
+                <textarea id="buzzContent" placeholder="What's buzzing?" class="w-full bg-white/10 border border-white/20 rounded-lg p-4 text-white placeholder-gray-400 resize-none h-32 focus:outline-none focus:ring-2 focus:ring-pink-500"></textarea>
+                <div class="flex items-center gap-4">
+                    <input type="file" id="buzzImage" accept="image/*" class="hidden" onchange="previewImage(this)">
+                    <button onclick="document.getElementById('buzzImage').click()" class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition duration-300">
+                        📷 Add Image
+                    </button>
+                    <input type="text" id="buzzHashtags" placeholder="#hashtags" class="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                </div>
+                <div id="imagePreview" class="hidden">
+                    <img id="previewImg" class="max-w-full h-48 object-cover rounded-lg">
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="boostBuzz" class="rounded">
+                            <span class="text-sm">🚀 Boost this Buzz (Verified only)</span>
+                        </label>
+                    </div>
+                    <button onclick="createBuzz()" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-6 py-2 rounded-lg font-semibold transition duration-300">
+                        Post Buzz
+                    </button>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Bio</label>
-                <textarea class="form-input form-textarea" id="editBio" placeholder="Tell us about yourself"></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Location</label>
-                <input type="text" class="form-input" id="editLocation" placeholder="Your location">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Contact Number</label>
-                <input type="tel" class="form-input" id="editContact" placeholder="Your phone number">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Email (Display)</label>
-                <input type="email" class="form-input" id="editEmail" placeholder="Your email for display">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Interests (comma separated)</label>
-                <input type="text" class="form-input" id="editInterests" placeholder="technology, business, sports, music">
-            </div>
-            <button class="btn" onclick="updateProfile()">💾 Save Changes</button>
         </div>
     </div>
 
-    <div id="boostModal" class="modal">
-        <div class="modal-content boost-modal">
-            <div class="modal-header">
-                <div class="modal-title">🚀 Boost Your Buzz</div>
-                <button class="close-modal" onclick="closeModal('boostModal')">×</button>
+    <!-- Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 max-w-2xl w-full border border-white/20">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold">Profile Settings</h3>
+                <button onclick="hideProfile()" class="text-gray-400 hover:text-white transition duration-300">✕</button>
             </div>
-            <p style="margin-bottom: 20px; opacity: 0.9;">Boost your buzz to reach more users and get higher engagement:</p>
-            <div class="boost-options">
-                <div class="boost-option" onclick="selectBoostOption(this, 'basic')">
-                    <div class="boost-title">🎯 Basic Boost</div>
-                    <div class="boost-description">Reach 3x more users in your network</div>
-                    <div class="boost-price">$4.99</div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Display Name</label>
+                    <input type="text" id="profileName" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
                 </div>
-                <div class="boost-option" onclick="selectBoostOption(this, 'premium')">
-                    <div class="boost-title">🚀 Premium Boost</div>
-                    <div class="boost-description">Reach 7x more users + trending placement</div>
-                    <div class="boost-price">$12.99</div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Username</label>
+                    <input type="text" id="profileUsername" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
                 </div>
-                <div class="boost-option" onclick="selectBoostOption(this, 'viral')">
-                    <div class="boost-title">💥 Viral Boost</div>
-                    <div class="boost-description">Maximum reach + featured placement + analytics</div>
-                    <div class="boost-price">$24.99</div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Bio</label>
+                    <textarea id="profileBio" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white resize-none h-24 focus:outline-none focus:ring-2 focus:ring-pink-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Location</label>
+                    <input type="text" id="profileLocation" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Contact Number</label>
+                    <input type="tel" id="profilePhone" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button onclick="hideProfile()" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition duration-300">Cancel</button>
+                    <button onclick="saveProfile()" class="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-lg transition duration-300">Save Changes</button>
                 </div>
             </div>
-            <button class="btn" onclick="confirmBoost()" id="confirmBoostBtn" style="margin-top: 20px; background: white; color: #ff6b6b;">
-                🚀 Confirm Boost
-            </button>
-        </div>
-    </div>
-
-    <div id="privacyModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">🔒 Privacy Settings</div>
-                <button class="close-modal" onclick="closeModal('privacyModal')">×</button>
-            </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <input type="checkbox" id="privateAccount"> Private Account
-                </label>
-                <p style="color: #657786; font-size: 14px; margin-top: 5px;">Only approved followers can see your buzzes</p>
-            </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <input type="checkbox" id="allowMentions"> Allow Mentions
-                </label>
-                <p style="color: #657786; font-size: 14px; margin-top: 5px;">Let anyone mention you in their buzzes</p>
-            </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <input type="checkbox" id="showInSearch"> Show in Search Results
-                </label>
-                <p style="color: #657786; font-size: 14px; margin-top: 5px;">Allow others to find you through search</p>
-            </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <input type="checkbox" id="allowDirectMessages"> Allow Direct Messages
-                </label>
-                <p style="color: #657786; font-size: 14px; margin-top: 5px;">Let others send you private messages</p>
-            </div>
-            <button class="btn" onclick="updatePrivacySettings()">💾 Save Settings</button>
-        </div>
-    </div>
-
-    <div id="algorithmModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">🎯 Algorithm Preferences</div>
-                <button class="close-modal" onclick="closeModal('algorithmModal')">×</button>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Content Priority</label>
-                <select class="form-input" id="contentPriority">
-                    <option value="recent">Most Recent</option>
-                    <option value="popular">Most Popular</option>
-                    <option value="personalized">Personalized Mix</option>
-                    <option value="following">Following Only</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Interest Weight</label>
-                <input type="range" class="form-input" id="interestWeight" min="0" max="100" value="70">
-                <p style="font-size: 14px; color: #657786;">How much should your interests influence your feed?</p>
-            </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <input type="checkbox" id="showBoosted" checked> Show Boosted Content
-                </label>
-            </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <input type="checkbox" id="diverseContent" checked> Diverse Content Discovery
-                </label>
-            </div>
-            <button class="btn" onclick="updateAlgorithmPreferences()">💾 Save Preferences</button>
         </div>
     </div>
 
     <script>
-        // Global variables
         let currentUser = null;
-        let selectedImageBase64 = null;
-        let allUsers = [];
-        let allBuzzes = [];
-        let userInteractions = {};
-        let selectedBoostType = null;
-        let currentBuzzToBoost = null;
+        let userInterests = {};
+        let followingList = [];
 
-        // Verified and premium eligible emails
+        // Verified users list
         const verifiedEmails = [
             'sgursharn076@gmail.com',
-            'sdozera@gmail.com',
-            'orionbuzz771@gmail.com'
+            'orionbuzz771@gmail.com',
+            'sdozera@gmail.com'
         ];
 
-        const premiumEligible = [
-            'sgursharn076@gmail.com',
-            'sdozera@gmail.com',
-            'orionbuzz771@gmail.com'
+        // Auto-create verified accounts
+        const autoAccounts = [
+            { email: 'orionbuzz771@gmail.com', name: 'OrioBuzz', username: 'oriobuzz_official', bio: 'Official OrioBuzz Account 🚀' },
+            { email: 'sgursharn076@gmail.com', name: 'Gursharn Arya', username: 'gursharn_arya', bio: 'Tech Enthusiast & Creator' },
+            { email: 'sdozera@gmail.com', name: 'Dozera Group', username: 'dozera_group', bio: 'Innovation & Technology' }
         ];
-
-        // Auto-create accounts with affiliate relationships
-        const autoAccounts = {
-            'sgursharn076@gmail.com': { 
-                username: 'Gursharn Arya', 
-                bio: 'Tech Entrepreneur & Innovation Leader 🚀',
-                location: 'Silicon Valley, CA',
-                contact: '+1-555-0123',
-                interests: ['technology', 'innovation', 'entrepreneurship', 'AI'],
-                affiliate: 'Dozera Group'
-            },
-            'sdozera@gmail.com': { 
-                username: 'Dozera Group', 
-                bio: 'Leading Business Solutions & Digital Transformation 💼',
-                location: 'New York, NY',
-                contact: '+1-555-0456',
-                interests: ['business', 'digital transformation', 'consulting'],
-                affiliate: 'Gursharn Arya'
-            },
-            'orionbuzz771@gmail.com': { 
-                username: 'OrioBuzz Official', 
-                bio: 'Official OrioBuzz Account - The Future of Social Media ✨',
-                location: 'Global',
-                contact: 'support@oriobuzz.com',
-                interests: ['social media', 'technology', 'community', 'innovation']
-            }
-        };
-
-        // Advanced Algorithm System
-        class OrioBuzzAlgorithm {
-            constructor() {
-                this.userInterests = new Map();
-                this.contentScores = new Map();
-                this.engagementHistory = new Map();
-                this.trendingTopics = new Map();
-                this.userBehavior = new Map();
-            }
-
-            // Track user interactions for personalization
-            trackInteraction(userId, buzzId, interactionType, content, dwellTime = 0) {
-                if (!this.engagementHistory.has(userId)) {
-                    this.engagementHistory.set(userId, []);
-                }
-                
-                const interaction = {
-                    buzzId,
-                    type: interactionType,
-                    content,
-                    timestamp: Date.now(),
-                    hashtags: this.extractHashtags(content),
-                    keywords: this.extractKeywords(content),
-                    dwellTime
-                };
-                
-                this.engagementHistory.get(userId).push(interaction);
-                this.updateUserInterests(userId, interaction);
-                this.updateTrendingTopics(interaction);
-                this.updateUserBehavior(userId, interaction);
-            }
-
-            // Extract hashtags from content
-            extractHashtags(content) {
-                const hashtagRegex = /#[\w]+/g;
-                return content.match(hashtagRegex) || [];
-            }
-
-            // Extract mentions from content
-            extractMentions(content) {
-                const mentionRegex = /@[\w]+/g;
-                return content.match(mentionRegex) || [];
-            }
-
-            // Extract keywords using advanced NLP
-            extractKeywords(content) {
-                const stopWords = ['the', 'is', 'at', 'which', 'on', 'and', 'a', 'to', 'are', 'as', 'was', 'will', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'can', 'could', 'should', 'would', 'may', 'might', 'must', 'shall', 'will', 'am', 'is', 'are', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'get', 'got', 'getting', 'go', 'goes', 'going', 'went', 'gone'];
-                
-                const words = content.toLowerCase()
-                    .replace(/[^\w\s]/g, '')
-                    .split(/\s+/)
-                    .filter(word => word.length > 2 && !stopWords.includes(word));
-                
-                const wordFreq = {};
-                words.forEach(word => {
-                    wordFreq[word] = (wordFreq[word] || 0) + 1;
-                });
-                
-                return Object.keys(wordFreq)
-                    .sort((a, b) => wordFreq[b] - wordFreq[a])
-                    .slice(0, 8);
-            }
-
-            // Update user interests based on interactions
-            updateUserInterests(userId, interaction) {
-                if (!this.userInterests.has(userId)) {
-                    this.userInterests.set(userId, {});
-                }
-                
-                const interests = this.userInterests.get(userId);
-                const weight = this.getInteractionWeight(interaction.type);
-                
-                // Update hashtag interests
-                interaction.hashtags.forEach(hashtag => {
-                    interests[hashtag] = (interests[hashtag] || 0) + weight;
-                });
-                
-                // Update keyword interests
-                interaction.keywords.forEach(keyword => {
-                    interests[keyword] = (interests[keyword] || 0) + weight * 0.6;
-                });
-
-                // Decay old interests over time
-                const now = Date.now();
-                const decayFactor = 0.95;
-                Object.keys(interests).forEach(key => {
-                    interests[key] *= decayFactor;
-                    if (interests[key] < 0.1) {
-                        delete interests[key];
-                    }
-                });
-            }
-
-            // Get interaction weight for different types
-            getInteractionWeight(type) {
-                const weights = {
-                    'view': 1,
-                    'like': 4,
-                    'share': 6,
-                    'comment': 8,
-                    'dwell_time': 2,
-                    'create': 3,
-                    'follow': 5,
-                    'boost': 10
-                };
-                return weights[type] || 1;
-            }
-
-            // Update trending topics with time decay
-            updateTrendingTopics(interaction) {
-                const now = Date.now();
-                interaction.hashtags.forEach(hashtag => {
-                    if (!this.trendingTopics.has(hashtag)) {
-                        this.trendingTopics.set(hashtag, { 
-                            count: 0, 
-                            score: 0, 
-                            lastUpdate: now,
-                            velocity: 0
-                        });
-                    }
-                    
-                    const topic = this.trendingTopics.get(hashtag);
-                    const timeDiff = now - topic.lastUpdate;
-                    const hoursDiff = timeDiff / (1000 * 60 * 60);
-                    
-                    // Calculate velocity (mentions per hour)
-                    topic.velocity = hoursDiff > 0 ? (topic.count / Math.max(hoursDiff, 1)) : topic.count;
-                    topic.count++;
-                    topic.score += this.getInteractionWeight(interaction.type);
-                    topic.lastUpdate = now;
-                });
-            }
-
-            // Update user behavior patterns
-            updateUserBehavior(userId, interaction) {
-                if (!this.userBehavior.has(userId)) {
-                    this.userBehavior.set(userId, {
-                        activeHours: {},
-                        contentTypes: {},
-                        engagementPatterns: {},
-                        socialConnections: new Set()
-                    });
-                }
-                
-                const behavior = this.userBehavior.get(userId);
-                const hour = new Date(interaction.timestamp).getHours();
-                
-                // Track active hours
-                behavior.activeHours[hour] = (behavior.activeHours[hour] || 0) + 1;
-                
-                // Track content type preferences
-                if (interaction.hashtags.length > 0) {
-                    behavior.contentTypes['hashtag_heavy'] = (behavior.contentTypes['hashtag_heavy'] || 0) + 1;
-                }
-                
-                // Track engagement patterns
-                behavior.engagementPatterns[interaction.type] = (behavior.engagementPatterns[interaction.type] || 0) + 1;
-            }
-
-            // Calculate advanced relevance score
-            calculateRelevanceScore(userId, buzz) {
-                let score = 0;
-                const userInterests = this.userInterests.get(userId) || {};
-                const userBehavior = this.userBehavior.get(userId) || {};
-                
-                // Base recency score with smart decay
-                const ageHours = (Date.now() - buzz.timestamp) / (1000 * 60 * 60);
-                const recencyScore = Math.max(0, 100 - Math.pow(ageHours, 1.2) * 1.5);
-                score += recencyScore;
-                
-                // Interest matching with semantic similarity
-                const buzzHashtags = this.extractHashtags(buzz.content || '');
-                const buzzKeywords = this.extractKeywords(buzz.content || '');
-                
-                let interestMatch = 0;
-                buzzHashtags.forEach(hashtag => {
-                    if (userInterests[hashtag]) {
-                        interestMatch += userInterests[hashtag] * 15;
-                    }
-                });
-                
-                buzzKeywords.forEach(keyword => {
-                    if (userInterests[keyword]) {
-                        interestMatch += userInterests[keyword] * 8;
-                    }
-                });
-                
-                score += Math.min(interestMatch, 200); // Cap interest bonus
-                
-                // Social signals
-                const likes = buzz.likes ? Object.keys(buzz.likes).length : 0;
-                const comments = buzz.comments ? Object.keys(buzz.comments).length : 0;
-                const shares = buzz.shares || 0;
-                const views = buzz.views || 0;
-                
-                // Engagement quality score
-                const engagementRate = views > 0 ? (likes + comments * 2 + shares * 3) / views : 0;
-                score += engagementRate * 50;
-                
-                // Viral potential
-                const viralScore = Math.min(likes * 2 + comments * 4 + shares * 6, 100);
-                score += viralScore;
-                
-                // Boost multiplier with diminishing returns
-                if (buzz.boosted && buzz.boostExpiry > Date.now()) {
-                    const boostMultiplier = Math.min(buzz.boostMultiplier || 2, 5);
-                    score *= (1 + Math.log(boostMultiplier) / 2);
-                }
-                
-                // Author relationship bonus
-                const userHistory = this.engagementHistory.get(userId) || [];
-                const authorInteractions = userHistory.filter(h => h.authorId === buzz.uid).length;
-                if (authorInteractions > 0) {
-                    score *= (1 + Math.min(authorInteractions * 0.1, 0.5));
-                }
-                
-                // Time-based personalization
-                const currentHour = new Date().getHours();
-                const userActiveHours = userBehavior.activeHours || {};
-                const hourActivity = userActiveHours[currentHour] || 0;
-                const maxHourActivity = Math.max(...Object.values(userActiveHours), 1);
-                const timeRelevance = hourActivity / maxHourActivity;
-                score *= (0.8 + timeRelevance * 0.4);
-                
-                // Diversity bonus (prevent echo chambers)
-                const userTopInterests = Object.keys(userInterests)
-                    .sort((a, b) => userInterests[b] - userInterests[a])
-                    .slice(0, 3);
-                
-                const buzzTopics = [...buzzHashtags, ...buzzKeywords];
-                const hasNewTopic = buzzTopics.some(topic => !userTopInterests.includes(topic));
-                if (hasNewTopic) {
-                    score *= 1.1; // Small diversity bonus
-                }
-                
-                return Math.max(0, score);
-            }
-
-            // Get personalized feed with advanced ranking
-            getPersonalizedFeed(userId, buzzes, limit = 25) {
-                const scoredBuzzes = buzzes.map(buzz => ({
-                    ...buzz,
-                    relevanceScore: this.calculateRelevanceScore(userId, buzz)
-                }));
-                
-                // Apply diversity filter to prevent monotony
-                const diversifiedBuzzes = this.applyDiversityFilter(scoredBuzzes, userId);
-                
-                return diversifiedBuzzes
-                    .sort((a, b) => b.relevanceScore - a.relevanceScore)
-                    .slice(0, limit);
-            }
-
-            // Apply diversity filter to prevent echo chambers
-            applyDiversityFilter(buzzes, userId) {
-                const userInterests = this.userInterests.get(userId) || {};
-                const topInterests = Object.keys(userInterests)
-                    .sort((a, b) => userInterests[b] - userInterests[a])
-                    .slice(0, 5);
-                
-                const diversified = [];
-                const seenTopics = new Set();
-                let consecutiveSimilar = 0;
-                
-                buzzes.forEach(buzz => {
-                    const buzzTopics = [
-                        ...this.extractHashtags(buzz.content || ''),
-                        ...this.extractKeywords(buzz.content || '').slice(0, 3)
-                    ];
-                    
-                    const isTopicSimilar = buzzTopics.some(topic => topInterests.includes(topic));
-                    
-                    if (isTopicSimilar) {
-                        consecutiveSimilar++;
-                        if (consecutiveSimilar > 3) {
-                            // Reduce score for too many similar posts
-                            buzz.relevanceScore *= 0.7;
-                        }
-                    } else {
-                        consecutiveSimilar = 0;
-                        // Boost diverse content
-                        buzz.relevanceScore *= 1.1;
-                    }
-                    
-                    diversified.push(buzz);
-                });
-                
-                return diversified;
-            }
-
-            // Get trending hashtags with velocity analysis
-            getTrendingHashtags(limit = 12) {
-                const now = Date.now();
-                const dayMs = 24 * 60 * 60 * 1000;
-                
-                return Array.from(this.trendingTopics.entries())
-                    .filter(([hashtag, data]) => now - data.lastUpdate < dayMs)
-                    .map(([hashtag, data]) => {
-                        // Calculate trending score based on velocity and recency
-                        const hoursSinceUpdate = (now - data.lastUpdate) / (1000 * 60 * 60);
-                        const recencyFactor = Math.max(0, 1 - hoursSinceUpdate / 24);
-                        const trendingScore = data.score * data.velocity * recencyFactor;
-                        
-                        return { hashtag, ...data, trendingScore };
-                    })
-                    .sort((a, b) => b.trendingScore - a.trendingScore)
-                    .slice(0, limit);
-            }
-
-            // Get smart user recommendations
-            getSmartRecommendations(userId, allUsers, limit = 6) {
-                const userInterests = this.userInterests.get(userId) || {};
-                const userBehavior = this.userBehavior.get(userId) || {};
-                const userKeywords = Object.keys(userInterests);
-                
-                return allUsers
-                    .filter(user => user.uid !== userId)
-                    .map(user => {
-                        let score = 0;
-                        const userBio = (user.bio || '').toLowerCase();
-                        const userInterestsList = user.interests || [];
-                        
-                        // Interest similarity
-                        userKeywords.forEach(keyword => {
-                            const cleanKeyword = keyword.replace('#', '');
-                            if (userBio.includes(cleanKeyword) || userInterestsList.includes(cleanKeyword)) {
-                                score += userInterests[keyword] * 2;
-                            }
-                        });
-                        
-                        // Mutual connections bonus
-                        const mutualConnections = this.calculateMutualConnections(userId, user.uid);
-                        score += mutualConnections * 10;
-                        
-                        // Verified/Premium users get slight boost
-                        if (user.verified) score += 5;
-                        if (user.premium) score += 3;
-                        
-                        // Activity level bonus
-                        const userActivity = user.buzzCount || 0;
-                        score += Math.min(userActivity * 0.5, 20);
-                        
-                        return { ...user, recommendationScore: score };
-                    })
-                    .filter(user => user.recommendationScore > 0)
-                    .sort((a, b) => b.recommendationScore - a.recommendationScore)
-                    .slice(0, limit);
-            }
-
-            // Calculate mutual connections (simplified)
-            calculateMutualConnections(userId1, userId2) {
-                // In a real implementation, this would check mutual followers/following
-                return Math.floor(Math.random() * 3); // Placeholder
-            }
-
-            // Get algorithm insights for user
-            getAlgorithmInsights(userId) {
-                const userInterests = this.userInterests.get(userId) || {};
-                const userBehavior = this.userBehavior.get(userId) || {};
-                
-                const topInterests = Object.keys(userInterests)
-                    .sort((a, b) => userInterests[b] - userInterests[a])
-                    .slice(0, 5);
-                
-                const insights = [];
-                
-                if (topInterests.length > 0) {
-                    insights.push(`🎯 Your top interest: ${topInterests[0].replace('#', '')}`);
-                }
-                
-                const engagementPatterns = userBehavior.engagementPatterns || {};
-                const topEngagement = Object.keys(engagementPatterns)
-                    .sort((a, b) => engagementPatterns[b] - engagementPatterns[a])[0];
-                
-                if (topEngagement) {
-                    insights.push(`💡 You ${topEngagement} content most often`);
-                }
-                
-                const activeHours = userBehavior.activeHours || {};
-                const peakHour = Object.keys(activeHours)
-                    .sort((a, b) => activeHours[b] - activeHours[a])[0];
-                
-                if (peakHour) {
-                    insights.push(`⏰ Most active at ${peakHour}:00`);
-                }
-                
-                return insights;
-            }
-        }
-
-        // Initialize algorithm
-        const algorithm = new OrioBuzzAlgorithm();
 
         // Authentication
-        async function signInWithGoogle() {
+        async function loginWithGoogle() {
             try {
-                const result = await signInWithPopup(auth, provider);
-                currentUser = result.user;
-                
-                // Check if user profile exists
-                const userRef = ref(database, `users/${currentUser.uid}`);
-                const snapshot = await get(userRef);
-                
-                if (!snapshot.exists()) {
-                    await createUserProfile();
-                }
-                
-                showMainApp();
+                const result = await window.firebaseApp.signInWithPopup(window.firebaseApp.auth, window.firebaseApp.provider);
+                const user = result.user;
+                await setupUser(user);
             } catch (error) {
-                console.error('Sign in failed:', error);
-                alert('Sign in failed. Please try again.');
+                console.error('Login failed:', error);
+                alert('Login failed. Please try again.');
             }
         }
 
-        async function createUserProfile() {
-            const isVerified = verifiedEmails.includes(currentUser.email);
-            const isPremium = premiumEligible.includes(currentUser.email);
-            const autoAccount = autoAccounts[currentUser.email];
-            
-            const userProfile = {
-                uid: currentUser.uid,
-                email: currentUser.email,
-                username: autoAccount ? autoAccount.username : currentUser.displayName || currentUser.email.split('@')[0],
-                bio: autoAccount ? autoAccount.bio : '',
-                location: autoAccount ? autoAccount.location : '',
-                contact: autoAccount ? autoAccount.contact : '',
-                displayEmail: currentUser.email,
-                photoURL: currentUser.photoURL || '',
-                verified: isVerified,
-                premium: isPremium,
-                affiliate: autoAccount ? autoAccount.affiliate : null,
-                followers: {},
-                following: {},
-                blocked: {},
-                buzzCount: 0,
-                interests: autoAccount ? autoAccount.interests : [],
-                privacy: {
-                    privateAccount: false,
-                    allowMentions: true,
-                    showInSearch: true,
-                    allowDirectMessages: true
-                },
-                algorithmPrefs: {
-                    contentPriority: 'personalized',
-                    interestWeight: 70,
-                    showBoosted: true,
-                    diverseContent: true
-                },
-                createdAt: Date.now(),
-                lastActive: Date.now()
+        async function setupUser(user) {
+            currentUser = {
+                uid: user.uid,
+                email: user.email,
+                name: user.displayName,
+                avatar: user.photoURL,
+                verified: verifiedEmails.includes(user.email),
+                username: user.email.split('@')[0],
+                bio: '',
+                location: '',
+                phone: '',
+                followers: [],
+                following: [],
+                interests: {}
             };
 
-            await set(ref(database, `users/${currentUser.uid}`), userProfile);
-        }
+            // Save user to database
+            await window.firebaseApp.set(window.firebaseApp.ref(window.firebaseApp.database, `users/${user.uid}`), currentUser);
 
-        function logoutUser() {
-            if (confirm('Are you sure you want to logout?')) {
-                signOut(auth);
-            }
-        }
-
-        // App initialization
-        function showMainApp() {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            loadUserProfile();
-            loadAllData();
-            startRealTimeUpdates();
-        }
-
-        async function loadAllData() {
-            await Promise.all([
-                loadBuzzFeed(),
-                loadAllUsers(),
-                loadTrendingHashtags(),
-                loadSuggestedUsers(),
-                loadUserInterests(),
-                loadAlgorithmInsights()
-            ]);
-        }
-
-        async function loadUserProfile() {
-            if (!currentUser) return;
-
-            const userRef = ref(database, `users/${currentUser.uid}`);
-            const snapshot = await get(userRef);
-            const userData = snapshot.val();
-
-            if (userData) {
-                // Update last active
-                await update(userRef, { lastActive: Date.now() });
-
-                // Update sidebar
-                document.getElementById('sidebarAvatarImg').src = userData.photoURL || 'https://via.placeholder.com/90';
-                updateUsernameDisplay('sidebar', userData);
-
-                // Update composer
-                document.getElementById('composerAvatarImg').src = userData.photoURL || 'https://via.placeholder.com/55';
-
-                // Update profile page
-                document.getElementById('profileAvatarImg').src = userData.photoURL || 'https://via.placeholder.com/120';
-                updateUsernameDisplay('profile', userData);
-                
-                document.getElementById('profileBio').textContent = userData.bio || 'Bio not set';
-                document.getElementById('profileLocation').textContent = userData.location ? `📍 ${userData.location}` : '📍 Location not set';
-                document.getElementById('profileContact').textContent = userData.contact ? `📞 ${userData.contact}` : '📞 Contact not set';
-                document.getElementById('profileEmail').textContent = userData.displayEmail ? `📧 ${userData.displayEmail}` : '📧 Email not set';
-
-                // Update stats
-                const followersCount = userData.followers ? Object.keys(userData.followers).length : 0;
-                const followingCount = userData.following ? Object.keys(userData.following).length : 0;
-                const buzzCount = userData.buzzCount || 0;
-
-                ['followersCount', 'followingCount', 'buzzCount', 'profileFollowers', 'profileFollowing', 'profileBuzzes'].forEach((id, index) => {
-                    const counts = [followersCount, followingCount, buzzCount];
-                    document.getElementById(id).textContent = counts[index % 3];
-                });
-            }
-        }
-
-        function updateUsernameDisplay(prefix, userData) {
-            const usernameElement = document.getElementById(`${prefix}Username`);
-            const verifiedElement = document.getElementById(`${prefix}Verified`);
-            const premiumElement = document.getElementById(`${prefix}Premium`);
-            const affiliateElement = document.getElementById(`${prefix}Affiliate`);
-
-            usernameElement.innerHTML = userData.username;
-
-            if (userData.verified && verifiedElement) {
-                verifiedElement.classList.remove('hidden');
-            }
-
-            if (userData.premium && premiumElement) {
-                premiumElement.classList.remove('hidden');
-            }
-
-            if (userData.affiliate && affiliateElement) {
-                affiliateElement.classList.remove('hidden');
-                affiliateElement.textContent = `AFFILIATE: ${userData.affiliate}`;
-            }
-        }
-
-        // Navigation
-        function showPage(page) {
-            // Hide all pages
-            document.querySelectorAll('#feedPage, #profilePage, #communitiesPage, #messagesPage, #notificationsPage, #settingsPage').forEach(p => {
-                p.classList.add('hidden');
-            });
-
-            // Remove active class from nav items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            // Show selected page
-            document.getElementById(page + 'Page').classList.remove('hidden');
-            event.target.classList.add('active');
-
-            // Load page-specific content
-            if (page === 'profile') {
-                loadUserBuzzes();
-            } else if (page === 'notifications') {
-                loadNotifications();
-            }
-        }
-
-        // Search functionality with advanced features
-        let searchTimeout;
-        function performSearch() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const query = document.getElementById('searchInput').value.trim().toLowerCase();
-                if (query.length < 2) {
-                    hideSearchResults();
-                    return;
+            // Create auto accounts if they don't exist
+            for (const account of autoAccounts) {
+                if (account.email === user.email) {
+                    currentUser.name = account.name;
+                    currentUser.username = account.username;
+                    currentUser.bio = account.bio;
+                    await window.firebaseApp.update(window.firebaseApp.ref(window.firebaseApp.database, `users/${user.uid}`), {
+                        name: account.name,
+                        username: account.username,
+                        bio: account.bio
+                    });
                 }
+            }
 
-                const results = [];
-                
-                // Search users with advanced matching
-                allUsers.forEach(user => {
-                    let relevance = 0;
-                    const searchableText = `${user.username} ${user.bio} ${user.email} ${(user.interests || []).join(' ')}`.toLowerCase();
-                    
-                    if (searchableText.includes(query)) {
-                        relevance = calculateSearchRelevance(query, searchableText);
-                        
-                        // Boost verified/premium users
-                        if (user.verified) relevance *= 1.3;
-                        if (user.premium) relevance *= 1.2;
-                        
-                        results.push({
-                            type: 'user',
-                            data: user,
-                            relevance: relevance
-                        });
-                    }
-                });
-
-                // Search hashtags with trend analysis
-                const hashtagQuery = query.startsWith('#') ? query : '#' + query;
-                const trendingHashtags = algorithm.getTrendingHashtags(50);
-                
-                trendingHashtags.forEach(trending => {
-                    if (trending.hashtag.toLowerCase().includes(hashtagQuery.toLowerCase())) {
-                        results.push({
-                            type: 'hashtag',
-                            data: trending,
-                            relevance: trending.trendingScore + calculateSearchRelevance(hashtagQuery, trending.hashtag)
-                        });
-                    }
-                });
-
-                // Search content with semantic matching
-                allBuzzes.forEach(buzz => {
-                    if (buzz.content && buzz.content.toLowerCase().includes(query)) {
-                        const relevance = calculateSearchRelevance(query, buzz.content) + (buzz.views || 0) * 0.1;
-                        results.push({
-                            type: 'content',
-                            data: buzz,
-                            relevance: relevance
-                        });
-                    }
-                });
-
-                displaySearchResults(results.sort((a, b) => b.relevance - a.relevance).slice(0, 15));
-            }, 300);
+            showMainApp();
         }
 
-        function calculateSearchRelevance(query, text) {
-            const queryWords = query.toLowerCase().split(' ');
-            const textWords = text.toLowerCase().split(' ');
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Update UI
+            document.getElementById('userAvatar').src = currentUser.avatar;
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('menuUserName').textContent = currentUser.name;
+            document.getElementById('menuUserEmail').textContent = currentUser.email;
+            
+            if (currentUser.verified) {
+                document.getElementById('userVerified').classList.remove('hidden');
+            }
+
+            loadFeed();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            hideUserMenu();
+        }
+
+        // UI Functions
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function hideUserMenu() {
+            document.getElementById('userMenu').classList.add('hidden');
+        }
+
+        function showCreateBuzz() {
+            document.getElementById('createBuzzModal').classList.remove('hidden');
+        }
+
+        function hideCreateBuzz() {
+            document.getElementById('createBuzzModal').classList.add('hidden');
+            document.getElementById('buzzContent').value = '';
+            document.getElementById('buzzHashtags').value = '';
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('boostBuzz').checked = false;
+        }
+
+        function showProfile() {
+            document.getElementById('profileName').value = currentUser.name || '';
+            document.getElementById('profileUsername').value = currentUser.username || '';
+            document.getElementById('profileBio').value = currentUser.bio || '';
+            document.getElementById('profileLocation').value = currentUser.location || '';
+            document.getElementById('profilePhone').value = currentUser.phone || '';
+            document.getElementById('profileModal').classList.remove('hidden');
+            hideUserMenu();
+        }
+
+        function hideProfile() {
+            document.getElementById('profileModal').classList.add('hidden');
+        }
+
+        function showSettings() {
+            alert('Settings panel coming soon!');
+            hideUserMenu();
+        }
+
+        // Image handling
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Buzz creation
+        async function createBuzz() {
+            const content = document.getElementById('buzzContent').value.trim();
+            const hashtags = document.getElementById('buzzHashtags').value.trim();
+            const imageFile = document.getElementById('buzzImage').files[0];
+            const shouldBoost = document.getElementById('boostBuzz').checked;
+
+            if (!content) {
+                alert('Please enter some content for your buzz!');
+                return;
+            }
+
+            if (shouldBoost && !currentUser.verified) {
+                alert('Only verified users can boost their buzzes!');
+                return;
+            }
+
+            let imageData = null;
+            if (imageFile) {
+                imageData = await convertToBase64(imageFile);
+            }
+
+            const buzz = {
+                id: Date.now().toString(),
+                userId: currentUser.uid,
+                userName: currentUser.name,
+                userAvatar: currentUser.avatar,
+                userVerified: currentUser.verified,
+                content: content,
+                hashtags: hashtags.split(' ').filter(tag => tag.startsWith('#')),
+                image: imageData,
+                timestamp: Date.now(),
+                likes: [],
+                comments: [],
+                shares: 0,
+                boosted: shouldBoost,
+                views: 0
+            };
+
+            try {
+                await window.firebaseApp.push(window.firebaseApp.ref(window.firebaseApp.database, 'buzzes'), buzz);
+                hideCreateBuzz();
+                loadFeed();
+                
+                // Update user interests based on hashtags
+                if (hashtags) {
+                    updateUserInterests(hashtags);
+                }
+            } catch (error) {
+                console.error('Error creating buzz:', error);
+                alert('Failed to create buzz. Please try again.');
+            }
+        }
+
+        function convertToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Feed loading
+        async function loadFeed() {
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '<div class="text-center py-8">Loading buzzes...</div>';
+
+            window.firebaseApp.onValue(window.firebaseApp.ref(window.firebaseApp.database, 'buzzes'), (snapshot) => {
+                const buzzes = [];
+                snapshot.forEach((childSnapshot) => {
+                    buzzes.push({ key: childSnapshot.key, ...childSnapshot.val() });
+                });
+
+                // Sort by algorithm (boosted first, then by engagement and relevance)
+                buzzes.sort((a, b) => {
+                    if (a.boosted && !b.boosted) return -1;
+                    if (!a.boosted && b.boosted) return 1;
+                    
+                    const aScore = calculateRelevanceScore(a);
+                    const bScore = calculateRelevanceScore(b);
+                    
+                    if (aScore !== bScore) return bScore - aScore;
+                    return b.timestamp - a.timestamp;
+                });
+
+                displayBuzzes(buzzes);
+            });
+        }
+
+        function calculateRelevanceScore(buzz) {
             let score = 0;
             
-            queryWords.forEach(qWord => {
-                textWords.forEach(tWord => {
-                    if (tWord.includes(qWord)) {
-                        score += (qWord.length / tWord.length) * (qWord === tWord ? 2 : 1);
+            // Engagement score
+            score += buzz.likes.length * 2;
+            score += buzz.comments.length * 3;
+            score += buzz.shares * 5;
+            score += buzz.views * 0.1;
+            
+            // Interest matching
+            if (currentUser.interests && buzz.hashtags) {
+                buzz.hashtags.forEach(tag => {
+                    if (currentUser.interests[tag]) {
+                        score += currentUser.interests[tag] * 10;
                     }
                 });
-            });
-            
-            // Exact match bonus
-            if (text.toLowerCase().includes(query.toLowerCase())) {
-                score += query.length;
             }
+            
+            // Verified user bonus
+            if (buzz.userVerified) {
+                score += 50;
+            }
+            
+            // Recency factor
+            const hoursSincePost = (Date.now() - buzz.timestamp) / (1000 * 60 * 60);
+            score += Math.max(0, 100 - hoursSincePost);
             
             return score;
         }
 
-        function displaySearchResults(results) {
-            const container = document.getElementById('searchResults');
-            container.innerHTML = '';
+        function displayBuzzes(buzzes) {
+            const feedContainer = document.getElementById('feedContainer');
             
-            if (results.length === 0) {
-                container.innerHTML = '<div class="search-result-item">No results found</div>';
-            } else {
-                results.forEach(result => {
-                    const item = document.createElement('div');
-                    item.className = 'search-result-item';
-                    
-                    if (result.type === 'user') {
-                        item.innerHTML = `
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="${result.data.photoURL || 'https://via.placeholder.com/40'}" 
-                                     style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                                <div>
-                                    <strong>👤 ${result.data.username}</strong>
-                                    ${result.data.verified ? '<span class="verified-tick" style="width: 16px; height: 16px; font-size: 10px; margin-left: 5px;"></span>' : ''}
-                                    ${result.data.premium ? '<span class="premium-badge" style="font-size: 9px; padding: 2px 6px;">PREMIUM</span>' : ''}
-                                    <br><small style="color: #657786;">${result.data.bio || result.data.email}</small>
-                                </div>
+            if (buzzes.length === 0) {
+                feedContainer.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🦗</div>
+                        <h3 class="text-xl font-semibold mb-2">No buzzes yet!</h3>
+                        <p class="text-gray-400">Be the first to create a buzz!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            feedContainer.innerHTML = buzzes.map(buzz => `
+                <div class="buzz-card bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20 ${buzz.boosted ? 'boost-glow' : ''}">
+                    <div class="flex items-start gap-4">
+                        <img src="${buzz.userAvatar}" alt="${buzz.userName}" class="w-12 h-12 rounded-full">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="font-semibold">${buzz.userName}</span>
+                                ${buzz.userVerified ? '<span class="verified-tick">✓</span>' : ''}
+                                ${buzz.boosted ? '<span class="text-xs bg-gradient-to-r from-pink-500 to-purple-600 px-2 py-1 rounded-full">🚀 Boosted</span>' : ''}
+                                <span class="text-gray-400 text-sm">• ${formatTime(buzz.timestamp)}</span>
                             </div>
-                        `;
-                        item.onclick = () => viewUserProfile(result.data.uid);
-                    } else if (result.type === 'hashtag') {
-                        item.innerHTML = `
-                            <strong>🏷️ ${result.data.hashtag}</strong>
-                            <br><small style="color: #657786;">${result.data.count} buzzes • Trending</small>
-                        `;
-                        item.onclick = () => searchHashtag(result.data.hashtag);
-                    } else if (result.type === 'content') {
-                        item.innerHTML = `
-                            <strong>📝 Buzz Content</strong>
-                            <br><small style="color: #657786;">${result.data.content.substring(0, 100)}...</small>
-                        `;
-                        item.onclick = () => viewBuzz(result.data.id);
-                    }
-                    
-                    container.appendChild(item);
-                });
-            }
-            
-            container.style.display = 'block';
-        }
-
-        function showSearchResults() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (query.length >= 2) {
-                document.getElementById('searchResults').style.display = 'block';
-            }
-        }
-
-        function hideSearchResults() {
-            setTimeout(() => {
-                document.getElementById('searchResults').style.display = 'none';
-            }, 200);
-        }
-
-        // Advanced buzz creation with Base64 image support
-        function handleImageUpload(input) {
-            const file = input.files[0];
-            if (file) {
-                if (file.size > 10 * 1024 * 1024) { // 10MB limit
-                    alert('Image size should be less than 10MB');
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    selectedImageBase64 = e.target.result;
-                    
-                    // Show preview with remove option
-                    const existingPreview = document.querySelector('.image-preview');
-                    if (existingPreview) {
-                        existingPreview.remove();
-                    }
-                    
-                    const preview = document.createElement('div');
-                    preview.className = 'image-preview';
-                    preview.innerHTML = `
-                        <div style="position: relative; display: inline-block; margin-top: 15px;">
-                            <img src="${selectedImageBase64}" style="max-width: 300px; max-height: 200px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                            <button onclick="removeImagePreview()" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 14px;">×</button>
+                            <p class="text-white mb-3 leading-relaxed">${formatContent(buzz.content)}</p>
+                            ${buzz.hashtags && buzz.hashtags.length > 0 ? `
+                                <div class="mb-3">
+                                    ${buzz.hashtags.map(tag => `<span class="text-pink-400 hover:text-pink-300 cursor-pointer mr-2">${tag}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${buzz.image ? `<img src="${buzz.image}" alt="Buzz image" class="w-full max-w-lg rounded-lg mb-4">` : ''}
+                            <div class="flex items-center gap-6 text-gray-400">
+                                <button onclick="likeBuzz('${buzz.key}')" class="flex items-center gap-2 hover:text-pink-400 transition duration-300">
+                                    <span class="text-lg">❤️</span>
+                                    <span>${buzz.likes ? buzz.likes.length : 0}</span>
+                                </button>
+                                <button onclick="showComments('${buzz.key}')" class="flex items-center gap-2 hover:text-blue-400 transition duration-300">
+                                    <span class="text-lg">💬</span>
+                                    <span>${buzz.comments ? buzz.comments.length : 0}</span>
+                                </button>
+                                <button onclick="shareBuzz('${buzz.key}')" class="flex items-center gap-2 hover:text-green-400 transition duration-300">
+                                    <span class="text-lg">🔄</span>
+                                    <span>${buzz.shares || 0}</span>
+                                </button>
+                                <span class="flex items-center gap-2">
+                                    <span class="text-lg">👁️</span>
+                                    <span>${buzz.views || 0}</span>
+                                </span>
+                            </div>
                         </div>
-                    `;
-                    document.querySelector('.buzz-composer').appendChild(preview);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function removeImagePreview() {
-            selectedImageBase64 = null;
-            document.getElementById('imageInput').value = '';
-            const preview = document.querySelector('.image-preview');
-            if (preview) {
-                preview.remove();
-            }
-        }
-
-        function addEmoji() {
-            const emojis = ['😊', '😂', '❤️', '👍', '🔥', '💯', '🚀', '✨', '🎉', '💪', '🌟', '💖', '🎯', '⚡', '🌈'];
-            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-            const textarea = document.getElementById('buzzContent');
-            const cursorPos = textarea.selectionStart;
-            const textBefore = textarea.value.substring(0, cursorPos);
-            const textAfter = textarea.value.substring(cursorPos);
-            textarea.value = textBefore + randomEmoji + textAfter;
-            textarea.focus();
-            textarea.setSelectionRange(cursorPos + randomEmoji.length, cursorPos + randomEmoji.length);
-        }
-
-        function addHashtag() {
-            const hashtags = ['#OrioBuzz', '#TechNews', '#Innovation', '#Business', '#Trending', '#AI', '#Future', '#Success', '#Motivation', '#Technology'];
-            const randomHashtag = hashtags[Math.floor(Math.random() * hashtags.length)];
-            const textarea = document.getElementById('buzzContent');
-            const cursorPos = textarea.selectionStart;
-            const textBefore = textarea.value.substring(0, cursorPos);
-            const textAfter = textarea.value.substring(cursorPos);
-            textarea.value = textBefore + ' ' + randomHashtag + textAfter;
-            textarea.focus();
-            textarea.setSelectionRange(cursorPos + randomHashtag.length + 1, cursorPos + randomHashtag.length + 1);
-        }
-
-        function addMention() {
-            if (allUsers.length > 0) {
-                const randomUser = allUsers[Math.floor(Math.random() * allUsers.length)];
-                const mention = '@' + randomUser.username.replace(/\s+/g, '');
-                const textarea = document.getElementById('buzzContent');
-                const cursorPos = textarea.selectionStart;
-                const textBefore = textarea.value.substring(0, cursorPos);
-                const textAfter = textarea.value.substring(cursorPos);
-                textarea.value = textBefore + ' ' + mention + textAfter;
-                textarea.focus();
-                textarea.setSelectionRange(cursorPos + mention.length + 1, cursorPos + mention.length + 1);
-            }
-        }
-
-        function addLocation() {
-            const locations = ['📍 New York', '📍 San Francisco', '📍 London', '📍 Tokyo', '📍 Mumbai', '📍 Dubai'];
-            const randomLocation = locations[Math.floor(Math.random() * locations.length)];
-            const textarea = document.getElementById('buzzContent');
-            const cursorPos = textarea.selectionStart;
-            const textBefore = textarea.value.substring(0, cursorPos);
-            const textAfter = textarea.value.substring(cursorPos);
-            textarea.value = textBefore + ' ' + randomLocation + textAfter;
-            textarea.focus();
-            textarea.setSelectionRange(cursorPos + randomLocation.length + 1, cursorPos + randomLocation.length + 1);
-        }
-
-        async function createBuzz() {
-            const content = document.getElementById('buzzContent').value.trim();
-            
-            if (!content && !selectedImageBase64) {
-                alert('Please enter some content or select an image');
-                return;
-            }
-
-            if (!currentUser) return;
-
-            const hashtags = algorithm.extractHashtags(content);
-            const mentions = algorithm.extractMentions(content);
-            const keywords = algorithm.extractKeywords(content);
-
-            const buzzData = {
-                uid: currentUser.uid,
-                content: content,
-                image: selectedImageBase64 || null,
-                hashtags: hashtags,
-                mentions: mentions,
-                keywords: keywords,
-                timestamp: Date.now(),
-                likes: {},
-                comments: {},
-                shares: 0,
-                views: 0,
-                boosted: false,
-                boostMultiplier: 1,
-                boostExpiry: null,
-                location: null
-            };
-
-            try {
-                // Add buzz to database
-                const buzzRef = await push(ref(database, 'buzzes'), buzzData);
-                
-                // Track interaction for algorithm
-                algorithm.trackInteraction(currentUser.uid, buzzRef.key, 'create', content);
-                
-                // Update user's buzz count
-                const userRef = ref(database, `users/${currentUser.uid}`);
-                const snapshot = await get(userRef);
-                const userData = snapshot.val();
-                await update(userRef, { 
-                    buzzCount: (userData.buzzCount || 0) + 1,
-                    lastActive: Date.now()
-                });
-
-                // Process mentions (in a real app, this would send notifications)
-                mentions.forEach(mention => {
-                    const username = mention.replace('@', '');
-                    console.log(`Mentioned user: ${username}`);
-                });
-
-                // Clear form
-                document.getElementById('buzzContent').value = '';
-                document.getElementById('imageInput').value = '';
-                selectedImageBase64 = null;
-                removeImagePreview();
-
-                loadBuzzFeed();
-                loadUserProfile();
-                loadTrendingHashtags();
-                
-                // Show success message
-                showNotification('🚀 Buzz posted successfully!', 'success');
-            } catch (error) {
-                console.error('Failed to create buzz:', error);
-                showNotification('❌ Failed to create buzz. Please try again.', 'error');
-            }
-        }
-
-        // Advanced feed loading with personalization
-        async function loadBuzzFeed() {
-            const buzzesRef = ref(database, 'buzzes');
-            const snapshot = await get(buzzesRef);
-            allBuzzes = [];
-
-            if (snapshot.exists()) {
-                snapshot.forEach(childSnapshot => {
-                    const buzz = childSnapshot.val();
-                    buzz.id = childSnapshot.key;
-                    
-                    // Filter out expired boosts
-                    if (buzz.boosted && buzz.boostExpiry && buzz.boostExpiry < Date.now()) {
-                        buzz.boosted = false;
-                        buzz.boostMultiplier = 1;
-                    }
-                    
-                    allBuzzes.push(buzz);
-                });
-            }
-
-            // Get personalized feed using advanced algorithm
-            const personalizedBuzzes = currentUser ? 
-                algorithm.getPersonalizedFeed(currentUser.uid, allBuzzes, 30) : 
-                allBuzzes.sort((a, b) => b.timestamp - a.timestamp).slice(0, 30);
-
-            const buzzFeed = document.getElementById('buzzFeed');
-            buzzFeed.innerHTML = '';
-
-            if (personalizedBuzzes.length === 0) {
-                buzzFeed.innerHTML = `
-                    <div style="text-align: center; padding: 60px 20px; color: #657786;">
-                        <div style="font-size: 4rem; margin-bottom: 20px;">🚀</div>
-                        <h3>Welcome to OrioBuzz!</h3>
-                        <p>Start following users and join communities to see buzzes in your feed</p>
-                    </div>
-                `;
-                return;
-            }
-
-            for (const buzz of personalizedBuzzes) {
-                const userSnapshot = await get(ref(database, `users/${buzz.uid}`));
-                const userData = userSnapshot.val();
-                
-                if (userData) {
-                    const buzzElement = createBuzzElement(buzz, userData);
-                    buzzFeed.appendChild(buzzElement);
-                    
-                    // Track view interaction with dwell time simulation
-                    if (currentUser && buzz.uid !== currentUser.uid) {
-                        algorithm.trackInteraction(currentUser.uid, buzz.id, 'view', buzz.content, Math.random() * 30);
-                        
-                        // Update view count in database
-                        const viewRef = ref(database, `buzzes/${buzz.id}/views`);
-                        const viewSnapshot = await get(viewRef);
-                        const currentViews = viewSnapshot.val() || 0;
-                        await set(viewRef, currentViews + 1);
-                    }
-                }
-            }
-        }
-
-        function createBuzzElement(buzz, userData) {
-            const buzzDiv = document.createElement('div');
-            buzzDiv.className = 'buzz-post';
-            
-            const likesCount = buzz.likes ? Object.keys(buzz.likes).length : 0;
-            const commentsCount = buzz.comments ? Object.keys(buzz.comments).length : 0;
-            const viewsCount = buzz.views || 0;
-            const sharesCount = buzz.shares || 0;
-            const isLiked = buzz.likes && currentUser && buzz.likes[currentUser.uid];
-            const isShared = buzz.shares && currentUser && buzz.shares[currentUser.uid];
-            
-            // Process content for hashtags and mentions
-            let processedContent = buzz.content || '';
-            
-            // Make hashtags clickable
-            processedContent = processedContent.replace(/#[\w]+/g, (hashtag) => {
-                return `<span class="hashtag" onclick="searchHashtag('${hashtag}')">${hashtag}</span>`;
-            });
-            
-            // Make mentions clickable
-            processedContent = processedContent.replace(/@[\w]+/g, (mention) => {
-                return `<span class="mention" onclick="searchMention('${mention}')">${mention}</span>`;
-            });
-
-            // Determine recommendation reason
-            let recommendationReason = '';
-            if (currentUser && buzz.uid !== currentUser.uid) {
-                const userInterests = algorithm.userInterests.get(currentUser.uid) || {};
-                const buzzHashtags = algorithm.extractHashtags(buzz.content || '');
-                const matchedInterests = buzzHashtags.filter(tag => userInterests[tag]);
-                
-                if (matchedInterests.length > 0) {
-                    recommendationReason = `🎯 Based on your interest in ${matchedInterests[0].replace('#', '')}`;
-                } else if (buzz.boosted) {
-                    recommendationReason = '🚀 Promoted content';
-                } else if (viewsCount > 100) {
-                    recommendationReason = '🔥 Popular in your network';
-                } else {
-                    recommendationReason = '✨ Recommended for you';
-                }
-            }
-
-            // User badges
-            let userBadges = '';
-            if (userData.verified) {
-                userBadges += '<span class="verified-tick"></span>';
-            }
-            if (userData.premium) {
-                userBadges += '<span class="premium-badge">PREMIUM</span>';
-            }
-            if (userData.affiliate) {
-                userBadges += `<span class="affiliate-badge">AFFILIATE</span>`;
-            }
-
-            // Boost actions for premium users
-            let boostAction = '';
-            if (userData.premium && buzz.uid === currentUser?.uid && !buzz.boosted) {
-                boostAction = `<button class="buzz-action" onclick="openBoostModal('${buzz.id}')">🚀 Boost</button>`;
-            }
-
-            // Follow/Block actions for other users
-            let userActions = '';
-            if (currentUser && buzz.uid !== currentUser.uid) {
-                userActions = `
-                    <button class="follow-btn" onclick="toggleFollow('${buzz.uid}')">
-                        👥 Follow
-                    </button>
-                    <button class="block-btn" onclick="blockUser('${buzz.uid}')">
-                        🚫 Block
-                    </button>
-                `;
-            }
-            
-            buzzDiv.innerHTML = `
-                ${buzz.boosted ? '<div class="boost-indicator">🚀 Boosted Post - Enhanced Reach Active</div>' : ''}
-                ${recommendationReason ? `<div class="recommendation-reason">${recommendationReason}</div>` : ''}
-                <div class="buzz-header">
-                    <div class="buzz-avatar">
-                        <img src="${userData.photoURL || 'https://via.placeholder.com/55'}" alt="${userData.username}">
-                    </div>
-                    <div class="buzz-user-info">
-                        <div class="buzz-username">
-                            ${userData.username}
-                            ${userBadges}
-                        </div>
-                        <div class="buzz-time">${formatTime(buzz.timestamp)} • ${viewsCount.toLocaleString()} views</div>
-                    </div>
-                    <div style="margin-left: auto;">
-                        ${userActions}
                     </div>
                 </div>
-                <div class="buzz-content">${processedContent}</div>
-                ${buzz.image ? `<img src="${buzz.image}" class="buzz-image" alt="Buzz image" onclick="openImageModal('${buzz.image}')">` : ''}
-                <div class="buzz-actions">
-                    <button class="buzz-action ${isLiked ? 'liked' : ''}" onclick="toggleLike('${buzz.id}')">
-                        ❤️ ${likesCount.toLocaleString()}
-                    </button>
-                    <button class="buzz-action" onclick="showComments('${buzz.id}')">
-                        💬 ${commentsCount.toLocaleString()}
-                    </button>
-                    <button class="buzz-action ${isShared ? 'shared' : ''}" onclick="shareBuzz('${buzz.id}')">
-                        🔄 ${sharesCount.toLocaleString()}
-                    </button>
-                    ${boostAction}
-                    <button class="buzz-action" onclick="saveBuzz('${buzz.id}')">
-                        🔖 Save
-                    </button>
-                </div>
-                ${buzz.relevanceScore ? `<div class="algorithm-indicator">Relevance: ${Math.round(buzz.relevanceScore)}</div>` : ''}
-            `;
+            `).join('');
 
-            return buzzDiv;
-        }
-
-        // Social interactions
-        async function toggleLike(buzzId) {
-            if (!currentUser) return;
-
-            const likeRef = ref(database, `buzzes/${buzzId}/likes/${currentUser.uid}`);
-            const snapshot = await get(likeRef);
-            const buzzRef = ref(database, `buzzes/${buzzId}`);
-            const buzzSnapshot = await get(buzzRef);
-            const buzzData = buzzSnapshot.val();
-
-            if (snapshot.exists()) {
-                await remove(likeRef);
-                showNotification('💔 Like removed', 'info');
-            } else {
-                await set(likeRef, true);
-                algorithm.trackInteraction(currentUser.uid, buzzId, 'like', buzzData.content);
-                showNotification('❤️ Liked!', 'success');
-            }
-
-            loadBuzzFeed();
-        }
-
-        async function shareBuzz(buzzId) {
-            if (!currentUser) return;
-
-            const shareRef = ref(database, `buzzes/${buzzId}/shares`);
-            const snapshot = await get(shareRef);
-            const currentShares = snapshot.val() || 0;
-            const buzzRef = ref(database, `buzzes/${buzzId}`);
-            const buzzSnapshot = await get(buzzRef);
-            const buzzData = buzzSnapshot.val();
-
-            await set(shareRef, currentShares + 1);
-            algorithm.trackInteraction(currentUser.uid, buzzId, 'share', buzzData.content);
-            
-            loadBuzzFeed();
-            showNotification('🔄 Buzz shared! This helps our algorithm understand your preferences.', 'success');
-        }
-
-        async function toggleFollow(userId) {
-            if (!currentUser) return;
-
-            const followRef = ref(database, `users/${currentUser.uid}/following/${userId}`);
-            const followerRef = ref(database, `users/${userId}/followers/${currentUser.uid}`);
-            
-            const snapshot = await get(followRef);
-            
-            if (snapshot.exists()) {
-                await remove(followRef);
-                await remove(followerRef);
-                showNotification('👋 Unfollowed user', 'info');
-            } else {
-                await set(followRef, true);
-                await set(followerRef, true);
-                algorithm.trackInteraction(currentUser.uid, userId, 'follow', '');
-                showNotification('👥 Now following user!', 'success');
-            }
-            
-            loadBuzzFeed();
-            loadUserProfile();
-        }
-
-        async function blockUser(userId) {
-            if (!currentUser) return;
-            
-            if (confirm('Are you sure you want to block this user? You won\'t see their content anymore.')) {
-                const blockRef = ref(database, `users/${currentUser.uid}/blocked/${userId}`);
-                await set(blockRef, true);
-                
-                // Remove from following/followers
-                await remove(ref(database, `users/${currentUser.uid}/following/${userId}`));
-                await remove(ref(database, `users/${userId}/followers/${currentUser.uid}`));
-                
-                showNotification('🚫 User blocked', 'info');
-                loadBuzzFeed();
-            }
-        }
-
-        function saveBuzz(buzzId) {
-            showNotification('🔖 Buzz saved! (Feature coming soon)', 'info');
-        }
-
-        // Advanced boost system
-        function openBoostModal(buzzId) {
-            currentBuzzToBoost = buzzId;
-            openModal('boostModal');
-        }
-
-        function selectBoostOption(element, type) {
-            document.querySelectorAll('.boost-option').forEach(opt => opt.classList.remove('selected'));
-            element.classList.add('selected');
-            selectedBoostType = type;
-        }
-
-        async function confirmBoost() {
-            if (!selectedBoostType || !currentBuzzToBoost) {
-                alert('Please select a boost option');
-                return;
-            }
-
-            const boostMultipliers = {
-                'basic': 3,
-                'premium': 7,
-                'viral': 15
-            };
-
-            const boostDurations = {
-                'basic': 24 * 60 * 60 * 1000, // 24 hours
-                'premium': 72 * 60 * 60 * 1000, // 72 hours
-                'viral': 168 * 60 * 60 * 1000 // 1 week
-            };
-
-            try {
-                const buzzRef = ref(database, `buzzes/${currentBuzzToBoost}`);
-                await update(buzzRef, {
-                    boosted: true,
-                    boostType: selectedBoostType,
-                    boostMultiplier: boostMultipliers[selectedBoostType],
-                    boostExpiry: Date.now() + boostDurations[selectedBoostType],
-                    boostTimestamp: Date.now()
-                });
-
-                // Track boost interaction
-                algorithm.trackInteraction(currentUser.uid, currentBuzzToBoost, 'boost', '');
-
-                closeModal('boostModal');
-                loadBuzzFeed();
-                
-                showNotification(`🚀 Buzz boosted successfully! Your content will now reach ${boostMultipliers[selectedBoostType]}x more users.`, 'success');
-                
-                selectedBoostType = null;
-                currentBuzzToBoost = null;
-            } catch (error) {
-                console.error('Failed to boost buzz:', error);
-                showNotification('❌ Failed to boost buzz. Please try again.', 'error');
-            }
-        }
-
-        // Hashtag and mention interactions
-        function searchHashtag(hashtag) {
-            const buzzFeed = document.getElementById('buzzFeed');
-            buzzFeed.innerHTML = `<h3 style="margin-bottom: 30px;">🏷️ Posts with ${hashtag}</h3>`;
-            
-            const filteredBuzzes = allBuzzes.filter(buzz => 
-                buzz.content && buzz.content.includes(hashtag)
-            ).sort((a, b) => b.timestamp - a.timestamp);
-            
-            if (filteredBuzzes.length === 0) {
-                buzzFeed.innerHTML += `
-                    <div style="text-align: center; padding: 60px 20px; color: #657786;">
-                        <div style="font-size: 4rem; margin-bottom: 20px;">🏷️</div>
-                        <h3>No buzzes found with ${hashtag}</h3>
-                        <p>Be the first to buzz about this topic!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            filteredBuzzes.forEach(async (buzz) => {
-                const userSnapshot = await get(ref(database, `users/${buzz.uid}`));
-                const userData = userSnapshot.val();
-                if (userData) {
-                    const buzzElement = createBuzzElement(buzz, userData);
-                    buzzFeed.appendChild(buzzElement);
-                }
+            // Update view counts
+            buzzes.forEach(buzz => {
+                incrementViews(buzz.key);
             });
-            
-            // Track hashtag interest
-            if (currentUser) {
-                algorithm.trackInteraction(currentUser.uid, 'hashtag_search', 'view', hashtag);
-            }
-        }
-
-        function searchMention(mention) {
-            const username = mention.replace('@', '');
-            const user = allUsers.find(u => 
-                u.username.replace(/\s+/g, '').toLowerCase() === username.toLowerCase()
-            );
-            if (user) {
-                viewUserProfile(user.uid);
-            } else {
-                showNotification('👤 User not found', 'info');
-            }
-        }
-
-        // Load trending hashtags with enhanced display
-        async function loadTrendingHashtags() {
-            const trending = algorithm.getTrendingHashtags(15);
-            const container = document.getElementById('trendingHashtags');
-            container.innerHTML = '';
-            
-            if (trending.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; color: #657786; padding: 20px;">
-                        <div style="font-size: 2rem; margin-bottom: 10px;">🔥</div>
-                        <p>No trending topics yet</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            trending.forEach((item, index) => {
-                const trendingDiv = document.createElement('div');
-                trendingDiv.className = 'trending-item';
-                
-                let trendIcon = '🔥';
-                if (index === 0) trendIcon = '🥇';
-                else if (index === 1) trendIcon = '🥈';
-                else if (index === 2) trendIcon = '🥉';
-                
-                trendingDiv.innerHTML = `
-                    <div class="trending-topic">${trendIcon} ${item.hashtag}</div>
-                    <div class="trending-count">${item.count.toLocaleString()} buzzes • ${Math.round(item.velocity)} per hour</div>
-                `;
-                trendingDiv.onclick = () => searchHashtag(item.hashtag);
-                container.appendChild(trendingDiv);
-            });
-        }
-
-        // Load suggested users with enhanced recommendations
-        async function loadSuggestedUsers() {
-            if (!currentUser) return;
-            
-            const recommendations = algorithm.getSmartRecommendations(currentUser.uid, allUsers, 8);
-            const container = document.getElementById('suggestedUsers');
-            container.innerHTML = '';
-            
-            if (recommendations.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; color: #657786; padding: 20px;">
-                        <div style="font-size: 2rem; margin-bottom: 10px;">👥</div>
-                        <p>No suggestions yet</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            recommendations.forEach(user => {
-                const userDiv = document.createElement('div');
-                userDiv.className = 'user-list-item';
-                
-                let userBadges = '';
-                if (user.verified) {
-                    userBadges += '<span class="verified-tick" style="width: 16px; height: 16px; font-size: 10px; margin-left: 5px;"></span>';
-                }
-                if (user.premium) {
-                    userBadges += '<span class="premium-badge" style="font-size: 9px; padding: 2px 6px; margin-left: 5px;">PREMIUM</span>';
-                }
-                
-                userDiv.innerHTML = `
-                    <div class="user-list-avatar">
-                        <img src="${user.photoURL || 'https://via.placeholder.com/50'}" alt="${user.username}">
-                    </div>
-                    <div class="user-list-info">
-                        <div class="user-list-name">
-                            ${user.username}
-                            ${userBadges}
-                        </div>
-                        <div class="user-list-email">Recommended • ${user.buzzCount || 0} buzzes</div>
-                    </div>
-                `;
-                userDiv.onclick = () => viewUserProfile(user.uid);
-                container.appendChild(userDiv);
-            });
-        }
-
-        // Load user interests
-        async function loadUserInterests() {
-            if (!currentUser) return;
-            
-            const userRef = ref(database, `users/${currentUser.uid}`);
-            const snapshot = await get(userRef);
-            const userData = snapshot.val();
-            
-            const container = document.getElementById('userInterests');
-            container.innerHTML = '';
-            
-            if (userData && userData.interests && userData.interests.length > 0) {
-                userData.interests.forEach(interest => {
-                    const tag = document.createElement('div');
-                    tag.className = 'interest-tag';
-                    tag.textContent = interest;
-                    tag.onclick = () => searchHashtag('#' + interest);
-                    container.appendChild(tag);
-                });
-            } else {
-                container.innerHTML = `
-                    <div style="text-align: center; color: #657786; padding: 20px; font-size: 14px;">
-                        Add interests in your profile to get personalized recommendations
-                    </div>
-                `;
-            }
-        }
-
-        // Load algorithm insights
-        async function loadAlgorithmInsights() {
-            if (!currentUser) return;
-            
-            const insights = algorithm.getAlgorithmInsights(currentUser.uid);
-            const container = document.getElementById('algorithmInsights');
-            container.innerHTML = '';
-            
-            if (insights.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; color: #657786; padding: 20px; font-size: 14px;">
-                        Interact with more content to see personalized insights
-                    </div>
-                `;
-                return;
-            }
-            
-            insights.forEach(insight => {
-                const insightDiv = document.createElement('div');
-                insightDiv.style.cssText = 'padding: 10px; background: #f8f9fa; border-radius: 10px; margin-bottom: 10px; font-size: 14px;';
-                insightDiv.textContent = insight;
-                container.appendChild(insightDiv);
-            });
-        }
-
-        // Load all users
-        async function loadAllUsers() {
-            const usersRef = ref(database, 'users');
-            const snapshot = await get(usersRef);
-            allUsers = [];
-
-            if (snapshot.exists()) {
-                snapshot.forEach(childSnapshot => {
-                    const user = childSnapshot.val();
-                    if (user.uid !== currentUser?.uid) {
-                        allUsers.push(user);
-                    }
-                });
-            }
-        }
-
-        // Load user's own buzzes
-        async function loadUserBuzzes() {
-            if (!currentUser) return;
-            
-            const userBuzzes = allBuzzes.filter(buzz => buzz.uid === currentUser.uid)
-                .sort((a, b) => b.timestamp - a.timestamp);
-            
-            const container = document.getElementById('userBuzzFeed');
-            container.innerHTML = '';
-            
-            if (userBuzzes.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 60px 20px; color: #657786;">
-                        <div style="font-size: 4rem; margin-bottom: 20px;">📝</div>
-                        <h3>No buzzes yet</h3>
-                        <p>Share your first buzz to get started!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            for (const buzz of userBuzzes) {
-                const userSnapshot = await get(ref(database, `users/${buzz.uid}`));
-                const userData = userSnapshot.val();
-                
-                if (userData) {
-                    const buzzElement = createBuzzElement(buzz, userData);
-                    container.appendChild(buzzElement);
-                }
-            }
-        }
-
-        // Load notifications
-        function loadNotifications() {
-            const container = document.getElementById('notificationsList');
-            container.innerHTML = `
-                <div style="text-align: center; padding: 60px 20px; color: #657786;">
-                    <div style="font-size: 4rem; margin-bottom: 20px;">🔔</div>
-                    <h3>No notifications yet</h3>
-                    <p>When someone likes, comments, or mentions you, you'll see it here</p>
-                </div>
-            `;
-        }
-
-        // Community functions
-        function joinCommunity(communityId) {
-            showNotification(`👥 Joined ${communityId} community! (Feature coming soon)`, 'success');
         }
 
         // Utility functions
         function formatTime(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diff = now - date;
-            
-            if (diff < 60000) return 'Just now';
-            if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
-            if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
-            if (diff < 604800000) return Math.floor(diff / 86400000) + 'd';
-            return date.toLocaleDateString();
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'now';
+            if (minutes < 60) return `${minutes}m`;
+            if (hours < 24) return `${hours}h`;
+            return `${days}d`;
         }
 
-        function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
+        function formatContent(content) {
+            // Convert mentions and hashtags to clickable links
+            return content
+                .replace(/@(\w+)/g, '<span class="text-blue-400 cursor-pointer">@$1</span>')
+                .replace(/#(\w+)/g, '<span class="text-pink-400 cursor-pointer">#$1</span>');
+        }
+
+        function updateUserInterests(hashtags) {
+            const tags = hashtags.split(' ').filter(tag => tag.startsWith('#'));
+            tags.forEach(tag => {
+                if (!currentUser.interests[tag]) {
+                    currentUser.interests[tag] = 0;
+                }
+                currentUser.interests[tag]++;
+            });
             
-            if (modalId === 'profileModal') {
-                loadCurrentUserData();
+            // Save to database
+            window.firebaseApp.update(window.firebaseApp.ref(window.firebaseApp.database, `users/${currentUser.uid}`), {
+                interests: currentUser.interests
+            });
+        }
+
+        // Interaction functions
+        async function likeBuzz(buzzKey) {
+            const buzzRef = window.firebaseApp.ref(window.firebaseApp.database, `buzzes/${buzzKey}/likes`);
+            window.firebaseApp.onValue(buzzRef, (snapshot) => {
+                const likes = snapshot.val() || [];
+                const userIndex = likes.indexOf(currentUser.uid);
+                
+                if (userIndex === -1) {
+                    likes.push(currentUser.uid);
+                } else {
+                    likes.splice(userIndex, 1);
+                }
+                
+                window.firebaseApp.set(buzzRef, likes);
+            }, { onlyOnce: true });
+        }
+
+        function showComments(buzzKey) {
+            alert('Comments feature coming soon!');
+        }
+
+        function shareBuzz(buzzKey) {
+            const shareRef = window.firebaseApp.ref(window.firebaseApp.database, `buzzes/${buzzKey}/shares`);
+            window.firebaseApp.onValue(shareRef, (snapshot) => {
+                const shares = snapshot.val() || 0;
+                window.firebaseApp.set(shareRef, shares + 1);
+            }, { onlyOnce: true });
+            
+            alert('Buzz shared!');
+        }
+
+        function incrementViews(buzzKey) {
+            const viewRef = window.firebaseApp.ref(window.firebaseApp.database, `buzzes/${buzzKey}/views`);
+            window.firebaseApp.onValue(viewRef, (snapshot) => {
+                const views = snapshot.val() || 0;
+                window.firebaseApp.set(viewRef, views + 1);
+            }, { onlyOnce: true });
+        }
+
+        async function saveProfile() {
+            const updates = {
+                name: document.getElementById('profileName').value,
+                username: document.getElementById('profileUsername').value,
+                bio: document.getElementById('profileBio').value,
+                location: document.getElementById('profileLocation').value,
+                phone: document.getElementById('profilePhone').value
+            };
+
+            try {
+                await window.firebaseApp.update(window.firebaseApp.ref(window.firebaseApp.database, `users/${currentUser.uid}`), updates);
+                Object.assign(currentUser, updates);
+                document.getElementById('userName').textContent = currentUser.name;
+                document.getElementById('menuUserName').textContent = currentUser.name;
+                hideProfile();
+                alert('Profile updated successfully!');
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile. Please try again.');
             }
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+        // Navigation functions
+        function showFeed() {
+            loadFeed();
         }
 
-        function openImageModal(imageSrc) {
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.style.display = 'block';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 90%; max-height: 90<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9773285686f641fa',t:'MTc1NjU0NTA1My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+        function showTrending() {
+            alert('Trending section coming soon!');
+        }
+
+        function showFollowing() {
+            alert('Following feed coming soon!');
+        }
+
+        function showCommunities() {
+            alert('Communities feature coming soon!');
+        }
+
+        // Initialize auth state listener
+        window.firebaseApp.onAuthStateChanged(window.firebaseApp.auth, (user) => {
+            if (user && !currentUser) {
+                setupUser(user);
+            }
+        });
+
+        // Close modals when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'createBuzzModal') {
+                hideCreateBuzz();
+            }
+            if (e.target.id === 'profileModal') {
+                hideProfile();
+            }
+            if (!e.target.closest('#userMenu') && !e.target.closest('button[onclick="toggleUserMenu()"]')) {
+                hideUserMenu();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97732fa5a4920028',t:'MTc1NjU0NTM1My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
