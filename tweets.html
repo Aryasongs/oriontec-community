@@ -40,6 +40,21 @@
         .pulse-shadow {
             box-shadow: 0 8px 32px rgba(236, 72, 153, 0.3);
         }
+        .verified-badge {
+            background: linear-gradient(45deg, #ec4899, #3b82f6);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 4px;
+        }
+        .verified-badge svg {
+            width: 12px;
+            height: 12px;
+            color: white;
+        }
 
     </style>
 </head>
@@ -272,6 +287,14 @@
                     <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
                 </div>
 
+                <button onclick="showVerificationRequest()" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        <span class="font-medium">Request Verification</span>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                </button>
+
                 <button onclick="showBlockedUsers()" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl">
                     <div class="flex items-center gap-3">
                         <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
@@ -348,6 +371,133 @@
             </div>
             <div id="blockedUsersList" class="bg-white rounded-3xl p-6">
                 <p class="text-gray-500 text-center">No blocked users</p>
+            </div>
+        </div>
+
+        <!-- Verification Request Screen -->
+        <div id="verificationRequestScreen" class="hidden max-w-2xl mx-auto p-4 pb-20 md:pb-4">
+            <div class="flex items-center gap-4 mb-6">
+                <button onclick="showScreen('settings')" class="p-2 hover:bg-gray-100 rounded-full">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <h2 class="text-2xl font-bold text-gray-800">Request Verification</h2>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 pulse-shadow">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Get Verified</h3>
+                    <p class="text-gray-600">Submit your verification request to get the verified badge</p>
+                </div>
+
+                <form id="verificationForm" class="space-y-6">
+                    <!-- Full Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name (as on National ID) *</label>
+                        <input type="text" id="verifyFullName" required class="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Enter your full legal name">
+                    </div>
+
+                    <!-- Question 1 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Why do you think you deserve the verified badge? *</label>
+                        <textarea id="verifyReason" required rows="4" class="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Explain why you should be verified (e.g., public figure, influencer, business, etc.)"></textarea>
+                    </div>
+
+                    <!-- Question 2 (Optional) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Other name you're known by (Optional)</label>
+                        <input type="text" id="verifyKnownAs" class="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Stage name, business name, etc.">
+                    </div>
+
+                    <!-- Country Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Country *</label>
+                        <select id="verifyCountry" required class="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500" onchange="updateDocumentOptions()">
+                            <option value="">Select your country</option>
+                            <option value="US">United States</option>
+                            <option value="IN">India</option>
+                            <option value="GB">United Kingdom</option>
+                            <option value="CA">Canada</option>
+                            <option value="AU">Australia</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="JP">Japan</option>
+                            <option value="BR">Brazil</option>
+                            <option value="MX">Mexico</option>
+                            <option value="IT">Italy</option>
+                            <option value="ES">Spain</option>
+                            <option value="RU">Russia</option>
+                            <option value="CN">China</option>
+                            <option value="KR">South Korea</option>
+                            <option value="SG">Singapore</option>
+                            <option value="AE">UAE</option>
+                            <option value="SA">Saudi Arabia</option>
+                            <option value="ZA">South Africa</option>
+                            <option value="NG">Nigeria</option>
+                            <option value="EG">Egypt</option>
+                            <option value="AR">Argentina</option>
+                            <option value="CL">Chile</option>
+                            <option value="CO">Colombia</option>
+                            <option value="PE">Peru</option>
+                            <option value="TH">Thailand</option>
+                            <option value="VN">Vietnam</option>
+                            <option value="PH">Philippines</option>
+                            <option value="ID">Indonesia</option>
+                            <option value="MY">Malaysia</option>
+                            <option value="BD">Bangladesh</option>
+                            <option value="PK">Pakistan</option>
+                            <option value="LK">Sri Lanka</option>
+                            <option value="NP">Nepal</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Document Type -->
+                    <div id="documentTypeSection" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Document Type *</label>
+                        <select id="verifyDocumentType" class="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500">
+                            <option value="">Select document type</option>
+                        </select>
+                    </div>
+
+                    <!-- Document Upload -->
+                    <div id="documentUploadSection" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Document *</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center">
+                            <input type="file" id="verifyDocument" accept="image/*" class="hidden" onchange="handleDocumentUpload(event)">
+                            <div id="documentUploadArea" onclick="document.getElementById('verifyDocument').click()" class="cursor-pointer">
+                                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>
+                                <p class="text-gray-600 mb-2">Click to upload your document</p>
+                                <p class="text-sm text-gray-500">PNG, JPG up to 5MB</p>
+                            </div>
+                            <div id="documentPreview" class="hidden">
+                                <img id="documentImage" class="max-w-full h-48 object-cover rounded-lg mx-auto">
+                                <button type="button" onclick="removeDocument()" class="mt-2 text-red-500 hover:text-red-700">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Media Links (Optional) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Verified Social Media or News Links (Optional)</label>
+                        <p class="text-sm text-gray-500 mb-3">Add up to 5 links where you're verified or mentioned</p>
+                        <div id="socialLinksContainer">
+                            <div class="flex gap-2 mb-2">
+                                <input type="url" class="flex-1 p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="https://instagram.com/yourprofile">
+                                <button type="button" onclick="addSocialLink()" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-2xl hover:bg-gray-200">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4">
+                        <button type="submit" class="w-full gradient-bg text-white py-3 px-6 rounded-full font-semibold hover:opacity-90 transition-opacity">
+                            Submit Verification Request
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -533,7 +683,7 @@
                 previousScreen = currentScreen;
             }
 
-            document.querySelectorAll('#homeScreen, #searchScreen, #notificationsScreen, #messagesScreen, #settingsScreen, #profileScreen, #blockedUsersScreen, #userProfileScreen').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('#homeScreen, #searchScreen, #notificationsScreen, #messagesScreen, #settingsScreen, #profileScreen, #blockedUsersScreen, #userProfileScreen, #verificationRequestScreen').forEach(s => s.classList.add('hidden'));
             document.getElementById(screen + 'Screen').classList.remove('hidden');
 
             // Update mobile navigation active state
@@ -654,7 +804,7 @@
                                         `<div class="w-12 h-12 rounded-full gradient-bg flex items-center justify-center text-white font-bold">${user.fullName.charAt(0).toUpperCase()}</div>`
                                     }
                                     <div class="flex-1">
-                                        <p class="font-bold text-gray-800">${user.fullName}</p>
+                                        <p class="font-bold text-gray-800 flex items-center">${user.fullName}${user.isVerified ? getVerifiedBadge() : ''}</p>
                                         <p class="text-gray-500">@${user.username}</p>
                                         ${user.bio ? `<p class="text-sm text-gray-600 mt-1">${user.bio}</p>` : ''}
                                     </div>
@@ -687,6 +837,11 @@
                     </div>
                 `;
             }
+        }
+
+        function showVerificationRequest() {
+            showScreen('verificationRequest');
+            checkVerificationStatus();
         }
 
         function showBlockedUsers() {
@@ -725,7 +880,7 @@
             }
 
             // Update profile info
-            document.getElementById('viewUserName').textContent = userData.fullName;
+            document.getElementById('viewUserName').innerHTML = userData.fullName + (userData.isVerified ? getVerifiedBadge() : '');
             document.getElementById('viewUserUsername').textContent = `@${userData.username}`;
             document.getElementById('viewUserBio').textContent = userData.bio || '';
             document.getElementById('viewFollowingCount').textContent = (typeof userData.following === 'number') ? userData.following : 0;
@@ -967,7 +1122,7 @@
             const userData = snapshot.val();
 
             // Update profile info
-            document.getElementById('profileName').textContent = userData.fullName;
+            document.getElementById('profileName').innerHTML = userData.fullName + (userData.isVerified ? getVerifiedBadge() : '');
             document.getElementById('profileUsername').textContent = `@${userData.username}`;
             document.getElementById('followingCount').textContent = (typeof userData.following === 'number') ? userData.following : 0;
             document.getElementById('followersCount').textContent = (typeof userData.followers === 'number') ? userData.followers : 0;
@@ -1798,6 +1953,10 @@
                     message = 'saved your buzz';
                     icon = '<svg class="w-4 h-4 text-pink-500" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>';
                     break;
+                case 'verification_approved':
+                    message = 'Congratulations! Your account has been verified';
+                    icon = '<svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+                    break;
             }
 
             const clickHandler = notification.type === 'follow' 
@@ -1908,7 +2067,7 @@
                     ${authorAvatar}
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="font-bold text-gray-800 cursor-pointer hover:underline" onclick="viewUserProfile('${buzz.authorId}')">${buzz.authorName}</span>
+                            <span class="font-bold text-gray-800 cursor-pointer hover:underline flex items-center" onclick="viewUserProfile('${buzz.authorId}')">${buzz.authorName}${buzz.isVerified ? getVerifiedBadge() : ''}</span>
                             <span class="text-gray-500 cursor-pointer hover:underline" onclick="viewUserProfile('${buzz.authorId}')">@${buzz.authorUsername}</span>
                             <span class="text-gray-400">·</span>
                             <span class="text-gray-400">${formatTime(buzz.timestamp)}</span>
@@ -2240,6 +2399,227 @@
             location.reload();
         }
 
+        // Verification System
+        let socialLinksCount = 1;
+        let verificationDocument = null;
+
+        const documentOptions = {
+            'US': ['Passport', 'Driver License', 'State ID'],
+            'IN': ['PAN Card', 'Voter ID', 'Aadhaar Card', 'Passport', 'Driver License'],
+            'GB': ['Passport', 'Driver License', 'National ID'],
+            'CA': ['Passport', 'Driver License', 'Provincial ID'],
+            'AU': ['Passport', 'Driver License', 'Proof of Age Card'],
+            'DE': ['Passport', 'National ID', 'Driver License'],
+            'FR': ['Passport', 'National ID', 'Driver License'],
+            'JP': ['Passport', 'Driver License', 'Residence Card'],
+            'BR': ['Passport', 'National ID (RG)', 'Driver License'],
+            'MX': ['Passport', 'National ID (INE)', 'Driver License'],
+            'OTHER': ['Passport', 'National ID', 'Driver License']
+        };
+
+        function updateDocumentOptions() {
+            const country = document.getElementById('verifyCountry').value;
+            const documentTypeSelect = document.getElementById('verifyDocumentType');
+            const documentTypeSection = document.getElementById('documentTypeSection');
+            const documentUploadSection = document.getElementById('documentUploadSection');
+            
+            if (country) {
+                const options = documentOptions[country] || documentOptions['OTHER'];
+                documentTypeSelect.innerHTML = '<option value="">Select document type</option>';
+                
+                options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option;
+                    optionElement.textContent = option;
+                    documentTypeSelect.appendChild(optionElement);
+                });
+                
+                documentTypeSection.classList.remove('hidden');
+                documentUploadSection.classList.remove('hidden');
+            } else {
+                documentTypeSection.classList.add('hidden');
+                documentUploadSection.classList.add('hidden');
+            }
+        }
+
+        function handleDocumentUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Document too large. Max size: 5MB', 'error');
+                return;
+            }
+
+            compressImage(file, (compressedDataUrl) => {
+                verificationDocument = compressedDataUrl;
+                
+                document.getElementById('documentUploadArea').classList.add('hidden');
+                document.getElementById('documentPreview').classList.remove('hidden');
+                document.getElementById('documentImage').src = compressedDataUrl;
+                
+                showToast('Document uploaded successfully!', 'success');
+            });
+        }
+
+        function removeDocument() {
+            verificationDocument = null;
+            document.getElementById('documentUploadArea').classList.remove('hidden');
+            document.getElementById('documentPreview').classList.add('hidden');
+            document.getElementById('verifyDocument').value = '';
+        }
+
+        function addSocialLink() {
+            if (socialLinksCount >= 5) {
+                showToast('Maximum 5 links allowed', 'error');
+                return;
+            }
+
+            socialLinksCount++;
+            const container = document.getElementById('socialLinksContainer');
+            const linkDiv = document.createElement('div');
+            linkDiv.className = 'flex gap-2 mb-2';
+            linkDiv.innerHTML = `
+                <input type="url" class="flex-1 p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="https://example.com/yourprofile">
+                <button type="button" onclick="removeSocialLink(this)" class="px-4 py-2 bg-red-100 text-red-600 rounded-2xl hover:bg-red-200">-</button>
+            `;
+            container.appendChild(linkDiv);
+        }
+
+        function removeSocialLink(button) {
+            button.parentElement.remove();
+            socialLinksCount--;
+        }
+
+        async function checkVerificationStatus() {
+            const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const verificationRef = ref(window.firebaseDb, `verificationRequests/${currentUser.uid}`);
+            const snapshot = await get(verificationRef);
+            
+            if (snapshot.exists()) {
+                const request = snapshot.val();
+                showVerificationStatus(request);
+            }
+        }
+
+        function showVerificationStatus(request) {
+            const form = document.getElementById('verificationForm');
+            let statusMessage = '';
+            let statusColor = '';
+            
+            switch (request.status) {
+                case 'pending':
+                    statusMessage = 'Your verification request is under review. We will notify you once it\'s processed.';
+                    statusColor = 'text-yellow-600 bg-yellow-50';
+                    break;
+                case 'approved':
+                    statusMessage = 'Congratulations! Your account has been verified.';
+                    statusColor = 'text-green-600 bg-green-50';
+                    break;
+                case 'rejected':
+                    statusMessage = 'Your verification request was not approved. You can submit a new request with updated information.';
+                    statusColor = 'text-red-600 bg-red-50';
+                    break;
+            }
+            
+            form.innerHTML = `
+                <div class="text-center p-6 rounded-2xl ${statusColor}">
+                    <h3 class="text-lg font-bold mb-2">Verification Status</h3>
+                    <p>${statusMessage}</p>
+                    ${request.status === 'rejected' ? '<button onclick="resetVerificationForm()" class="mt-4 gradient-bg text-white px-6 py-2 rounded-full">Submit New Request</button>' : ''}
+                </div>
+            `;
+        }
+
+        function resetVerificationForm() {
+            location.reload(); // Simple way to reset the form
+        }
+
+        // Handle verification form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const verificationForm = document.getElementById('verificationForm');
+            if (verificationForm) {
+                verificationForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    await submitVerificationRequest();
+                });
+            }
+        });
+
+        async function submitVerificationRequest() {
+            const fullName = document.getElementById('verifyFullName').value.trim();
+            const reason = document.getElementById('verifyReason').value.trim();
+            const knownAs = document.getElementById('verifyKnownAs').value.trim();
+            const country = document.getElementById('verifyCountry').value;
+            const documentType = document.getElementById('verifyDocumentType').value;
+            
+            if (!fullName || !reason || !country || !documentType || !verificationDocument) {
+                showToast('Please fill all required fields and upload a document', 'error');
+                return;
+            }
+
+            try {
+                const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                
+                // Collect social media links
+                const socialLinks = [];
+                const linkInputs = document.querySelectorAll('#socialLinksContainer input[type="url"]');
+                linkInputs.forEach(input => {
+                    if (input.value.trim()) {
+                        socialLinks.push(input.value.trim());
+                    }
+                });
+
+                const verificationData = {
+                    userId: currentUser.uid,
+                    fullName: fullName,
+                    reason: reason,
+                    knownAs: knownAs || null,
+                    country: country,
+                    documentType: documentType,
+                    document: verificationDocument,
+                    socialLinks: socialLinks,
+                    status: 'pending',
+                    submittedAt: Date.now(),
+                    email: currentUser.email
+                };
+
+                await set(ref(window.firebaseDb, `verificationRequests/${currentUser.uid}`), verificationData);
+                
+                showToast('Verification request submitted successfully!', 'success');
+                showVerificationStatus({ status: 'pending' });
+                
+            } catch (error) {
+                console.error('Error submitting verification request:', error);
+                showToast('Failed to submit verification request', 'error');
+            }
+        }
+
+        // Function to approve verification (admin function)
+        async function approveVerification(userId) {
+            const { ref, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            
+            // Update verification request status
+            await update(ref(window.firebaseDb, `verificationRequests/${userId}`), {
+                status: 'approved',
+                approvedAt: Date.now()
+            });
+            
+            // Update user profile to mark as verified
+            await update(ref(window.firebaseDb, `users/${userId}`), {
+                isVerified: true,
+                verifiedAt: Date.now()
+            });
+            
+            // Send congratulations notification
+            await createNotification(userId, 'verification_approved', null, 'system');
+        }
+
+        // Function to get verified badge HTML
+        function getVerifiedBadge() {
+            return '<span class="verified-badge"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>';
+        }
+
         // Initialize app
         window.addEventListener('load', () => {
             const { onAuthStateChanged } = window.firebaseAuth ? 
@@ -2258,5 +2638,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b96b772a847f3',t:'MTc1NjYzMzQ2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977bab090152545e',t:'MTc1NjYzNDI5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
