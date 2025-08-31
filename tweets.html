@@ -459,14 +459,13 @@
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    currentBuzzImage = e.target.result;
-                    document.getElementById('profilePreview').style.backgroundImage = `url(${e.target.result})`;
+                // Compress setup profile image
+                compressImage(file, (compressedDataUrl) => {
+                    currentBuzzImage = compressedDataUrl;
+                    document.getElementById('profilePreview').style.backgroundImage = `url(${compressedDataUrl})`;
                     document.getElementById('profilePreview').style.backgroundSize = 'cover';
                     document.getElementById('profilePreview').textContent = '';
-                };
-                reader.readAsDataURL(file);
+                });
             }
         }
 
@@ -1213,15 +1212,14 @@
                     return;
                 }
 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    newProfileImage = e.target.result;
+                // Compress profile image
+                compressImage(file, (compressedDataUrl) => {
+                    newProfileImage = compressedDataUrl;
                     const preview = document.getElementById('editProfilePreview');
-                    preview.style.backgroundImage = `url(${e.target.result})`;
+                    preview.style.backgroundImage = `url(${compressedDataUrl})`;
                     preview.style.backgroundSize = 'cover';
                     preview.innerHTML = '';
-                };
-                reader.readAsDataURL(file);
+                });
             }
         }
 
@@ -1340,35 +1338,90 @@
         let currentBuzzMedia = null;
         let currentMediaType = null;
 
+        // Image compression function
+        function compressImage(file, callback, quality = 0.7) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = function() {
+                // Calculate new dimensions (max 1200px width/height)
+                let { width, height } = img;
+                const maxSize = 1200;
+                
+                if (width > height && width > maxSize) {
+                    height = (height * maxSize) / width;
+                    width = maxSize;
+                } else if (height > maxSize) {
+                    width = (width * maxSize) / height;
+                    height = maxSize;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                
+                // Check if still too large, compress more
+                if (compressedDataUrl.length > 8 * 1024 * 1024 && quality > 0.3) {
+                    compressImage(file, callback, quality - 0.2);
+                } else {
+                    callback(compressedDataUrl);
+                }
+            };
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         function handleBuzzMedia(event, type) {
             const file = event.target.files[0];
             if (file) {
-                // Check file size (max 50MB for videos, 10MB for images)
-                const maxSize = type === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+                // Check file size (max 5MB for videos, 5MB for images due to Firebase limits)
+                const maxSize = 5 * 1024 * 1024; // 5MB for both
                 if (file.size > maxSize) {
-                    showToast(`File too large. Max size: ${type === 'video' ? '50MB' : '10MB'}`, 'error');
+                    showToast(`File too large. Max size: 5MB`, 'error');
                     return;
                 }
 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    currentBuzzMedia = e.target.result;
-                    currentMediaType = type;
-                    
-                    // Show preview
-                    document.getElementById('buzzMediaPreview').classList.remove('hidden');
-                    
-                    if (type === 'image') {
-                        document.getElementById('buzzImageDisplay').src = e.target.result;
+                if (type === 'image') {
+                    // Compress image
+                    compressImage(file, (compressedDataUrl) => {
+                        currentBuzzMedia = compressedDataUrl;
+                        currentMediaType = type;
+                        
+                        // Show preview
+                        document.getElementById('buzzMediaPreview').classList.remove('hidden');
+                        document.getElementById('buzzImageDisplay').src = compressedDataUrl;
                         document.getElementById('buzzImageDisplay').classList.remove('hidden');
                         document.getElementById('buzzVideoDisplay').classList.add('hidden');
-                    } else if (type === 'video') {
+                    });
+                } else if (type === 'video') {
+                    // For videos, check if Base64 will be too large
+                    const estimatedBase64Size = file.size * 1.37; // Base64 is ~37% larger
+                    if (estimatedBase64Size > 8 * 1024 * 1024) { // 8MB limit for Firebase
+                        showToast('Video too large for upload. Please use a smaller video (under 3MB)', 'error');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        currentBuzzMedia = e.target.result;
+                        currentMediaType = type;
+                        
+                        // Show preview
+                        document.getElementById('buzzMediaPreview').classList.remove('hidden');
                         document.getElementById('buzzVideoDisplay').src = e.target.result;
                         document.getElementById('buzzVideoDisplay').classList.remove('hidden');
                         document.getElementById('buzzImageDisplay').classList.add('hidden');
-                    }
-                };
-                reader.readAsDataURL(file);
+                    };
+                    reader.readAsDataURL(file);
+                }
             }
         }
 
@@ -1967,5 +2020,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b76ec303f91df',t:'MTc1NjYzMjE1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b7e01b2fb8ae7',t:'MTc1NjYzMjQ0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
