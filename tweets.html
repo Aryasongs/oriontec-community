@@ -15,7 +15,7 @@
             authDomain: "pulse-17f40.firebaseapp.com",
             databaseURL: "https://pulse-17f40-default-rtdb.firebaseio.com",
             projectId: "pulse-17f40",
-            storageBucket: "pulse-17f40.firebasestorage.app",
+            storageBucket: "pulse-17f40.appspot.com",
             messagingSenderId: "259780854138",
             appId: "1:259780854138:web:89c265fd22a34a7f1fd6c3"
         };
@@ -25,9 +25,24 @@
         const database = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
+        // Configure auth settings
+        auth.useDeviceLanguage();
+
         window.firebaseAuth = auth;
         window.firebaseDb = database;
         window.googleProvider = provider;
+
+        // Test Firebase connection on load
+        window.addEventListener('load', async () => {
+            try {
+                console.log('Testing Firebase connection...');
+                const testRef = ref(database, '.info/connected');
+                const snapshot = await get(testRef);
+                console.log('Firebase connection status:', snapshot.val());
+            } catch (error) {
+                console.error('Firebase connection test failed:', error);
+            }
+        });
     </script>
     <style>
         .gradient-bg {
@@ -647,22 +662,59 @@
         // Authentication
         async function signInWithGoogle() {
             try {
-                const result = await signInWithPopup(firebaseAuth, googleProvider);
+                // Configure provider with additional settings
+                const provider = new GoogleAuthProvider();
+                provider.addScope('profile');
+                provider.addScope('email');
+                provider.setCustomParameters({
+                    'prompt': 'select_account'
+                });
+
+                console.log('Attempting Google sign in...');
+                const result = await signInWithPopup(firebaseAuth, provider);
                 currentUser = result.user;
+                console.log('Sign in successful:', currentUser.uid);
                 
                 // Check if user profile exists
                 const userRef = ref(firebaseDb, `users/${currentUser.uid}`);
                 const snapshot = await get(userRef);
                 
                 if (!snapshot.exists()) {
+                    console.log('New user, showing setup screen');
                     showSetupScreen();
                 } else {
+                    console.log('Existing user, showing main app');
                     showMainApp();
                     loadUserData();
                 }
             } catch (error) {
-                console.error('Sign in error:', error);
-                alert('Sign in failed. Please try again.');
+                console.error('Sign in error details:', error);
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
+                
+                let errorMessage = 'Sign in failed. ';
+                
+                switch(error.code) {
+                    case 'auth/popup-blocked':
+                        errorMessage += 'Please allow popups for this site and try again.';
+                        break;
+                    case 'auth/popup-closed-by-user':
+                        errorMessage += 'Sign in was cancelled.';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage += 'Network error. Please check your connection.';
+                        break;
+                    case 'auth/internal-error':
+                        errorMessage += 'Internal error. Please try again.';
+                        break;
+                    case 'auth/invalid-api-key':
+                        errorMessage += 'Configuration error. Please contact support.';
+                        break;
+                    default:
+                        errorMessage += 'Please try again or contact support.';
+                }
+                
+                alert(errorMessage);
             }
         }
 
@@ -3028,5 +3080,5 @@
             }
         }, 2000);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977bfef5968154cb',t:'MTc1NjYzNzczMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977c02c400053a21',t:'MTc1NjYzNzg4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
