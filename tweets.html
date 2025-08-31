@@ -40,20 +40,7 @@
         .pulse-shadow {
             box-shadow: 0 8px 32px rgba(236, 72, 153, 0.3);
         }
-        @keyframes floatHeart {
-            0% {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: translateY(-20px) scale(1.2);
-                opacity: 0.8;
-            }
-            100% {
-                transform: translateY(-40px) scale(0.8);
-                opacity: 0;
-            }
-        }
+
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -557,6 +544,7 @@
                 loadNotifications();
             } else if (screen === 'search') {
                 document.getElementById('searchInput').focus();
+                showTrendingContent();
             }
         }
 
@@ -604,21 +592,15 @@
             }, 300);
         }
 
-        function showTrendingContent() {
-            document.getElementById('searchResults').innerHTML = `
-                <div id="trendingSection">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Trending</h3>
-                    <div class="bg-white rounded-3xl p-6 pulse-shadow">
-                        <p class="text-gray-500 text-center">Start typing to search for users and buzzes!</p>
-                    </div>
-                </div>
-            `;
+        async function showTrendingContent() {
+            // Show all users when search is empty
+            await searchUsersAndBuzzes('');
         }
 
         async function searchUsersAndBuzzes(query) {
             const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             
-            // Search users
+            // Get all users
             const usersRef = ref(window.firebaseDb, 'users');
             const usersSnapshot = await get(usersRef);
             const users = [];
@@ -626,25 +608,29 @@
             if (usersSnapshot.exists()) {
                 usersSnapshot.forEach((childSnapshot) => {
                     const user = childSnapshot.val();
-                    if (user.fullName.toLowerCase().includes(query) || 
+                    // Show all users if query is empty or matches
+                    if (!query || 
+                        user.fullName.toLowerCase().includes(query) || 
                         user.username.toLowerCase().includes(query)) {
                         users.push({ id: childSnapshot.key, ...user });
                     }
                 });
             }
 
-            // Search buzzes
-            const buzzesRef = ref(window.firebaseDb, 'buzzes');
-            const buzzesSnapshot = await get(buzzesRef);
+            // Search buzzes only if there's a query
             const buzzes = [];
-            
-            if (buzzesSnapshot.exists()) {
-                buzzesSnapshot.forEach((childSnapshot) => {
-                    const buzz = childSnapshot.val();
-                    if (buzz.text.toLowerCase().includes(query)) {
-                        buzzes.push({ id: childSnapshot.key, ...buzz });
-                    }
-                });
+            if (query) {
+                const buzzesRef = ref(window.firebaseDb, 'buzzes');
+                const buzzesSnapshot = await get(buzzesRef);
+                
+                if (buzzesSnapshot.exists()) {
+                    buzzesSnapshot.forEach((childSnapshot) => {
+                        const buzz = childSnapshot.val();
+                        if (buzz.text.toLowerCase().includes(query)) {
+                            buzzes.push({ id: childSnapshot.key, ...buzz });
+                        }
+                    });
+                }
             }
 
             renderSearchResults(users, buzzes, query);
@@ -697,7 +683,7 @@
             if (users.length === 0 && buzzes.length === 0) {
                 resultsContainer.innerHTML = `
                     <div class="bg-white rounded-3xl p-6 pulse-shadow text-center">
-                        <p class="text-gray-500">No results found for "${query}"</p>
+                        <p class="text-gray-500">${query ? `No results found for "${query}"` : 'No users found'}</p>
                     </div>
                 `;
             }
@@ -742,8 +728,8 @@
             document.getElementById('viewUserName').textContent = userData.fullName;
             document.getElementById('viewUserUsername').textContent = `@${userData.username}`;
             document.getElementById('viewUserBio').textContent = userData.bio || '';
-            document.getElementById('viewFollowingCount').textContent = userData.following || 0;
-            document.getElementById('viewFollowersCount').textContent = userData.followers || 0;
+            document.getElementById('viewFollowingCount').textContent = (typeof userData.following === 'number') ? userData.following : 0;
+            document.getElementById('viewFollowersCount').textContent = (typeof userData.followers === 'number') ? userData.followers : 0;
 
             const avatar = document.getElementById('viewUserAvatar');
             if (userData.profileImage) {
@@ -778,45 +764,73 @@
         }
 
         async function toggleFollow() {
-            const { ref, get, set, update, remove } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
-            const followRef = ref(window.firebaseDb, `users/${currentUser.uid}/following/${currentViewingUserId}`);
-            const snapshot = await get(followRef);
+            const followButton = document.getElementById('followButton');
             
-            if (snapshot.exists()) {
-                // Unfollow
-                await remove(followRef);
-                await remove(ref(window.firebaseDb, `users/${currentViewingUserId}/followers/${currentUser.uid}`));
+            // Prevent multiple clicks
+            if (followButton.disabled) return;
+            followButton.disabled = true;
+            followButton.style.opacity = '0.7';
+            
+            try {
+                const { ref, get, set, update, remove } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                const followRef = ref(window.firebaseDb, `users/${currentUser.uid}/following/${currentViewingUserId}`);
+                const snapshot = await get(followRef);
                 
-                // Update counts
-                const currentUserRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
-                const targetUserRef = ref(window.firebaseDb, `users/${currentViewingUserId}`);
-                
-                const currentUserData = (await get(currentUserRef)).val();
-                const targetUserData = (await get(targetUserRef)).val();
-                
-                await update(currentUserRef, { following: Math.max(0, (currentUserData.following || 0) - 1) });
-                await update(targetUserRef, { followers: Math.max(0, (targetUserData.followers || 0) - 1) });
-            } else {
-                // Follow
-                await set(followRef, { timestamp: Date.now() });
-                await set(ref(window.firebaseDb, `users/${currentViewingUserId}/followers/${currentUser.uid}`), { timestamp: Date.now() });
-                
-                // Update counts
-                const currentUserRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
-                const targetUserRef = ref(window.firebaseDb, `users/${currentViewingUserId}`);
-                
-                const currentUserData = (await get(currentUserRef)).val();
-                const targetUserData = (await get(targetUserRef)).val();
-                
-                await update(currentUserRef, { following: (currentUserData.following || 0) + 1 });
-                await update(targetUserRef, { followers: (targetUserData.followers || 0) + 1 });
+                if (snapshot.exists()) {
+                    // Unfollow
+                    await remove(followRef);
+                    await remove(ref(window.firebaseDb, `users/${currentViewingUserId}/followers/${currentUser.uid}`));
+                    
+                    // Update counts
+                    const currentUserRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
+                    const targetUserRef = ref(window.firebaseDb, `users/${currentViewingUserId}`);
+                    
+                    const currentUserData = (await get(currentUserRef)).val();
+                    const targetUserData = (await get(targetUserRef)).val();
+                    
+                    const newFollowing = Math.max(0, (typeof currentUserData.following === 'number' ? currentUserData.following : 0) - 1);
+                    const newFollowers = Math.max(0, (typeof targetUserData.followers === 'number' ? targetUserData.followers : 0) - 1);
+                    
+                    await update(currentUserRef, { following: newFollowing });
+                    await update(targetUserRef, { followers: newFollowers });
+                    
+                    // Update UI immediately
+                    followButton.textContent = 'Follow';
+                    followButton.className = 'px-4 py-2 gradient-bg text-white rounded-full text-sm font-medium hover:opacity-90';
+                    document.getElementById('viewFollowersCount').textContent = newFollowers;
+                } else {
+                    // Follow
+                    await set(followRef, { timestamp: Date.now() });
+                    await set(ref(window.firebaseDb, `users/${currentViewingUserId}/followers/${currentUser.uid}`), { timestamp: Date.now() });
+                    
+                    // Update counts
+                    const currentUserRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
+                    const targetUserRef = ref(window.firebaseDb, `users/${currentViewingUserId}`);
+                    
+                    const currentUserData = (await get(currentUserRef)).val();
+                    const targetUserData = (await get(targetUserRef)).val();
+                    
+                    const newFollowing = (typeof currentUserData.following === 'number' ? currentUserData.following : 0) + 1;
+                    const newFollowers = (typeof targetUserData.followers === 'number' ? targetUserData.followers : 0) + 1;
+                    
+                    await update(currentUserRef, { following: newFollowing });
+                    await update(targetUserRef, { followers: newFollowers });
 
-                // Create notification
-                await createNotification(currentViewingUserId, 'follow', null, currentUser.uid);
+                    // Update UI immediately
+                    followButton.textContent = 'Following';
+                    followButton.className = 'px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300';
+                    document.getElementById('viewFollowersCount').textContent = newFollowers;
+
+                    // Create notification
+                    await createNotification(currentViewingUserId, 'follow', null, currentUser.uid);
+                }
+            } catch (error) {
+                console.error('Error toggling follow:', error);
+            } finally {
+                // Re-enable button
+                followButton.disabled = false;
+                followButton.style.opacity = '1';
             }
-
-            // Refresh the display
-            await loadUserProfileData(currentViewingUserId);
         }
 
         async function loadViewUserBuzzes(userId) {
@@ -955,8 +969,8 @@
             // Update profile info
             document.getElementById('profileName').textContent = userData.fullName;
             document.getElementById('profileUsername').textContent = `@${userData.username}`;
-            document.getElementById('followingCount').textContent = userData.following || 0;
-            document.getElementById('followersCount').textContent = userData.followers || 0;
+            document.getElementById('followingCount').textContent = (typeof userData.following === 'number') ? userData.following : 0;
+            document.getElementById('followersCount').textContent = (typeof userData.followers === 'number') ? userData.followers : 0;
 
             const avatar = document.getElementById('profileAvatar');
             if (userData.profileImage) {
@@ -1921,6 +1935,11 @@
                             <button onclick="shareBuzz('${buzz.id}')" class="hover:text-blue-500 transition-colors">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
                             </button>
+                            ${buzz.authorId === currentUser.uid ? `
+                            <button onclick="deleteBuzz('${buzz.id}')" class="hover:text-red-500 transition-colors" title="Delete Buzz">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -1935,16 +1954,11 @@
             const userLikeRef = ref(window.firebaseDb, `users/${currentUser.uid}/likedBuzzes/${buzzId}`);
             
             const likeButton = document.querySelector(`.like-btn-${buzzId}`);
-            const heartIcon = likeButton.querySelector('svg');
             const countSpan = likeButton.querySelector('span');
             
             // Prevent multiple clicks
             if (likeButton.disabled) return;
             likeButton.disabled = true;
-            
-            // Add click animation
-            heartIcon.style.transform = 'scale(1.3)';
-            heartIcon.style.transition = 'transform 0.2s ease';
             
             try {
                 const buzzSnapshot = await get(buzzRef);
@@ -1962,21 +1976,15 @@
                     likeButton.classList.add('text-gray-500');
                     countSpan.textContent = newCount;
                 } else {
-                    // Like with animation
+                    // Like
                     const newCount = (buzz.likes || 0) + 1;
                     await update(buzzRef, { likes: newCount });
                     await update(userLikeRef, { timestamp: Date.now(), buzzId: buzzId });
                     
-                    // Update UI immediately with animation
+                    // Update UI immediately
                     likeButton.classList.remove('text-gray-500');
                     likeButton.classList.add('text-red-500');
                     countSpan.textContent = newCount;
-                    
-                    // Heart animation
-                    heartIcon.style.fill = '#ef4444';
-                    
-                    // Create floating heart animation
-                    createFloatingHeart(likeButton);
                     
                     // Create notification
                     await createNotification(buzz.authorId, 'like', buzzId);
@@ -1984,35 +1992,12 @@
             } catch (error) {
                 console.error('Error liking buzz:', error);
             } finally {
-                // Reset animation and enable button
-                setTimeout(() => {
-                    heartIcon.style.transform = 'scale(1)';
-                    likeButton.disabled = false;
-                }, 200);
+                // Enable button immediately
+                likeButton.disabled = false;
             }
         }
 
-        function createFloatingHeart(button) {
-            const heart = document.createElement('div');
-            heart.innerHTML = '❤️';
-            heart.style.position = 'absolute';
-            heart.style.fontSize = '20px';
-            heart.style.pointerEvents = 'none';
-            heart.style.zIndex = '1000';
-            heart.style.animation = 'floatHeart 1s ease-out forwards';
-            
-            const rect = button.getBoundingClientRect();
-            heart.style.left = rect.left + rect.width / 2 + 'px';
-            heart.style.top = rect.top + 'px';
-            
-            document.body.appendChild(heart);
-            
-            setTimeout(() => {
-                if (heart.parentNode) {
-                    heart.parentNode.removeChild(heart);
-                }
-            }, 1000);
-        }
+
 
         function commentBuzz(buzzId) {
             const comment = prompt('Add a comment:');
@@ -2171,6 +2156,46 @@
             }
         }
 
+        async function deleteBuzz(buzzId) {
+            if (!confirm('Are you sure you want to delete this buzz?')) {
+                return;
+            }
+
+            try {
+                const { ref, remove, get, query, orderByChild, equalTo } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                
+                // Delete the buzz
+                await remove(ref(window.firebaseDb, `buzzes/${buzzId}`));
+                
+                // Delete associated comments
+                await remove(ref(window.firebaseDb, `comments/${buzzId}`));
+                
+                // Remove from all users' liked buzzes
+                const usersRef = ref(window.firebaseDb, 'users');
+                const usersSnapshot = await get(usersRef);
+                
+                if (usersSnapshot.exists()) {
+                    const deletePromises = [];
+                    usersSnapshot.forEach((userSnapshot) => {
+                        const userId = userSnapshot.key;
+                        deletePromises.push(remove(ref(window.firebaseDb, `users/${userId}/likedBuzzes/${buzzId}`)));
+                        deletePromises.push(remove(ref(window.firebaseDb, `users/${userId}/rebuzzedBuzzes/${buzzId}`)));
+                        deletePromises.push(remove(ref(window.firebaseDb, `users/${userId}/savedBuzzes/${buzzId}`)));
+                    });
+                    await Promise.all(deletePromises);
+                }
+                
+                showToast('Buzz deleted successfully!', 'success');
+                
+                // Refresh feed
+                loadBuzzFeed();
+                
+            } catch (error) {
+                console.error('Error deleting buzz:', error);
+                showToast('Failed to delete buzz', 'error');
+            }
+        }
+
         function formatTime(timestamp) {
             const now = Date.now();
             const diff = now - timestamp;
@@ -2233,5 +2258,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b87942698596b',t:'MTc1NjYzMjg0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b96b772a847f3',t:'MTc1NjYzMzQ2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
