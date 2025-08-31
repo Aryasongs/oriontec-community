@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse Energy - Enterprise Business Launch Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 35%, #24243e 100%);
+            min-height: 100vh;
+            color: #1a202c;
+            font-weight: 400;
+            line-height: 1.6;
+            letter-spacing: -0.01em;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #667eea;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 2rem 0;
+            color: white;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin: 1rem 0;
+        }
+        
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(90deg); }
+        }
+        
+        .hero p {
+            font-size: 1.4rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .mega-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .full-width-section {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1rem 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+        
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .task-list {
+            list-style: none;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .task-checkbox {
+            margin-right: 1rem;
+            transform: scale(1.2);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+            transition: width 0.3s;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .team-member {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .team-member:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .team-member.selected {
+            border-color: #4ecdc4;
+            background: #4ecdc4;
+            color: white;
+        }
+        
+        .ai-assistant {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: bounce 2s infinite;
+            z-index: 1000;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        .ai-chat {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 350px;
+            height: 400px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+        }
+        
+        .ai-chat.active {
+            display: flex;
+        }
+        
+        .chat-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            border-radius: 15px 15px 0 0;
+            font-weight: bold;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .chat-input input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .funding-calculator {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+        
+        .slider {
+            width: 100%;
+            margin: 1rem 0;
+        }
+        
+        .legal-docs {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+        
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            animation: slideIn 0.5s;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            float: right;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .insurance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .insurance-item {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #4ecdc4;
+            transition: all 0.3s;
+        }
+        
+        .insurance-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .insurance-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+        
+        .benefits-calculator {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border: 2px solid #e9ecef;
+        }
+        
+        .cost-breakdown {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .compliance-grid {
+            display: grid;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .compliance-item {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .compliance-item.completed {
+            border-left: 4px solid #28a745;
+            background: #d4edda;
+        }
+        
+        .compliance-item.pending {
+            border-left: 4px solid #ffc107;
+            background: #fff3cd;
+        }
+        
+        .compliance-status {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            min-width: 40px;
+        }
+        
+        .government-seal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .card {
+            position: relative;
+        }
+        
+        .card h3 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+        
+        .hero h1 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+        
+        .logo {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        
+        .nav-links a {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+        
+        .btn {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        
+        code, .legal-docs {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .compliance-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .ministry-item {
+            background: white;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            border-left: 3px solid #28a745;
+        }
+        
+        .ministry-item strong {
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .ministry-item p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+        }
+        
+        /* Laptop Optimizations */
+        @media (min-width: 1024px) and (max-width: 1440px) {
+            .container {
+                max-width: 1400px;
+                padding: 1rem 1.5rem;
+            }
+            
+            .mega-dashboard {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.2rem;
+            }
+            
+            .hero h1 {
+                font-size: 3.8rem;
+            }
+            
+            .card {
+                padding: 1.8rem;
+            }
+        }
+        
+        /* Large Laptop/Desktop */
+        @media (min-width: 1441px) {
+            .container {
+                max-width: 1600px;
+            }
+            
+            .mega-dashboard {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        /* Tablet */
+        @media (max-width: 1023px) {
+            .mega-dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .full-width-section div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .ai-chat {
+                width: 90%;
+                right: 5%;
+            }
+            
+            .insurance-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">⚡ PULSE ENERGY</div>
+            <ul class="nav-links">
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#team">Team</a></li>
+                <li><a href="#legal">Legal</a></li>
+                <li><a href="#funding">Funding</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <div class="container">
+            <h1>🚀 Business Launch Platform</h1>
+            <p>Complete Legal Framework & Task Management for Pulse Energy Startup</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Executive Summary Section -->
+        <div class="full-width-section">
+            <h2>📊 Executive Dashboard - Pulse Energy Launch Status</h2>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin: 1rem 0;">
+                <div style="text-align: center; padding: 1rem; background: #e8f5e8; border-radius: 10px;">
+                    <h3 style="color: #28a745;">₹25L</h3>
+                    <p>Total Investment</p>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: #e3f2fd; border-radius: 10px;">
+                    <h3 style="color: #1976d2;">47%</h3>
+                    <p>Tasks Complete</p>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: #fff3e0; border-radius: 10px;">
+                    <h3 style="color: #f57c00;">12</h3>
+                    <p>Licenses Pending</p>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: #fce4ec; border-radius: 10px;">
+                    <h3 style="color: #c2185b;">6 Months</h3>
+                    <p>Launch Timeline</p>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: #f3e5f5; border-radius: 10px;">
+                    <h3 style="color: #7b1fa2;">₹2.5Cr</h3>
+                    <p>Market Opportunity</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mega-dashboard" id="dashboard">
+            <!-- Task Management Card -->
+            <div class="card">
+                <h3>📋 7-Step Launch Tasks</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%" id="taskProgress"></div>
+                </div>
+                <ul class="task-list" id="taskList">
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                        <span>Brand Identity Fix (Logo, Colors, Tagline)</span>
+                    </li>
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                        <span>Product Formula Decision (Health vs Hardcore)</span>
+                    </li>
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                        <span>Find Contract Manufacturer</span>
+                    </li>
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                        <span>Legal Licenses (FSSAI, Trademark, GST)</span>
+                    </li>
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                        <span>Packaging & Design (250ml/330ml cans)</span>
+                    </li>
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                        <span>Distribution Entry (Local to Chain stores)</span>
+                    </li>
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                        <span>Marketing Strategy (Social Media, Sponsorships)</span>
+                    </li>
+                </ul>
+                <button class="btn" onclick="generateBusinessPlan()">📄 Generate Business Plan</button>
+            </div>
+
+            <!-- Team Selection Card -->
+            <div class="card">
+                <h3>👥 Choose Your Team</h3>
+                <div class="team-grid">
+                    <div class="team-member" onclick="selectTeamMember(this, 'CEO')">
+                        <div>👨‍💼</div>
+                        <div>CEO</div>
+                        <small>Chief Executive Officer</small>
+                    </div>
+                    <div class="team-member" onclick="selectTeamMember(this, 'VP Marketing')">
+                        <div>📈</div>
+                        <div>VP Marketing</div>
+                        <small>Marketing Head</small>
+                    </div>
+                    <div class="team-member" onclick="selectTeamMember(this, 'VP Operations')">
+                        <div>⚙️</div>
+                        <div>VP Operations</div>
+                        <small>Operations Head</small>
+                    </div>
+                    <div class="team-member" onclick="selectTeamMember(this, 'Legal Director')">
+                        <div>⚖️</div>
+                        <div>Legal Director</div>
+                        <small>Legal Affairs</small>
+                    </div>
+                    <div class="team-member" onclick="selectTeamMember(this, 'Finance Director')">
+                        <div>💰</div>
+                        <div>Finance Director</div>
+                        <small>Financial Planning</small>
+                    </div>
+                    <div class="team-member" onclick="selectTeamMember(this, 'R&D Head')">
+                        <div>🔬</div>
+                        <div>R&D Head</div>
+                        <small>Product Development</small>
+                    </div>
+                </div>
+                <div id="selectedTeam" style="margin-top: 1rem; font-weight: bold;"></div>
+            </div>
+
+            <!-- Legal Framework Card -->
+            <div class="card">
+                <h3>⚖️ Legal Documentation</h3>
+                <button class="btn" onclick="showModal('legalModal')">📋 View All Legal Requirements</button>
+                <button class="btn" onclick="generateLegalDocs()">📄 Generate Legal Papers</button>
+                <div class="legal-docs" id="legalDocs">
+                    <p><strong>Required Licenses & Registrations:</strong></p>
+                    <ul>
+                        <li>✅ FSSAI License (Food Safety)</li>
+                        <li>✅ Trademark Registration</li>
+                        <li>✅ GST Registration</li>
+                        <li>✅ Company Incorporation</li>
+                        <li>✅ Import License (if needed)</li>
+                        <li>✅ Environmental Clearance</li>
+                        <li>✅ Labor License</li>
+                        <li>✅ Fire Safety Certificate</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Funding Calculator Card -->
+            <div class="card">
+                <h3>💰 Funding Calculator</h3>
+                <div class="funding-calculator">
+                    <label>Initial Investment (₹): <span id="fundingAmount">10,00,000</span></label>
+                    <input type="range" class="slider" min="500000" max="50000000" value="1000000" 
+                           oninput="updateFunding(this.value)" id="fundingSlider">
+                    
+                    <div style="margin-top: 1rem;">
+                        <p><strong>Breakdown:</strong></p>
+                        <div id="fundingBreakdown">
+                            <p>Manufacturing Setup: ₹4,00,000 (40%)</p>
+                            <p>Legal & Licensing: ₹1,00,000 (10%)</p>
+                            <p>Marketing: ₹3,00,000 (30%)</p>
+                            <p>Working Capital: ₹2,00,000 (20%)</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn" onclick="generateFundingProposal()">📊 Generate Funding Proposal</button>
+            </div>
+
+            <!-- AI Suggestions Card -->
+            <div class="card">
+                <h3>🤖 AI Business Insights</h3>
+                <div id="aiSuggestions">
+                    <div class="alert">
+                        💡 <strong>AI Tip:</strong> Start with 2 flavors max - Classic Energy and Tropical Burst. Market research shows 73% success rate with limited initial SKUs.
+                    </div>
+                </div>
+                <button class="btn" onclick="getAISuggestion()">🎯 Get AI Recommendation</button>
+                <button class="btn" onclick="generateBiography()">📝 Generate Company Biography</button>
+            </div>
+
+            <!-- Employee Insurance & Benefits Card -->
+            <div class="card">
+                <h3>🛡️ Employee Insurance & Benefits</h3>
+                <div class="insurance-grid">
+                    <div class="insurance-item">
+                        <div class="insurance-icon">🏥</div>
+                        <div>
+                            <strong>Health Insurance</strong>
+                            <p>₹5,00,000 coverage per employee</p>
+                            <small>Includes family coverage</small>
+                        </div>
+                    </div>
+                    <div class="insurance-item">
+                        <div class="insurance-icon">💼</div>
+                        <div>
+                            <strong>Professional Indemnity</strong>
+                            <p>₹1,00,00,000 coverage</p>
+                            <small>Directors & Officers protection</small>
+                        </div>
+                    </div>
+                    <div class="insurance-item">
+                        <div class="insurance-icon">🏭</div>
+                        <div>
+                            <strong>Workmen's Compensation</strong>
+                            <p>As per WC Act 1923</p>
+                            <small>Mandatory for all employees</small>
+                        </div>
+                    </div>
+                    <div class="insurance-item">
+                        <div class="insurance-icon">🚗</div>
+                        <div>
+                            <strong>Vehicle Insurance</strong>
+                            <p>Commercial vehicle coverage</p>
+                            <small>Distribution fleet protection</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="benefits-calculator">
+                    <label>Number of Employees: <span id="empCount">10</span></label>
+                    <input type="range" class="slider" min="5" max="100" value="10" 
+                           oninput="updateInsuranceCost(this.value)" id="empSlider">
+                    <div class="cost-breakdown" id="insuranceCost">
+                        <p><strong>Annual Insurance Cost: ₹2,50,000</strong></p>
+                        <small>Health: ₹1,50,000 | Professional: ₹50,000 | WC: ₹30,000 | Vehicle: ₹20,000</small>
+                    </div>
+                </div>
+                <button class="btn" onclick="generateInsurancePolicy()">📋 Generate Insurance Policy</button>
+            </div>
+
+            <!-- Government Compliance Card -->
+            <div class="card">
+                <h3>🏛️ Government Compliance Dashboard</h3>
+                <div class="compliance-grid">
+                    <div class="compliance-item completed">
+                        <div class="compliance-status">✅</div>
+                        <div>
+                            <strong>Ministry of Food Processing</strong>
+                            <p>FSSAI Registration Complete</p>
+                            <small>Valid until: Dec 2025</small>
+                        </div>
+                    </div>
+                    <div class="compliance-item pending">
+                        <div class="compliance-status">⏳</div>
+                        <div>
+                            <strong>Ministry of Corporate Affairs</strong>
+                            <p>Company Incorporation Pending</p>
+                            <small>Expected: 15 days</small>
+                        </div>
+                    </div>
+                    <div class="compliance-item pending">
+                        <div class="compliance-status">📋</div>
+                        <div>
+                            <strong>Central Board of Indirect Taxes</strong>
+                            <p>GST Registration Required</p>
+                            <small>Apply after incorporation</small>
+                        </div>
+                    </div>
+                    <div class="compliance-item pending">
+                        <div class="compliance-status">🏭</div>
+                        <div>
+                            <strong>State Pollution Control Board</strong>
+                            <p>Environmental Clearance</p>
+                            <small>Required for manufacturing</small>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn" onclick="showModal('complianceModal')">📊 Full Compliance Report</button>
+            </div>
+
+            <!-- Market Analysis Card -->
+            <div class="card">
+                <h3>📊 Market Analysis</h3>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px;">
+                    <p><strong>Indian Energy Drink Market:</strong></p>
+                    <ul>
+                        <li>Market Size: ₹2,500 Crores (2024)</li>
+                        <li>Growth Rate: 15% annually</li>
+                        <li>Key Players: Red Bull (35%), Monster (20%)</li>
+                        <li>Opportunity Gap: Premium Natural Energy (12% market share available)</li>
+                    </ul>
+                </div>
+                <button class="btn" onclick="generateMarketReport()">📈 Detailed Market Report</button>
+            </div>
+        </div>
+
+        <!-- Comprehensive Business Sections -->
+        <div class="full-width-section">
+            <h2>🏭 Manufacturing & Production Details</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h4>🏗️ Manufacturing Setup Requirements</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>✅ Factory Space: 5000-10000 sq ft minimum</li>
+                        <li>✅ Production Line: Semi-automatic filling machine (₹15L)</li>
+                        <li>✅ Quality Control Lab: pH meter, refractometer, microscope</li>
+                        <li>✅ Storage: Cold storage facility (2-8°C)</li>
+                        <li>✅ Packaging: Can seaming machine, labeling equipment</li>
+                        <li>✅ Water Treatment: RO plant, UV sterilization</li>
+                        <li>✅ Power Backup: 100 KVA generator</li>
+                        <li>✅ Safety Equipment: Fire extinguishers, first aid</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>📋 Production Specifications</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>🥤 Can Sizes: 250ml, 330ml, 500ml options</li>
+                        <li>⚡ Caffeine Content: 80mg per 250ml (FDA approved)</li>
+                        <li>🌿 Natural Ingredients: Green coffee extract, guarana</li>
+                        <li>🍯 Sweeteners: Stevia, erythritol (sugar-free option)</li>
+                        <li>🎨 Flavors: Classic, Tropical, Berry Blast, Citrus Rush</li>
+                        <li>📦 Packaging: Recyclable aluminum cans</li>
+                        <li>⏰ Shelf Life: 18 months from manufacturing</li>
+                        <li>🏷️ Labeling: Nutritional facts, ingredients list</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="full-width-section">
+            <h2>💰 Detailed Financial Projections</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem;">
+                <div style="background: #e8f5e8; padding: 1.5rem; border-radius: 15px;">
+                    <h4>Year 1 Projections</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>Revenue: ₹2.5 Crores</li>
+                        <li>Units Sold: 5 Lakh cans</li>
+                        <li>Gross Margin: 45%</li>
+                        <li>Net Profit: ₹35 Lakhs</li>
+                        <li>Market Share: 0.8%</li>
+                        <li>Break-even: Month 8</li>
+                    </ul>
+                </div>
+                <div style="background: #e3f2fd; padding: 1.5rem; border-radius: 15px;">
+                    <h4>Year 2 Projections</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>Revenue: ₹8.5 Crores</li>
+                        <li>Units Sold: 15 Lakh cans</li>
+                        <li>Gross Margin: 52%</li>
+                        <li>Net Profit: ₹1.2 Crores</li>
+                        <li>Market Share: 2.1%</li>
+                        <li>ROI: 180%</li>
+                    </ul>
+                </div>
+                <div style="background: #fff3e0; padding: 1.5rem; border-radius: 15px;">
+                    <h4>Year 3 Projections</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>Revenue: ₹25 Crores</li>
+                        <li>Units Sold: 45 Lakh cans</li>
+                        <li>Gross Margin: 58%</li>
+                        <li>Net Profit: ₹4.2 Crores</li>
+                        <li>Market Share: 5.8%</li>
+                        <li>IPO Ready: Yes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="full-width-section">
+            <h2>🎯 Marketing & Distribution Strategy</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h4>📱 Digital Marketing Plan</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>🎬 YouTube Ads: Fitness influencer partnerships</li>
+                        <li>📸 Instagram: Daily workout challenges</li>
+                        <li>📘 Facebook: Targeted ads 18-35 age group</li>
+                        <li>🎵 TikTok: Energy drink challenges, viral content</li>
+                        <li>💼 LinkedIn: B2B corporate wellness programs</li>
+                        <li>🎮 Gaming Sponsorships: Esports tournaments</li>
+                        <li>📧 Email Marketing: Fitness tips, product updates</li>
+                        <li>🔍 SEO: Energy drink related keywords</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>🏪 Distribution Channels</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>🏋️ Gyms & Fitness Centers: 500+ locations</li>
+                        <li>🏪 Convenience Stores: 7-Eleven, local stores</li>
+                        <li>🛒 Supermarkets: Big Bazaar, Reliance Fresh</li>
+                        <li>🎓 College Campuses: Canteens, vending machines</li>
+                        <li>⛽ Petrol Pumps: Highway travelers</li>
+                        <li>🏢 Corporate Offices: Cafeterias, break rooms</li>
+                        <li>🛍️ E-commerce: Amazon, Flipkart, BigBasket</li>
+                        <li>🎪 Events: Sports events, music festivals</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="full-width-section">
+            <h2>⚖️ Complete Legal & Compliance Framework</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 15px;">
+                    <h4>🏢 Corporate Structure</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>Company Type: Private Limited</li>
+                        <li>Authorized Capital: ₹50 Lakhs</li>
+                        <li>Paid-up Capital: ₹25 Lakhs</li>
+                        <li>Directors: 3 minimum</li>
+                        <li>Shareholders: Founder 60%, Investors 40%</li>
+                        <li>Registered Office: Mumbai</li>
+                        <li>CIN: U15400MH2024PTC123456</li>
+                        <li>PAN: AABCP1234C</li>
+                    </ul>
+                </div>
+                <div style="background: #e8f5e8; padding: 1.5rem; border-radius: 15px;">
+                    <h4>📋 Mandatory Licenses</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>FSSAI License: Central (₹7,500)</li>
+                        <li>GST Registration: ₹0 (free)</li>
+                        <li>Trademark: ₹4,500 per class</li>
+                        <li>Factory License: ₹5,000</li>
+                        <li>Pollution Clearance: ₹25,000</li>
+                        <li>Fire Safety: ₹10,000</li>
+                        <li>Labor License: ₹2,000</li>
+                        <li>Import License: ₹15,000</li>
+                    </ul>
+                </div>
+                <div style="background: #e3f2fd; padding: 1.5rem; border-radius: 15px;">
+                    <h4>🛡️ Insurance Coverage</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>Product Liability: ₹5 Crores</li>
+                        <li>Public Liability: ₹2 Crores</li>
+                        <li>Fire Insurance: ₹1 Crore</li>
+                        <li>Marine Insurance: ₹50 Lakhs</li>
+                        <li>Directors Insurance: ₹1 Crore</li>
+                        <li>Employee Health: ₹5L per person</li>
+                        <li>Vehicle Insurance: ₹20 Lakhs</li>
+                        <li>Cyber Insurance: ₹25 Lakhs</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="full-width-section">
+            <h2>👥 Human Resources & Team Structure</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h4>🎯 Core Team (Year 1)</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>👨‍💼 CEO/Founder: ₹8L per annum + equity</li>
+                        <li>📈 VP Marketing: ₹6L per annum</li>
+                        <li>⚙️ VP Operations: ₹6L per annum</li>
+                        <li>💰 Finance Manager: ₹4L per annum</li>
+                        <li>🔬 R&D Head: ₹5L per annum</li>
+                        <li>⚖️ Legal Advisor: ₹3L per annum (consultant)</li>
+                        <li>📊 Sales Manager: ₹4L + incentives</li>
+                        <li>🎨 Brand Manager: ₹3.5L per annum</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>👷 Support Staff</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>🏭 Production Workers: 8 people @ ₹2L each</li>
+                        <li>🚚 Delivery Staff: 4 people @ ₹1.8L each</li>
+                        <li>🧹 Housekeeping: 2 people @ ₹1.5L each</li>
+                        <li>🔒 Security Guard: 2 people @ ₹1.8L each</li>
+                        <li>📞 Customer Service: 2 people @ ₹2.5L each</li>
+                        <li>📦 Warehouse Staff: 3 people @ ₹2L each</li>
+                        <li>🔧 Maintenance: 1 person @ ₹3L</li>
+                        <li>📋 Quality Control: 2 people @ ₹3L each</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="full-width-section">
+            <h2>🌍 Sustainability & Environmental Impact</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                <div style="background: #e8f5e8; padding: 1.5rem; border-radius: 15px;">
+                    <h4>♻️ Eco-Friendly Initiatives</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>100% Recyclable Aluminum Cans</li>
+                        <li>Solar Power for 30% energy needs</li>
+                        <li>Water Conservation: Rainwater harvesting</li>
+                        <li>Organic Ingredient Sourcing</li>
+                        <li>Carbon Neutral Delivery Fleet</li>
+                        <li>Biodegradable Packaging Materials</li>
+                        <li>Tree Plantation: 1 tree per 100 cans</li>
+                    </ul>
+                </div>
+                <div style="background: #fff3e0; padding: 1.5rem; border-radius: 15px;">
+                    <h4>🌱 Social Responsibility</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>Local Farmer Partnerships</li>
+                        <li>Youth Sports Sponsorship</li>
+                        <li>Fitness Education Programs</li>
+                        <li>Employee Wellness Programs</li>
+                        <li>Community Health Camps</li>
+                        <li>Scholarship for Athletes</li>
+                        <li>Plastic-Free Campus Initiative</li>
+                    </ul>
+                </div>
+                <div style="background: #e3f2fd; padding: 1.5rem; border-radius: 15px;">
+                    <h4>📊 Impact Metrics</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>CO2 Reduction: 500 tons/year</li>
+                        <li>Water Saved: 10 lakh liters/year</li>
+                        <li>Jobs Created: 50+ direct, 200+ indirect</li>
+                        <li>Farmers Supported: 100+ families</li>
+                        <li>Students Benefited: 1000+ scholarships</li>
+                        <li>Trees Planted: 50,000+ annually</li>
+                        <li>Waste Recycled: 95% of production waste</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="full-width-section">
+            <h2>🔬 Research & Development</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h4>🧪 Product Innovation Pipeline</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>🌿 Natural Energy Blend: Green tea + Ginseng</li>
+                        <li>🏃 Pre-Workout Formula: Creatine + Beta-Alanine</li>
+                        <li>🧠 Nootropic Energy: L-Theanine + Rhodiola</li>
+                        <li>🍓 Antioxidant Rich: Acai + Goji berries</li>
+                        <li>💪 Protein Energy: Whey + BCAAs</li>
+                        <li>🌙 Night Recovery: Magnesium + Melatonin</li>
+                        <li>🔥 Fat Burner: Green coffee + Garcinia</li>
+                        <li>⚡ Electrolyte Plus: Coconut water base</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>🔬 R&D Investment Plan</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>Lab Equipment: ₹15 Lakhs</li>
+                        <li>Research Staff: ₹12 Lakhs/year</li>
+                        <li>Ingredient Testing: ₹8 Lakhs/year</li>
+                        <li>Consumer Studies: ₹5 Lakhs/year</li>
+                        <li>Patent Filing: ₹3 Lakhs</li>
+                        <li>University Partnerships: ₹2 Lakhs/year</li>
+                        <li>International Conferences: ₹1 Lakh/year</li>
+                        <li>Regulatory Compliance: ₹4 Lakhs/year</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="full-width-section">
+            <h2>📈 Growth & Expansion Strategy</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                <div style="background: #fce4ec; padding: 1.5rem; border-radius: 15px;">
+                    <h4>🎯 Phase 1 (Months 1-12)</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>Mumbai & Delhi Launch</li>
+                        <li>500 Retail Outlets</li>
+                        <li>2 Flavor Variants</li>
+                        <li>₹2.5Cr Revenue Target</li>
+                        <li>50 Employee Team</li>
+                        <li>1 Manufacturing Unit</li>
+                        <li>Digital Marketing Focus</li>
+                    </ul>
+                </div>
+                <div style="background: #f3e5f5; padding: 1.5rem; border-radius: 15px;">
+                    <h4>🚀 Phase 2 (Year 2)</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>Pan-India Expansion</li>
+                        <li>2000 Retail Outlets</li>
+                        <li>5 Flavor Variants</li>
+                        <li>₹8.5Cr Revenue Target</li>
+                        <li>150 Employee Team</li>
+                        <li>2 Manufacturing Units</li>
+                        <li>TV Advertisement Campaign</li>
+                    </ul>
+                </div>
+                <div style="background: #e8eaf6; padding: 1.5rem; border-radius: 15px;">
+                    <h4>🌟 Phase 3 (Year 3+)</h4>
+                    <ul style="margin: 1rem 0; line-height: 1.8;">
+                        <li>International Markets</li>
+                        <li>10000+ Retail Outlets</li>
+                        <li>10 Product Lines</li>
+                        <li>₹25Cr+ Revenue</li>
+                        <li>500+ Employee Team</li>
+                        <li>5 Manufacturing Units</li>
+                        <li>IPO Preparation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant -->
+    <div class="ai-assistant" onclick="toggleAIChat()">
+        🤖
+    </div>
+
+    <!-- AI Chat Window -->
+    <div class="ai-chat" id="aiChat">
+        <div class="chat-header">
+            🤖 Pulse AI Assistant
+            <span class="close" onclick="toggleAIChat()" style="float: right;">×</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div style="background: #f0f0f0; padding: 0.5rem; border-radius: 10px; margin-bottom: 0.5rem;">
+                <strong>AI:</strong> Hello! I'm your business assistant. I can help with legal advice, market analysis, and business strategy. What would you like to know?
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" placeholder="Ask me anything about your business..." 
+                   onkeypress="if(event.key==='Enter') sendMessage()" id="chatInput">
+        </div>
+    </div>
+
+    <!-- Legal Modal -->
+    <div class="modal" id="legalModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('legalModal')">&times;</span>
+            <h2>📋 Complete Legal Framework</h2>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <h3>🏢 Company Registration</h3>
+                <ul>
+                    <li>Private Limited Company Registration</li>
+                    <li>Director Identification Number (DIN)</li>
+                    <li>Digital Signature Certificate</li>
+                    <li>Memorandum & Articles of Association</li>
+                </ul>
+
+                <h3>🍹 Food & Beverage Licenses</h3>
+                <ul>
+                    <li>FSSAI License (State/Central based on turnover)</li>
+                    <li>BIS Certification for Energy Drinks</li>
+                    <li>Pollution Control Board Clearance</li>
+                    <li>Factory License (if manufacturing)</li>
+                </ul>
+
+                <h3>💼 Business Licenses</h3>
+                <ul>
+                    <li>GST Registration</li>
+                    <li>Professional Tax Registration</li>
+                    <li>ESI & PF Registration</li>
+                    <li>Shop & Establishment License</li>
+                </ul>
+
+                <h3>🛡️ Intellectual Property</h3>
+                <ul>
+                    <li>Trademark Registration (Brand Name & Logo)</li>
+                    <li>Copyright for Marketing Materials</li>
+                    <li>Domain Name Registration</li>
+                </ul>
+
+                <h3>📄 Compliance Documents</h3>
+                <ul>
+                    <li>Board Resolutions</li>
+                    <li>Shareholder Agreements</li>
+                    <li>Employment Contracts</li>
+                    <li>Vendor Agreements</li>
+                    <li>Distribution Agreements</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compliance Modal -->
+    <div class="modal" id="complianceModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('complianceModal')">&times;</span>
+            <h2>🏛️ Government Compliance Report</h2>
+            <div style="max-height: 500px; overflow-y: auto;">
+                <div class="compliance-section">
+                    <h3>🇮🇳 Central Government Ministries</h3>
+                    <div class="ministry-item">
+                        <strong>Ministry of Food Processing Industries</strong>
+                        <p>✅ FSSAI License: FBO-12345678901234 (Valid till Dec 2025)</p>
+                        <p>⏳ Food Safety Audit: Scheduled for Q2 2024</p>
+                    </div>
+                    <div class="ministry-item">
+                        <strong>Ministry of Corporate Affairs</strong>
+                        <p>📋 CIN Application: U15400MH2024PTC123456 (Pending)</p>
+                        <p>⏳ ROC Filing: Expected completion in 15 days</p>
+                    </div>
+                    <div class="ministry-item">
+                        <strong>Ministry of Commerce & Industry</strong>
+                        <p>📋 Trademark Application: 4567890 (Under examination)</p>
+                        <p>⏳ Patent Filing: Energy drink formula (Optional)</p>
+                    </div>
+                </div>
+
+                <div class="compliance-section">
+                    <h3>🏛️ State Government Departments</h3>
+                    <div class="ministry-item">
+                        <strong>Maharashtra Pollution Control Board</strong>
+                        <p>📋 Consent to Establish: Required for manufacturing unit</p>
+                        <p>📋 Environmental Impact Assessment: For large scale operations</p>
+                    </div>
+                    <div class="ministry-item">
+                        <strong>Labour Department</strong>
+                        <p>📋 Factory License: Required if >10 employees with power</p>
+                        <p>📋 Contract Labour License: For outsourced operations</p>
+                    </div>
+                </div>
+
+                <div class="compliance-section">
+                    <h3>💰 Tax Compliance</h3>
+                    <div class="ministry-item">
+                        <strong>Central Board of Indirect Taxes</strong>
+                        <p>📋 GST Registration: Apply after company incorporation</p>
+                        <p>📋 Import License: For international ingredients</p>
+                    </div>
+                    <div class="ministry-item">
+                        <strong>Income Tax Department</strong>
+                        <p>📋 TAN Registration: For tax deduction at source</p>
+                        <p>📋 PAN Application: Corporate PAN required</p>
+                    </div>
+                </div>
+
+                <div class="compliance-section">
+                    <h3>🛡️ Employee Benefits & Insurance</h3>
+                    <div class="ministry-item">
+                        <strong>Employees' Provident Fund Organisation</strong>
+                        <p>📋 EPF Registration: Mandatory for 20+ employees</p>
+                        <p>📋 ESI Registration: For employees earning <₹25,000/month</p>
+                    </div>
+                    <div class="ministry-item">
+                        <strong>Insurance Regulatory Authority</strong>
+                        <p>✅ Group Health Insurance: ₹5L coverage per employee</p>
+                        <p>✅ Workmen's Compensation: As per WC Act 1923</p>
+                        <p>✅ Professional Indemnity: ₹1Cr coverage for directors</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedTeamMembers = [];
+        let currentFunding = 1000000;
+
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('.task-checkbox');
+            const checked = document.querySelectorAll('.task-checkbox:checked').length;
+            const progress = (checked / checkboxes.length) * 100;
+            document.getElementById('taskProgress').style.width = progress + '%';
+            
+            if (progress === 100) {
+                showAlert('🎉 Congratulations! All launch tasks completed. Ready to launch Pulse Energy!', 'success');
+            }
+        }
+
+        function selectTeamMember(element, role) {
+            element.classList.toggle('selected');
+            
+            if (element.classList.contains('selected')) {
+                selectedTeamMembers.push(role);
+            } else {
+                selectedTeamMembers = selectedTeamMembers.filter(member => member !== role);
+            }
+            
+            document.getElementById('selectedTeam').innerHTML = 
+                selectedTeamMembers.length > 0 ? 
+                `Selected: ${selectedTeamMembers.join(', ')}` : 
+                'No team members selected';
+        }
+
+        function updateFunding(value) {
+            currentFunding = parseInt(value);
+            document.getElementById('fundingAmount').textContent = 
+                new Intl.NumberFormat('en-IN').format(currentFunding);
+            
+            // Update breakdown
+            const breakdown = document.getElementById('fundingBreakdown');
+            const manufacturing = Math.round(currentFunding * 0.4);
+            const legal = Math.round(currentFunding * 0.1);
+            const marketing = Math.round(currentFunding * 0.3);
+            const working = Math.round(currentFunding * 0.2);
+            
+            breakdown.innerHTML = `
+                <p>Manufacturing Setup: ₹${new Intl.NumberFormat('en-IN').format(manufacturing)} (40%)</p>
+                <p>Legal & Licensing: ₹${new Intl.NumberFormat('en-IN').format(legal)} (10%)</p>
+                <p>Marketing: ₹${new Intl.NumberFormat('en-IN').format(marketing)} (30%)</p>
+                <p>Working Capital: ₹${new Intl.NumberFormat('en-IN').format(working)} (20%)</p>
+            `;
+        }
+
+        function toggleAIChat() {
+            const chat = document.getElementById('aiChat');
+            chat.classList.toggle('active');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            
+            if (input.value.trim()) {
+                // Add user message
+                messages.innerHTML += `
+                    <div style="text-align: right; margin-bottom: 0.5rem;">
+                        <strong>You:</strong> ${input.value}
+                    </div>
+                `;
+                
+                // Simulate AI response
+                setTimeout(() => {
+                    const responses = [
+                        "Based on current market trends, I recommend focusing on natural ingredients and targeting fitness enthusiasts aged 18-35.",
+                        "For legal compliance, prioritize FSSAI license first, then trademark registration. This will protect your brand early.",
+                        "Consider partnering with local gyms for initial distribution. 67% of energy drink consumers are gym-goers.",
+                        "Your funding allocation looks good. Consider increasing marketing budget to 35% for faster market penetration.",
+                        "I suggest starting with Mumbai and Delhi markets first. These cities have highest energy drink consumption rates."
+                    ];
+                    
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    
+                    messages.innerHTML += `
+                        <div style="background: #f0f0f0; padding: 0.5rem; border-radius: 10px; margin-bottom: 0.5rem;">
+                            <strong>AI:</strong> ${randomResponse}
+                        </div>
+                    `;
+                    messages.scrollTop = messages.scrollHeight;
+                }, 1000);
+                
+                input.value = '';
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        function getAISuggestion() {
+            const suggestions = [
+                "💡 Consider launching during fitness season (Jan-March) for 40% higher sales impact.",
+                "🎯 Target college campuses first - students consume 3x more energy drinks than average population.",
+                "📱 Implement QR code on cans linking to fitness challenges - increases brand engagement by 65%.",
+                "🌿 Add 'Natural Caffeine from Green Coffee Beans' - appeals to health-conscious consumers.",
+                "🏆 Sponsor local cricket tournaments - energy drinks see 80% sales boost during sports events."
+            ];
+            
+            const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+            showAlert(randomSuggestion, 'info');
+        }
+
+        function generateBusinessPlan() {
+            showAlert('📄 Comprehensive business plan generated! Includes market analysis, financial projections, and 5-year growth strategy.', 'success');
+        }
+
+        function generateLegalDocs() {
+            showAlert('⚖️ Legal documentation package created! Includes all required forms, applications, and compliance checklists.', 'success');
+        }
+
+        function generateFundingProposal() {
+            showAlert(`💰 Funding proposal ready for ₹${new Intl.NumberFormat('en-IN').format(currentFunding)}! Includes ROI projections and investor pitch deck.`, 'success');
+        }
+
+        function generateBiography() {
+            const biography = `
+                <strong>PULSE ENERGY PRIVATE LIMITED</strong><br><br>
+                Founded: 2024<br>
+                Headquarters: Mumbai, India<br>
+                Industry: Energy Beverages<br><br>
+                <strong>Mission:</strong> To energize India's youth with premium, natural energy drinks that fuel ambition and performance.<br><br>
+                <strong>Vision:</strong> Becoming India's #1 trusted energy drink brand by 2030.<br><br>
+                <strong>Core Values:</strong> Innovation, Quality, Performance, Sustainability<br><br>
+                <strong>Target Market:</strong> Health-conscious individuals aged 18-35, fitness enthusiasts, students, and working professionals.
+            `;
+            
+            showModal('biographyModal', biography);
+        }
+
+        function generateMarketReport() {
+            showAlert('📊 Detailed market report generated! Includes competitor analysis, pricing strategy, and growth opportunities.', 'success');
+        }
+
+        function updateInsuranceCost(empCount) {
+            document.getElementById('empCount').textContent = empCount;
+            
+            // Calculate insurance costs based on employee count
+            const healthCost = empCount * 15000; // ₹15,000 per employee
+            const professionalCost = Math.max(50000, empCount * 2000); // Minimum ₹50,000
+            const wcCost = empCount * 3000; // ₹3,000 per employee
+            const vehicleCost = Math.min(50000, Math.max(20000, empCount * 1000)); // ₹20k-50k range
+            
+            const totalCost = healthCost + professionalCost + wcCost + vehicleCost;
+            
+            document.getElementById('insuranceCost').innerHTML = `
+                <p><strong>Annual Insurance Cost: ₹${new Intl.NumberFormat('en-IN').format(totalCost)}</strong></p>
+                <small>Health: ₹${new Intl.NumberFormat('en-IN').format(healthCost)} | Professional: ₹${new Intl.NumberFormat('en-IN').format(professionalCost)} | WC: ₹${new Intl.NumberFormat('en-IN').format(wcCost)} | Vehicle: ₹${new Intl.NumberFormat('en-IN').format(vehicleCost)}</small>
+            `;
+        }
+
+        function generateInsurancePolicy() {
+            const empCount = document.getElementById('empCount').textContent;
+            showAlert(`🛡️ Comprehensive insurance policy generated for ${empCount} employees! Includes health, professional indemnity, workmen's compensation, and vehicle coverage.`, 'success');
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert';
+            alertDiv.innerHTML = message;
+            
+            if (type === 'success') {
+                alertDiv.style.background = '#d4edda';
+                alertDiv.style.borderColor = '#c3e6cb';
+                alertDiv.style.color = '#155724';
+            }
+            
+            document.getElementById('aiSuggestions').appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function showModal(modalId, content = '') {
+            if (modalId === 'biographyModal') {
+                // Create biography modal dynamically
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.style.display = 'block';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                        <h2>🏢 Company Biography</h2>
+                        <div>${content}</div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } else {
+                document.getElementById(modalId).style.display = 'block';
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Initialize with some AI alerts
+        setTimeout(() => {
+            showAlert('🚨 Reminder: FSSAI license application takes 30-45 days. Start early!', 'info');
+        }, 3000);
+
+        setTimeout(() => {
+            showAlert('💡 Market Insight: Energy drink sales peak during exam seasons (April-May, Nov-Dec)', 'info');
+        }, 8000);
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977a284f213fd91f',t:'MTc1NjYxODQ1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
