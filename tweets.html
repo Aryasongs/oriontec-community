@@ -358,17 +358,22 @@
             const username = document.getElementById('username').value.toLowerCase();
             const dob = document.getElementById('dateOfBirth').value;
 
+            // Create user data with proper null handling
             const userData = {
                 uid: currentUser.uid,
-                fullName: fullName,
-                username: username,
-                email: currentUser.email,
-                dateOfBirth: dob,
-                profileImage: currentBuzzImage || null,
+                fullName: fullName || 'Unknown User',
+                username: username || 'unknown',
+                email: currentUser.email || '',
+                dateOfBirth: dob || '',
                 createdAt: Date.now(),
                 followers: 0,
                 following: 0
             };
+
+            // Only add profileImage if it exists (not null/undefined)
+            if (currentBuzzImage) {
+                userData.profileImage = currentBuzzImage;
+            }
 
             await set(ref(window.firebaseDb, `users/${currentUser.uid}`), userData);
             await set(ref(window.firebaseDb, `usernames/${username}`), currentUser.uid);
@@ -773,18 +778,27 @@
                     throw new Error('User data not found');
                 }
 
+                // Create buzz data with proper null handling
                 const buzzData = {
-                    text: text,
-                    image: currentBuzzImage,
+                    text: text || '',
                     authorId: currentUser.uid,
-                    authorName: userData.fullName,
-                    authorUsername: userData.username,
-                    authorImage: userData.profileImage,
+                    authorName: userData.fullName || 'Unknown User',
+                    authorUsername: userData.username || 'unknown',
                     timestamp: Date.now(),
                     likes: 0,
                     rebuzzes: 0,
                     comments: 0
                 };
+
+                // Only add image if it exists
+                if (currentBuzzImage) {
+                    buzzData.image = currentBuzzImage;
+                }
+
+                // Only add authorImage if it exists
+                if (userData.profileImage) {
+                    buzzData.authorImage = userData.profileImage;
+                }
 
                 console.log('Posting buzz:', buzzData);
                 const buzzesRef = ref(window.firebaseDb, 'buzzes');
@@ -1053,5 +1067,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b4e474661edf5',t:'MTc1NjYzMDQ5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b5316a6a6ff74',t:'MTc1NjYzMDY5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
