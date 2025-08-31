@@ -40,6 +40,20 @@
         .pulse-shadow {
             box-shadow: 0 8px 32px rgba(236, 72, 153, 0.3);
         }
+        @keyframes floatHeart {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-20px) scale(1.2);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-40px) scale(0.8);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -1224,7 +1238,7 @@
         }
 
         async function saveProfileChanges() {
-            const { ref, update, get, set, remove } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const { ref, update, get, set, remove, query, orderByChild, equalTo } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             const fullName = document.getElementById('editFullName').value.trim();
             const username = document.getElementById('editUsername').value.trim().toLowerCase();
             const bio = document.getElementById('editBio').value.trim();
@@ -1272,6 +1286,28 @@
 
                 await update(ref(window.firebaseDb, `users/${currentUser.uid}`), updateData);
 
+                // Update all existing buzzes with new profile info
+                if (newProfileImage || fullName !== currentUserData.fullName || username !== currentUserData.username) {
+                    const buzzesRef = query(ref(window.firebaseDb, 'buzzes'), orderByChild('authorId'), equalTo(currentUser.uid));
+                    const buzzesSnapshot = await get(buzzesRef);
+                    
+                    if (buzzesSnapshot.exists()) {
+                        const buzzUpdates = {};
+                        buzzesSnapshot.forEach((childSnapshot) => {
+                            const buzzId = childSnapshot.key;
+                            buzzUpdates[`buzzes/${buzzId}/authorName`] = fullName;
+                            buzzUpdates[`buzzes/${buzzId}/authorUsername`] = username;
+                            if (newProfileImage) {
+                                buzzUpdates[`buzzes/${buzzId}/authorImage`] = newProfileImage;
+                            }
+                        });
+                        
+                        if (Object.keys(buzzUpdates).length > 0) {
+                            await update(ref(window.firebaseDb), buzzUpdates);
+                        }
+                    }
+                }
+
                 closeEditModal();
                 loadProfileData(); // Refresh profile display
                 loadUserData(); // Refresh nav avatar
@@ -1279,6 +1315,9 @@
                 
                 // Reset new profile image
                 newProfileImage = null;
+
+                // Refresh feed to show updated profile info
+                loadBuzzFeed();
 
             } catch (error) {
                 console.error('Error updating profile:', error);
@@ -1381,47 +1420,83 @@
 
         function handleBuzzMedia(event, type) {
             const file = event.target.files[0];
-            if (file) {
-                // Check file size (max 5MB for videos, 5MB for images due to Firebase limits)
-                const maxSize = 5 * 1024 * 1024; // 5MB for both
-                if (file.size > maxSize) {
-                    showToast(`File too large. Max size: 5MB`, 'error');
+            if (!file) return;
+
+            if (type === 'image') {
+                // Check image file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('Image too large. Max size: 5MB', 'error');
                     return;
                 }
 
-                if (type === 'image') {
-                    // Compress image
-                    compressImage(file, (compressedDataUrl) => {
-                        currentBuzzMedia = compressedDataUrl;
-                        currentMediaType = type;
-                        
-                        // Show preview
-                        document.getElementById('buzzMediaPreview').classList.remove('hidden');
-                        document.getElementById('buzzImageDisplay').src = compressedDataUrl;
-                        document.getElementById('buzzImageDisplay').classList.remove('hidden');
-                        document.getElementById('buzzVideoDisplay').classList.add('hidden');
-                    });
-                } else if (type === 'video') {
-                    // For videos, check if Base64 will be too large
-                    const estimatedBase64Size = file.size * 1.37; // Base64 is ~37% larger
-                    if (estimatedBase64Size > 8 * 1024 * 1024) { // 8MB limit for Firebase
-                        showToast('Video too large for upload. Please use a smaller video (under 3MB)', 'error');
+                // Compress image
+                compressImage(file, (compressedDataUrl) => {
+                    // Double check compressed size
+                    if (compressedDataUrl.length > 8 * 1024 * 1024) {
+                        showToast('Image still too large after compression. Please use a smaller image.', 'error');
                         return;
                     }
+
+                    currentBuzzMedia = compressedDataUrl;
+                    currentMediaType = type;
                     
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        currentBuzzMedia = e.target.result;
-                        currentMediaType = type;
-                        
-                        // Show preview
-                        document.getElementById('buzzMediaPreview').classList.remove('hidden');
-                        document.getElementById('buzzVideoDisplay').src = e.target.result;
-                        document.getElementById('buzzVideoDisplay').classList.remove('hidden');
-                        document.getElementById('buzzImageDisplay').classList.add('hidden');
+                    // Show preview
+                    document.getElementById('buzzMediaPreview').classList.remove('hidden');
+                    const imageDisplay = document.getElementById('buzzImageDisplay');
+                    imageDisplay.src = compressedDataUrl;
+                    imageDisplay.classList.remove('hidden');
+                    imageDisplay.onerror = function() {
+                        showToast('Error loading image preview', 'error');
+                        clearBuzzMedia();
                     };
-                    reader.readAsDataURL(file);
+                    document.getElementById('buzzVideoDisplay').classList.add('hidden');
+                    
+                    showToast('Image added successfully!', 'success');
+                });
+            } else if (type === 'video') {
+                // Check video file size (max 3MB to ensure Base64 stays under 8MB)
+                if (file.size > 3 * 1024 * 1024) {
+                    showToast('Video too large. Please use a video under 3MB', 'error');
+                    return;
                 }
+
+                // Check video format
+                const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+                if (!allowedTypes.includes(file.type)) {
+                    showToast('Unsupported video format. Please use MP4, WebM, or OGG', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const dataUrl = e.target.result;
+                    
+                    // Final size check for Base64
+                    if (dataUrl.length > 8 * 1024 * 1024) {
+                        showToast('Video file creates data too large for upload. Please use a smaller video.', 'error');
+                        return;
+                    }
+
+                    currentBuzzMedia = dataUrl;
+                    currentMediaType = type;
+                    
+                    // Show preview
+                    document.getElementById('buzzMediaPreview').classList.remove('hidden');
+                    const videoDisplay = document.getElementById('buzzVideoDisplay');
+                    videoDisplay.src = dataUrl;
+                    videoDisplay.classList.remove('hidden');
+                    videoDisplay.onerror = function() {
+                        showToast('Error loading video preview', 'error');
+                        clearBuzzMedia();
+                    };
+                    document.getElementById('buzzImageDisplay').classList.add('hidden');
+                    
+                    showToast('Video added successfully!', 'success');
+                };
+                reader.onerror = function() {
+                    showToast('Error reading video file', 'error');
+                };
+                reader.readAsDataURL(file);
             }
         }
 
@@ -1529,26 +1604,88 @@
             }
         }
 
+        let currentBuzzes = [];
+        let feedUpdateTimeout = null;
+
         async function loadBuzzFeed() {
             const { ref, onValue, query, orderByChild, limitToLast } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
-            const buzzesRef = query(ref(window.firebaseDb, 'buzzes'), orderByChild('timestamp'), limitToLast(20));
+            const buzzesRef = query(ref(window.firebaseDb, 'buzzes'), orderByChild('timestamp'), limitToLast(50));
             
             onValue(buzzesRef, (snapshot) => {
                 const buzzes = [];
                 snapshot.forEach((childSnapshot) => {
                     buzzes.unshift({ id: childSnapshot.key, ...childSnapshot.val() });
                 });
-                renderBuzzFeed(buzzes);
+                
+                // Only update if buzzes actually changed
+                if (JSON.stringify(buzzes) !== JSON.stringify(currentBuzzes)) {
+                    currentBuzzes = buzzes;
+                    
+                    // Debounce feed updates to prevent flickering
+                    if (feedUpdateTimeout) {
+                        clearTimeout(feedUpdateTimeout);
+                    }
+                    feedUpdateTimeout = setTimeout(() => {
+                        renderBuzzFeed(buzzes);
+                    }, 100);
+                }
             });
         }
 
         async function renderBuzzFeed(buzzes) {
             const feed = document.getElementById('buzzFeed');
+            
+            // Store scroll position
+            const scrollPosition = window.scrollY;
+            
+            // Get existing buzz elements to preserve state
+            const existingBuzzes = {};
+            feed.querySelectorAll('[data-buzz-id]').forEach(element => {
+                const buzzId = element.getAttribute('data-buzz-id');
+                existingBuzzes[buzzId] = element;
+            });
+
+            // Clear feed
             feed.innerHTML = '';
 
+            // Render buzzes, reusing existing elements where possible
             for (const buzz of buzzes) {
-                const buzzElement = await createBuzzElement(buzz);
+                let buzzElement;
+                if (existingBuzzes[buzz.id]) {
+                    // Reuse existing element and update only if needed
+                    buzzElement = existingBuzzes[buzz.id];
+                    await updateBuzzElement(buzzElement, buzz);
+                } else {
+                    // Create new element
+                    buzzElement = await createBuzzElement(buzz);
+                }
                 feed.appendChild(buzzElement);
+            }
+            
+            // Restore scroll position
+            window.scrollTo(0, scrollPosition);
+        }
+
+        async function updateBuzzElement(element, buzz) {
+            // Update like count and state
+            const likeButton = element.querySelector(`.like-btn-${buzz.id}`);
+            const likeCount = likeButton?.querySelector('span');
+            if (likeCount) {
+                likeCount.textContent = buzz.likes || 0;
+            }
+
+            // Update rebuzz count
+            const rebuzzButton = element.querySelector(`.rebuzz-btn-${buzz.id}`);
+            const rebuzzCount = rebuzzButton?.querySelector('span');
+            if (rebuzzCount) {
+                rebuzzCount.textContent = buzz.rebuzzes || 0;
+            }
+
+            // Update comment count
+            const commentButton = element.querySelector(`[onclick="commentBuzz('${buzz.id}')"]`);
+            const commentCount = commentButton?.querySelector('span');
+            if (commentCount) {
+                commentCount.textContent = buzz.comments || 0;
             }
         }
 
@@ -1732,6 +1869,7 @@
         async function createBuzzElement(buzz, isRebuzz = false) {
             const div = document.createElement('div');
             div.className = 'bg-white rounded-3xl p-6 mb-6 pulse-shadow';
+            div.setAttribute('data-buzz-id', buzz.id);
             
             const authorAvatar = buzz.authorImage 
                 ? `<div class="w-12 h-12 rounded-full cursor-pointer" style="background-image: url(${buzz.authorImage}); background-size: cover;" onclick="viewUserProfile('${buzz.authorId}')"></div>`
@@ -1796,34 +1934,84 @@
             const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
             const userLikeRef = ref(window.firebaseDb, `users/${currentUser.uid}/likedBuzzes/${buzzId}`);
             
-            const buzzSnapshot = await get(buzzRef);
-            const userLikeSnapshot = await get(userLikeRef);
-            const buzz = buzzSnapshot.val();
-            
             const likeButton = document.querySelector(`.like-btn-${buzzId}`);
+            const heartIcon = likeButton.querySelector('svg');
+            const countSpan = likeButton.querySelector('span');
             
-            if (userLikeSnapshot.exists()) {
-                // Unlike
-                await update(buzzRef, { likes: Math.max(0, (buzz.likes || 0) - 1) });
-                await remove(userLikeRef);
+            // Prevent multiple clicks
+            if (likeButton.disabled) return;
+            likeButton.disabled = true;
+            
+            // Add click animation
+            heartIcon.style.transform = 'scale(1.3)';
+            heartIcon.style.transition = 'transform 0.2s ease';
+            
+            try {
+                const buzzSnapshot = await get(buzzRef);
+                const userLikeSnapshot = await get(userLikeRef);
+                const buzz = buzzSnapshot.val();
                 
-                // Update UI
-                likeButton.classList.remove('text-red-500');
-                likeButton.classList.add('text-gray-500');
-                likeButton.querySelector('span').textContent = Math.max(0, (buzz.likes || 0) - 1);
-            } else {
-                // Like
-                await update(buzzRef, { likes: (buzz.likes || 0) + 1 });
-                await update(userLikeRef, { timestamp: Date.now(), buzzId: buzzId });
-                
-                // Update UI
-                likeButton.classList.remove('text-gray-500');
-                likeButton.classList.add('text-red-500');
-                likeButton.querySelector('span').textContent = (buzz.likes || 0) + 1;
-                
-                // Create notification
-                await createNotification(buzz.authorId, 'like', buzzId);
+                if (userLikeSnapshot.exists()) {
+                    // Unlike
+                    const newCount = Math.max(0, (buzz.likes || 0) - 1);
+                    await update(buzzRef, { likes: newCount });
+                    await remove(userLikeRef);
+                    
+                    // Update UI immediately
+                    likeButton.classList.remove('text-red-500');
+                    likeButton.classList.add('text-gray-500');
+                    countSpan.textContent = newCount;
+                } else {
+                    // Like with animation
+                    const newCount = (buzz.likes || 0) + 1;
+                    await update(buzzRef, { likes: newCount });
+                    await update(userLikeRef, { timestamp: Date.now(), buzzId: buzzId });
+                    
+                    // Update UI immediately with animation
+                    likeButton.classList.remove('text-gray-500');
+                    likeButton.classList.add('text-red-500');
+                    countSpan.textContent = newCount;
+                    
+                    // Heart animation
+                    heartIcon.style.fill = '#ef4444';
+                    
+                    // Create floating heart animation
+                    createFloatingHeart(likeButton);
+                    
+                    // Create notification
+                    await createNotification(buzz.authorId, 'like', buzzId);
+                }
+            } catch (error) {
+                console.error('Error liking buzz:', error);
+            } finally {
+                // Reset animation and enable button
+                setTimeout(() => {
+                    heartIcon.style.transform = 'scale(1)';
+                    likeButton.disabled = false;
+                }, 200);
             }
+        }
+
+        function createFloatingHeart(button) {
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤️';
+            heart.style.position = 'absolute';
+            heart.style.fontSize = '20px';
+            heart.style.pointerEvents = 'none';
+            heart.style.zIndex = '1000';
+            heart.style.animation = 'floatHeart 1s ease-out forwards';
+            
+            const rect = button.getBoundingClientRect();
+            heart.style.left = rect.left + rect.width / 2 + 'px';
+            heart.style.top = rect.top + 'px';
+            
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                if (heart.parentNode) {
+                    heart.parentNode.removeChild(heart);
+                }
+            }, 1000);
         }
 
         function commentBuzz(buzzId) {
@@ -1864,50 +2052,75 @@
             const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
             const userRebuzzRef = ref(window.firebaseDb, `users/${currentUser.uid}/rebuzzedBuzzes/${buzzId}`);
             
-            const buzzSnapshot = await get(buzzRef);
-            const userRebuzzSnapshot = await get(userRebuzzRef);
-            const buzz = buzzSnapshot.val();
-            
             const rebuzzButton = document.querySelector(`.rebuzz-btn-${buzzId}`);
+            const rebuzzIcon = rebuzzButton.querySelector('svg');
+            const countSpan = rebuzzButton.querySelector('span');
             
-            if (userRebuzzSnapshot.exists()) {
-                // Un-rebuzz
-                await update(buzzRef, { rebuzzes: Math.max(0, (buzz.rebuzzes || 0) - 1) });
-                await remove(userRebuzzRef);
+            // Prevent multiple clicks
+            if (rebuzzButton.disabled) return;
+            rebuzzButton.disabled = true;
+            
+            // Add click animation
+            rebuzzIcon.style.transform = 'scale(1.2)';
+            rebuzzIcon.style.transition = 'transform 0.2s ease';
+            
+            try {
+                const buzzSnapshot = await get(buzzRef);
+                const userRebuzzSnapshot = await get(userRebuzzRef);
+                const buzz = buzzSnapshot.val();
                 
-                // Update UI
-                rebuzzButton.classList.remove('text-green-500');
-                rebuzzButton.classList.add('text-gray-500');
-                rebuzzButton.querySelector('span').textContent = Math.max(0, (buzz.rebuzzes || 0) - 1);
-            } else {
-                // Rebuzz
-                await update(buzzRef, { rebuzzes: (buzz.rebuzzes || 0) + 1 });
-                await update(userRebuzzRef, { timestamp: Date.now(), originalBuzzId: buzzId });
-                
-                // Update UI
-                rebuzzButton.classList.remove('text-gray-500');
-                rebuzzButton.classList.add('text-green-500');
-                rebuzzButton.querySelector('span').textContent = (buzz.rebuzzes || 0) + 1;
-                
-                // Create rebuzz entry
-                const userRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
-                const userSnapshot = await get(userRef);
-                const userData = userSnapshot.val();
+                if (userRebuzzSnapshot.exists()) {
+                    // Un-rebuzz
+                    const newCount = Math.max(0, (buzz.rebuzzes || 0) - 1);
+                    await update(buzzRef, { rebuzzes: newCount });
+                    await remove(userRebuzzRef);
+                    
+                    // Update UI immediately
+                    rebuzzButton.classList.remove('text-green-500');
+                    rebuzzButton.classList.add('text-gray-500');
+                    countSpan.textContent = newCount;
+                } else {
+                    // Rebuzz
+                    const newCount = (buzz.rebuzzes || 0) + 1;
+                    await update(buzzRef, { rebuzzes: newCount });
+                    await update(userRebuzzRef, { timestamp: Date.now(), originalBuzzId: buzzId });
+                    
+                    // Update UI immediately
+                    rebuzzButton.classList.remove('text-gray-500');
+                    rebuzzButton.classList.add('text-green-500');
+                    countSpan.textContent = newCount;
+                    
+                    // Create rebuzz entry
+                    const userRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
+                    const userSnapshot = await get(userRef);
+                    const userData = userSnapshot.val();
 
-                const rebuzzData = {
-                    originalBuzzId: buzzId,
-                    originalBuzz: buzz,
-                    rebuzzedBy: currentUser.uid,
-                    rebuzzedByName: userData.fullName,
-                    rebuzzedByUsername: userData.username,
-                    timestamp: Date.now(),
-                    type: 'rebuzz'
-                };
+                    const rebuzzData = {
+                        originalBuzzId: buzzId,
+                        originalBuzz: buzz,
+                        rebuzzedBy: currentUser.uid,
+                        rebuzzedByName: userData.fullName,
+                        rebuzzedByUsername: userData.username,
+                        timestamp: Date.now(),
+                        type: 'rebuzz'
+                    };
 
-                await push(ref(window.firebaseDb, 'rebuzzes'), rebuzzData);
-                
-                // Create notification
-                await createNotification(buzz.authorId, 'rebuzz', buzzId);
+                    await push(ref(window.firebaseDb, 'rebuzzes'), rebuzzData);
+                    
+                    // Create notification
+                    await createNotification(buzz.authorId, 'rebuzz', buzzId);
+                    
+                    showToast('Rebuzzed!', 'success');
+                }
+            } catch (error) {
+                console.error('Error rebuzzing:', error);
+                showToast('Failed to rebuzz', 'error');
+            } finally {
+                // Reset animation and enable button
+                setTimeout(() => {
+                    rebuzzIcon.style.transform = 'scale(1)';
+                    rebuzzButton.disabled = false;
+                }, 200);
             }
         }
 
@@ -2020,5 +2233,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b7e01b2fb8ae7',t:'MTc1NjYzMjQ0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b87942698596b',t:'MTc1NjYzMjg0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
