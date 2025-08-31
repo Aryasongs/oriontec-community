@@ -154,7 +154,11 @@
         <!-- Notifications Screen -->
         <div id="notificationsScreen" class="hidden max-w-2xl mx-auto p-4">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Notifications</h2>
-            <div id="notificationsList" class="space-y-4"></div>
+            <div id="notificationsList" class="space-y-4">
+                <div class="bg-white rounded-3xl p-6 text-center">
+                    <p class="text-gray-500">No notifications yet</p>
+                </div>
+            </div>
         </div>
 
         <!-- Messages Screen -->
@@ -489,8 +493,42 @@
         }
 
         async function loadUserRebuzzes() {
-            // Implementation for rebuzzes
-            document.getElementById('profileRebuzzes').innerHTML = '<p class="text-gray-500 text-center py-8">No rebuzzes yet</p>';
+            const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const rebuzzesRef = ref(window.firebaseDb, `users/${currentUser.uid}/rebuzzedBuzzes`);
+            const snapshot = await get(rebuzzesRef);
+            
+            const container = document.getElementById('profileRebuzzes');
+            
+            if (!snapshot.exists()) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No rebuzzes yet</p>';
+                return;
+            }
+
+            const rebuzzedBuzzes = [];
+            const rebuzzData = snapshot.val();
+            
+            // Get original buzzes for each rebuzz
+            for (const buzzId of Object.keys(rebuzzData)) {
+                const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
+                const buzzSnapshot = await get(buzzRef);
+                if (buzzSnapshot.exists()) {
+                    rebuzzedBuzzes.push({ id: buzzId, ...buzzSnapshot.val() });
+                }
+            }
+
+            // Sort by rebuzz timestamp
+            rebuzzedBuzzes.sort((a, b) => (rebuzzData[b.id]?.timestamp || 0) - (rebuzzData[a.id]?.timestamp || 0));
+
+            container.innerHTML = '';
+            if (rebuzzedBuzzes.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No rebuzzes yet</p>';
+                return;
+            }
+
+            rebuzzedBuzzes.forEach(buzz => {
+                const buzzElement = createBuzzElement(buzz, true);
+                container.appendChild(buzzElement);
+            });
         }
 
         async function loadUserMedia() {
@@ -525,8 +563,42 @@
         }
 
         async function loadUserLikes() {
-            // Implementation for liked posts
-            document.getElementById('profileLikes').innerHTML = '<p class="text-gray-500 text-center py-8">No liked posts yet</p>';
+            const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const likesRef = ref(window.firebaseDb, `users/${currentUser.uid}/likedBuzzes`);
+            const snapshot = await get(likesRef);
+            
+            const container = document.getElementById('profileLikes');
+            
+            if (!snapshot.exists()) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No liked posts yet</p>';
+                return;
+            }
+
+            const likedBuzzes = [];
+            const likeData = snapshot.val();
+            
+            // Get original buzzes for each liked buzz
+            for (const buzzId of Object.keys(likeData)) {
+                const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
+                const buzzSnapshot = await get(buzzRef);
+                if (buzzSnapshot.exists()) {
+                    likedBuzzes.push({ id: buzzId, ...buzzSnapshot.val() });
+                }
+            }
+
+            // Sort by like timestamp
+            likedBuzzes.sort((a, b) => (likeData[b.id]?.timestamp || 0) - (likeData[a.id]?.timestamp || 0));
+
+            container.innerHTML = '';
+            if (likedBuzzes.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No liked posts yet</p>';
+                return;
+            }
+
+            likedBuzzes.forEach(buzz => {
+                const buzzElement = createBuzzElement(buzz);
+                container.appendChild(buzzElement);
+            });
         }
 
         async function togglePrivateAccount() {
@@ -543,7 +615,77 @@
         }
 
         function editProfile() {
-            alert('Edit Profile feature coming soon!');
+            showEditProfileModal();
+        }
+
+        function showEditProfileModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl p-6 max-w-md w-full">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">Edit Profile</h3>
+                        <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                            <input type="text" id="editFullName" class="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                            <textarea id="editBio" rows="3" class="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Tell us about yourself..."></textarea>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="closeEditModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-full font-medium hover:bg-gray-50">Cancel</button>
+                            <button onclick="saveProfileChanges()" class="flex-1 gradient-bg text-white px-4 py-2 rounded-full font-medium">Save</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Load current data
+            loadCurrentProfileData();
+        }
+
+        async function loadCurrentProfileData() {
+            const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const userRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
+            const snapshot = await get(userRef);
+            const userData = snapshot.val();
+            
+            document.getElementById('editFullName').value = userData.fullName || '';
+            document.getElementById('editBio').value = userData.bio || '';
+        }
+
+        async function saveProfileChanges() {
+            const { ref, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const fullName = document.getElementById('editFullName').value.trim();
+            const bio = document.getElementById('editBio').value.trim();
+            
+            if (!fullName) {
+                alert('Full name is required');
+                return;
+            }
+
+            await update(ref(window.firebaseDb, `users/${currentUser.uid}`), {
+                fullName: fullName,
+                bio: bio
+            });
+
+            closeEditModal();
+            loadProfileData(); // Refresh profile display
+            alert('Profile updated successfully!');
+        }
+
+        function closeEditModal() {
+            const modal = document.querySelector('.fixed.inset-0');
+            if (modal) {
+                modal.remove();
+            }
         }
 
         async function loadBlockedUsers() {
@@ -654,7 +796,7 @@
             });
         }
 
-        function createBuzzElement(buzz) {
+        function createBuzzElement(buzz, isRebuzz = false) {
             const div = document.createElement('div');
             div.className = 'bg-white rounded-3xl p-6 mb-6 pulse-shadow';
             
@@ -662,7 +804,15 @@
                 ? `<div class="w-12 h-12 rounded-full" style="background-image: url(${buzz.authorImage}); background-size: cover;"></div>`
                 : `<div class="w-12 h-12 rounded-full gradient-bg flex items-center justify-center text-white font-bold">${buzz.authorName.charAt(0).toUpperCase()}</div>`;
 
+            const rebuzzHeader = isRebuzz ? `
+                <div class="flex items-center gap-2 mb-3 text-gray-500 text-sm">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/></svg>
+                    <span>You rebuzzed</span>
+                </div>
+            ` : '';
+
             div.innerHTML = `
+                ${rebuzzHeader}
                 <div class="flex gap-4">
                     ${authorAvatar}
                     <div class="flex-1">
@@ -675,7 +825,7 @@
                         <p class="text-gray-800 mb-4">${buzz.text}</p>
                         ${buzz.image ? `<img src="${buzz.image}" class="w-full rounded-2xl mb-4 max-h-96 object-cover">` : ''}
                         <div class="flex justify-between items-center text-gray-500">
-                            <button onclick="likeBuzz('${buzz.id}')" class="flex items-center gap-2 hover:text-red-500 transition-colors">
+                            <button onclick="likeBuzz('${buzz.id}')" class="like-btn-${buzz.id} flex items-center gap-2 hover:text-red-500 transition-colors">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                 <span>${buzz.likes || 0}</span>
                             </button>
@@ -683,11 +833,11 @@
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h11c.55 0 1-.45 1-1z"/></svg>
                                 <span>${buzz.comments || 0}</span>
                             </button>
-                            <button onclick="rebuzz('${buzz.id}')" class="flex items-center gap-2 hover:text-green-500 transition-colors">
+                            <button onclick="rebuzz('${buzz.id}')" class="rebuzz-btn-${buzz.id} flex items-center gap-2 hover:text-green-500 transition-colors">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/></svg>
                                 <span>${buzz.rebuzzes || 0}</span>
                             </button>
-                            <button onclick="saveBuzz('${buzz.id}')" class="hover:text-pink-500 transition-colors">
+                            <button onclick="saveBuzz('${buzz.id}')" class="save-btn-${buzz.id} hover:text-pink-500 transition-colors">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
                             </button>
                             <button onclick="shareBuzz('${buzz.id}')" class="hover:text-blue-500 transition-colors">
@@ -704,27 +854,104 @@
         async function likeBuzz(buzzId) {
             const { ref, get, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
-            const snapshot = await get(buzzRef);
-            const buzz = snapshot.val();
+            const userLikeRef = ref(window.firebaseDb, `users/${currentUser.uid}/likedBuzzes/${buzzId}`);
             
-            await update(buzzRef, { likes: (buzz.likes || 0) + 1 });
+            const buzzSnapshot = await get(buzzRef);
+            const userLikeSnapshot = await get(userLikeRef);
+            const buzz = buzzSnapshot.val();
+            
+            if (userLikeSnapshot.exists()) {
+                // Unlike
+                await update(buzzRef, { likes: Math.max(0, (buzz.likes || 0) - 1) });
+                await update(ref(window.firebaseDb, `users/${currentUser.uid}/likedBuzzes/${buzzId}`), null);
+            } else {
+                // Like
+                await update(buzzRef, { likes: (buzz.likes || 0) + 1 });
+                await update(userLikeRef, { timestamp: Date.now(), buzzId: buzzId });
+            }
         }
 
         function commentBuzz(buzzId) {
-            alert('Comment feature coming soon!');
+            const comment = prompt('Add a comment:');
+            if (comment && comment.trim()) {
+                addComment(buzzId, comment.trim());
+            }
+        }
+
+        async function addComment(buzzId, commentText) {
+            const { ref, push, get, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const userRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
+            const userSnapshot = await get(userRef);
+            const userData = userSnapshot.val();
+
+            const commentData = {
+                text: commentText,
+                authorId: currentUser.uid,
+                authorName: userData.fullName,
+                authorUsername: userData.username,
+                timestamp: Date.now()
+            };
+
+            await push(ref(window.firebaseDb, `comments/${buzzId}`), commentData);
+            
+            // Update comment count
+            const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
+            const buzzSnapshot = await get(buzzRef);
+            const buzz = buzzSnapshot.val();
+            await update(buzzRef, { comments: (buzz.comments || 0) + 1 });
         }
 
         async function rebuzz(buzzId) {
-            const { ref, get, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const { ref, get, update, push } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
-            const snapshot = await get(buzzRef);
-            const buzz = snapshot.val();
+            const userRebuzzRef = ref(window.firebaseDb, `users/${currentUser.uid}/rebuzzedBuzzes/${buzzId}`);
             
-            await update(buzzRef, { rebuzzes: (buzz.rebuzzes || 0) + 1 });
+            const buzzSnapshot = await get(buzzRef);
+            const userRebuzzSnapshot = await get(userRebuzzRef);
+            const buzz = buzzSnapshot.val();
+            
+            if (userRebuzzSnapshot.exists()) {
+                // Un-rebuzz
+                await update(buzzRef, { rebuzzes: Math.max(0, (buzz.rebuzzes || 0) - 1) });
+                await update(ref(window.firebaseDb, `users/${currentUser.uid}/rebuzzedBuzzes/${buzzId}`), null);
+            } else {
+                // Rebuzz
+                await update(buzzRef, { rebuzzes: (buzz.rebuzzes || 0) + 1 });
+                await update(userRebuzzRef, { timestamp: Date.now(), originalBuzzId: buzzId });
+                
+                // Create rebuzz entry
+                const userRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
+                const userSnapshot = await get(userRef);
+                const userData = userSnapshot.val();
+
+                const rebuzzData = {
+                    originalBuzzId: buzzId,
+                    originalBuzz: buzz,
+                    rebuzzedBy: currentUser.uid,
+                    rebuzzedByName: userData.fullName,
+                    rebuzzedByUsername: userData.username,
+                    timestamp: Date.now(),
+                    type: 'rebuzz'
+                };
+
+                await push(ref(window.firebaseDb, 'rebuzzes'), rebuzzData);
+            }
         }
 
-        function saveBuzz(buzzId) {
-            alert('Save feature coming soon!');
+        async function saveBuzz(buzzId) {
+            const { ref, get, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const userSaveRef = ref(window.firebaseDb, `users/${currentUser.uid}/savedBuzzes/${buzzId}`);
+            const saveSnapshot = await get(userSaveRef);
+            
+            if (saveSnapshot.exists()) {
+                // Unsave
+                await update(userSaveRef, null);
+                alert('Buzz removed from saved!');
+            } else {
+                // Save
+                await update(userSaveRef, { timestamp: Date.now(), buzzId: buzzId });
+                alert('Buzz saved!');
+            }
         }
 
         function shareBuzz(buzzId) {
@@ -775,5 +1002,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b43ba65af25cd',t:'MTc1NjYzMDA2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b48f9243854cc',t:'MTc1NjYzMDI3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
