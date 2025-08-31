@@ -192,15 +192,27 @@
                         <textarea id="buzzText" placeholder="What's buzzing?" class="w-full p-4 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-500" rows="3"></textarea>
                         <div class="flex justify-between items-center mt-4">
                             <div class="flex gap-4">
-                                <input type="file" id="buzzImage" accept="image/*" class="hidden" onchange="handleBuzzImage(event)">
-                                <button onclick="document.getElementById('buzzImage').click()" class="text-pink-500 hover:bg-pink-50 p-2 rounded-full">
+                                <input type="file" id="buzzImage" accept="image/*" class="hidden" onchange="handleBuzzMedia(event, 'image')">
+                                <input type="file" id="buzzVideo" accept="video/*" class="hidden" onchange="handleBuzzMedia(event, 'video')">
+                                <button onclick="document.getElementById('buzzImage').click()" class="text-pink-500 hover:bg-pink-50 p-2 rounded-full" title="Add Photo">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                                </button>
+                                <button onclick="document.getElementById('buzzVideo').click()" class="text-blue-500 hover:bg-blue-50 p-2 rounded-full" title="Add Video">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
                                 </button>
                             </div>
                             <button id="buzzButton" onclick="postBuzz()" class="gradient-bg text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity">Buzz</button>
                         </div>
-                        <div id="buzzImagePreview" class="hidden mt-4">
-                            <img id="buzzImageDisplay" class="w-full rounded-2xl max-h-64 object-cover">
+                        <div id="buzzMediaPreview" class="hidden mt-4">
+                            <div class="relative">
+                                <img id="buzzImageDisplay" class="hidden w-full rounded-2xl max-h-64 object-cover">
+                                <video id="buzzVideoDisplay" class="hidden w-full rounded-2xl max-h-64" controls>
+                                    Your browser does not support the video tag.
+                                </video>
+                                <button onclick="clearBuzzMedia()" class="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full p-1 hover:bg-opacity-70">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -389,7 +401,6 @@
 
     <script>
         let currentUser = null;
-        let currentBuzzImage = null;
 
         // Authentication
         async function signInWithGoogle() {
@@ -960,7 +971,7 @@
             });
         }
 
-        function renderProfileBuzzes(buzzes) {
+        async function renderProfileBuzzes(buzzes) {
             const container = document.getElementById('profileBuzzes');
             container.innerHTML = '';
 
@@ -969,10 +980,10 @@
                 return;
             }
 
-            buzzes.forEach(buzz => {
-                const buzzElement = createBuzzElement(buzz);
+            for (const buzz of buzzes) {
+                const buzzElement = await createBuzzElement(buzz);
                 container.appendChild(buzzElement);
-            });
+            }
         }
 
         function showProfileTab(tab) {
@@ -1137,9 +1148,20 @@
                         </button>
                     </div>
                     <div class="space-y-4">
+                        <div class="text-center">
+                            <div id="editProfilePreview" class="w-20 h-20 rounded-full mx-auto mb-3 gradient-bg flex items-center justify-center text-white text-xl font-bold cursor-pointer" onclick="document.getElementById('editProfileImage').click()">
+                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"/></svg>
+                            </div>
+                            <input type="file" id="editProfileImage" accept="image/*" class="hidden" onchange="handleEditProfileImage(event)">
+                            <p class="text-sm text-gray-500">Click to change profile picture</p>
+                        </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                             <input type="text" id="editFullName" class="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                            <input type="text" id="editUsername" class="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="username123">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
@@ -1158,6 +1180,8 @@
             loadCurrentProfileData();
         }
 
+        let newProfileImage = null;
+
         async function loadCurrentProfileData() {
             const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             const userRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
@@ -1165,27 +1189,103 @@
             const userData = snapshot.val();
             
             document.getElementById('editFullName').value = userData.fullName || '';
+            document.getElementById('editUsername').value = userData.username || '';
             document.getElementById('editBio').value = userData.bio || '';
+            
+            // Set profile image preview
+            const preview = document.getElementById('editProfilePreview');
+            if (userData.profileImage) {
+                preview.style.backgroundImage = `url(${userData.profileImage})`;
+                preview.style.backgroundSize = 'cover';
+                preview.innerHTML = '';
+            } else {
+                preview.textContent = userData.fullName.charAt(0).toUpperCase();
+                preview.style.backgroundImage = '';
+            }
+        }
+
+        function handleEditProfileImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('Image too large. Max size: 5MB', 'error');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    newProfileImage = e.target.result;
+                    const preview = document.getElementById('editProfilePreview');
+                    preview.style.backgroundImage = `url(${e.target.result})`;
+                    preview.style.backgroundSize = 'cover';
+                    preview.innerHTML = '';
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         async function saveProfileChanges() {
-            const { ref, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const { ref, update, get, set, remove } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             const fullName = document.getElementById('editFullName').value.trim();
+            const username = document.getElementById('editUsername').value.trim().toLowerCase();
             const bio = document.getElementById('editBio').value.trim();
             
             if (!fullName) {
-                alert('Full name is required');
+                showToast('Full name is required', 'error');
                 return;
             }
 
-            await update(ref(window.firebaseDb, `users/${currentUser.uid}`), {
-                fullName: fullName,
-                bio: bio
-            });
+            if (!username || !/^[a-z0-9]+$/.test(username)) {
+                showToast('Username can only contain letters and numbers', 'error');
+                return;
+            }
 
-            closeEditModal();
-            loadProfileData(); // Refresh profile display
-            alert('Profile updated successfully!');
+            try {
+                // Check if username is available (if changed)
+                const currentUserData = (await get(ref(window.firebaseDb, `users/${currentUser.uid}`))).val();
+                
+                if (username !== currentUserData.username) {
+                    const usernameRef = ref(window.firebaseDb, `usernames/${username}`);
+                    const usernameSnapshot = await get(usernameRef);
+                    
+                    if (usernameSnapshot.exists()) {
+                        showToast('Username already taken', 'error');
+                        return;
+                    }
+
+                    // Remove old username mapping
+                    await remove(ref(window.firebaseDb, `usernames/${currentUserData.username}`));
+                    // Add new username mapping
+                    await set(usernameRef, currentUser.uid);
+                }
+
+                // Prepare update data
+                const updateData = {
+                    fullName: fullName,
+                    username: username,
+                    bio: bio
+                };
+
+                // Add profile image if changed
+                if (newProfileImage) {
+                    updateData.profileImage = newProfileImage;
+                }
+
+                await update(ref(window.firebaseDb, `users/${currentUser.uid}`), updateData);
+
+                closeEditModal();
+                loadProfileData(); // Refresh profile display
+                loadUserData(); // Refresh nav avatar
+                showToast('Profile updated successfully!', 'success');
+                
+                // Reset new profile image
+                newProfileImage = null;
+
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showToast('Failed to update profile', 'error');
+            }
         }
 
         function closeEditModal() {
@@ -1237,23 +1337,55 @@
             loadBlockedUsers();
         }
 
-        function handleBuzzImage(event) {
+        let currentBuzzMedia = null;
+        let currentMediaType = null;
+
+        function handleBuzzMedia(event, type) {
             const file = event.target.files[0];
             if (file) {
+                // Check file size (max 50MB for videos, 10MB for images)
+                const maxSize = type === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    showToast(`File too large. Max size: ${type === 'video' ? '50MB' : '10MB'}`, 'error');
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    currentBuzzImage = e.target.result;
-                    document.getElementById('buzzImagePreview').classList.remove('hidden');
-                    document.getElementById('buzzImageDisplay').src = e.target.result;
+                    currentBuzzMedia = e.target.result;
+                    currentMediaType = type;
+                    
+                    // Show preview
+                    document.getElementById('buzzMediaPreview').classList.remove('hidden');
+                    
+                    if (type === 'image') {
+                        document.getElementById('buzzImageDisplay').src = e.target.result;
+                        document.getElementById('buzzImageDisplay').classList.remove('hidden');
+                        document.getElementById('buzzVideoDisplay').classList.add('hidden');
+                    } else if (type === 'video') {
+                        document.getElementById('buzzVideoDisplay').src = e.target.result;
+                        document.getElementById('buzzVideoDisplay').classList.remove('hidden');
+                        document.getElementById('buzzImageDisplay').classList.add('hidden');
+                    }
                 };
                 reader.readAsDataURL(file);
             }
         }
 
+        function clearBuzzMedia() {
+            currentBuzzMedia = null;
+            currentMediaType = null;
+            document.getElementById('buzzMediaPreview').classList.add('hidden');
+            document.getElementById('buzzImageDisplay').classList.add('hidden');
+            document.getElementById('buzzVideoDisplay').classList.add('hidden');
+            document.getElementById('buzzImage').value = '';
+            document.getElementById('buzzVideo').value = '';
+        }
+
         async function postBuzz() {
             const text = document.getElementById('buzzText').value.trim();
-            if (!text && !currentBuzzImage) {
-                alert('Please write something or add an image!');
+            if (!text && !currentBuzzMedia) {
+                showToast('Please write something or add media!', 'error');
                 return;
             }
 
@@ -1292,9 +1424,13 @@
                     comments: 0
                 };
 
-                // Only add image if it exists
-                if (currentBuzzImage) {
-                    buzzData.image = currentBuzzImage;
+                // Add media if it exists
+                if (currentBuzzMedia) {
+                    if (currentMediaType === 'image') {
+                        buzzData.image = currentBuzzMedia;
+                    } else if (currentMediaType === 'video') {
+                        buzzData.video = currentBuzzMedia;
+                    }
                 }
 
                 // Only add authorImage if it exists
@@ -1308,15 +1444,15 @@
 
                 // Clear the form
                 document.getElementById('buzzText').value = '';
-                document.getElementById('buzzImagePreview').classList.add('hidden');
-                document.getElementById('buzzImage').value = '';
-                currentBuzzImage = null;
+                clearBuzzMedia();
                 
                 console.log('Buzz posted successfully!');
                 
                 // Show success state briefly
                 buzzButton.textContent = 'Posted!';
                 buzzButton.style.backgroundColor = '#10b981';
+                
+                showToast('Buzz posted successfully!', 'success');
                 
                 // Reload feed immediately
                 loadBuzzFeed();
@@ -1331,7 +1467,7 @@
 
             } catch (error) {
                 console.error('Error posting buzz:', error);
-                alert('Failed to post buzz: ' + error.message);
+                showToast('Failed to post buzz: ' + error.message, 'error');
                 
                 // Reset button on error
                 buzzButton.textContent = originalText;
@@ -1353,14 +1489,14 @@
             });
         }
 
-        function renderBuzzFeed(buzzes) {
+        async function renderBuzzFeed(buzzes) {
             const feed = document.getElementById('buzzFeed');
             feed.innerHTML = '';
 
-            buzzes.forEach(buzz => {
-                const buzzElement = createBuzzElement(buzz);
+            for (const buzz of buzzes) {
+                const buzzElement = await createBuzzElement(buzz);
                 feed.appendChild(buzzElement);
-            });
+            }
         }
 
         // Notification system
@@ -1540,7 +1676,7 @@
             // In a real app, you'd scroll to or highlight the specific buzz
         }
 
-        function createBuzzElement(buzz, isRebuzz = false) {
+        async function createBuzzElement(buzz, isRebuzz = false) {
             const div = document.createElement('div');
             div.className = 'bg-white rounded-3xl p-6 mb-6 pulse-shadow';
             
@@ -1555,6 +1691,12 @@
                 </div>
             ` : '';
 
+            // Check user interactions for button states
+            const { ref, get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const userLiked = currentUser ? (await get(ref(window.firebaseDb, `users/${currentUser.uid}/likedBuzzes/${buzz.id}`))).exists() : false;
+            const userRebuzzed = currentUser ? (await get(ref(window.firebaseDb, `users/${currentUser.uid}/rebuzzedBuzzes/${buzz.id}`))).exists() : false;
+            const userSaved = currentUser ? (await get(ref(window.firebaseDb, `users/${currentUser.uid}/savedBuzzes/${buzz.id}`))).exists() : false;
+
             div.innerHTML = `
                 ${rebuzzHeader}
                 <div class="flex gap-4">
@@ -1568,8 +1710,9 @@
                         </div>
                         <p class="text-gray-800 mb-4">${buzz.text}</p>
                         ${buzz.image ? `<img src="${buzz.image}" class="w-full rounded-2xl mb-4 max-h-96 object-cover">` : ''}
+                        ${buzz.video ? `<video src="${buzz.video}" class="w-full rounded-2xl mb-4 max-h-96" controls>Your browser does not support the video tag.</video>` : ''}
                         <div class="flex justify-between items-center text-gray-500">
-                            <button onclick="likeBuzz('${buzz.id}')" class="like-btn-${buzz.id} flex items-center gap-2 hover:text-red-500 transition-colors">
+                            <button onclick="likeBuzz('${buzz.id}')" class="like-btn-${buzz.id} flex items-center gap-2 hover:text-red-500 transition-colors ${userLiked ? 'text-red-500' : 'text-gray-500'}">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                 <span>${buzz.likes || 0}</span>
                             </button>
@@ -1577,11 +1720,11 @@
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h11c.55 0 1-.45 1-1z"/></svg>
                                 <span>${buzz.comments || 0}</span>
                             </button>
-                            <button onclick="rebuzz('${buzz.id}')" class="rebuzz-btn-${buzz.id} flex items-center gap-2 hover:text-green-500 transition-colors">
+                            <button onclick="rebuzz('${buzz.id}')" class="rebuzz-btn-${buzz.id} flex items-center gap-2 hover:text-green-500 transition-colors ${userRebuzzed ? 'text-green-500' : 'text-gray-500'}">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/></svg>
                                 <span>${buzz.rebuzzes || 0}</span>
                             </button>
-                            <button onclick="saveBuzz('${buzz.id}')" class="save-btn-${buzz.id} hover:text-pink-500 transition-colors">
+                            <button onclick="saveBuzz('${buzz.id}')" class="save-btn-${buzz.id} hover:text-pink-500 transition-colors ${userSaved ? 'text-pink-500' : 'text-gray-500'}">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
                             </button>
                             <button onclick="shareBuzz('${buzz.id}')" class="hover:text-blue-500 transition-colors">
@@ -1596,7 +1739,7 @@
         }
 
         async function likeBuzz(buzzId) {
-            const { ref, get, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const { ref, get, update, remove } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
             const userLikeRef = ref(window.firebaseDb, `users/${currentUser.uid}/likedBuzzes/${buzzId}`);
             
@@ -1604,14 +1747,26 @@
             const userLikeSnapshot = await get(userLikeRef);
             const buzz = buzzSnapshot.val();
             
+            const likeButton = document.querySelector(`.like-btn-${buzzId}`);
+            
             if (userLikeSnapshot.exists()) {
                 // Unlike
                 await update(buzzRef, { likes: Math.max(0, (buzz.likes || 0) - 1) });
-                await update(ref(window.firebaseDb, `users/${currentUser.uid}/likedBuzzes/${buzzId}`), null);
+                await remove(userLikeRef);
+                
+                // Update UI
+                likeButton.classList.remove('text-red-500');
+                likeButton.classList.add('text-gray-500');
+                likeButton.querySelector('span').textContent = Math.max(0, (buzz.likes || 0) - 1);
             } else {
                 // Like
                 await update(buzzRef, { likes: (buzz.likes || 0) + 1 });
                 await update(userLikeRef, { timestamp: Date.now(), buzzId: buzzId });
+                
+                // Update UI
+                likeButton.classList.remove('text-gray-500');
+                likeButton.classList.add('text-red-500');
+                likeButton.querySelector('span').textContent = (buzz.likes || 0) + 1;
                 
                 // Create notification
                 await createNotification(buzz.authorId, 'like', buzzId);
@@ -1652,7 +1807,7 @@
         }
 
         async function rebuzz(buzzId) {
-            const { ref, get, update, push } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const { ref, get, update, push, remove } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
             const userRebuzzRef = ref(window.firebaseDb, `users/${currentUser.uid}/rebuzzedBuzzes/${buzzId}`);
             
@@ -1660,14 +1815,26 @@
             const userRebuzzSnapshot = await get(userRebuzzRef);
             const buzz = buzzSnapshot.val();
             
+            const rebuzzButton = document.querySelector(`.rebuzz-btn-${buzzId}`);
+            
             if (userRebuzzSnapshot.exists()) {
                 // Un-rebuzz
                 await update(buzzRef, { rebuzzes: Math.max(0, (buzz.rebuzzes || 0) - 1) });
-                await update(ref(window.firebaseDb, `users/${currentUser.uid}/rebuzzedBuzzes/${buzzId}`), null);
+                await remove(userRebuzzRef);
+                
+                // Update UI
+                rebuzzButton.classList.remove('text-green-500');
+                rebuzzButton.classList.add('text-gray-500');
+                rebuzzButton.querySelector('span').textContent = Math.max(0, (buzz.rebuzzes || 0) - 1);
             } else {
                 // Rebuzz
                 await update(buzzRef, { rebuzzes: (buzz.rebuzzes || 0) + 1 });
                 await update(userRebuzzRef, { timestamp: Date.now(), originalBuzzId: buzzId });
+                
+                // Update UI
+                rebuzzButton.classList.remove('text-gray-500');
+                rebuzzButton.classList.add('text-green-500');
+                rebuzzButton.querySelector('span').textContent = (buzz.rebuzzes || 0) + 1;
                 
                 // Create rebuzz entry
                 const userRef = ref(window.firebaseDb, `users/${currentUser.uid}`);
@@ -1692,18 +1859,32 @@
         }
 
         async function saveBuzz(buzzId) {
-            const { ref, get, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const { ref, get, update, remove } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             const userSaveRef = ref(window.firebaseDb, `users/${currentUser.uid}/savedBuzzes/${buzzId}`);
             const saveSnapshot = await get(userSaveRef);
             
+            const saveButton = document.querySelector(`.save-btn-${buzzId}`);
+            
             if (saveSnapshot.exists()) {
                 // Unsave
-                await update(userSaveRef, null);
-                alert('Buzz removed from saved!');
+                await remove(userSaveRef);
+                
+                // Update UI
+                saveButton.classList.remove('text-pink-500');
+                saveButton.classList.add('text-gray-500');
+                
+                // Show toast notification
+                showToast('Buzz removed from saved!', 'info');
             } else {
                 // Save
                 await update(userSaveRef, { timestamp: Date.now(), buzzId: buzzId });
-                alert('Buzz saved!');
+                
+                // Update UI
+                saveButton.classList.remove('text-gray-500');
+                saveButton.classList.add('text-pink-500');
+                
+                // Show toast notification
+                showToast('Buzz saved!', 'success');
                 
                 // Create notification
                 const buzzRef = ref(window.firebaseDb, `buzzes/${buzzId}`);
@@ -1737,6 +1918,31 @@
             return `${days}d`;
         }
 
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-2xl text-white font-medium transform translate-x-full transition-transform duration-300 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            }`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
         async function signOutUser() {
             const { signOut } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
             await signOut(window.firebaseAuth);
@@ -1761,5 +1967,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b653af2248ad9',t:'MTc1NjYzMTQzMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977b76ec303f91df',t:'MTc1NjYzMjE1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
