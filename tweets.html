@@ -655,6 +655,118 @@
         </div>
     </div>
 
+    <!-- Permission Dialog Modal -->
+    <div id="permissionDialog" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <div class="text-center mb-6">
+                <div id="permissionIcon" class="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <h3 id="permissionTitle" class="text-xl font-bold text-gray-800 mb-2">Permission Required</h3>
+                <p id="permissionMessage" class="text-gray-600 text-sm leading-relaxed"></p>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="denyPermission()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition">
+                    Deny
+                </button>
+                <button onclick="allowPermission()" class="flex-1 instagram-gradient text-white py-3 rounded-xl font-medium hover:opacity-90 transition">
+                    Allow
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog Modal -->
+    <div id="confirmDialog" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <div class="text-center mb-6">
+                <div id="confirmIcon" class="w-16 h-16 mx-auto bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                </div>
+                <h3 id="confirmTitle" class="text-xl font-bold text-gray-800 mb-2">Confirm Action</h3>
+                <p id="confirmMessage" class="text-gray-600 text-sm leading-relaxed"></p>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="cancelConfirm()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition">
+                    Cancel
+                </button>
+                <button onclick="proceedConfirm()" id="confirmProceedBtn" class="flex-1 bg-red-500 text-white py-3 rounded-xl font-medium hover:bg-red-600 transition">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Dialog Modal -->
+    <div id="inputDialog" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <div class="mb-6">
+                <div id="inputIcon" class="w-16 h-16 mx-auto bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                </div>
+                <h3 id="inputTitle" class="text-xl font-bold text-gray-800 mb-2 text-center">Input Required</h3>
+                <p id="inputMessage" class="text-gray-600 text-sm mb-4 text-center"></p>
+                <input type="text" id="inputField" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Enter value...">
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="cancelInput()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition">
+                    Cancel
+                </button>
+                <button onclick="submitInput()" class="flex-1 instagram-gradient text-white py-3 rounded-xl font-medium hover:opacity-90 transition">
+                    Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Dialog Modal -->
+    <div id="shareDialog" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Share Buzz</h3>
+                <p class="text-gray-600 text-sm mb-4">Choose how you want to share this buzz</p>
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="copyBuzzLink()" class="w-full flex items-center justify-center space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="font-medium text-gray-700">Copy Link</span>
+                </button>
+                
+                <button onclick="shareToSocial('twitter')" class="w-full flex items-center justify-center space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                    </svg>
+                    <span class="font-medium text-gray-700">Share on Twitter</span>
+                </button>
+                
+                <button onclick="shareToSocial('whatsapp')" class="w-full flex items-center justify-center space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+                    <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.106"/>
+                    </svg>
+                    <span class="font-medium text-gray-700">Share on WhatsApp</span>
+                </button>
+            </div>
+            
+            <button onclick="closeShareDialog()" class="w-full mt-4 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition">
+                Cancel
+            </button>
+        </div>
+    </div>
+
     <!-- Verification Request Modal -->
     <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -779,6 +891,12 @@
         let selectedSuggestionIndex = -1;
         let availableHashtags = [];
         let availableUsers = [];
+        
+        // Dialog management variables
+        let currentPermissionCallback = null;
+        let currentConfirmCallback = null;
+        let currentInputCallback = null;
+        let currentShareBuzzId = null;
 
         // Authentication
         function signInWithGoogle() {
@@ -850,15 +968,28 @@
         }
 
         function previewImage() {
-            const file = document.getElementById('profilePic').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('previewDP');
-                    preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-full">`;
-                };
-                reader.readAsDataURL(file);
-            }
+            showPermissionDialog(
+                'Camera & Photos Access',
+                'Pulse wants to access your photos to set your profile picture. This will help others recognize you on the platform.',
+                'camera',
+                (allowed) => {
+                    if (allowed) {
+                        const file = document.getElementById('profilePic').files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const preview = document.getElementById('previewDP');
+                                preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-full">`;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    } else {
+                        // Reset file input if permission denied
+                        document.getElementById('profilePic').value = '';
+                        showCustomAlert('Photo access denied. You can skip this step and add a photo later.');
+                    }
+                }
+            );
         }
 
         function updatePreviewDP() {
@@ -1006,16 +1137,29 @@
         }
 
         function previewBuzzImage() {
-            const file = document.getElementById('buzzImage').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    buzzImageData = e.target.result;
-                    document.getElementById('buzzPreviewImg').src = e.target.result;
-                    document.getElementById('buzzImagePreview').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
+            showPermissionDialog(
+                'Camera & Photos Access',
+                'Pulse wants to access your photos to add images to your buzz. This will make your posts more engaging and visual.',
+                'camera',
+                (allowed) => {
+                    if (allowed) {
+                        const file = document.getElementById('buzzImage').files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                buzzImageData = e.target.result;
+                                document.getElementById('buzzPreviewImg').src = e.target.result;
+                                document.getElementById('buzzImagePreview').classList.remove('hidden');
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    } else {
+                        // Reset file input if permission denied
+                        document.getElementById('buzzImage').value = '';
+                        showCustomAlert('Photo access denied. You can still post text-only buzzes.');
+                    }
+                }
+            );
         }
 
         function removeBuzzImage() {
@@ -1510,50 +1654,24 @@
 
         function showOtherUserProfile(userData, userId) {
             showTab('profile');
-            
-            // Update profile display with other user's data
-            const profileNameEl = document.getElementById('profileName');
-            profileNameEl.innerHTML = userData.fullName + (userData.verified ? '<span class="verified-badge ml-2"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : '');
-            
-            document.getElementById('profileUsername').textContent = '@' + userData.username;
-            document.getElementById('profileBio').textContent = userData.bio || '';
-            
-            // Fix follower/following count display for other users
-            const followingCount = (userData.following && typeof userData.following === 'number') ? userData.following : 0;
-            const followersCount = (userData.followers && typeof userData.followers === 'number') ? userData.followers : 0;
-            document.getElementById('followingCount').textContent = followingCount;
-            document.getElementById('followersCount').textContent = followersCount;
-            
-            const profileDP = document.getElementById('profilePageDP');
-            if (userData.profilePic) {
-                profileDP.innerHTML = `<img src="${userData.profilePic}" class="w-full h-full object-cover rounded-full">`;
-            } else {
-                profileDP.textContent = userData.fullName.charAt(0).toUpperCase();
-            }
-            
-            // Update action buttons for other user's profile
-            updateProfileActionButtons(userId);
-            
-            // Load other user's buzzes
-            loadOtherUserBuzzes(userId);
+            loadUserProfileData(); // This will now load the correct user's data
+            showProfileSection('buzzes'); // Reset to buzzes tab
         }
 
         function updateProfileActionButtons(userId) {
-            const actionButtonsContainer = document.querySelector('.profile-action-buttons');
-            if (!actionButtonsContainer) {
-                // Create action buttons container if it doesn't exist
-                const profileHeader = document.querySelector('#profileTab .bg-white');
-                const existingButton = profileHeader.querySelector('button');
-                if (existingButton) {
-                    existingButton.remove();
-                }
-                
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.className = 'profile-action-buttons flex space-x-2';
-                profileHeader.querySelector('.flex.items-center.space-x-4').appendChild(buttonsDiv);
-            }
+            // Find the existing button container or create it
+            const profileHeader = document.querySelector('#profileTab .bg-white .flex.items-center.space-x-4');
+            let buttonsContainer = profileHeader.querySelector('.profile-action-buttons');
             
-            const buttonsContainer = document.querySelector('.profile-action-buttons');
+            // Remove existing buttons
+            const existingButtons = profileHeader.querySelectorAll('button');
+            existingButtons.forEach(btn => btn.remove());
+            
+            if (!buttonsContainer) {
+                buttonsContainer = document.createElement('div');
+                buttonsContainer.className = 'profile-action-buttons flex space-x-2';
+                profileHeader.appendChild(buttonsContainer);
+            }
             
             if (userId === currentUser.uid) {
                 // Show edit profile button for own profile
@@ -1803,16 +1921,206 @@
 
 
 
-        function shareBuzz(buzzId) {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Check out this Buzz!',
-                    url: window.location.href
-                });
+        // Permission Dialog Functions
+        function showPermissionDialog(title, message, icon, callback) {
+            document.getElementById('permissionTitle').textContent = title;
+            document.getElementById('permissionMessage').textContent = message;
+            
+            // Update icon based on permission type
+            const iconElement = document.getElementById('permissionIcon');
+            if (icon === 'camera') {
+                iconElement.innerHTML = `
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                `;
+            } else if (icon === 'location') {
+                iconElement.innerHTML = `
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                `;
+            } else if (icon === 'notification') {
+                iconElement.innerHTML = `
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM11 19H6.5A2.5 2.5 0 014 16.5v-9A2.5 2.5 0 016.5 5h11A2.5 2.5 0 0120 7.5V11"/>
+                    </svg>
+                `;
+            } else if (icon === 'clipboard') {
+                iconElement.innerHTML = `
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                `;
+            }
+            
+            currentPermissionCallback = callback;
+            document.getElementById('permissionDialog').classList.remove('hidden');
+        }
+
+        function allowPermission() {
+            document.getElementById('permissionDialog').classList.add('hidden');
+            if (currentPermissionCallback) {
+                currentPermissionCallback(true);
+                currentPermissionCallback = null;
+            }
+        }
+
+        function denyPermission() {
+            document.getElementById('permissionDialog').classList.add('hidden');
+            if (currentPermissionCallback) {
+                currentPermissionCallback(false);
+                currentPermissionCallback = null;
+            }
+        }
+
+        // Confirmation Dialog Functions
+        function showConfirmDialog(title, message, confirmText, callback, isDestructive = false) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            
+            const proceedBtn = document.getElementById('confirmProceedBtn');
+            proceedBtn.textContent = confirmText;
+            
+            if (isDestructive) {
+                proceedBtn.className = 'flex-1 bg-red-500 text-white py-3 rounded-xl font-medium hover:bg-red-600 transition';
             } else {
-                // Fallback
-                navigator.clipboard.writeText(window.location.href);
-                alert('Link copied to clipboard!');
+                proceedBtn.className = 'flex-1 instagram-gradient text-white py-3 rounded-xl font-medium hover:opacity-90 transition';
+            }
+            
+            currentConfirmCallback = callback;
+            document.getElementById('confirmDialog').classList.remove('hidden');
+        }
+
+        function proceedConfirm() {
+            document.getElementById('confirmDialog').classList.add('hidden');
+            if (currentConfirmCallback) {
+                currentConfirmCallback(true);
+                currentConfirmCallback = null;
+            }
+        }
+
+        function cancelConfirm() {
+            document.getElementById('confirmDialog').classList.add('hidden');
+            if (currentConfirmCallback) {
+                currentConfirmCallback(false);
+                currentConfirmCallback = null;
+            }
+        }
+
+        // Input Dialog Functions
+        function showInputDialog(title, message, placeholder, callback) {
+            document.getElementById('inputTitle').textContent = title;
+            document.getElementById('inputMessage').textContent = message;
+            document.getElementById('inputField').placeholder = placeholder;
+            document.getElementById('inputField').value = '';
+            
+            currentInputCallback = callback;
+            document.getElementById('inputDialog').classList.remove('hidden');
+            
+            // Focus on input field
+            setTimeout(() => {
+                document.getElementById('inputField').focus();
+            }, 100);
+        }
+
+        function submitInput() {
+            const value = document.getElementById('inputField').value.trim();
+            document.getElementById('inputDialog').classList.add('hidden');
+            
+            if (currentInputCallback) {
+                currentInputCallback(value);
+                currentInputCallback = null;
+            }
+        }
+
+        function cancelInput() {
+            document.getElementById('inputDialog').classList.add('hidden');
+            if (currentInputCallback) {
+                currentInputCallback(null);
+                currentInputCallback = null;
+            }
+        }
+
+        // Share Dialog Functions
+        function shareBuzz(buzzId) {
+            currentShareBuzzId = buzzId;
+            document.getElementById('shareDialog').classList.remove('hidden');
+        }
+
+        function closeShareDialog() {
+            document.getElementById('shareDialog').classList.add('hidden');
+            currentShareBuzzId = null;
+        }
+
+        function copyBuzzLink() {
+            showPermissionDialog(
+                'Clipboard Access',
+                'Pulse wants to copy the buzz link to your clipboard. This will allow you to easily share it with others.',
+                'clipboard',
+                (allowed) => {
+                    if (allowed) {
+                        const buzzLink = `${window.location.origin}#buzz-${currentShareBuzzId}`;
+                        
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(buzzLink).then(() => {
+                                closeShareDialog();
+                                showCustomAlert('Link copied to clipboard!');
+                            }).catch(() => {
+                                // Fallback for clipboard API failure
+                                fallbackCopyText(buzzLink);
+                            });
+                        } else {
+                            // Fallback for browsers without clipboard API
+                            fallbackCopyText(buzzLink);
+                        }
+                    } else {
+                        closeShareDialog();
+                        showCustomAlert('Clipboard access denied. You can manually copy the link from the address bar.');
+                    }
+                }
+            );
+        }
+
+        function fallbackCopyText(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                closeShareDialog();
+                showCustomAlert('Link copied to clipboard!');
+            } catch (err) {
+                closeShareDialog();
+                showCustomAlert('Unable to copy link. Please copy manually from address bar.');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function shareToSocial(platform) {
+            const buzzLink = `${window.location.origin}#buzz-${currentShareBuzzId}`;
+            const shareText = 'Check out this buzz on Pulse!';
+            
+            let shareUrl = '';
+            
+            if (platform === 'twitter') {
+                shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(buzzLink)}`;
+            } else if (platform === 'whatsapp') {
+                shareUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + buzzLink)}`;
+            }
+            
+            if (shareUrl) {
+                window.open(shareUrl, '_blank', 'width=600,height=400');
+                closeShareDialog();
             }
         }
 
@@ -1824,6 +2132,8 @@
             currentViewingUserId = null; // Reset to own profile
             showTab('profile');
             loadUserProfileData();
+            // Reset profile section to buzzes
+            showProfileSection('buzzes');
         }
 
         // Settings Functions
@@ -1851,28 +2161,48 @@
         }
 
         function showBlockSettings() {
-            const username = prompt('Enter username to block:');
-            if (username) {
-                database.ref('usernames/' + username.toLowerCase()).once('value')
-                    .then((snapshot) => {
-                        if (snapshot.exists()) {
-                            const userIdToBlock = snapshot.val();
-                            database.ref('users/' + currentUser.uid + '/blocked/' + userIdToBlock).set(true)
-                                .then(() => {
-                                    alert(`Successfully blocked @${username}`);
-                                });
-                        } else {
-                            alert('User not found');
-                        }
-                    });
-            }
+            showInputDialog(
+                'Block User',
+                'Enter the username of the user you want to block:',
+                'Enter username...',
+                (username) => {
+                    if (username) {
+                        database.ref('usernames/' + username.toLowerCase()).once('value')
+                            .then((snapshot) => {
+                                if (snapshot.exists()) {
+                                    const userIdToBlock = snapshot.val();
+                                    
+                                    showConfirmDialog(
+                                        'Block User',
+                                        `Are you sure you want to block @${username}? They won't be able to see your posts or interact with you.`,
+                                        'Block',
+                                        (confirmed) => {
+                                            if (confirmed) {
+                                                database.ref('users/' + currentUser.uid + '/blocked/' + userIdToBlock).set(true)
+                                                    .then(() => {
+                                                        showCustomAlert(`Successfully blocked @${username}`);
+                                                    })
+                                                    .catch(() => {
+                                                        showCustomAlert('Failed to block user');
+                                                    });
+                                            }
+                                        },
+                                        true
+                                    );
+                                } else {
+                                    showCustomAlert('User not found');
+                                }
+                            });
+                    }
+                }
+            );
         }
 
         function showUnblockSettings() {
             database.ref('users/' + currentUser.uid + '/blocked').once('value')
                 .then((snapshot) => {
                     if (!snapshot.exists()) {
-                        alert('No blocked users');
+                        showCustomAlert('No blocked users');
                         return;
                     }
                     
@@ -1882,7 +2212,7 @@
                     });
                     
                     if (blockedUsers.length === 0) {
-                        alert('No blocked users');
+                        showCustomAlert('No blocked users');
                         return;
                     }
                     
@@ -1890,23 +2220,42 @@
                     Promise.all(blockedUsers.map(uid => 
                         database.ref('users/' + uid + '/username').once('value')
                     )).then((usernames) => {
-                        const usernameList = usernames.map(snap => snap.val()).join('\n');
-                        const userToUnblock = prompt(`Blocked users:\n${usernameList}\n\nEnter username to unblock:`);
+                        const usernameList = usernames.map(snap => snap.val()).join(', ');
                         
-                        if (userToUnblock) {
-                            database.ref('usernames/' + userToUnblock.toLowerCase()).once('value')
-                                .then((snapshot) => {
-                                    if (snapshot.exists()) {
-                                        const userIdToUnblock = snapshot.val();
-                                        database.ref('users/' + currentUser.uid + '/blocked/' + userIdToUnblock).remove()
-                                            .then(() => {
-                                                alert(`Successfully unblocked @${userToUnblock}`);
-                                            });
-                                    } else {
-                                        alert('User not found');
-                                    }
-                                });
-                        }
+                        showInputDialog(
+                            'Unblock User',
+                            `Blocked users: ${usernameList}\n\nEnter username to unblock:`,
+                            'Enter username...',
+                            (userToUnblock) => {
+                                if (userToUnblock) {
+                                    database.ref('usernames/' + userToUnblock.toLowerCase()).once('value')
+                                        .then((snapshot) => {
+                                            if (snapshot.exists()) {
+                                                const userIdToUnblock = snapshot.val();
+                                                
+                                                showConfirmDialog(
+                                                    'Unblock User',
+                                                    `Are you sure you want to unblock @${userToUnblock}? They will be able to see your posts and interact with you again.`,
+                                                    'Unblock',
+                                                    (confirmed) => {
+                                                        if (confirmed) {
+                                                            database.ref('users/' + currentUser.uid + '/blocked/' + userIdToUnblock).remove()
+                                                                .then(() => {
+                                                                    showCustomAlert(`Successfully unblocked @${userToUnblock}`);
+                                                                })
+                                                                .catch(() => {
+                                                                    showCustomAlert('Failed to unblock user');
+                                                                });
+                                                        }
+                                                    }
+                                                );
+                                            } else {
+                                                showCustomAlert('User not found');
+                                            }
+                                        });
+                                }
+                            }
+                        );
                     });
                 });
         }
@@ -1951,7 +2300,10 @@
         }
 
         function loadUserProfileData() {
-            database.ref('users/' + currentUser.uid).once('value')
+            // Determine which user's profile to load
+            const targetUserId = currentViewingUserId || currentUser.uid;
+            
+            database.ref('users/' + targetUserId).once('value')
                 .then((snapshot) => {
                     const userData = snapshot.val();
                     if (userData) {
@@ -1973,6 +2325,9 @@
                         } else {
                             profileDP.textContent = userData.fullName.charAt(0).toUpperCase();
                         }
+                        
+                        // Update action buttons based on whose profile is being viewed
+                        updateProfileActionButtons(targetUserId);
                     }
                 });
         }
@@ -2119,14 +2474,27 @@
         }
 
         function previewNewProfilePic() {
-            const file = document.getElementById('newProfilePic').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('editProfilePic').innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-full">`;
-                };
-                reader.readAsDataURL(file);
-            }
+            showPermissionDialog(
+                'Camera & Photos Access',
+                'Pulse wants to access your photos to update your profile picture. This will help others recognize you on the platform.',
+                'camera',
+                (allowed) => {
+                    if (allowed) {
+                        const file = document.getElementById('newProfilePic').files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                document.getElementById('editProfilePic').innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-full">`;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    } else {
+                        // Reset file input if permission denied
+                        document.getElementById('newProfilePic').value = '';
+                        showCustomAlert('Photo access denied. You can keep your current profile picture.');
+                    }
+                }
+            );
         }
 
         function saveProfileChanges() {
@@ -2166,17 +2534,25 @@
         }
 
         function deleteBuzz(buzzId) {
-            if (confirm('Are you sure you want to delete this buzz?')) {
-                database.ref('buzzes/' + buzzId).remove()
-                    .then(() => {
-                        loadFeed();
-                        showCustomAlert('Buzz deleted successfully!');
-                    })
-                    .catch((error) => {
-                        console.error('Error deleting buzz:', error);
-                        showCustomAlert('Failed to delete buzz');
-                    });
-            }
+            showConfirmDialog(
+                'Delete Buzz',
+                'Are you sure you want to delete this buzz? This action cannot be undone.',
+                'Delete',
+                (confirmed) => {
+                    if (confirmed) {
+                        database.ref('buzzes/' + buzzId).remove()
+                            .then(() => {
+                                loadFeed();
+                                showCustomAlert('Buzz deleted successfully!');
+                            })
+                            .catch((error) => {
+                                console.error('Error deleting buzz:', error);
+                                showCustomAlert('Failed to delete buzz');
+                            });
+                    }
+                },
+                true // isDestructive
+            );
         }
 
         function showCustomAlert(message) {
@@ -2591,12 +2967,58 @@
             }
         });
 
+        // Keyboard support for dialogs
+        document.addEventListener('keydown', function(event) {
+            // ESC key to close dialogs
+            if (event.key === 'Escape') {
+                // Close permission dialog
+                if (!document.getElementById('permissionDialog').classList.contains('hidden')) {
+                    denyPermission();
+                }
+                // Close confirm dialog
+                else if (!document.getElementById('confirmDialog').classList.contains('hidden')) {
+                    cancelConfirm();
+                }
+                // Close input dialog
+                else if (!document.getElementById('inputDialog').classList.contains('hidden')) {
+                    cancelInput();
+                }
+                // Close share dialog
+                else if (!document.getElementById('shareDialog').classList.contains('hidden')) {
+                    closeShareDialog();
+                }
+                // Close custom alert
+                else if (!document.getElementById('customAlert').classList.contains('hidden')) {
+                    closeCustomAlert();
+                }
+            }
+            
+            // Enter key for input dialog
+            if (event.key === 'Enter' && !document.getElementById('inputDialog').classList.contains('hidden')) {
+                event.preventDefault();
+                submitInput();
+            }
+        });
+
         function signOut() {
-            auth.signOut().then(() => {
-                currentUser = null;
-                document.getElementById('mainApp').classList.add('hidden');
-                document.getElementById('loginScreen').classList.remove('hidden');
-            });
+            showConfirmDialog(
+                'Sign Out',
+                'Are you sure you want to sign out of your Pulse account? You will need to sign in again to access your account.',
+                'Sign Out',
+                (confirmed) => {
+                    if (confirmed) {
+                        auth.signOut().then(() => {
+                            currentUser = null;
+                            document.getElementById('mainApp').classList.add('hidden');
+                            document.getElementById('loginScreen').classList.remove('hidden');
+                            showCustomAlert('Successfully signed out!');
+                        }).catch((error) => {
+                            console.error('Sign out error:', error);
+                            showCustomAlert('Failed to sign out. Please try again.');
+                        });
+                    }
+                }
+            );
         }
 
         // Listen for auth state changes
@@ -2621,5 +3043,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978518bac4be8993',t:'MTc1NjczMzE1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978523db36983a58',t:'MTc1NjczMzYxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
