@@ -256,8 +256,16 @@
                     <button id="backToHome" class="p-2">
                         <span class="text-xl">⬅️</span>
                     </button>
-                    <input type="text" id="searchInput" placeholder="Search users..." class="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-pink-400 outline-none">
+                    <input type="text" id="searchInput" placeholder="Search users, buzzes, hashtags..." class="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-pink-400 outline-none">
                 </div>
+                
+                <!-- Search Tabs -->
+                <div class="flex gap-2 mb-4">
+                    <button id="usersTab" class="flex-1 py-2 px-4 bg-pink-500 text-white rounded-lg font-semibold">Users</button>
+                    <button id="buzzesTab" class="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-semibold">Buzzes</button>
+                    <button id="hashtagsTab" class="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-semibold">Hashtags</button>
+                </div>
+                
                 <div id="searchResults" class="space-y-3"></div>
             </div>
         </div>
@@ -304,6 +312,9 @@
                     </button>
                     <button id="blockListBtn" class="w-full p-4 bg-gray-50 rounded-xl text-left">
                         <span>🚫 Blocked Users</span>
+                    </button>
+                    <button id="helpCenterBtn" class="w-full p-4 bg-green-50 rounded-xl text-left">
+                        <span>❓ Help Center</span>
                     </button>
                     <button id="addAccountBtn" class="w-full p-4 bg-gray-50 rounded-xl text-left">
                         <span>➕ Add Account</span>
@@ -372,6 +383,40 @@
             </div>
         </div>
 
+        <!-- Help Center Screen -->
+        <div id="helpCenterScreen" class="hidden bg-white min-h-screen">
+            <div class="max-w-md mx-auto p-4">
+                <div class="flex items-center gap-3 mb-6">
+                    <button id="backFromHelp" class="p-2">
+                        <span class="text-xl">⬅️</span>
+                    </button>
+                    <h2 class="text-xl font-bold">Help Center</h2>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h3 class="font-bold mb-2">📱 Getting Started</h3>
+                        <p class="text-gray-600 text-sm">Learn how to use Pulse and create your first buzz</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h3 class="font-bold mb-2">🔒 Privacy & Safety</h3>
+                        <p class="text-gray-600 text-sm">Manage your privacy settings and stay safe</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h3 class="font-bold mb-2">✅ Verification</h3>
+                        <p class="text-gray-600 text-sm">How to get verified on Pulse</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h3 class="font-bold mb-2">🚫 Report Issues</h3>
+                        <p class="text-gray-600 text-sm">Report bugs, spam, or inappropriate content</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h3 class="font-bold mb-2">📞 Contact Support</h3>
+                        <p class="text-gray-600 text-sm">Get in touch with our support team</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div id="homeContent" class="max-w-md mx-auto">
             <!-- Create Buzz -->
@@ -379,19 +424,22 @@
                 <div class="flex gap-3">
                     <div id="userAvatar" class="w-10 h-10 rounded-full avatar-letter flex items-center justify-center text-white font-bold text-sm"></div>
                     <div class="flex-1">
-                        <textarea id="buzzText" placeholder="What's buzzing?" class="w-full resize-none border-none outline-none text-lg bg-transparent" rows="3"></textarea>
+                        <div class="relative">
+                            <textarea id="buzzText" placeholder="What's buzzing?" class="w-full resize-none border-none outline-none text-lg bg-transparent" rows="3"></textarea>
+                            <div id="suggestions" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto z-10"></div>
+                        </div>
                         <div class="flex items-center justify-between mt-3">
                             <div class="flex gap-3">
                                 <button id="addImage" class="p-2 text-pink-500 hover:bg-pink-50 rounded-full">
                                     <span class="text-xl">📷</span>
                                 </button>
-                                <input type="file" id="buzzImageInput" accept="image/*" class="hidden">
+                                <input type="file" id="buzzImageInput" accept="image/*" multiple class="hidden">
                             </div>
                             <button id="postBuzz" class="btn-primary text-white px-6 py-2 rounded-full font-semibold disabled:opacity-50" disabled>Buzz</button>
                         </div>
                         <div id="imagePreview" class="hidden mt-3">
-                            <img id="previewImg" class="w-full rounded-lg max-h-48 object-cover">
-                            <button id="removeImage" class="mt-2 text-red-500 text-sm">Remove image</button>
+                            <div id="imageGrid" class="grid grid-cols-2 gap-2"></div>
+                            <button id="removeAllImages" class="mt-2 text-red-500 text-sm">Remove all images</button>
                         </div>
                     </div>
                 </div>
@@ -508,7 +556,7 @@
         }
 
         function showMainScreen(screenId) {
-            const screens = ['homeContent', 'searchScreen', 'profileScreen', 'settingsScreen', 'notificationsScreen', 'messagesScreen', 'hashtagScreen'];
+            const screens = ['homeContent', 'searchScreen', 'profileScreen', 'settingsScreen', 'notificationsScreen', 'messagesScreen', 'hashtagScreen', 'helpCenterScreen'];
             screens.forEach(screen => {
                 document.getElementById(screen).classList.add('hidden');
             });
@@ -679,32 +727,218 @@
             }
         }
 
+        // Global variables for images and suggestions
+        let currentBuzzImages = [];
+        let currentSuggestionType = null;
+        let currentSuggestionQuery = '';
+
         // Buzz creation
         document.getElementById('buzzText').addEventListener('input', (e) => {
+            const text = e.target.value;
             const postBtn = document.getElementById('postBuzz');
-            postBtn.disabled = !e.target.value.trim() && !currentBuzzImage;
+            postBtn.disabled = !text.trim() && currentBuzzImages.length === 0;
+            
+            // Handle hashtag and mention suggestions
+            handleSuggestions(text, e.target);
         });
+
+        function handleSuggestions(text, textarea) {
+            const cursorPos = textarea.selectionStart;
+            const textBeforeCursor = text.substring(0, cursorPos);
+            const words = textBeforeCursor.split(/\s/);
+            const currentWord = words[words.length - 1];
+            
+            if (currentWord.startsWith('#') && currentWord.length > 1) {
+                // Show hashtag suggestions
+                const query = currentWord.substring(1).toLowerCase();
+                showHashtagSuggestions(query);
+            } else if (currentWord.startsWith('@') && currentWord.length > 1) {
+                // Show mention suggestions
+                const query = currentWord.substring(1).toLowerCase();
+                showMentionSuggestions(query);
+            } else {
+                hideSuggestions();
+            }
+        }
+
+        function showHashtagSuggestions(query) {
+            database.ref('hashtags').once('value', (snapshot) => {
+                const suggestions = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        const hashtag = child.key;
+                        if (hashtag.includes(query)) {
+                            const data = child.val();
+                            const postCount = data.posts ? Object.keys(data.posts).length : 0;
+                            suggestions.push({ hashtag, postCount });
+                        }
+                    });
+                }
+                
+                suggestions.sort((a, b) => b.postCount - a.postCount);
+                renderSuggestions(suggestions.slice(0, 5), 'hashtag');
+            });
+        }
+
+        function showMentionSuggestions(query) {
+            database.ref('users').once('value', (snapshot) => {
+                const suggestions = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        const userData = child.val();
+                        if (userData.profileComplete && 
+                            (userData.username.toLowerCase().includes(query) || 
+                             userData.fullName.toLowerCase().includes(query))) {
+                            suggestions.push({
+                                username: userData.username,
+                                fullName: userData.fullName,
+                                profilePicture: userData.profilePicture,
+                                isVerified: userData.isVerified
+                            });
+                        }
+                    });
+                }
+                
+                renderSuggestions(suggestions.slice(0, 5), 'mention');
+            });
+        }
+
+        function renderSuggestions(suggestions, type) {
+            const suggestionsDiv = document.getElementById('suggestions');
+            
+            if (suggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+            
+            suggestionsDiv.innerHTML = '';
+            suggestionsDiv.classList.remove('hidden');
+            
+            suggestions.forEach(suggestion => {
+                const div = document.createElement('div');
+                div.className = 'p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0';
+                
+                if (type === 'hashtag') {
+                    div.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-blue-500">#${suggestion.hashtag}</span>
+                            <span class="text-gray-500 text-sm">${suggestion.postCount} posts</span>
+                        </div>
+                    `;
+                    div.onclick = () => insertSuggestion(`#${suggestion.hashtag}`);
+                } else if (type === 'mention') {
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            ${suggestion.profilePicture ? 
+                                `<img src="${suggestion.profilePicture}" class="w-8 h-8 rounded-full object-cover">` :
+                                `<div class="w-8 h-8 rounded-full avatar-letter flex items-center justify-center text-white font-bold text-sm">${suggestion.fullName.charAt(0).toUpperCase()}</div>`
+                            }
+                            <div>
+                                <p class="font-semibold flex items-center">${suggestion.fullName}${suggestion.isVerified ? '<span class="verified-tick ml-1"></span>' : ''}</p>
+                                <p class="text-gray-500 text-sm">@${suggestion.username}</p>
+                            </div>
+                        </div>
+                    `;
+                    div.onclick = () => insertSuggestion(`@${suggestion.username}`);
+                }
+                
+                suggestionsDiv.appendChild(div);
+            });
+        }
+
+        function insertSuggestion(suggestion) {
+            const textarea = document.getElementById('buzzText');
+            const text = textarea.value;
+            const cursorPos = textarea.selectionStart;
+            const textBeforeCursor = text.substring(0, cursorPos);
+            const textAfterCursor = text.substring(cursorPos);
+            
+            // Find the start of the current word
+            const words = textBeforeCursor.split(/\s/);
+            const currentWord = words[words.length - 1];
+            const wordStart = textBeforeCursor.lastIndexOf(currentWord);
+            
+            // Replace the current word with the suggestion
+            const newText = text.substring(0, wordStart) + suggestion + ' ' + textAfterCursor;
+            textarea.value = newText;
+            
+            // Set cursor position after the inserted suggestion
+            const newCursorPos = wordStart + suggestion.length + 1;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            
+            hideSuggestions();
+            textarea.focus();
+        }
+
+        function hideSuggestions() {
+            document.getElementById('suggestions').classList.add('hidden');
+        }
 
         document.getElementById('addImage').addEventListener('click', () => {
             document.getElementById('buzzImageInput').click();
         });
 
         document.getElementById('buzzImageInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
+            const files = Array.from(e.target.files);
+            if (files.length > 4) {
+                alert('Maximum 4 images allowed per buzz');
+                return;
+            }
+            
+            currentBuzzImages = [];
+            const imageGrid = document.getElementById('imageGrid');
+            imageGrid.innerHTML = '';
+            
+            files.forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    currentBuzzImage = e.target.result;
-                    document.getElementById('previewImg').src = currentBuzzImage;
+                    currentBuzzImages.push(e.target.result);
+                    
+                    const imgDiv = document.createElement('div');
+                    imgDiv.className = 'relative';
+                    imgDiv.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-24 object-cover rounded-lg">
+                        <button onclick="removeImage(${index})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                    `;
+                    imageGrid.appendChild(imgDiv);
+                    
                     document.getElementById('imagePreview').classList.remove('hidden');
                     document.getElementById('postBuzz').disabled = false;
                 };
                 reader.readAsDataURL(file);
-            }
+            });
         });
 
-        document.getElementById('removeImage').addEventListener('click', () => {
-            currentBuzzImage = null;
+        function removeImage(index) {
+            currentBuzzImages.splice(index, 1);
+            updateImagePreview();
+        }
+
+        function updateImagePreview() {
+            const imageGrid = document.getElementById('imageGrid');
+            imageGrid.innerHTML = '';
+            
+            if (currentBuzzImages.length === 0) {
+                document.getElementById('imagePreview').classList.add('hidden');
+                document.getElementById('buzzImageInput').value = '';
+                const postBtn = document.getElementById('postBuzz');
+                postBtn.disabled = !document.getElementById('buzzText').value.trim();
+                return;
+            }
+            
+            currentBuzzImages.forEach((image, index) => {
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'relative';
+                imgDiv.innerHTML = `
+                    <img src="${image}" class="w-full h-24 object-cover rounded-lg">
+                    <button onclick="removeImage(${index})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                `;
+                imageGrid.appendChild(imgDiv);
+            });
+        }
+
+        document.getElementById('removeAllImages').addEventListener('click', () => {
+            currentBuzzImages = [];
             document.getElementById('imagePreview').classList.add('hidden');
             document.getElementById('buzzImageInput').value = '';
             const postBtn = document.getElementById('postBuzz');
@@ -714,7 +948,7 @@
         // Post buzz
         document.getElementById('postBuzz').addEventListener('click', () => {
             const text = document.getElementById('buzzText').value.trim();
-            if (!text && !currentBuzzImage) return;
+            if (!text && currentBuzzImages.length === 0) return;
 
             // Extract hashtags and mentions
             const hashtags = extractHashtags(text);
@@ -736,8 +970,8 @@
                 saves: {}
             };
 
-            if (currentBuzzImage) {
-                buzzData.image = currentBuzzImage;
+            if (currentBuzzImages.length > 0) {
+                buzzData.images = currentBuzzImages;
             }
 
             database.ref('buzzes').push(buzzData).then((buzzRef) => {
@@ -764,8 +998,9 @@
                 document.getElementById('buzzText').value = '';
                 document.getElementById('imagePreview').classList.add('hidden');
                 document.getElementById('buzzImageInput').value = '';
-                currentBuzzImage = null;
+                currentBuzzImages = [];
                 document.getElementById('postBuzz').disabled = true;
+                hideSuggestions();
                 loadFeed();
             }).catch((error) => {
                 console.error('Failed to post buzz:', error);
@@ -821,6 +1056,41 @@
             return text;
         }
 
+        // Create image grid for multiple images
+        function createImageGrid(images) {
+            if (!images || images.length === 0) return '';
+            
+            if (images.length === 1) {
+                return `<img src="${images[0]}" class="w-full rounded-lg mb-3 max-h-96 object-cover">`;
+            } else if (images.length === 2) {
+                return `
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <img src="${images[0]}" class="w-full h-48 object-cover rounded-lg">
+                        <img src="${images[1]}" class="w-full h-48 object-cover rounded-lg">
+                    </div>
+                `;
+            } else if (images.length === 3) {
+                return `
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <img src="${images[0]}" class="w-full h-48 object-cover rounded-lg">
+                        <div class="grid grid-rows-2 gap-2">
+                            <img src="${images[1]}" class="w-full h-23 object-cover rounded-lg">
+                            <img src="${images[2]}" class="w-full h-23 object-cover rounded-lg">
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <img src="${images[0]}" class="w-full h-24 object-cover rounded-lg">
+                        <img src="${images[1]}" class="w-full h-24 object-cover rounded-lg">
+                        <img src="${images[2]}" class="w-full h-24 object-cover rounded-lg">
+                        <img src="${images[3]}" class="w-full h-24 object-cover rounded-lg">
+                    </div>
+                `;
+            }
+        }
+
         // Create buzz element
         function createBuzzElement(buzz) {
             const div = document.createElement('div');
@@ -856,7 +1126,7 @@
                             ` : ''}
                         </div>
                         <p class="mb-3">${formatTextWithHashtagsAndMentions(buzz.text)}</p>
-                        ${buzz.image ? `<img src="${buzz.image}" class="w-full rounded-lg mb-3 max-h-96 object-cover">` : ''}
+                        ${buzz.images ? createImageGrid(buzz.images) : (buzz.image ? `<img src="${buzz.image}" class="w-full rounded-lg mb-3 max-h-96 object-cover">` : '')}
                         <div class="flex items-center justify-between text-gray-500 max-w-md">
                             <button class="flex items-center gap-2 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors ${isLiked ? 'text-red-500' : ''}" onclick="toggleLike('${buzz.id}', '${buzz.userId}')">
                                 <span class="text-lg">${isLiked ? '❤️' : '🤍'}</span>
@@ -1130,14 +1400,22 @@
                     'verification_approved': 'Congratulations! Your account has been verified'
                 };
                 
+                const userName = notification.fromUserName || 'Unknown User';
+                const userImage = notification.fromUserImage;
+                const isVerified = notification.fromUserVerified || false;
+                
                 div.innerHTML = `
                     <div class="flex gap-3">
-                        ${notification.fromUserImage ? 
-                            `<img src="${notification.fromUserImage}" class="w-10 h-10 rounded-full object-cover">` :
-                            `<div class="w-10 h-10 rounded-full avatar-letter flex items-center justify-center text-white font-bold text-sm">${notification.fromUserName.charAt(0).toUpperCase()}</div>`
+                        ${userImage ? 
+                            `<img src="${userImage}" class="w-10 h-10 rounded-full object-cover">` :
+                            `<div class="w-10 h-10 rounded-full avatar-letter flex items-center justify-center text-white font-bold text-sm">${userName.charAt(0).toUpperCase()}</div>`
                         }
                         <div class="flex-1">
-                            <p><span class="font-bold flex items-center">${notification.fromUserName}${notification.fromUserVerified ? '<span class="verified-tick"></span>' : ''}</span> ${typeText[notification.type]} ${typeEmoji[notification.type]}</p>
+                            <p>
+                                <span class="font-bold">${userName}</span>
+                                ${isVerified ? '<span class="verified-tick ml-1"></span>' : ''}
+                                ${typeText[notification.type] || 'sent you a notification'} ${typeEmoji[notification.type] || '📢'}
+                            </p>
                             <p class="text-gray-500 text-sm">${getTimeAgo(notification.timestamp)}</p>
                         </div>
                     </div>
@@ -1313,14 +1591,88 @@
         });
 
         // Search functionality
+        let currentSearchTab = 'users';
+
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const query = e.target.value.trim().toLowerCase();
             if (query.length > 0) {
-                searchUsers(query);
+                performSearch(query, currentSearchTab);
             } else {
-                loadAllUsers();
+                loadDefaultContent(currentSearchTab);
             }
         });
+
+        // Search tab handlers
+        document.getElementById('usersTab').addEventListener('click', () => {
+            currentSearchTab = 'users';
+            updateSearchTabs();
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (query) {
+                performSearch(query, 'users');
+            } else {
+                loadDefaultContent('users');
+            }
+        });
+
+        document.getElementById('buzzesTab').addEventListener('click', () => {
+            currentSearchTab = 'buzzes';
+            updateSearchTabs();
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (query) {
+                performSearch(query, 'buzzes');
+            } else {
+                loadDefaultContent('buzzes');
+            }
+        });
+
+        document.getElementById('hashtagsTab').addEventListener('click', () => {
+            currentSearchTab = 'hashtags';
+            updateSearchTabs();
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (query) {
+                performSearch(query, 'hashtags');
+            } else {
+                loadDefaultContent('hashtags');
+            }
+        });
+
+        function updateSearchTabs() {
+            document.querySelectorAll('#searchScreen button[id$="Tab"]').forEach(tab => {
+                tab.classList.remove('bg-pink-500', 'text-white');
+                tab.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            
+            document.getElementById(currentSearchTab + 'Tab').classList.remove('bg-gray-200', 'text-gray-700');
+            document.getElementById(currentSearchTab + 'Tab').classList.add('bg-pink-500', 'text-white');
+        }
+
+        function performSearch(query, type) {
+            switch(type) {
+                case 'users':
+                    searchUsers(query);
+                    break;
+                case 'buzzes':
+                    searchBuzzes(query);
+                    break;
+                case 'hashtags':
+                    searchHashtags(query);
+                    break;
+            }
+        }
+
+        function loadDefaultContent(type) {
+            switch(type) {
+                case 'users':
+                    loadAllUsers();
+                    break;
+                case 'buzzes':
+                    loadRecentBuzzes();
+                    break;
+                case 'hashtags':
+                    loadTrendingHashtags();
+                    break;
+            }
+        }
 
         function searchUsers(query) {
             database.ref('users').once('value', (snapshot) => {
@@ -1334,7 +1686,42 @@
                     }
                 });
                 
-                renderSearchResults(results);
+                renderUserResults(results);
+            });
+        }
+
+        function searchBuzzes(query) {
+            database.ref('buzzes').once('value', (snapshot) => {
+                const results = [];
+                snapshot.forEach((child) => {
+                    const buzzData = child.val();
+                    if (buzzData.text && buzzData.text.toLowerCase().includes(query)) {
+                        results.push({ id: child.key, ...buzzData });
+                    }
+                });
+                
+                results.sort((a, b) => b.timestamp - a.timestamp);
+                renderBuzzResults(results.slice(0, 20));
+            });
+        }
+
+        function searchHashtags(query) {
+            database.ref('hashtags').once('value', (snapshot) => {
+                const results = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        const hashtag = child.key;
+                        if (hashtag.includes(query)) {
+                            const data = child.val();
+                            const postCount = data.posts ? Object.keys(data.posts).length : 0;
+                            const userCount = data.users ? Object.keys(data.users).length : 0;
+                            results.push({ hashtag, postCount, userCount });
+                        }
+                    });
+                }
+                
+                results.sort((a, b) => b.postCount - a.postCount);
+                renderHashtagResults(results);
             });
         }
 
@@ -1348,11 +1735,40 @@
                     }
                 });
                 
-                renderSearchResults(results);
+                renderUserResults(results);
             });
         }
 
-        function renderSearchResults(results) {
+        function loadRecentBuzzes() {
+            database.ref('buzzes').orderByChild('timestamp').limitToLast(20).once('value', (snapshot) => {
+                const results = [];
+                snapshot.forEach((child) => {
+                    results.unshift({ id: child.key, ...child.val() });
+                });
+                
+                renderBuzzResults(results);
+            });
+        }
+
+        function loadTrendingHashtags() {
+            database.ref('hashtags').once('value', (snapshot) => {
+                const results = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => {
+                        const hashtag = child.key;
+                        const data = child.val();
+                        const postCount = data.posts ? Object.keys(data.posts).length : 0;
+                        const userCount = data.users ? Object.keys(data.users).length : 0;
+                        results.push({ hashtag, postCount, userCount });
+                    });
+                }
+                
+                results.sort((a, b) => b.postCount - a.postCount);
+                renderHashtagResults(results.slice(0, 20));
+            });
+        }
+
+        function renderUserResults(results) {
             const searchResults = document.getElementById('searchResults');
             searchResults.innerHTML = '';
             
@@ -1376,6 +1792,52 @@
                             <p class="font-bold flex items-center">${user.fullName}${user.isVerified ? '<span class="verified-tick"></span>' : ''}</p>
                             <p class="text-gray-500 text-sm">@${user.username}</p>
                             ${user.bio ? `<p class="text-gray-600 text-sm mt-1">${user.bio}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                searchResults.appendChild(div);
+            });
+        }
+
+        function renderBuzzResults(results) {
+            const searchResults = document.getElementById('searchResults');
+            searchResults.innerHTML = '';
+            
+            if (results.length === 0) {
+                searchResults.innerHTML = '<p class="text-gray-500 text-center py-4">No buzzes found</p>';
+                return;
+            }
+            
+            results.forEach(buzz => {
+                const buzzElement = createBuzzElement(buzz);
+                searchResults.appendChild(buzzElement);
+            });
+        }
+
+        function renderHashtagResults(results) {
+            const searchResults = document.getElementById('searchResults');
+            searchResults.innerHTML = '';
+            
+            if (results.length === 0) {
+                searchResults.innerHTML = '<p class="text-gray-500 text-center py-4">No hashtags found</p>';
+                return;
+            }
+            
+            results.forEach(hashtag => {
+                const div = document.createElement('div');
+                div.className = 'p-4 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50';
+                div.onclick = () => showHashtag(hashtag.hashtag);
+                
+                div.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-blue-500 text-lg">#${hashtag.hashtag}</p>
+                            <p class="text-gray-500 text-sm">${hashtag.userCount} users</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold">${hashtag.postCount}</p>
+                            <p class="text-gray-500 text-sm">posts</p>
                         </div>
                     </div>
                 `;
@@ -1519,6 +1981,10 @@
             alert('Blocked users list coming soon!');
         });
 
+        document.getElementById('helpCenterBtn').addEventListener('click', () => {
+            showMainScreen('helpCenterScreen');
+        });
+
         document.getElementById('addAccountBtn').addEventListener('click', () => {
             alert('Add account feature coming soon!');
         });
@@ -1541,6 +2007,8 @@
             showMainScreen('searchScreen');
             document.getElementById('searchBtn').classList.remove('text-gray-400');
             document.getElementById('searchBtn').classList.add('text-pink-500');
+            currentSearchTab = 'users';
+            updateSearchTabs();
             loadAllUsers();
         });
 
@@ -1611,10 +2079,16 @@
             document.getElementById('homeBtn').classList.add('text-pink-500');
         });
 
+        document.getElementById('backFromHelp').addEventListener('click', () => {
+            showMainScreen('settingsScreen');
+            document.getElementById('settingsBtn').classList.remove('text-gray-400');
+            document.getElementById('settingsBtn').classList.add('text-pink-500');
+        });
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
             // App will initialize through auth state observer
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9783764e94c054e9',t:'MTc1NjcxNjAxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978390b114bf9190',t:'MTc1NjcxNzEwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
