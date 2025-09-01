@@ -1,1527 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OrioBuzz - Settings & Policies</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-        import { getDatabase, ref, push, set, onValue, remove, update, get, child } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse 🌸💙</title>
+<style>
+body{margin:0;padding:0;font-family:Arial,sans-serif;background:#f0f2f5;}
+header{background:linear-gradient(90deg,#ff90b3,#90caff);color:white;padding:10px;text-align:center;font-weight:bold;font-size:1.5em;position:sticky;top:0;z-index:100;}
+nav{display:flex;justify-content:space-around;background:white;padding:10px;position:sticky;top:50px;z-index:99;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+nav button{background:transparent;border:none;font-size:1em;cursor:pointer;font-weight:bold;}
+.container{max-width:600px;margin:auto;padding:10px;}
+section{display:none;}
+section.active{display:block;}
+textarea,input{width:100%;padding:8px;margin:5px 0;border-radius:5px;border:1px solid #ccc;}
+button{padding:8px 12px;border-radius:5px;cursor:pointer;border:none;background:linear-gradient(90deg,#ff90b3,#90caff);color:white;font-weight:bold;}
+.buzz{background:white;border-radius:10px;margin:10px 0;padding:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.buzz .author{display:flex;align-items:center;margin-bottom:5px;}
+.dp{width:40px;height:40px;border-radius:50%;margin-right:10px;object-fit:cover;}
+.dp-letter{width:40px;height:40px;border-radius:50%;background:#90caff;color:white;display:flex;align-items:center;justify-content:center;margin-right:10px;}
+.buzz .actions button{margin-right:5px;margin-top:5px;}
+#videoFeed video{width:100%;border-radius:10px;margin:10px 0;}
+.comment{margin-left:50px;margin-top:5px;padding:5px;background:#f0f0f0;border-radius:5px;}
+.profile-section img{width:80px;height:80px;border-radius:50%;object-fit:cover;}
+</style>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+import { getDatabase, ref, set, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB2XeuTfHZ7FYKLoYb4epKp3upmVqG0fzE",
-            authDomain: "pulse-17f40.firebaseapp.com",
-            databaseURL: "https://pulse-17f40-default-rtdb.firebaseio.com",
-            projectId: "pulse-17f40",
-            storageBucket: "pulse-17f40.firebasestorage.app",
-            messagingSenderId: "259780854138",
-            appId: "1:259780854138:web:89c265fd22a34a7f1fd6c3"
-        };
+/* ------------------ Firebase ------------------ */
+const firebaseConfig = {
+  apiKey: "AIzaSyC30TcmMVhP_8HdFYS1WufRiZwSDYNMTF0",
+  authDomain: "pulse2-92372.firebaseapp.com",
+  databaseURL: "https://pulse2-92372-default-rtdb.firebaseio.com",
+  projectId: "pulse2-92372",
+  storageBucket: "pulse2-92372.firebasestorage.app",
+  messagingSenderId: "276235725177",
+  appId: "1:276235725177:web:0f4e0789fae80a435927a8"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+let currentUser = null;
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+/* ------------------ SPA Navigation ------------------ */
+function showSection(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
-        window.firebaseApp = { database, auth, provider, ref, push, set, onValue, remove, update, get, child, signInWithPopup, onAuthStateChanged };
-    </script>
-    <style>
-        .verified-tick {
-            background: linear-gradient(135deg, #ff1493, #ff69b4, #da70d6);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 11px;
-            font-weight: bold;
-            margin-left: 6px;
-            box-shadow: 0 2px 8px rgba(255, 20, 147, 0.4);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .premium-badge {
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
-            color: #1a1a1a;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-left: 8px;
-            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
-        }
-        
-        .settings-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            padding: 24px;
-            transition: all 0.3s ease;
-        }
-        
-        .settings-card:hover {
-            border-color: rgba(255, 20, 147, 0.3);
-            box-shadow: 0 8px 32px rgba(255, 20, 147, 0.1);
-        }
-        
-        .tab-button {
-            padding: 12px 20px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 4px 0;
-            border: 1px solid transparent;
-        }
-        
-        .tab-button:hover {
-            background: rgba(255, 20, 147, 0.1);
-            border-color: rgba(255, 20, 147, 0.2);
-        }
-        
-        .tab-button.active {
-            background: linear-gradient(135deg, rgba(255, 20, 147, 0.2), rgba(138, 43, 226, 0.2));
-            border-color: rgba(255, 20, 147, 0.4);
-            color: #ff69b4;
-        }
-        
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 24px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .toggle-switch.active {
-            background: linear-gradient(135deg, #ff1493, #8a2be2);
-        }
-        
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-        
-        .toggle-switch.active::after {
-            transform: translateX(26px);
-        }
-        
-        .boost-card {
-            background: linear-gradient(135deg, rgba(255, 20, 147, 0.1), rgba(138, 43, 226, 0.1));
-            border: 2px solid rgba(255, 20, 147, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .boost-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: shimmer 3s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-        
-        .policy-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-left: 4px solid #ff1493;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 16px 0;
-        }
-        
-        .notification-dot {
-            width: 8px;
-            height: 8px;
-            background: #ff1493;
-            border-radius: 50%;
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .activity-log-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            margin: 8px 0;
-            transition: all 0.3s ease;
-        }
-        
-        .activity-log-item:hover {
-            background: rgba(255, 20, 147, 0.1);
-        }
-        
-        .payment-method {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 16px;
-            margin: 12px 0;
-            transition: all 0.3s ease;
-        }
-        
-        .payment-method:hover {
-            border-color: rgba(255, 20, 147, 0.3);
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, rgba(255, 20, 147, 0.1), rgba(138, 43, 226, 0.1));
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 20, 147, 0.2);
-        }
-        
-        .danger-zone {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 24px;
-        }
-    </style>
+/* ------------------ Login ------------------ */
+async function login(){
+  try{
+    const result = await signInWithPopup(auth, provider);
+    currentUser = result.user;
+    const userRef = ref(db, `users/${currentUser.uid}`);
+    const snap = await get(userRef);
+    if(!snap.exists()){
+      let verified=false;
+      if(currentUser.email==="customerserviceffrj4@gmail.com") verified=true;
+      let username=prompt("Enter username (lowercase letters & numbers):");
+      let dob=prompt("Enter DOB (YYYY-MM-DD) or skip:");
+      set(userRef,{name:currentUser.displayName,email:currentUser.email,username:username,dob:dob||"",bio:"",dp:"",verified:verified,followers:0,following:0});
+      if(verified) alert("Auto-verified!");
+    }
+    showSection('home'); renderFeed(); renderVideos(); renderNotifications(); renderProfile(); renderSearch();
+  }catch(e){console.error(e);}
+}
+
+/* ------------------ Base64 ------------------ */
+function toBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=err=>reject(err);
+  });
+}
+
+/* ------------------ Buzz ------------------ */
+async function postBuzz(){
+  const text=document.getElementById("buzzInput").value;
+  const file=document.getElementById("buzzImage").files[0];
+  const imageBase64=file?await toBase64(file):"";
+  if(!text) return alert("Buzz cannot be empty");
+  try{
+    await push(ref(db,"buzzes"),{
+      authorName:currentUser.displayName,
+      authorId:currentUser.uid,
+      authorImage:imageBase64,
+      text:text,
+      likes:0,
+      comments:[],
+      rebuzz:0,
+      savedBy:[],
+      timestamp:Date.now()
+    });
+    document.getElementById("buzzInput").value="";document.getElementById("buzzImage").value="";
+  }catch(e){console.error(e);alert("Failed to post Buzz");}
+}
+
+function renderFeed(){
+  const feed=document.getElementById("feed");
+  feed.innerHTML="";
+  onValue(ref(db,"buzzes"),snap=>{
+    feed.innerHTML="";
+    snap.forEach(child=>{
+      const buzz=child.val();const id=child.key;
+      const authorImg=buzz.authorImage?`<img src="${buzz.authorImage}" class="dp">`:`<div class="dp-letter">${buzz.authorName[0]}</div>`;
+      feed.innerHTML+=`
+      <div class="buzz" id="${id}">
+        <div class="author">${authorImg} <strong>${buzz.authorName}${buzz.verified?" ✔️":""}</strong></div>
+        <div class="text">${buzz.text}</div>
+        <div class="actions">
+          <button onclick="likeBuzz('${id}')">❤️ ${buzz.likes}</button>
+          <button onclick="rebuzz('${id}')">🔁 ${buzz.rebuzz}</button>
+          <button onclick="deleteBuzz('${id}')">🗑️ Delete</button>
+          <button onclick="showComments('${id}')">💬 Comments (${buzz.comments.length||0})</button>
+        </div>
+        <div id="comments-${id}"></div>
+        <div style="margin-top:5px;">
+          <input type="text" id="commentInput-${id}" placeholder="Write a comment...">
+          <button onclick="postComment('${id}')">Post</button>
+        </div>
+      </div>
+      `;
+    });
+  });
+}
+
+/* ------------------ Like / Rebuzz / Delete ------------------ */
+async function likeBuzz(id){
+  const buzzRef=ref(db,"buzzes/"+id);
+  const snap=await get(buzzRef);
+  if(snap.exists()){
+    const data=snap.val();
+    update(buzzRef,{likes:(data.likes||0)+1});
+    if(data.authorId!==currentUser.uid){
+      push(ref(db,`notifications/${data.authorId}`),{message:`${currentUser.displayName} liked your Buzz`,timestamp:Date.now()});
+    }
+  }
+}
+async function rebuzz(id){
+  const buzzRef=ref(db,"buzzes/"+id);
+  const snap=await get(buzzRef);
+  if(snap.exists()){
+    const data=snap.val();
+    update(buzzRef,{rebuzz:(data.rebuzz||0)+1});
+    if(data.authorId!==currentUser.uid){
+      push(ref(db,`notifications/${data.authorId}`),{message:`${currentUser.displayName} rebuzzed your Buzz`,timestamp:Date.now()});
+    }
+  }
+}
+async function deleteBuzz(id){if(confirm("Delete this Buzz?")) set(ref(db,"buzzes/"+id),null);}
+
+/* ------------------ Comments ------------------ */
+async function postComment(id){
+  const input=document.getElementById(`commentInput-${id}`);
+  const text=input.value;
+  if(!text) return;
+  const buzzRef=ref(db,"buzzes/"+id);
+  const snap=await get(buzzRef);
+  if(snap.exists()){
+    const data=snap.val();
+    const comments=data.comments||[];
+    comments.push({author:currentUser.displayName,text:text});
+    update(buzzRef,{comments:comments});
+    input.value="";
+  }
+}
+function showComments(id){
+  const container=document.getElementById(`comments-${id}`);
+  const buzzRef=ref(db,"buzzes/"+id);
+  onValue(buzzRef,snap=>{
+    const data=snap.val();
+    container.innerHTML="";
+    (data.comments||[]).forEach(c=>{
+      container.innerHTML+=`<div class="comment"><strong>${c.author}</strong>: ${c.text}</div>`;
+    });
+  });
+}
+
+/* ------------------ Video Upload ------------------ */
+async function uploadVideo(){
+  const file=document.getElementById("videoFile").files[0];
+  if(!file) return alert("Select a video!");
+  const status=document.getElementById("videoStatus");status.innerText="Uploading...";
+  const formData=new FormData();
+  formData.append("file",file);formData.append("upload_preset","Pulsevideos");
+  const res=await fetch("https://api.cloudinary.com/v1_1/dzjylmmcj/video/upload",{method:"POST",body:formData});
+  const data=await res.json();
+  await push(ref(db,"videos"),{videoURL:data.secure_url,format:data.format,width:data.width,height:data.height,duration:data.duration,uploadedAt:Date.now()});
+  status.innerText="Upload complete!";renderVideos();
+}
+function renderVideos(){
+  const videoFeed=document.getElementById("videoFeed");videoFeed.innerHTML="";
+  onValue(ref(db,"videos"),snap=>{
+    snap.forEach(child=>{const vid=child.val();videoFeed.innerHTML+=`<video controls src="${vid.videoURL}"></video>`;});
+  });
+}
+
+/* ------------------ Notifications ------------------ */
+function renderNotifications(){
+  const notif=document.getElementById("notificationsFeed");notif.innerHTML="";
+  if(!currentUser) return;
+  onValue(ref(db,`notifications/${currentUser.uid}`),snap=>{
+    notif.innerHTML="";
+    snap.forEach(child=>{const n=child.val();notif.innerHTML+=`<div>${n.message}</div>`;});
+  });
+}
+
+/* ------------------ Profile ------------------ */
+function renderProfile(){
+  const profile=document.getElementById("profileFeed");profile.innerHTML="";
+  if(!currentUser) return;
+  const userRef=ref(db,`users/${currentUser.uid}`);
+  onValue(userRef,snap=>{
+    const u=snap.val();
+    const dp=u.dp?`<img src="${u.dp}">`:`<div class="dp-letter">${u.name[0]}</div>`;
+    profile.innerHTML=`
+      <div class="profile-section">${dp}<h3>${u.name}${u.verified?" ✔️":""}</h3>
+      <p>Username: ${u.username}</p>
+      <p>Bio: ${u.bio||"No bio set"}</p>
+      <p>Followers: ${u.followers} | Following: ${u.following}</p>
+      <input type="text" id="bioInput" placeholder="Edit bio">
+      <button onclick="updateBio()">Update Bio</button>
+      <input type="file" id="dpFile" accept="image/*">
+      <button onclick="updateDP()">Update DP</button>
+      </div>
+    `;
+  });
+}
+
+async function updateBio(){
+  const bio=document.getElementById("bioInput").value;
+  await update(ref(db,`users/${currentUser.uid}`),{bio:bio});
+}
+async function updateDP(){
+  const file=document.getElementById("dpFile").files[0];
+  if(!file) return;
+  const base64=await toBase64(file);
+  await update(ref(db,`users/${currentUser.uid}`),{dp:base64});
+}
+
+/* ------------------ Expose Functions ------------------ */
+window.login=login;window.postBuzz=postBuzz;window.likeBuzz=likeBuzz;window.rebuzz=rebuzz;window.deleteBuzz=deleteBuzz;
+window.showComments=showComments;window.postComment=postComment;window.uploadVideo=uploadVideo;
+window.showSection=showSection;window.renderFeed=renderFeed;window.renderVideos=renderVideos;
+window.renderNotifications=renderNotifications;window.renderProfile=renderProfile;
+</script>
 </head>
-<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen text-white">
-    <!-- Login Screen -->
-    <div id="loginScreen" class="flex items-center justify-center min-h-screen">
-        <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full mx-4 border border-white/20">
-            <div class="text-center mb-8">
-                <div class="text-6xl mb-4">⚙️</div>
-                <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">OrioBuzz</h1>
-                <p class="text-gray-300 mt-2">Settings & Policies</p>
-                <p class="text-sm text-gray-400 mt-1">Manage Your Account • Privacy • Premium Features</p>
-            </div>
-            <button onclick="loginWithGoogle()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl transition duration-300 flex items-center justify-center gap-3 shadow-lg">
-                <svg class="w-6 h-6" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-            </button>
-        </div>
-    </div>
-
-    <!-- Main Settings App -->
-    <div id="mainApp" class="hidden">
-        <!-- Header -->
-        <header class="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <button onclick="goBackToMain()" class="p-2 hover:bg-white/10 rounded-lg transition duration-300">
-                        <span class="text-xl">←</span>
-                    </button>
-                    <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">Settings & Policies</h1>
-                </div>
-                
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-lg">
-                        <img id="userAvatar" class="w-8 h-8 rounded-full" src="" alt="User">
-                        <span id="userName" class="font-medium"></span>
-                        <span id="userVerified" class="verified-tick hidden">✓</span>
-                        <span id="userPremium" class="premium-badge hidden">PREMIUM</span>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <div class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Sidebar Navigation -->
-            <div class="lg:col-span-1">
-                <div class="sticky top-24">
-                    <div class="settings-card">
-                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-                            <span class="text-xl">🧭</span> Settings Menu
-                        </h3>
-                        <nav class="space-y-1">
-                            <div class="tab-button active" onclick="showTab('account')" data-tab="account">
-                                <span class="text-lg">👤</span>
-                                <span>Account Settings</span>
-                            </div>
-                            <div class="tab-button" onclick="showTab('privacy')" data-tab="privacy">
-                                <span class="text-lg">🔒</span>
-                                <span>Privacy & Security</span>
-                                <div class="notification-dot"></div>
-                            </div>
-                            <div class="tab-button" onclick="showTab('posts')" data-tab="posts">
-                                <span class="text-lg">📝</span>
-                                <span>Post & Feed Settings</span>
-                            </div>
-                            <div class="tab-button" onclick="showTab('notifications')" data-tab="notifications">
-                                <span class="text-lg">🔔</span>
-                                <span>Notifications</span>
-                            </div>
-                            <div class="tab-button" onclick="showTab('premium')" data-tab="premium">
-                                <span class="text-lg">⭐</span>
-                                <span>Premium & Boosts</span>
-                            </div>
-                            <div class="tab-button" onclick="showTab('policies')" data-tab="policies">
-                                <span class="text-lg">📋</span>
-                                <span>Policies & Terms</span>
-                            </div>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content Area -->
-            <div class="lg:col-span-3">
-                <!-- Account Settings Tab -->
-                <div id="accountTab" class="tab-content">
-                    <div class="settings-card mb-6">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                            <span class="text-3xl">👤</span> Account Settings
-                        </h2>
-                        
-                        <!-- Profile Information -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Profile Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Full Name</label>
-                                    <input type="text" id="fullName" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Username</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-3 text-gray-400">@</span>
-                                        <input type="text" id="username" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 pl-8 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-                                    </div>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium mb-2">Bio</label>
-                                    <textarea id="bio" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white resize-none h-24 focus:outline-none focus:ring-2 focus:ring-pink-500" maxlength="500"></textarea>
-                                    <div class="text-right text-sm text-gray-400 mt-1">
-                                        <span id="bioCharCount">0</span>/500
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Location</label>
-                                    <input type="text" id="location" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Contact Phone</label>
-                                    <input type="tel" id="phone" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Profile Picture -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Profile Picture</h3>
-                            <div class="flex items-center gap-6">
-                                <div class="relative">
-                                    <img id="profilePicPreview" class="w-24 h-24 rounded-full border-4 border-pink-500/30" src="" alt="Profile">
-                                    <button onclick="document.getElementById('profilePicInput').click()" class="absolute bottom-0 right-0 bg-pink-500 hover:bg-pink-600 rounded-full p-2 transition duration-300">
-                                        <span class="text-white text-sm">📷</span>
-                                    </button>
-                                </div>
-                                <div>
-                                    <h4 class="font-medium mb-2">Change Profile Picture</h4>
-                                    <p class="text-sm text-gray-400 mb-3">Upload a new profile picture. Max 2MB, JPG/PNG only.</p>
-                                    <input type="file" id="profilePicInput" accept="image/*" class="hidden" onchange="previewProfilePic(this)">
-                                    <button onclick="document.getElementById('profilePicInput').click()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm transition duration-300">
-                                        Choose File
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Account Management -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Account Management</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Google Account</h4>
-                                        <p class="text-sm text-gray-400" id="googleEmail">Connected</p>
-                                    </div>
-                                    <button onclick="manageGoogleAccount()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm transition duration-300">
-                                        Manage
-                                    </button>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Two-Factor Authentication</h4>
-                                        <p class="text-sm text-gray-400">Add extra security to your account</p>
-                                    </div>
-                                    <div class="toggle-switch" onclick="toggle2FA()" id="twoFactorToggle">
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Account Recovery</h4>
-                                        <p class="text-sm text-gray-400">Set up recovery options</p>
-                                    </div>
-                                    <button onclick="setupRecovery()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm transition duration-300">
-                                        Setup
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Account Statistics -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Account Statistics</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div class="stat-card">
-                                    <div class="text-2xl font-bold text-pink-400" id="totalKarma">0</div>
-                                    <div class="text-sm text-gray-400">Total Karma</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="text-2xl font-bold text-purple-400" id="totalPosts">0</div>
-                                    <div class="text-sm text-gray-400">Posts Created</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="text-2xl font-bold text-blue-400" id="totalFollowers">0</div>
-                                    <div class="text-sm text-gray-400">Followers</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="text-2xl font-bold text-green-400" id="totalAwards">0</div>
-                                    <div class="text-sm text-gray-400">Awards Received</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end gap-4">
-                            <button onclick="resetAccountSettings()" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition duration-300">Reset</button>
-                            <button onclick="saveAccountSettings()" class="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-lg transition duration-300">Save Changes</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Privacy & Security Tab -->
-                <div id="privacyTab" class="tab-content hidden">
-                    <div class="settings-card mb-6">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                            <span class="text-3xl">🔒</span> Privacy & Security
-                        </h2>
-
-                        <!-- Profile Visibility -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Profile Visibility</h3>
-                            <div class="space-y-4">
-                                <label class="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition duration-300">
-                                    <input type="radio" name="profileVisibility" value="public" class="text-pink-500 focus:ring-pink-500" checked>
-                                    <div>
-                                        <div class="font-medium">🌐 Public</div>
-                                        <div class="text-sm text-gray-400">Everyone can see your posts and profile</div>
-                                    </div>
-                                </label>
-                                <label class="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition duration-300">
-                                    <input type="radio" name="profileVisibility" value="verified" class="text-pink-500 focus:ring-pink-500">
-                                    <div>
-                                        <div class="font-medium">✓ Verified Only</div>
-                                        <div class="text-sm text-gray-400">Only verified users can see your posts</div>
-                                    </div>
-                                </label>
-                                <label class="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition duration-300">
-                                    <input type="radio" name="profileVisibility" value="private" class="text-pink-500 focus:ring-pink-500">
-                                    <div>
-                                        <div class="font-medium">🔒 Private</div>
-                                        <div class="text-sm text-gray-400">Only followers can see your posts</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Privacy Settings -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Privacy Settings</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Show Online Status</h4>
-                                        <p class="text-sm text-gray-400">Let others see when you're online</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="onlineStatusToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Allow Direct Messages</h4>
-                                        <p class="text-sm text-gray-400">Receive messages from other users</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="directMessagesToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Show Followers/Following</h4>
-                                        <p class="text-sm text-gray-400">Display your follower and following counts</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="followersToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Activity Status</h4>
-                                        <p class="text-sm text-gray-400">Show your recent activity to others</p>
-                                    </div>
-                                    <div class="toggle-switch" onclick="toggleSetting(this)" id="activityStatusToggle"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Blocked Users -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Blocked Users</h3>
-                            <div id="blockedUsersList" class="space-y-3">
-                                <!-- Blocked users will be loaded here -->
-                            </div>
-                            <button onclick="manageBlockedUsers()" class="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm transition duration-300">
-                                Manage Blocked Users
-                            </button>
-                        </div>
-
-                        <!-- Activity Log -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Recent Activity</h3>
-                            <div id="activityLog" class="space-y-2 max-h-64 overflow-y-auto">
-                                <!-- Activity log will be loaded here -->
-                            </div>
-                            <button onclick="downloadActivityLog()" class="mt-4 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm transition duration-300">
-                                📥 Download Full Activity Log
-                            </button>
-                        </div>
-
-                        <!-- Data Management -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Data Management</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <button onclick="downloadData()" class="p-4 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-blue-400 transition duration-300 text-left">
-                                    <div class="font-medium">📥 Download My Data</div>
-                                    <div class="text-sm text-gray-400">Get a copy of all your posts, comments, and data</div>
-                                </button>
-                                <button onclick="requestDataDeletion()" class="p-4 bg-yellow-600/20 hover:bg-yellow-600/30 rounded-lg text-yellow-400 transition duration-300 text-left">
-                                    <div class="font-medium">🗑️ Request Data Deletion</div>
-                                    <div class="text-sm text-gray-400">Permanently delete specific data</div>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Danger Zone -->
-                        <div class="danger-zone">
-                            <h3 class="text-lg font-semibold mb-4 text-red-400">⚠️ Danger Zone</h3>
-                            <div class="space-y-4">
-                                <button onclick="deactivateAccount()" class="w-full p-4 bg-red-600/20 hover:bg-red-600/30 rounded-lg text-red-400 transition duration-300 text-left">
-                                    <div class="font-medium">Deactivate Account</div>
-                                    <div class="text-sm text-gray-400">Temporarily disable your account</div>
-                                </button>
-                                <button onclick="deleteAccount()" class="w-full p-4 bg-red-600/20 hover:bg-red-600/30 rounded-lg text-red-400 transition duration-300 text-left">
-                                    <div class="font-medium">Delete Account Permanently</div>
-                                    <div class="text-sm text-gray-400">This action cannot be undone</div>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Post & Feed Settings Tab -->
-                <div id="postsTab" class="tab-content hidden">
-                    <div class="settings-card mb-6">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                            <span class="text-3xl">📝</span> Post & Feed Settings
-                        </h2>
-
-                        <!-- Content Preferences -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Content Preferences</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Show NSFW Content</h4>
-                                        <p class="text-sm text-gray-400">Display posts marked as NSFW</p>
-                                    </div>
-                                    <div class="toggle-switch" onclick="toggleSetting(this)" id="nsfwToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Prioritize Verified Users</h4>
-                                        <p class="text-sm text-gray-400">Show verified users' posts first</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="verifiedPriorityToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Auto-play Videos</h4>
-                                        <p class="text-sm text-gray-400">Automatically play video content</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="autoplayToggle"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Hashtag Filters -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Hashtag Filters</h3>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium mb-2">Hidden Hashtags</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="hiddenHashtagInput" placeholder="Enter hashtag to hide..." class="flex-1 bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-                                    <button onclick="addHiddenHashtag()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition duration-300">Hide</button>
-                                </div>
-                            </div>
-                            <div id="hiddenHashtagsList" class="flex flex-wrap gap-2">
-                                <!-- Hidden hashtags will be displayed here -->
-                            </div>
-                        </div>
-
-                        <!-- Interaction Settings -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Interaction Settings</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Allow Comments on Posts</h4>
-                                        <p class="text-sm text-gray-400">Let others comment on your posts by default</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="allowCommentsToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Allow Mentions</h4>
-                                        <p class="text-sm text-gray-400">Let others mention you in posts and comments</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="allowMentionsToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Show Vote Counts</h4>
-                                        <p class="text-sm text-gray-400">Display upvote/downvote counts on posts</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="showVotesToggle"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Feed Algorithm -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Feed Algorithm</h3>
-                            <div class="space-y-4">
-                                <label class="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition duration-300">
-                                    <input type="radio" name="feedAlgorithm" value="smart" class="text-pink-500 focus:ring-pink-500" checked>
-                                    <div>
-                                        <div class="font-medium">🧠 Smart Feed</div>
-                                        <div class="text-sm text-gray-400">Personalized based on your interests and activity</div>
-                                    </div>
-                                </label>
-                                <label class="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition duration-300">
-                                    <input type="radio" name="feedAlgorithm" value="chronological" class="text-pink-500 focus:ring-pink-500">
-                                    <div>
-                                        <div class="font-medium">🕒 Chronological</div>
-                                        <div class="text-sm text-gray-400">Show posts in order of when they were posted</div>
-                                    </div>
-                                </label>
-                                <label class="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition duration-300">
-                                    <input type="radio" name="feedAlgorithm" value="popular" class="text-pink-500 focus:ring-pink-500">
-                                    <div>
-                                        <div class="font-medium">🔥 Popular First</div>
-                                        <div class="text-sm text-gray-400">Show most popular posts first</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Notifications Tab -->
-                <div id="notificationsTab" class="tab-content hidden">
-                    <div class="settings-card mb-6">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                            <span class="text-3xl">🔔</span> Notification Settings
-                        </h2>
-
-                        <!-- Push Notifications -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Push Notifications</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">👤 New Followers</h4>
-                                        <p class="text-sm text-gray-400">When someone follows you</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="followersNotifToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">⬆️ Likes & Upvotes</h4>
-                                        <p class="text-sm text-gray-400">When your posts get upvoted</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="likesNotifToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">💬 Comments</h4>
-                                        <p class="text-sm text-gray-400">When someone comments on your posts</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="commentsNotifToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">🏷️ Mentions</h4>
-                                        <p class="text-sm text-gray-400">When someone mentions you</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="mentionsNotifToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">🚀 Post Boosts</h4>
-                                        <p class="text-sm text-gray-400">When your posts get boosted</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="boostsNotifToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">🏆 Awards</h4>
-                                        <p class="text-sm text-gray-400">When you receive awards</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="awardsNotifToggle"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Email Notifications -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Email Notifications</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">📧 Daily Summary</h4>
-                                        <p class="text-sm text-gray-400">Daily digest of your activity</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="dailySummaryToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">📈 Weekly Report</h4>
-                                        <p class="text-sm text-gray-400">Weekly analytics and insights</p>
-                                    </div>
-                                    <div class="toggle-switch" onclick="toggleSetting(this)" id="weeklyReportToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">🔔 Important Updates</h4>
-                                        <p class="text-sm text-gray-400">Platform updates and announcements</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="updatesToggle"></div>
-                                </div>
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">🎯 Marketing Emails</h4>
-                                        <p class="text-sm text-gray-400">Promotional content and offers</p>
-                                    </div>
-                                    <div class="toggle-switch" onclick="toggleSetting(this)" id="marketingToggle"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Notification Schedule -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Notification Schedule</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Quiet Hours Start</label>
-                                    <input type="time" id="quietHoursStart" value="22:00" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Quiet Hours End</label>
-                                    <input type="time" id="quietHoursEnd" value="08:00" class="w-full bg-white/10 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-                                </div>
-                            </div>
-                            <div class="mt-4">
-                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                                    <div>
-                                        <h4 class="font-medium">Enable Quiet Hours</h4>
-                                        <p class="text-sm text-gray-400">Pause notifications during specified hours</p>
-                                    </div>
-                                    <div class="toggle-switch active" onclick="toggleSetting(this)" id="quietHoursToggle"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Premium & Boosts Tab -->
-                <div id="premiumTab" class="tab-content hidden">
-                    <div class="settings-card mb-6">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                            <span class="text-3xl">⭐</span> Premium Features & Boosts
-                        </h2>
-
-                        <!-- Premium Status -->
-                        <div class="boost-card mb-8">
-                            <div class="flex items-center justify-between mb-4">
-                                <div>
-                                    <h3 class="text-xl font-bold flex items-center gap-2">
-                                        Premium Status
-                                        <span id="premiumStatusBadge" class="premium-badge">PREMIUM</span>
-                                    </h3>
-                                    <p class="text-gray-300">Unlock exclusive features and boost your content</p>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-2xl font-bold text-yellow-400" id="premiumDaysLeft">∞</div>
-                                    <div class="text-sm text-gray-400">Days Remaining</div>
-                                </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                <div class="bg-white/10 rounded-lg p-4 text-center">
-                                    <div class="text-lg font-bold text-pink-400" id="totalBoosts">0</div>
-                                    <div class="text-sm text-gray-400">Total Boosts</div>
-                                </div>
-                                <div class="bg-white/10 rounded-lg p-4 text-center">
-                                    <div class="text-lg font-bold text-purple-400" id="activeBoosts">0</div>
-                                    <div class="text-sm text-gray-400">Active Boosts</div>
-                                </div>
-                                <div class="bg-white/10 rounded-lg p-4 text-center">
-                                    <div class="text-lg font-bold text-blue-400" id="boostCredits">0</div>
-                                    <div class="text-sm text-gray-400">Boost Credits</div>
-                                </div>
-                            </div>
-                            
-                            <button onclick="upgradePremium()" class="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
-                                ⭐ Upgrade to Premium
-                            </button>
-                        </div>
-
-                        <!-- Boost Dashboard -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Boost Dashboard</h3>
-                            <div id="boostDashboard" class="space-y-4">
-                                <!-- Boosted posts will be displayed here -->
-                            </div>
-                            <button onclick="buyBoostCredits()" class="mt-4 bg-pink-600 hover:bg-pink-700 px-6 py-3 rounded-lg font-semibold transition duration-300">
-                                🚀 Buy Boost Credits
-                            </button>
-                        </div>
-
-                        <!-- Payment Methods -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Payment Methods</h3>
-                            <div id="paymentMethods" class="space-y-3">
-                                <!-- Payment methods will be displayed here -->
-                            </div>
-                            <button onclick="addPaymentMethod()" class="mt-4 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm transition duration-300">
-                                💳 Add Payment Method
-                            </button>
-                        </div>
-
-                        <!-- Affiliate Management -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Affiliate Management</h3>
-                            <div class="bg-white/5 rounded-lg p-6">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div>
-                                        <h4 class="font-medium">Affiliate Status</h4>
-                                        <p class="text-sm text-gray-400" id="affiliateStatus">Not connected to any brands</p>
-                                    </div>
-                                    <button onclick="manageAffiliates()" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm transition duration-300">
-                                        Manage
-                                    </button>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="bg-white/5 rounded-lg p-3 text-center">
-                                        <div class="text-lg font-bold text-green-400" id="affiliateEarnings">$0.00</div>
-                                        <div class="text-sm text-gray-400">Total Earnings</div>
-                                    </div>
-                                    <div class="bg-white/5 rounded-lg p-3 text-center">
-                                        <div class="text-lg font-bold text-blue-400" id="affiliateClicks">0</div>
-                                        <div class="text-sm text-gray-400">Total Clicks</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Premium Features -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold mb-4 border-b border-white/20 pb-2">Premium Features</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="bg-gradient-to-r from-pink-500/20 to-purple-600/20 border border-pink-500/30 rounded-lg p-4">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <span class="text-2xl">🚀</span>
-                                        <h4 class="font-semibold">Post Boosting</h4>
-                                    </div>
-                                    <p class="text-sm text-gray-300 mb-3">Increase visibility and reach of your posts</p>
-                                    <div class="text-xs text-pink-400">✓ Available</div>
-                                </div>
-                                
-                                <div class="bg-gradient-to-r from-yellow-500/20 to-orange-600/20 border border-yellow-500/30 rounded-lg p-4">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <span class="text-2xl">✓</span>
-                                        <h4 class="font-semibold">Verification Badge</h4>
-                                    </div>
-                                    <p class="text-sm text-gray-300 mb-3">Get the coveted pink verification tick</p>
-                                    <div class="text-xs text-yellow-400">✓ Active</div>
-                                </div>
-                                
-                                <div class="bg-gradient-to-r from-blue-500/20 to-cyan-600/20 border border-blue-500/30 rounded-lg p-4">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <span class="text-2xl">📊</span>
-                                        <h4 class="font-semibold">Advanced Analytics</h4>
-                                    </div>
-                                    <p class="text-sm text-gray-300 mb-3">Detailed insights into your content performance</p>
-                                    <div class="text-xs text-blue-400">✓ Available</div>
-                                </div>
-                                
-                                <div class="bg-gradient-to-r from-green-500/20 to-emerald-600/20 border border-green-500/30 rounded-lg p-4">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <span class="text-2xl">🎨</span>
-                                        <h4 class="font-semibold">Custom Themes</h4>
-                                    </div>
-                                    <p class="text-sm text-gray-300 mb-3">Personalize your profile with custom colors</p>
-                                    <div class="text-xs text-green-400">✓ Available</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Policies & Terms Tab -->
-                <div id="policiesTab" class="tab-content hidden">
-                    <div class="settings-card mb-6">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                            <span class="text-3xl">📋</span> Policies & Terms
-                        </h2>
-
-                        <!-- Terms of Service -->
-                        <div class="policy-section">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <span class="text-xl">📜</span> Terms of Service
-                            </h3>
-                            <div class="text-sm text-gray-300 space-y-3">
-                                <p><strong>1. Account Responsibility:</strong> Users are responsible for maintaining the security of their accounts and all activities that occur under their account.</p>
-                                <p><strong>2. Content Guidelines:</strong> All content must comply with our community standards. Harassment, spam, or illegal content is prohibited.</p>
-                                <p><strong>3. Verification Policy:</strong> Verified accounts are granted based on authenticity, notability, and compliance with our guidelines.</p>
-                                <p><strong>4. Premium Features:</strong> Premium subscriptions are non-refundable and subject to our payment terms.</p>
-                                <p><strong>5. Data Usage:</strong> We collect and use data as outlined in our Privacy Policy to improve user experience.</p>
-                            </div>
-                            <button onclick="viewFullTerms()" class="mt-4 text-pink-400 hover:text-pink-300 text-sm underline">
-                                View Full Terms of Service
-                            </button>
-                        </div>
-
-                        <!-- Community Guidelines -->
-                        <div class="policy-section">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <span class="text-xl">🤝</span> Community Guidelines
-                            </h3>
-                            <div class="text-sm text-gray-300 space-y-3">
-                                <p><strong>Respect Others:</strong> Treat all community members with respect. No harassment, bullying, or hate speech.</p>
-                                <p><strong>Authentic Content:</strong> Share genuine content. No fake news, misinformation, or impersonation.</p>
-                                <p><strong>No Spam:</strong> Avoid repetitive posts, excessive self-promotion, or irrelevant content.</p>
-                                <p><strong>Privacy:</strong> Respect others' privacy. Don't share personal information without consent.</p>
-                                <p><strong>Legal Compliance:</strong> All content must comply with applicable laws and regulations.</p>
-                            </div>
-                            <button onclick="viewFullGuidelines()" class="mt-4 text-pink-400 hover:text-pink-300 text-sm underline">
-                                View Full Community Guidelines
-                            </button>
-                        </div>
-
-                        <!-- Privacy Policy -->
-                        <div class="policy-section">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <span class="text-xl">🔒</span> Privacy Policy
-                            </h3>
-                            <div class="text-sm text-gray-300 space-y-3">
-                                <p><strong>Data Collection:</strong> We collect information you provide, usage data, and device information to improve our services.</p>
-                                <p><strong>Data Storage:</strong> Your data is stored securely using Firebase Realtime Database with industry-standard encryption.</p>
-                                <p><strong>Data Sharing:</strong> We don't sell your personal data. Limited sharing occurs only for service functionality.</p>
-                                <p><strong>Your Rights:</strong> You can access, modify, or delete your data at any time through your account settings.</p>
-                                <p><strong>Cookies:</strong> We use cookies and similar technologies to enhance user experience and analyze usage.</p>
-                            </div>
-                            <button onclick="viewFullPrivacy()" class="mt-4 text-pink-400 hover:text-pink-300 text-sm underline">
-                                View Full Privacy Policy
-                            </button>
-                        </div>
-
-                        <!-- Content Rights -->
-                        <div class="policy-section">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <span class="text-xl">©️</span> Content Rights & Ownership
-                            </h3>
-                            <div class="text-sm text-gray-300 space-y-3">
-                                <p><strong>Your Content:</strong> You retain ownership of content you create and post on OrioBuzz.</p>
-                                <p><strong>License to Us:</strong> By posting, you grant us a license to display, distribute, and promote your content on our platform.</p>
-                                <p><strong>Copyright:</strong> Respect others' intellectual property. Report copyright violations through our DMCA process.</p>
-                                <p><strong>User-Generated Content:</strong> You're responsible for ensuring you have rights to all content you post.</p>
-                                <p><strong>Platform Rights:</strong> OrioBuzz retains rights to its platform, features, and proprietary technology.</p>
-                            </div>
-                            <button onclick="viewContentRights()" class="mt-4 text-pink-400 hover:text-pink-300 text-sm underline">
-                                View Full Content Rights Policy
-                            </button>
-                        </div>
-
-                        <!-- Contact & Support -->
-                        <div class="policy-section">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <span class="text-xl">📞</span> Contact & Support
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <button onclick="contactSupport()" class="p-4 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg text-blue-400 transition duration-300 text-left">
-                                    <div class="font-medium">💬 Contact Support</div>
-                                    <div class="text-sm text-gray-400">Get help with your account or report issues</div>
-                                </button>
-                                <button onclick="reportBug()" class="p-4 bg-red-600/20 hover:bg-red-600/30 rounded-lg text-red-400 transition duration-300 text-left">
-                                    <div class="font-medium">🐛 Report Bug</div>
-                                    <div class="text-sm text-gray-400">Help us improve by reporting technical issues</div>
-                                </button>
-                                <button onclick="suggestFeature()" class="p-4 bg-green-600/20 hover:bg-green-600/30 rounded-lg text-green-400 transition duration-300 text-left">
-                                    <div class="font-medium">💡 Suggest Feature</div>
-                                    <div class="text-sm text-gray-400">Share ideas for new features or improvements</div>
-                                </button>
-                                <button onclick="viewFAQ()" class="p-4 bg-purple-600/20 hover:bg-purple-600/30 rounded-lg text-purple-400 transition duration-300 text-left">
-                                    <div class="font-medium">❓ FAQ</div>
-                                    <div class="text-sm text-gray-400">Find answers to common questions</div>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let currentUser = null;
-        let currentTab = 'account';
-
-        // Verified users and auto-accounts
-        const verifiedEmails = [
-            'sgursharn076@gmail.com',
-            'orionbuzz771@gmail.com', 
-            'sdozera@gmail.com'
-        ];
-
-        const autoAccounts = [
-            { 
-                email: 'orionbuzz771@gmail.com', 
-                name: 'OrionTec', 
-                username: 'oriontec_official', 
-                bio: 'Official OrionTec Account 🚀\nTechnology & Innovation Leader',
-                verified: true,
-                premium: true,
-                affiliate: 'OrionTec',
-                karma: 50000
-            },
-            { 
-                email: 'sgursharn076@gmail.com', 
-                name: 'Gursharn Arya', 
-                username: 'gursharn_arya', 
-                bio: 'Tech Enthusiast & Creator 💻\nVerified Content Creator',
-                verified: true,
-                premium: true,
-                affiliate: 'Gursharn Arya',
-                karma: 25000
-            },
-            { 
-                email: 'sdozera@gmail.com', 
-                name: 'Dozera Group', 
-                username: 'dozera_group', 
-                bio: 'Innovation & Technology 🌟\nBuilding the Future Together',
-                verified: true,
-                premium: true,
-                affiliate: 'Dozera Group',
-                karma: 75000
-            }
-        ];
-
-        // Authentication Functions
-        async function loginWithGoogle() {
-            try {
-                const result = await window.firebaseApp.signInWithPopup(window.firebaseApp.auth, window.firebaseApp.provider);
-                const user = result.user;
-                await setupUser(user);
-            } catch (error) {
-                console.error('Login failed:', error);
-                alert('Login failed. Please try again.');
-            }
-        }
-
-        async function setupUser(user) {
-            // Check if user exists
-            const userRef = window.firebaseApp.ref(window.firebaseApp.database, `users/${user.uid}`);
-            const snapshot = await window.firebaseApp.get(userRef);
-            
-            if (snapshot.exists()) {
-                currentUser = snapshot.val();
-            } else {
-                // Create new user
-                currentUser = {
-                    uid: user.uid,
-                    email: user.email,
-                    name: user.displayName,
-                    avatar: user.photoURL,
-                    verified: verifiedEmails.includes(user.email),
-                    premium: verifiedEmails.includes(user.email),
-                    username: user.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ''),
-                    bio: '',
-                    location: '',
-                    phone: '',
-                    followers: [],
-                    following: [],
-                    interests: {},
-                    communities: [],
-                    joinDate: Date.now(),
-                    lastActive: Date.now(),
-                    karma: 0,
-                    settings: {
-                        privacy: {
-                            profileVisibility: 'public',
-                            showOnlineStatus: true,
-                            allowDirectMessages: true,
-                            showFollowers: true,
-                            activityStatus: false
-                        },
-                        posts: {
-                            showNSFW: false,
-                            prioritizeVerified: true,
-                            autoplayVideos: true,
-                            allowComments: true,
-                            allowMentions: true,
-                            showVotes: true,
-                            feedAlgorithm: 'smart'
-                        },
-                        notifications: {
-                            push: {
-                                followers: true,
-                                likes: true,
-                                comments: true,
-                                mentions: true,
-                                boosts: true,
-                                awards: true
-                            },
-                            email: {
-                                dailySummary: true,
-                                weeklyReport: false,
-                                updates: true,
-                                marketing: false
-                            },
-                            quietHours: {
-                                enabled: true,
-                                start: '22:00',
-                                end: '08:00'
-                            }
-                        }
-                    },
-                    stats: {
-                        posts: 0,
-                        comments: 0,
-                        awards: 0,
-                        totalUpvotes: 0,
-                        totalDownvotes: 0
-                    },
-                    premium: {
-                        status: verifiedEmails.includes(user.email),
-                        daysLeft: verifiedEmails.includes(user.email) ? -1 : 0,
-                        totalBoosts: 0,
-                        activeBoosts: 0,
-                        boostCredits: verifiedEmails.includes(user.email) ? 100 : 0
-                    },
-                    blocked: [],
-                    hiddenHashtags: []
-                };
-
-                // Set auto-account details
-                const autoAccount = autoAccounts.find(acc => acc.email === user.email);
-                if (autoAccount) {
-                    Object.assign(currentUser, autoAccount);
-                }
-
-                await window.firebaseApp.set(userRef, currentUser);
-            }
-
-            showMainApp();
-        }
-
-        function showMainApp() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            
-            updateUserUI();
-            loadAccountSettings();
-            loadActivityLog();
-            loadBlockedUsers();
-            loadBoostDashboard();
-            loadPaymentMethods();
-        }
-
-        function updateUserUI() {
-            document.getElementById('userAvatar').src = currentUser.avatar;
-            document.getElementById('userName').textContent = currentUser.name;
-            document.getElementById('profilePicPreview').src = currentUser.avatar;
-            document.getElementById('googleEmail').textContent = currentUser.email;
-            
-            if (currentUser.verified) {
-                document.getElementById('userVerified').classList.remove('hidden');
-            }
-            
-            if (currentUser.premium) {
-                document.getElementById('userPremium').classList.remove('hidden');
-                document.getElementById('premiumStatusBadge').classList.remove('hidden');
-            }
-        }
-
-        // Tab Management
-        function showTab(tabName) {
-            currentTab = tabName;
-            
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.add('hidden');
-            });
-            
-            // Show selected tab
-            document.getElementById(tabName + 'Tab').classList.remove('hidden');
-            
-            // Update tab buttons
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.tab === tabName) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-
-        // Settings Functions
-        function loadAccountSettings() {
-            document.getElementById('fullName').value = currentUser.name || '';
-            document.getElementById('username').value = currentUser.username || '';
-            document.getElementById('bio').value = currentUser.bio || '';
-            document.getElementById('location').value = currentUser.location || '';
-            document.getElementById('phone').value = currentUser.phone || '';
-            
-            // Update character count
-            updateBioCharCount();
-            
-            // Load stats
-            document.getElementById('totalKarma').textContent = formatNumber(currentUser.karma || 0);
-            document.getElementById('totalPosts').textContent = formatNumber(currentUser.stats?.posts || 0);
-            document.getElementById('totalFollowers').textContent = formatNumber(currentUser.followers?.length || 0);
-            document.getElementById('totalAwards').textContent = formatNumber(currentUser.stats?.awards || 0);
-            
-            // Load premium stats
-            document.getElementById('totalBoosts').textContent = currentUser.premium?.totalBoosts || 0;
-            document.getElementById('activeBoosts').textContent = currentUser.premium?.activeBoosts || 0;
-            document.getElementById('boostCredits').textContent = currentUser.premium?.boostCredits || 0;
-            document.getElementById('premiumDaysLeft').textContent = currentUser.premium?.daysLeft === -1 ? '∞' : (currentUser.premium?.daysLeft || 0);
-            
-            // Load affiliate status
-            if (currentUser.affiliate) {
-                document.getElementById('affiliateStatus').textContent = `Connected to ${currentUser.affiliate}`;
-            }
-        }
-
-        function updateBioCharCount() {
-            const bio = document.getElementById('bio').value;
-            document.getElementById('bioCharCount').textContent = bio.length;
-        }
-
-        function toggleSetting(element) {
-            element.classList.toggle('active');
-        }
-
-        function toggle2FA() {
-            const toggle = document.getElementById('twoFactorToggle');
-            toggle.classList.toggle('active');
-            
-            if (toggle.classList.contains('active')) {
-                alert('Two-Factor Authentication enabled! 🔐');
-            } else {
-                alert('Two-Factor Authentication disabled.');
-            }
-        }
-
-        function previewProfilePic(input) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                if (file.size > 2 * 1024 * 1024) { // 2MB limit
-                    alert('Image size should be less than 2MB');
-                    input.value = '';
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('profilePicPreview').src = e.target.result;
-                    document.getElementById('userAvatar').src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        async function saveAccountSettings() {
-            const updates = {
-                name: document.getElementById('fullName').value,
-                username: document.getElementById('username').value,
-                bio: document.getElementById('bio').value,
-                location: document.getElementById('location').value,
-                phone: document.getElementById('phone').value
-            };
-
-            try {
-                await window.firebaseApp.update(
-                    window.firebaseApp.ref(window.firebaseApp.database, `users/${currentUser.uid}`),
-                    updates
-                );
-                
-                Object.assign(currentUser, updates);
-                showNotification('Settings saved successfully! ✅');
-                
-            } catch (error) {
-                console.error('Error updating settings:', error);
-                alert('Failed to save settings. Please try again.');
-            }
-        }
-
-        function resetAccountSettings() {
-            if (confirm('Are you sure you want to reset all account settings?')) {
-                loadAccountSettings();
-                showNotification('Settings reset to default values');
-            }
-        }
-
-        // Activity Log
-        function loadActivityLog() {
-            const activityLog = document.getElementById('activityLog');
-            const activities = [
-                { icon: '🔐', text: 'Logged in from Chrome', time: '2 minutes ago' },
-                { icon: '📝', text: 'Created a new post', time: '1 hour ago' },
-                { icon: '👤', text: 'Updated profile information', time: '3 hours ago' },
-                { icon: '🔔', text: 'Changed notification settings', time: '1 day ago' },
-                { icon: '⚙️', text: 'Modified privacy settings', time: '2 days ago' }
-            ];
-            
-            activityLog.innerHTML = activities.map(activity => `
-                <div class="activity-log-item">
-                    <span class="text-lg">${activity.icon}</span>
-                    <div class="flex-1">
-                        <div class="font-medium text-sm">${activity.text}</div>
-                        <div class="text-xs text-gray-400">${activity.time}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Blocked Users
-        function loadBlockedUsers() {
-            const blockedList = document.getElementById('blockedUsersList');
-            const blocked = currentUser.blocked || [];
-            
-            if (blocked.length === 0) {
-                blockedList.innerHTML = '<div class="text-center text-gray-400 py-4">No blocked users</div>';
-                return;
-            }
-            
-            blockedList.innerHTML = blocked.map(userId => `
-                <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                            <span class="text-sm">👤</span>
-                        </div>
-                        <span class="font-medium">Blocked User</span>
-                    </div>
-                    <button onclick="unblockUser('${userId}')" class="text-red-400 hover:text-red-300 text-sm">Unblock</button>
-                </div>
-            `).join('');
-        }
-
-        // Boost Dashboard
-        function loadBoostDashboard() {
-            const dashboard = document.getElementById('boostDashboard');
-            dashboard.innerHTML = `
-                <div class="text-center text-gray-400 py-8">
-                    <div class="text-4xl mb-2">🚀</div>
-                    <h3 class="font-semibold mb-2">No Active Boosts</h3>
-                    <p class="text-sm">Boost your posts to increase visibility and engagement</p>
-                </div>
-            `;
-        }
-
-        // Payment Methods
-        function loadPaymentMethods() {
-            const paymentMethods = document.getElementById('paymentMethods');
-            paymentMethods.innerHTML = `
-                <div class="text-center text-gray-400 py-6">
-                    <div class="text-3xl mb-2">💳</div>
-                    <p class="text-sm">No payment methods added</p>
-                </div>
-            `;
-        }
-
-        // Utility Functions
-        function formatNumber(num) {
-            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
-            return num.toString();
-        }
-
-        function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-20 right-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
-            }, 100);
-            
-            setTimeout(() => {
-                notification.style.transform = 'translateX(full)';
-                setTimeout(() => {
-                    if (document.body.contains(notification)) {
-                        document.body.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        // Placeholder Functions
-        function goBackToMain() {
-            window.location.href = 'index.html';
-        }
-
-        function manageGoogleAccount() {
-            alert('Google Account management - feature coming soon! 🔐');
-        }
-
-        function setupRecovery() {
-            alert('Account recovery setup - feature coming soon! 🔄');
-        }
-
-        function manageBlockedUsers() {
-            alert('Blocked users management - feature coming soon! 🚫');
-        }
-
-        function unblockUser(userId) {
-            alert('Unblock user feature coming soon! ✅');
-        }
-
-        function downloadActivityLog() {
-            alert('Activity log download - feature coming soon! 📥');
-        }
-
-        function downloadData() {
-            alert('Data download feature coming soon! 📦');
-        }
-
-        function requestDataDeletion() {
-            alert('Data deletion request - feature coming soon! 🗑️');
-        }
-
-        function deactivateAccount() {
-            if (confirm('Are you sure you want to deactivate your account?')) {
-                alert('Account deactivation - feature coming soon! ⏸️');
-            }
-        }
-
-        function deleteAccount() {
-            if (confirm('Are you sure you want to permanently delete your account? This action cannot be undone.')) {
-                alert('Account deletion - feature coming soon! ⚠️');
-            }
-        }
-
-        function addHiddenHashtag() {
-            const input = document.getElementById('hiddenHashtagInput');
-            const hashtag = input.value.trim();
-            if (hashtag) {
-                alert(`Hiding hashtag: ${hashtag} - feature coming soon! 🏷️`);
-                input.value = '';
-            }
-        }
-
-        function upgradePremium() {
-            alert('Premium upgrade - feature coming soon! ⭐');
-        }
-
-        function buyBoostCredits() {
-            alert('Boost credits purchase - feature coming soon! 🚀');
-        }
-
-        function addPaymentMethod() {
-            alert('Add payment method - feature coming soon! 💳');
-        }
-
-        function manageAffiliates() {
-            alert('Affiliate management - feature coming soon! 🤝');
-        }
-
-        function viewFullTerms() {
-            alert('Full Terms of Service - feature coming soon! 📜');
-        }
-
-        function viewFullGuidelines() {
-            alert('Full Community Guidelines - feature coming soon! 🤝');
-        }
-
-        function viewFullPrivacy() {
-            alert('Full Privacy Policy - feature coming soon! 🔒');
-        }
-
-        function viewContentRights() {
-            alert('Content Rights Policy - feature coming soon! ©️');
-        }
-
-        function contactSupport() {
-            alert('Contact Support - feature coming soon! 💬');
-        }
-
-        function reportBug() {
-            alert('Bug Report - feature coming soon! 🐛');
-        }
-
-        function suggestFeature() {
-            alert('Feature Suggestion - feature coming soon! 💡');
-        }
-
-        function viewFAQ() {
-            alert('FAQ - feature coming soon! ❓');
-        }
-
-        // Event Listeners
-        document.getElementById('bio').addEventListener('input', updateBioCharCount);
-
-        // Initialize auth state listener
-        window.firebaseApp.onAuthStateChanged(window.firebaseApp.auth, (user) => {
-            if (user && !currentUser) {
-                setupUser(user);
-            }
-        });
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97736840222dd4bc',t:'MTc1NjU0NzY3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<body>
+<header>Pulse 🌸💙</header>
+<nav>
+<button onclick="showSection('login')">Login</button>
+<button onclick="showSection('home')">Home</button>
+<button onclick="showSection('profile')">Profile</button>
+<button onclick="showSection('notifications')">Notifications</button>
+<button onclick="showSection('search')">Search</button>
+<button onclick="showSection('settings')">Settings</button>
+</nav>
+
+<section id="login" class="active">
+<div class="container">
+<button onclick="login()">Login with Google</button>
+</div>
+</section>
+
+<section id="home">
+<div class="container">
+<h3>Post a Buzz</h3>
+<textarea id="buzzInput" placeholder="What's happening?"></textarea>
+<input type="file" id="buzzImage" accept="image/*">
+<button onclick="postBuzz()">Post Buzz</button>
+
+<h3>Feed</h3>
+<div id="feed"></div>
+
+<h3>Video Upload</h3>
+<input type="file" id="videoFile" accept="video/*">
+<button onclick="uploadVideo()">Upload Video</button>
+<p id="videoStatus"></p>
+<div id="videoFeed"></div>
+</div>
+</section>
+
+<section id="profile">
+<div class="container" id="profileFeed"></div>
+</section>
+
+<section id="notifications">
+<div class="container">
+<h3>Notifications</h3>
+<div id="notificationsFeed"></div>
+</div>
+</section>
+
+<section id="search">
+<div class="container">
+<h3>Search Users</h3>
+<p>Search functionality can be added here.</p>
+</div>
+</section>
+
+<section id="settings">
+<div class="container">
+<h3>Settings</h3>
+<p>Private account, block/unblock, logout, verification requests etc. can be added here.</p>
+</div>
+</section>
+</body>
 </html>
