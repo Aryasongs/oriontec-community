@@ -26,8 +26,19 @@
         }
         
         .verified-badge {
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #1DA1F2 0%, #0d8bd9 100%);
             border-radius: 50%;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(29, 161, 242, 0.3);
+        }
+        
+        .verified-badge::before {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.1;
         }
         
         .hashtag {
@@ -285,7 +296,8 @@
                 <div class="flex space-x-3">
                     <div id="userAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0"></div>
                     <div class="flex-1 relative">
-                        <textarea id="buzzText" placeholder="What's buzzing?" class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" rows="3"></textarea>
+                        <textarea id="buzzText" placeholder="What's buzzing?" class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" rows="3" maxlength="2000"></textarea>
+                        <div id="charCounter" class="text-xs text-gray-400 mt-1">0/500</div>
                         
                         <!-- Suggestions Dropdown -->
                         <div id="suggestionsDropdown" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
@@ -770,18 +782,114 @@
                 
                 <div class="text-center space-y-4">
                     <div class="text-6xl font-bold gradient-bg bg-clip-text text-transparent">Pulse</div>
-                    <p class="text-gray-600">Version 1.0.0</p>
+                    <p class="text-gray-600">Version 09.71.00</p>
                     <p class="text-sm text-gray-500">Connect with the world through Pulse - the social media platform that brings people together.</p>
                     
                     <div class="border-t border-gray-200 pt-4 mt-4">
                         <div class="space-y-2 text-sm text-gray-600">
                             <p>© 2024 Pulse. All rights reserved.</p>
                             <div class="flex justify-center space-x-4">
-                                <button class="text-blue-500 hover:underline">Privacy Policy</button>
-                                <button class="text-blue-500 hover:underline">Terms of Service</button>
+                                <button onclick="openPrivacyPolicy()" class="text-blue-500 hover:underline">Privacy Policy</button>
+                                <button onclick="openTermsOfService()" class="text-blue-500 hover:underline">Terms of Service</button>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Policy Modal -->
+        <div id="privacyPolicyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-3xl p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">Privacy Policy</h3>
+                    <button onclick="closePrivacyPolicy()" class="text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="prose max-w-none text-sm">
+                    <h4 class="font-semibold mb-2">1. Information We Collect</h4>
+                    <p class="mb-4">We collect information you provide directly to us, such as when you create an account, post content, or communicate with other users. This includes your name, email address, profile information, and any content you share on our platform.</p>
+                    
+                    <h4 class="font-semibold mb-2">2. How We Use Your Information</h4>
+                    <p class="mb-4">We use the information we collect to provide, maintain, and improve our services, communicate with you, personalize your experience, and ensure the safety and security of our platform. We may also use your information to send you updates about our services and promotional materials.</p>
+                    
+                    <h4 class="font-semibold mb-2">3. Information Sharing</h4>
+                    <p class="mb-4">We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy. We may share your information with service providers who assist us in operating our platform, conducting business, or serving users.</p>
+                    
+                    <h4 class="font-semibold mb-2">4. Data Security</h4>
+                    <p class="mb-4">We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet or electronic storage is 100% secure.</p>
+                    
+                    <h4 class="font-semibold mb-2">5. Your Rights</h4>
+                    <p class="mb-4">You have the right to access, update, or delete your personal information. You can also control your privacy settings and choose what information is visible to other users. If you wish to delete your account, you can do so through your account settings.</p>
+                    
+                    <h4 class="font-semibold mb-2">6. Cookies and Tracking</h4>
+                    <p class="mb-4">We use cookies and similar technologies to enhance your experience on our platform, analyze usage patterns, and provide personalized content. You can control cookie settings through your browser preferences.</p>
+                    
+                    <h4 class="font-semibold mb-2">7. Third-Party Services</h4>
+                    <p class="mb-4">Our platform may contain links to third-party websites or services. We are not responsible for the privacy practices of these external sites and encourage you to review their privacy policies.</p>
+                    
+                    <h4 class="font-semibold mb-2">8. Children's Privacy</h4>
+                    <p class="mb-4">Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we become aware that we have collected such information, we will take steps to delete it.</p>
+                    
+                    <h4 class="font-semibold mb-2">9. International Users</h4>
+                    <p class="mb-4">If you are accessing our services from outside the United States, please be aware that your information may be transferred to, stored, and processed in the United States where our servers are located.</p>
+                    
+                    <h4 class="font-semibold mb-2">10. Changes to This Policy</h4>
+                    <p class="mb-4">We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the effective date. Your continued use of our services after any changes constitutes acceptance of the updated policy.</p>
+                    
+                    <p class="text-xs text-gray-500 mt-6">Last updated: December 2024</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms of Service Modal -->
+        <div id="termsOfServiceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-3xl p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">Terms of Service</h3>
+                    <button onclick="closeTermsOfService()" class="text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="prose max-w-none text-sm">
+                    <h4 class="font-semibold mb-2">1. Acceptance of Terms</h4>
+                    <p class="mb-4">By accessing and using Pulse, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+                    
+                    <h4 class="font-semibold mb-2">2. User Accounts</h4>
+                    <p class="mb-4">You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account or password. You must notify us immediately of any unauthorized use of your account.</p>
+                    
+                    <h4 class="font-semibold mb-2">3. Content Guidelines</h4>
+                    <p class="mb-4">You are solely responsible for the content you post on Pulse. You agree not to post content that is illegal, harmful, threatening, abusive, harassing, defamatory, vulgar, obscene, or otherwise objectionable. We reserve the right to remove any content that violates these guidelines.</p>
+                    
+                    <h4 class="font-semibold mb-2">4. Intellectual Property</h4>
+                    <p class="mb-4">The content you post on Pulse remains your property. However, by posting content, you grant us a non-exclusive, royalty-free license to use, modify, and distribute your content on our platform. You represent that you have the right to grant this license.</p>
+                    
+                    <h4 class="font-semibold mb-2">5. Prohibited Activities</h4>
+                    <p class="mb-4">You agree not to engage in activities that could harm our platform or other users, including but not limited to: spamming, hacking, distributing malware, impersonating others, or violating any applicable laws or regulations.</p>
+                    
+                    <h4 class="font-semibold mb-2">6. Privacy and Data Protection</h4>
+                    <p class="mb-4">Your privacy is important to us. Our Privacy Policy explains how we collect, use, and protect your information. By using our services, you agree to the collection and use of information in accordance with our Privacy Policy.</p>
+                    
+                    <h4 class="font-semibold mb-2">7. Service Availability</h4>
+                    <p class="mb-4">We strive to maintain high availability of our services, but we do not guarantee uninterrupted access. We may temporarily suspend or restrict access for maintenance, updates, or other operational reasons.</p>
+                    
+                    <h4 class="font-semibold mb-2">8. Limitation of Liability</h4>
+                    <p class="mb-4">Pulse shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of our services. Our total liability shall not exceed the amount you paid for our services in the past 12 months.</p>
+                    
+                    <h4 class="font-semibold mb-2">9. Termination</h4>
+                    <p class="mb-4">We may terminate or suspend your account at any time for violations of these terms or for any other reason. You may also terminate your account at any time through your account settings.</p>
+                    
+                    <h4 class="font-semibold mb-2">10. Changes to Terms</h4>
+                    <p class="mb-4">We reserve the right to modify these terms at any time. We will notify users of significant changes through our platform or via email. Continued use of our services after changes constitutes acceptance of the new terms.</p>
+                    
+                    <p class="text-xs text-gray-500 mt-6">Last updated: December 2024</p>
                 </div>
             </div>
         </div>
@@ -978,7 +1086,71 @@
         setTimeout(() => {
             loadingScreen.classList.add('hidden');
             checkAuthState();
+            createPulseOfficialAccount();
         }, 2000);
+
+        // Create Pulse Official Account
+        async function createPulseOfficialAccount() {
+            try {
+                const pulseOfficialId = 'pulse_official';
+                const existingAccount = await database.ref(`users/${pulseOfficialId}`).once('value');
+                
+                if (!existingAccount.exists()) {
+                    const pulseOfficialData = {
+                        uid: pulseOfficialId,
+                        displayName: 'Pulse',
+                        username: 'pulse',
+                        bio: '🔥 Official Pulse account • Connect with the world • #PulseLife',
+                        profilePhoto: null,
+                        setupComplete: true,
+                        verified: true,
+                        isOfficial: true,
+                        createdAt: firebase.database.ServerValue.TIMESTAMP,
+                        followers: 0,
+                        following: 0
+                    };
+                    
+                    await database.ref(`users/${pulseOfficialId}`).set(pulseOfficialData);
+                    await database.ref(`usernames/pulse`).set(pulseOfficialId);
+                    
+                    // Create some initial posts
+                    const initialPosts = [
+                        {
+                            uid: pulseOfficialId,
+                            authorName: 'Pulse',
+                            authorUsername: 'pulse',
+                            authorImage: null,
+                            authorVerified: true,
+                            text: 'Welcome to Pulse! 🎉 Connect with friends, share your thoughts, and discover amazing content. #Welcome #PulseLife',
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            likes: 0,
+                            rebuzzes: 0,
+                            comments: 0,
+                            saves: 0
+                        },
+                        {
+                            uid: pulseOfficialId,
+                            authorName: 'Pulse',
+                            authorUsername: 'pulse',
+                            authorImage: null,
+                            authorVerified: true,
+                            text: 'Stay connected, stay updated! Follow us for the latest news and updates about Pulse. 📱✨ #Updates #Social',
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            likes: 0,
+                            rebuzzes: 0,
+                            comments: 0,
+                            saves: 0
+                        }
+                    ];
+                    
+                    for (const post of initialPosts) {
+                        await database.ref('buzzes').push(post);
+                    }
+                }
+            } catch (error) {
+                console.error('Error creating Pulse Official account:', error);
+            }
+        }
 
         // Auth state observer
         auth.onAuthStateChanged((user) => {
@@ -1153,11 +1325,47 @@
         // Buzz creation
         document.getElementById('buzzText').addEventListener('input', (e) => {
             const postBtn = document.getElementById('postBuzz');
-            postBtn.disabled = e.target.value.trim().length === 0 && !selectedImage;
+            postBtn.disabled = e.target.value.trim().length === 0 && selectedImages.length === 0;
+            
+            // Update character counter
+            updateCharCounter();
             
             // Handle suggestions
             handleSuggestions(e);
         });
+
+        function updateCharCounter() {
+            const textarea = document.getElementById('buzzText');
+            const counter = document.getElementById('charCounter');
+            const length = textarea.value.length;
+            
+            // Check if user is Gursharn Arya for different limits
+            const maxLength = 500; // Default limit, will be updated based on user
+            
+            // Get current user data to check limits
+            if (currentUser) {
+                database.ref(`users/${currentUser.uid}`).once('value').then((snapshot) => {
+                    const userData = snapshot.val();
+                    const isGursharn = userData && (userData.username === 'gursharn' || userData.displayName === 'Gursharn Arya');
+                    const actualMaxLength = isGursharn ? 2000 : 500;
+                    
+                    counter.textContent = `${length}/${actualMaxLength}`;
+                    
+                    if (length > actualMaxLength) {
+                        counter.classList.add('text-red-500');
+                        counter.classList.remove('text-gray-400');
+                    } else if (length > actualMaxLength * 0.8) {
+                        counter.classList.add('text-yellow-500');
+                        counter.classList.remove('text-gray-400', 'text-red-500');
+                    } else {
+                        counter.classList.add('text-gray-400');
+                        counter.classList.remove('text-red-500', 'text-yellow-500');
+                    }
+                });
+            } else {
+                counter.textContent = `${length}/500`;
+            }
+        }
 
         // Handle keyboard navigation for suggestions
         document.getElementById('buzzText').addEventListener('keydown', (e) => {
@@ -1496,6 +1704,15 @@
                 const userSnapshot = await database.ref(`users/${currentUser.uid}`).once('value');
                 const userData = userSnapshot.val();
                 
+                // Check character limit based on user
+                const isGursharn = userData.username === 'gursharn' || userData.displayName === 'Gursharn Arya';
+                const maxLength = isGursharn ? 2000 : 500;
+                
+                if (text.length > maxLength) {
+                    alert(`Text too long! Maximum ${maxLength} characters allowed.`);
+                    return;
+                }
+                
                 // Extract hashtags and mentions
                 const hashtags = extractHashtags(text);
                 const mentions = extractMentions(text);
@@ -1505,6 +1722,7 @@
                     authorName: userData.displayName,
                     authorUsername: userData.username,
                     authorImage: userData.profilePhoto || null,
+                    authorVerified: userData.verified || false,
                     text: text || '',
                     images: selectedImages.length > 0 ? selectedImages : null,
                     hashtags: hashtags,
@@ -1513,7 +1731,8 @@
                     likes: 0,
                     rebuzzes: 0,
                     comments: 0,
-                    saves: 0
+                    saves: 0,
+                    editable: isGursharn
                 };
 
                 try {
@@ -1639,11 +1858,12 @@
                         <div class="flex items-center space-x-2">
                             <span class="font-semibold text-gray-900 cursor-pointer hover:underline flex items-center" onclick="viewUserProfile('${buzz.uid}')">
                                 ${userData.displayName}
-                                ${userData.verified ? `<div class="verified-badge ml-1 w-4 h-4 flex items-center justify-center"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
+                                ${(userData.verified || buzz.authorVerified) ? `<div class="verified-badge ml-1 w-4 h-4 flex items-center justify-center"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
                             </span>
                             <span class="text-gray-500 text-sm cursor-pointer hover:underline" onclick="viewUserProfile('${buzz.uid}')">@${userData.username}</span>
                             <span class="text-gray-500 text-sm">·</span>
                             <span class="text-gray-500 text-sm">${formatTime(buzz.timestamp)}</span>
+                            ${buzz.editable && buzz.uid === currentUser?.uid ? `<button onclick="editBuzz('${buzz.id}')" class="text-blue-500 text-xs hover:underline">Edit</button>` : ''}
                         </div>
                         ${buzz.text ? `<p class="text-gray-900 mt-1">${processTextContent(buzz.text)}</p>` : ''}
                         ${buzz.images && buzz.images.length > 0 ? `
@@ -2197,7 +2417,7 @@
         // Settings functionality
         let isPrivateAccount = false;
 
-        document.getElementById('privateAccountBtn').addEventListener('click', () => {
+        document.getElementById('privateAccountBtn').addEventListener('click', async () => {
             isPrivateAccount = !isPrivateAccount;
             const toggle = document.getElementById('privateToggle');
             const toggleButton = toggle.querySelector('div');
@@ -2213,12 +2433,109 @@
             }
             
             // Update in database
-            database.ref(`users/${currentUser.uid}/isPrivate`).set(isPrivateAccount);
+            await database.ref(`users/${currentUser.uid}/isPrivate`).set(isPrivateAccount);
         });
 
         document.getElementById('blockedUsersBtn').addEventListener('click', () => {
-            alert('Blocked users management coming soon!');
+            openBlockedUsersModal();
         });
+
+        function openBlockedUsersModal() {
+            const modal = document.createElement('div');
+            modal.id = 'blockedUsersModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">Blocked Users</h3>
+                        <button onclick="closeBlockedUsersModal()" class="text-gray-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="blockedUsersList">
+                        <div class="text-center text-gray-500 py-4">Loading...</div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            loadBlockedUsers();
+        }
+
+        function closeBlockedUsersModal() {
+            const modal = document.getElementById('blockedUsersModal');
+            if (modal) modal.remove();
+        }
+
+        async function loadBlockedUsers() {
+            try {
+                const blockedSnapshot = await database.ref(`users/${currentUser.uid}/blocked`).once('value');
+                const blockedList = document.getElementById('blockedUsersList');
+                
+                if (!blockedSnapshot.exists()) {
+                    blockedList.innerHTML = '<div class="text-center text-gray-500 py-4">No blocked users</div>';
+                    return;
+                }
+                
+                blockedList.innerHTML = '';
+                
+                for (const userId in blockedSnapshot.val()) {
+                    const userData = await getUserData(userId);
+                    if (!userData) continue;
+                    
+                    const userElement = document.createElement('div');
+                    userElement.className = 'flex items-center justify-between p-3 border-b border-gray-100';
+                    
+                    const userAvatar = userData.profilePhoto 
+                        ? `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                        : userData.displayName.charAt(0).toUpperCase();
+                    
+                    userElement.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-300 to-blue-300 flex items-center justify-center text-white font-semibold">
+                                ${userAvatar}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-900">${userData.displayName}</div>
+                                <div class="text-sm text-gray-500">@${userData.username}</div>
+                            </div>
+                        </div>
+                        <button onclick="unblockUser('${userId}')" class="text-blue-500 text-sm hover:underline">Unblock</button>
+                    `;
+                    
+                    blockedList.appendChild(userElement);
+                }
+            } catch (error) {
+                console.error('Error loading blocked users:', error);
+                document.getElementById('blockedUsersList').innerHTML = '<div class="text-center text-red-500 py-4">Error loading blocked users</div>';
+            }
+        }
+
+        async function blockUser(userId) {
+            try {
+                await database.ref(`users/${currentUser.uid}/blocked/${userId}`).set(true);
+                await database.ref(`users/${currentUser.uid}/following/${userId}`).remove();
+                await database.ref(`users/${userId}/followers/${currentUser.uid}`).remove();
+                alert('User blocked successfully');
+            } catch (error) {
+                console.error('Error blocking user:', error);
+                alert('Failed to block user');
+            }
+        }
+
+        async function unblockUser(userId) {
+            try {
+                await database.ref(`users/${currentUser.uid}/blocked/${userId}`).remove();
+                loadBlockedUsers();
+                alert('User unblocked successfully');
+            } catch (error) {
+                console.error('Error unblocking user:', error);
+                alert('Failed to unblock user');
+            }
+        }
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
             if (confirm('Are you sure you want to logout?')) {
@@ -2734,7 +3051,10 @@
                                 <p class="text-gray-600">@${userData.username}</p>
                                 ${userData.bio ? `<p class="text-gray-700 mt-2 text-sm">${userData.bio}</p>` : ''}
                             </div>
-                            <button class="gradient-bg text-white px-6 py-2 rounded-full font-semibold" onclick="followUser('${userId}')">Follow</button>
+                            <div class="flex space-x-2">
+                                <button id="followBtn_${userId}" class="gradient-bg text-white px-6 py-2 rounded-full font-semibold" onclick="followUser('${userId}', this)">Follow</button>
+                                <button class="border border-red-500 text-red-500 px-4 py-2 rounded-full font-semibold hover:bg-red-50" onclick="blockUser('${userId}')">Block</button>
+                            </div>
                         </div>
                         <div class="flex space-x-6 mt-4">
                             <div class="text-center">
@@ -2800,8 +3120,16 @@
             }
         }
 
-        async function followUser(userId) {
+        async function followUser(userId, buttonElement) {
             try {
+                const targetUserSnapshot = await database.ref(`users/${userId}`).once('value');
+                const targetUser = targetUserSnapshot.val();
+                
+                if (!targetUser) {
+                    alert('User not found');
+                    return;
+                }
+                
                 // Check if already following
                 const followSnapshot = await database.ref(`users/${currentUser.uid}/following/${userId}`).once('value');
                 
@@ -2814,43 +3142,97 @@
                     await database.ref(`users/${currentUser.uid}/followingCount`).transaction((count) => Math.max(0, (count || 0) - 1));
                     await database.ref(`users/${userId}/followersCount`).transaction((count) => Math.max(0, (count || 0) - 1));
                     
-                    // Update button text
-                    event.target.textContent = 'Follow';
-                    event.target.classList.remove('bg-gray-500');
-                    event.target.classList.add('gradient-bg');
+                    // Update button
+                    if (buttonElement) {
+                        buttonElement.textContent = 'Follow';
+                        buttonElement.classList.remove('bg-gray-500');
+                        buttonElement.classList.add('gradient-bg');
+                    }
                 } else {
-                    // Follow
-                    await database.ref(`users/${currentUser.uid}/following/${userId}`).set(true);
-                    await database.ref(`users/${userId}/followers/${currentUser.uid}`).set(true);
-                    
-                    // Update counts
-                    await database.ref(`users/${currentUser.uid}/followingCount`).transaction((count) => (count || 0) + 1);
-                    await database.ref(`users/${userId}/followersCount`).transaction((count) => (count || 0) + 1);
-                    
-                    // Create notification
-                    const userSnapshot = await database.ref(`users/${currentUser.uid}`).once('value');
-                    const userData = userSnapshot.val();
-                    
-                    const notificationData = {
-                        type: 'follow',
-                        fromUserId: currentUser.uid,
-                        fromUserName: userData.displayName,
-                        fromUserUsername: userData.username,
-                        fromUserPhoto: userData.profilePhoto,
-                        timestamp: firebase.database.ServerValue.TIMESTAMP,
-                        read: false
-                    };
-                    
-                    await database.ref(`notifications/${userId}`).push(notificationData);
-                    
-                    // Update button text
-                    event.target.textContent = 'Following';
-                    event.target.classList.remove('gradient-bg');
-                    event.target.classList.add('bg-gray-500');
+                    if (targetUser.isPrivate) {
+                        // Send follow request for private account
+                        const requestData = {
+                            fromUserId: currentUser.uid,
+                            fromUserName: (await getUserData(currentUser.uid)).displayName,
+                            fromUserUsername: (await getUserData(currentUser.uid)).username,
+                            fromUserPhoto: (await getUserData(currentUser.uid)).profilePhoto,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            read: false
+                        };
+                        
+                        await database.ref(`followRequests/${userId}/${currentUser.uid}`).set(requestData);
+                        
+                        // Send notification
+                        const notificationData = {
+                            type: 'follow_request',
+                            fromUserId: currentUser.uid,
+                            fromUserName: requestData.fromUserName,
+                            fromUserUsername: requestData.fromUserUsername,
+                            fromUserPhoto: requestData.fromUserPhoto,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            read: false
+                        };
+                        
+                        await database.ref(`notifications/${userId}`).push(notificationData);
+                        
+                        if (buttonElement) {
+                            buttonElement.textContent = 'Requested';
+                            buttonElement.classList.remove('gradient-bg');
+                            buttonElement.classList.add('bg-yellow-500');
+                        }
+                        
+                        alert('Follow request sent!');
+                    } else {
+                        // Follow public account directly
+                        await database.ref(`users/${currentUser.uid}/following/${userId}`).set(true);
+                        await database.ref(`users/${userId}/followers/${currentUser.uid}`).set(true);
+                        
+                        // Update counts
+                        await database.ref(`users/${currentUser.uid}/followingCount`).transaction((count) => (count || 0) + 1);
+                        await database.ref(`users/${userId}/followersCount`).transaction((count) => (count || 0) + 1);
+                        
+                        // Create notification
+                        const userData = await getUserData(currentUser.uid);
+                        
+                        const notificationData = {
+                            type: 'follow',
+                            fromUserId: currentUser.uid,
+                            fromUserName: userData.displayName,
+                            fromUserUsername: userData.username,
+                            fromUserPhoto: userData.profilePhoto,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            read: false
+                        };
+                        
+                        await database.ref(`notifications/${userId}`).push(notificationData);
+                        
+                        // Auto-follow Pulse Official for new users
+                        if (userId !== 'pulse_official') {
+                            await autoFollowPulseOfficial(currentUser.uid);
+                        }
+                        
+                        if (buttonElement) {
+                            buttonElement.textContent = 'Following';
+                            buttonElement.classList.remove('gradient-bg');
+                            buttonElement.classList.add('bg-gray-500');
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error following user:', error);
                 alert('Failed to follow user. Please try again.');
+            }
+        }
+
+        async function autoFollowPulseOfficial(userId) {
+            try {
+                const pulseOfficialId = 'pulse_official';
+                await database.ref(`users/${userId}/following/${pulseOfficialId}`).set(true);
+                await database.ref(`users/${pulseOfficialId}/followers/${userId}`).set(true);
+                await database.ref(`users/${userId}/followingCount`).transaction((count) => (count || 0) + 1);
+                await database.ref(`users/${pulseOfficialId}/followersCount`).transaction((count) => (count || 0) + 1);
+            } catch (error) {
+                console.error('Error auto-following Pulse Official:', error);
             }
         }
 
@@ -2999,34 +3381,42 @@
                 if (user.email === 'customerserviceffrj4@gmail.com') {
                     await database.ref(`users/${user.uid}/verified`).set(true);
                     
-                    // Send congratulations notification
-                    const notificationData = {
-                        type: 'verification_approved',
-                        title: 'Congratulations! 🎉',
-                        message: 'Your account has been verified! You now have the verified badge.',
-                        timestamp: firebase.database.ServerValue.TIMESTAMP,
-                        read: false
-                    };
-                    
-                    await database.ref(`notifications/${user.uid}`).push(notificationData);
+                    // Check if notification already sent
+                    const notifSnapshot = await database.ref(`users/${user.uid}/verificationNotificationSent`).once('value');
+                    if (!notifSnapshot.exists()) {
+                        const notificationData = {
+                            type: 'verification_approved',
+                            title: 'Congratulations! 🎉',
+                            message: 'Your account has been verified! You now have the verified badge.',
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            read: false
+                        };
+                        
+                        await database.ref(`notifications/${user.uid}`).push(notificationData);
+                        await database.ref(`users/${user.uid}/verificationNotificationSent`).set(true);
+                    }
                 }
                 
                 // Check username
                 const userSnapshot = await database.ref(`users/${user.uid}`).once('value');
                 const userData = userSnapshot.val();
-                if (userData && userData.username === '_anmol88' && !userData.verified) {
+                if (userData && (userData.username === '_anmol88' || userData.username === 'harvi') && !userData.verified) {
                     await database.ref(`users/${user.uid}/verified`).set(true);
                     
-                    // Send congratulations notification
-                    const notificationData = {
-                        type: 'verification_approved',
-                        title: 'Congratulations! 🎉',
-                        message: 'Your account has been verified! You now have the verified badge.',
-                        timestamp: firebase.database.ServerValue.TIMESTAMP,
-                        read: false
-                    };
-                    
-                    await database.ref(`notifications/${user.uid}`).push(notificationData);
+                    // Check if notification already sent
+                    const notifSnapshot = await database.ref(`users/${user.uid}/verificationNotificationSent`).once('value');
+                    if (!notifSnapshot.exists()) {
+                        const notificationData = {
+                            type: 'verification_approved',
+                            title: 'Congratulations! 🎉',
+                            message: 'Your account has been verified! You now have the verified badge.',
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            read: false
+                        };
+                        
+                        await database.ref(`notifications/${user.uid}`).push(notificationData);
+                        await database.ref(`users/${user.uid}/verificationNotificationSent`).set(true);
+                    }
                 }
             }
         });
@@ -3645,6 +4035,115 @@
             document.body.appendChild(modal);
         }
 
+        // Privacy Policy and Terms functions
+        function openPrivacyPolicy() {
+            document.getElementById('privacyPolicyModal').classList.remove('hidden');
+        }
+
+        function closePrivacyPolicy() {
+            document.getElementById('privacyPolicyModal').classList.add('hidden');
+        }
+
+        function openTermsOfService() {
+            document.getElementById('termsOfServiceModal').classList.remove('hidden');
+        }
+
+        function closeTermsOfService() {
+            document.getElementById('termsOfServiceModal').classList.add('hidden');
+        }
+
+        // Edit buzz functionality for Gursharn Arya
+        function editBuzz(buzzId) {
+            const modal = document.createElement('div');
+            modal.id = 'editBuzzModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">Edit Buzz</h3>
+                        <button onclick="closeEditBuzz()" class="text-gray-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <textarea id="editBuzzText" placeholder="What's buzzing?" class="w-full resize-none border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent" rows="4" maxlength="2000"></textarea>
+                        <div class="flex justify-between items-center">
+                            <span id="editCharCount" class="text-sm text-gray-500">0/2000</span>
+                            <div class="space-x-3">
+                                <button onclick="closeEditBuzz()" class="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg font-semibold">Cancel</button>
+                                <button onclick="saveEditedBuzz('${buzzId}')" class="gradient-bg text-white py-2 px-4 rounded-lg font-semibold">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            loadBuzzForEdit(buzzId);
+        }
+
+        async function loadBuzzForEdit(buzzId) {
+            try {
+                const buzzSnapshot = await database.ref(`buzzes/${buzzId}`).once('value');
+                const buzz = buzzSnapshot.val();
+                
+                if (buzz) {
+                    const textarea = document.getElementById('editBuzzText');
+                    textarea.value = buzz.text || '';
+                    updateEditCharCount();
+                    
+                    textarea.addEventListener('input', updateEditCharCount);
+                }
+            } catch (error) {
+                console.error('Error loading buzz for edit:', error);
+            }
+        }
+
+        function updateEditCharCount() {
+            const textarea = document.getElementById('editBuzzText');
+            const charCount = document.getElementById('editCharCount');
+            const length = textarea.value.length;
+            charCount.textContent = `${length}/2000`;
+            
+            if (length > 2000) {
+                charCount.classList.add('text-red-500');
+            } else {
+                charCount.classList.remove('text-red-500');
+            }
+        }
+
+        async function saveEditedBuzz(buzzId) {
+            try {
+                const newText = document.getElementById('editBuzzText').value.trim();
+                
+                if (newText.length > 2000) {
+                    alert('Text too long! Maximum 2000 characters allowed.');
+                    return;
+                }
+                
+                await database.ref(`buzzes/${buzzId}/text`).set(newText);
+                await database.ref(`buzzes/${buzzId}/edited`).set(true);
+                await database.ref(`buzzes/${buzzId}/editedAt`).set(firebase.database.ServerValue.TIMESTAMP);
+                
+                closeEditBuzz();
+                loadFeed();
+                alert('Buzz updated successfully!');
+                
+            } catch (error) {
+                console.error('Error saving edited buzz:', error);
+                alert('Failed to update buzz. Please try again.');
+            }
+        }
+
+        function closeEditBuzz() {
+            const modal = document.getElementById('editBuzzModal');
+            if (modal) modal.remove();
+        }
+
         // Add CSS for active navigation and profile tabs
         const style = document.createElement('style');
         style.textContent = `
@@ -3669,5 +4168,5 @@
         `;
         document.head.appendChild(style);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9783197a3699595d',t:'MTc1NjcxMjIxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97833c77362f47cb',t:'MTc1NjcxMzY1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
