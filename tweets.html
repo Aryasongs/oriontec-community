@@ -441,12 +441,25 @@
                         </div>
                         <div class="flex justify-between items-center mt-3">
                             <div class="flex space-x-2">
-                                <button onclick="document.getElementById('buzzImage').click()" class="text-pink-500 hover:bg-pink-50 p-2 rounded-lg transition">
+                                <button onclick="document.getElementById('buzzImage').click()" class="text-pink-500 hover:bg-pink-50 p-2 rounded-lg transition" title="Add Photo">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
                                 </button>
                                 <input type="file" id="buzzImage" accept="image/*" class="hidden" onchange="previewBuzzImage()">
+                                
+                                <button onclick="addLocation()" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition" title="Add Location">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </button>
+                                
+                                <button onclick="createPoll()" class="text-green-500 hover:bg-green-50 p-2 rounded-lg transition" title="Create Poll">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                </button>
                             </div>
                             <button onclick="createBuzz()" class="instagram-gradient text-white px-5 py-2 rounded-full font-medium hover:opacity-90 transition text-sm">
                                 Buzz
@@ -455,6 +468,46 @@
                         <div id="buzzImagePreview" class="hidden mt-3">
                             <img id="buzzPreviewImg" class="w-full max-h-48 object-cover rounded-xl">
                             <button onclick="removeBuzzImage()" class="mt-2 text-red-500 text-sm hover:underline">Remove Image</button>
+                        </div>
+                        
+                        <div id="locationPreview" class="hidden mt-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <span id="locationText" class="text-blue-700 font-medium text-sm"></span>
+                                </div>
+                                <button onclick="removeLocation()" class="text-red-500 text-sm hover:underline">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <div id="pollPreview" class="hidden mt-3 p-3 bg-green-50 rounded-xl border border-green-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                    <span class="text-green-700 font-medium text-sm">Poll</span>
+                                </div>
+                                <button onclick="removePoll()" class="text-red-500 text-sm hover:underline">Remove</button>
+                            </div>
+                            <div id="pollOptions" class="space-y-1">
+                                <!-- Poll options will be shown here -->
+                            </div>
+                        </div>
+                        
+                        <div id="linkPreview" class="hidden mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                            <div class="flex items-start space-x-3">
+                                <img id="linkImage" class="w-16 h-16 object-cover rounded-lg" src="" alt="">
+                                <div class="flex-1 min-w-0">
+                                    <h4 id="linkTitle" class="font-medium text-gray-800 text-sm line-clamp-2"></h4>
+                                    <p id="linkDescription" class="text-gray-600 text-xs mt-1 line-clamp-2"></p>
+                                    <p id="linkDomain" class="text-gray-500 text-xs mt-1"></p>
+                                </div>
+                                <button onclick="removeLinkPreview()" class="text-red-500 text-sm hover:underline">Remove</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -522,6 +575,9 @@
                     <div class="space-y-3">
                         <button class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition">Help Center</button>
                         <button class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition">Report a Problem</button>
+                        <button onclick="showPrivacyPolicy()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition">Privacy Policy</button>
+                        <button onclick="showTermsOfService()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition">Terms of Service</button>
+                        <button onclick="showAboutPulse()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition">About Pulse</button>
                         <button onclick="signOut()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition text-red-600">Logout</button>
                     </div>
                 </div>
@@ -842,6 +898,120 @@
         </div>
     </div>
 
+    <!-- Privacy Policy Modal -->
+    <div id="privacyPolicyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-2xl font-bold text-gray-800">Privacy Policy</h3>
+                    <button onclick="closePrivacyPolicy()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="prose max-w-none">
+                    <p class="text-sm text-gray-600 mb-6">Last updated: December 2024</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">1. Information We Collect</h4>
+                    <p class="text-gray-700 mb-4">We collect information you provide directly to us, such as when you create an account, post content, or communicate with us. This includes your name, email address, profile information, posts, comments, and any other information you choose to provide.</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">2. How We Use Your Information</h4>
+                    <p class="text-gray-700 mb-4">We use the information we collect to provide, maintain, and improve our services, process transactions, send communications, and protect our users and platform. We may also use your information to personalize your experience and show you relevant content.</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">3. Information Sharing</h4>
+                    <p class="text-gray-700 mb-4">We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy. We may share information with service providers who assist us in operating our platform, conducting business, or serving users.</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">4. Data Security</h4>
+                    <p class="text-gray-700 mb-4">We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure.</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">5. Your Rights</h4>
+                    <p class="text-gray-700 mb-4">You have the right to access, update, or delete your personal information. You can also control your privacy settings and choose what information to share publicly. To exercise these rights, please contact us through the app settings.</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">6. Cookies and Tracking</h4>
+                    <p class="text-gray-700 mb-4">We use cookies and similar technologies to enhance your experience, analyze usage patterns, and provide personalized content. You can control cookie settings through your browser preferences.</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">7. Children's Privacy</h4>
+                    <p class="text-gray-700 mb-4">Our service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we become aware that we have collected such information, we will take steps to delete it.</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">8. International Data Transfers</h4>
+                    <p class="text-gray-700 mb-4">Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your information in accordance with this privacy policy.</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">9. Changes to This Policy</h4>
+                    <p class="text-gray-700 mb-4">We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date. Your continued use of our service after changes constitutes acceptance of the updated policy.</p>
+                    
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">10. Contact Us</h4>
+                    <p class="text-gray-700 mb-4">If you have any questions about this privacy policy or our practices, please contact us through the app's support system or email us at privacy@pulse.com.</p>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg mt-6">
+                        <h5 class="font-semibold text-blue-800 mb-2">Your Privacy Matters</h5>
+                        <p class="text-blue-700 text-sm">At Pulse, we are committed to protecting your privacy and being transparent about how we handle your data. We believe you should have control over your personal information and we provide tools to help you manage your privacy settings.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Pulse Modal -->
+    <div id="aboutPulseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">About Pulse</h3>
+                <p class="text-gray-600 mb-4">Version 81.08.09</p>
+                
+                <p class="text-gray-700 mb-6 leading-relaxed">Connect with the world through Pulse - the social media platform that brings people together through meaningful conversations, shared experiences, and authentic connections.</p>
+                
+                <div class="space-y-3 text-sm text-gray-600 mb-6">
+                    <div class="flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Real-time conversations</span>
+                    </div>
+                    <div class="flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        </svg>
+                        <span>Location sharing</span>
+                    </div>
+                    <div class="flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span>Interactive polls</span>
+                    </div>
+                    <div class="flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                        <span>Safe community</span>
+                    </div>
+                </div>
+                
+                <p class="text-xs text-gray-500 mb-6">© 2024 Pulse. All rights reserved.</p>
+                
+                <div class="flex space-x-3 text-xs">
+                    <button onclick="showPrivacyPolicy(); closeAboutPulse();" class="text-blue-600 hover:underline">Privacy Policy</button>
+                    <span class="text-gray-400">•</span>
+                    <button onclick="showTermsOfService(); closeAboutPulse();" class="text-blue-600 hover:underline">Terms of Service</button>
+                </div>
+                
+                <button onclick="closeAboutPulse()" class="w-full mt-6 instagram-gradient text-white py-3 rounded-xl font-medium hover:opacity-90 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Verification Request Modal -->
     <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -972,6 +1142,58 @@
         let currentConfirmCallback = null;
         let currentInputCallback = null;
         let currentShareBuzzId = null;
+        let currentLocation = null;
+        let currentPoll = null;
+        let linkPreviewData = null;
+
+        // Content moderation system
+        function containsInappropriateContent(text) {
+            const inappropriateWords = [
+                // Violence and harmful content
+                'kill', 'murder', 'suicide', 'death', 'die', 'hurt', 'harm', 'violence', 'weapon', 'gun', 'knife', 'bomb',
+                'terrorist', 'terrorism', 'attack', 'assault', 'abuse', 'torture', 'kidnap', 'rape', 'molest',
+                
+                // Sexual content
+                'sex', 'porn', 'nude', 'naked', 'breast', 'penis', 'vagina', 'orgasm', 'masturbate', 'prostitute',
+                'escort', 'hookup', 'adult', 'xxx', 'nsfw', 'erotic', 'fetish', 'kinky', 'horny', 'sexy',
+                
+                // Hate speech and discrimination
+                'hate', 'racist', 'nazi', 'fascist', 'bigot', 'discrimination', 'supremacy', 'genocide',
+                
+                // Drugs and illegal activities
+                'drug', 'cocaine', 'heroin', 'marijuana', 'weed', 'meth', 'crack', 'dealer', 'trafficking',
+                'illegal', 'scam', 'fraud', 'steal', 'robbery', 'criminal',
+                
+                // Self-harm
+                'cutting', 'selfharm', 'self-harm', 'overdose', 'pills', 'depression', 'anxiety'
+            ];
+            
+            const lowerText = text.toLowerCase();
+            
+            // Check for exact matches and variations
+            for (let word of inappropriateWords) {
+                if (lowerText.includes(word)) {
+                    return true;
+                }
+            }
+            
+            // Check for patterns like repeated characters to bypass filters
+            const suspiciousPatterns = [
+                /k+i+l+l+/gi,
+                /s+e+x+/gi,
+                /d+i+e+/gi,
+                /h+u+r+t+/gi,
+                /p+o+r+n+/gi
+            ];
+            
+            for (let pattern of suspiciousPatterns) {
+                if (pattern.test(text)) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
 
         // Authentication
         function signInWithGoogle() {
@@ -1245,8 +1467,14 @@
 
         function createBuzz() {
             const text = document.getElementById('buzzText').value.trim();
-            if (!text && !buzzImageData) {
-                showCustomAlert('Please write something or add an image!');
+            if (!text && !buzzImageData && !currentLocation && !currentPoll && !linkPreviewData) {
+                showCustomAlert('Please write something, add an image, location, poll, or link!');
+                return;
+            }
+            
+            // Check for inappropriate content
+            if (text && containsInappropriateContent(text)) {
+                showCustomAlert('Your post contains inappropriate content and cannot be published. Please review our community guidelines and try again.');
                 return;
             }
             
@@ -1267,6 +1495,9 @@
                         authorVerified: userData.verified || false,
                         text: text || '',
                         image: buzzImageData || null,
+                        location: currentLocation || null,
+                        poll: currentPoll || null,
+                        linkPreview: linkPreviewData || null,
                         timestamp: firebase.database.ServerValue.TIMESTAMP,
                         likes: 0,
                         rebuzzes: 0,
@@ -1293,6 +1524,9 @@
                     
                     document.getElementById('buzzText').value = '';
                     removeBuzzImage();
+                    removeLocation();
+                    removePoll();
+                    removeLinkPreview();
                     loadFeed();
                     
                     // Refresh profile if currently viewing it
@@ -1403,6 +1637,56 @@
                 ? `<img src="${buzz.image}" class="w-full max-h-80 object-cover rounded-2xl mt-3 border border-gray-200">`
                 : '';
             
+            const locationDisplay = buzz.location 
+                ? `<div class="flex items-center space-x-2 mt-2 text-blue-600 text-sm">
+                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                     </svg>
+                     <span onclick="openLocationMap('${buzz.location.lat}', '${buzz.location.lng}', '${buzz.location.name}')" class="cursor-pointer hover:underline">${buzz.location.name}</span>
+                   </div>`
+                : '';
+            
+            const pollDisplay = buzz.poll 
+                ? `<div class="mt-3 p-3 bg-green-50 rounded-xl border border-green-200">
+                     <h4 class="font-medium text-green-800 mb-3">${buzz.poll.question}</h4>
+                     <div class="space-y-2">
+                       ${buzz.poll.options.map((option, index) => {
+                           const voteCount = buzz.poll.votes[index] || 0;
+                           const totalVotes = Object.values(buzz.poll.votes).reduce((a, b) => a + b, 0);
+                           const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                           return `
+                             <div onclick="voteInPoll('${buzz.id}', ${index})" class="cursor-pointer p-2 bg-white rounded-lg border hover:bg-green-50 transition">
+                               <div class="flex justify-between items-center">
+                                 <span class="text-sm">${option}</span>
+                                 <span class="text-xs text-gray-500">${percentage}% (${voteCount})</span>
+                               </div>
+                               <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
+                                 <div class="bg-green-500 h-1 rounded-full" style="width: ${percentage}%"></div>
+                               </div>
+                             </div>
+                           `;
+                       }).join('')}
+                     </div>
+                   </div>`
+                : '';
+            
+            const linkDisplay = buzz.linkPreview 
+                ? `<div onclick="openLink('${buzz.linkPreview.url}')" class="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-100 transition">
+                     <div class="flex items-start space-x-3">
+                       ${buzz.linkPreview.image ? `<img src="${buzz.linkPreview.image}" class="w-16 h-16 object-cover rounded-lg">` : ''}
+                       <div class="flex-1 min-w-0">
+                         <h4 class="font-medium text-gray-800 text-sm line-clamp-2">${buzz.linkPreview.title}</h4>
+                         <p class="text-gray-600 text-xs mt-1 line-clamp-2">${buzz.linkPreview.description}</p>
+                         <p class="text-gray-500 text-xs mt-1">${buzz.linkPreview.domain}</p>
+                       </div>
+                       <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                       </svg>
+                     </div>
+                   </div>`
+                : '';
+            
             const timeAgo = buzz.timestamp ? new Date(buzz.timestamp).toLocaleString() : 'Just now';
             
             // Check for verification status from buzz data or user data
@@ -1433,6 +1717,9 @@
                         </div>
                         <p class="text-gray-900 text-sm mb-3 leading-relaxed">${formatTextWithHashtagsAndMentions(buzz.text)}</p>
                         ${buzzImage}
+                        ${locationDisplay}
+                        ${pollDisplay}
+                        ${linkDisplay}
                         
                         <div class="flex items-center justify-between mt-3 max-w-md">
                             <button onclick="event.stopPropagation(); toggleLike('${buzz.id}')" class="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition group" id="likeBtn-${buzz.id}">
@@ -3201,6 +3488,505 @@
             );
         }
 
+        // Location functions
+        function addLocation() {
+            showPermissionDialog(
+                'Location Access',
+                'Pulse wants to access your location to add it to your buzz. This helps others know where you are posting from.',
+                'location',
+                (allowed) => {
+                    if (allowed) {
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(
+                                (position) => {
+                                    const lat = position.coords.latitude;
+                                    const lng = position.coords.longitude;
+                                    
+                                    // Use reverse geocoding to get location name
+                                    fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            const locationName = data.city || data.locality || data.principalSubdivision || 'Unknown Location';
+                                            currentLocation = {
+                                                name: locationName,
+                                                lat: lat,
+                                                lng: lng
+                                            };
+                                            
+                                            document.getElementById('locationText').textContent = locationName;
+                                            document.getElementById('locationPreview').classList.remove('hidden');
+                                        })
+                                        .catch(() => {
+                                            currentLocation = {
+                                                name: 'Current Location',
+                                                lat: lat,
+                                                lng: lng
+                                            };
+                                            
+                                            document.getElementById('locationText').textContent = 'Current Location';
+                                            document.getElementById('locationPreview').classList.remove('hidden');
+                                        });
+                                },
+                                (error) => {
+                                    showCustomAlert('Unable to get your location. Please check your location settings.');
+                                }
+                            );
+                        } else {
+                            showCustomAlert('Geolocation is not supported by this browser.');
+                        }
+                    } else {
+                        showCustomAlert('Location access denied. You can still post without location.');
+                    }
+                }
+            );
+        }
+
+        function removeLocation() {
+            currentLocation = null;
+            document.getElementById('locationPreview').classList.add('hidden');
+        }
+
+        // Poll functions
+        function createPoll() {
+            showInputDialog(
+                'Create Poll',
+                'Enter your poll question:',
+                'What would you like to ask?',
+                (question) => {
+                    if (question) {
+                        showPollOptionsDialog(question);
+                    }
+                }
+            );
+        }
+
+        function showPollOptionsDialog(question) {
+            const modal = document.createElement('div');
+            modal.id = 'pollOptionsModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-md w-full p-6">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Poll Options</h3>
+                        <p class="text-gray-600 text-sm mb-4">${question}</p>
+                        
+                        <div class="space-y-3">
+                            <input type="text" id="pollOption1" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Option 1" maxlength="100">
+                            <input type="text" id="pollOption2" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Option 2" maxlength="100">
+                            <input type="text" id="pollOption3" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Option 3 (optional)" maxlength="100">
+                            <input type="text" id="pollOption4" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Option 4 (optional)" maxlength="100">
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button onclick="closePollOptionsModal()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition">Cancel</button>
+                        <button onclick="savePoll('${question}')" class="flex-1 instagram-gradient text-white py-3 rounded-xl font-medium hover:opacity-90 transition">Create Poll</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function closePollOptionsModal() {
+            const modal = document.getElementById('pollOptionsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function savePoll(question) {
+            const option1 = document.getElementById('pollOption1').value.trim();
+            const option2 = document.getElementById('pollOption2').value.trim();
+            const option3 = document.getElementById('pollOption3').value.trim();
+            const option4 = document.getElementById('pollOption4').value.trim();
+            
+            if (!option1 || !option2) {
+                showCustomAlert('Please provide at least 2 poll options.');
+                return;
+            }
+            
+            const options = [option1, option2];
+            if (option3) options.push(option3);
+            if (option4) options.push(option4);
+            
+            currentPoll = {
+                question: question,
+                options: options,
+                votes: {}
+            };
+            
+            // Initialize vote counts
+            options.forEach((option, index) => {
+                currentPoll.votes[index] = 0;
+            });
+            
+            displayPollPreview();
+            closePollOptionsModal();
+        }
+
+        function displayPollPreview() {
+            const pollOptions = document.getElementById('pollOptions');
+            pollOptions.innerHTML = '';
+            
+            currentPoll.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'text-sm text-green-700 bg-green-100 px-2 py-1 rounded';
+                optionDiv.textContent = `${index + 1}. ${option}`;
+                pollOptions.appendChild(optionDiv);
+            });
+            
+            document.getElementById('pollPreview').classList.remove('hidden');
+        }
+
+        function removePoll() {
+            currentPoll = null;
+            document.getElementById('pollPreview').classList.add('hidden');
+        }
+
+        // Link preview functions
+        function detectAndPreviewLinks(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const urls = text.match(urlRegex);
+            
+            if (urls && urls.length > 0) {
+                const url = urls[0]; // Take the first URL
+                fetchLinkPreview(url);
+            } else {
+                removeLinkPreview();
+            }
+        }
+
+        function fetchLinkPreview(url) {
+            // Since we can't make direct CORS requests to most websites,
+            // we'll create a simple preview based on the URL
+            try {
+                const urlObj = new URL(url);
+                const domain = urlObj.hostname.replace('www.', '');
+                
+                linkPreviewData = {
+                    url: url,
+                    title: `Link from ${domain}`,
+                    description: `Visit ${domain} to see the full content`,
+                    domain: domain,
+                    image: null
+                };
+                
+                // Set some common site previews
+                if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
+                    linkPreviewData.title = 'YouTube Video';
+                    linkPreviewData.description = 'Watch this video on YouTube';
+                } else if (domain.includes('twitter.com') || domain.includes('x.com')) {
+                    linkPreviewData.title = 'Twitter/X Post';
+                    linkPreviewData.description = 'View this post on Twitter/X';
+                } else if (domain.includes('instagram.com')) {
+                    linkPreviewData.title = 'Instagram Post';
+                    linkPreviewData.description = 'View this post on Instagram';
+                } else if (domain.includes('facebook.com')) {
+                    linkPreviewData.title = 'Facebook Post';
+                    linkPreviewData.description = 'View this post on Facebook';
+                } else if (domain.includes('linkedin.com')) {
+                    linkPreviewData.title = 'LinkedIn Post';
+                    linkPreviewData.description = 'View this post on LinkedIn';
+                } else if (domain.includes('github.com')) {
+                    linkPreviewData.title = 'GitHub Repository';
+                    linkPreviewData.description = 'View this repository on GitHub';
+                }
+                
+                displayLinkPreview();
+            } catch (error) {
+                // Invalid URL, remove preview
+                removeLinkPreview();
+            }
+        }
+
+        function displayLinkPreview() {
+            document.getElementById('linkTitle').textContent = linkPreviewData.title;
+            document.getElementById('linkDescription').textContent = linkPreviewData.description;
+            document.getElementById('linkDomain').textContent = linkPreviewData.domain;
+            
+            // Hide image if not available
+            const linkImage = document.getElementById('linkImage');
+            if (linkPreviewData.image) {
+                linkImage.src = linkPreviewData.image;
+                linkImage.style.display = 'block';
+            } else {
+                linkImage.style.display = 'none';
+            }
+            
+            document.getElementById('linkPreview').classList.remove('hidden');
+        }
+
+        function removeLinkPreview() {
+            linkPreviewData = null;
+            document.getElementById('linkPreview').classList.add('hidden');
+        }
+
+        // Update handleTextInput to detect links
+        function handleTextInput() {
+            const textarea = document.getElementById('buzzText');
+            const text = textarea.value;
+            const cursorPosition = textarea.selectionStart;
+            
+            // Detect links
+            detectAndPreviewLinks(text);
+            
+            // Find the current word being typed
+            const textBeforeCursor = text.substring(0, cursorPosition);
+            const words = textBeforeCursor.split(/\s/);
+            const currentWord = words[words.length - 1];
+            
+            if (currentWord.startsWith('#') && currentWord.length > 1) {
+                // Hashtag suggestion
+                currentSuggestionType = 'hashtag';
+                currentSuggestionQuery = currentWord.substring(1).toLowerCase();
+                showHashtagSuggestions();
+            } else if (currentWord.startsWith('@') && currentWord.length > 1) {
+                // Mention suggestion
+                currentSuggestionType = 'mention';
+                currentSuggestionQuery = currentWord.substring(1).toLowerCase();
+                showMentionSuggestions();
+            } else {
+                hideSuggestions();
+            }
+        }
+
+        // Settings modal functions
+        function showPrivacyPolicy() {
+            document.getElementById('privacyPolicyModal').classList.remove('hidden');
+        }
+
+        function closePrivacyPolicy() {
+            document.getElementById('privacyPolicyModal').classList.add('hidden');
+        }
+
+        function showTermsOfService() {
+            showCustomAlert('Terms of Service: By using Pulse, you agree to our community guidelines, respect other users, and follow all applicable laws. We reserve the right to remove content that violates our policies.');
+        }
+
+        function showAboutPulse() {
+            document.getElementById('aboutPulseModal').classList.remove('hidden');
+        }
+
+        function closeAboutPulse() {
+            document.getElementById('aboutPulseModal').classList.add('hidden');
+        }
+
+        // Comment functions
+        function showComments(buzzId) {
+            database.ref('buzzes/' + buzzId).once('value')
+                .then((snapshot) => {
+                    const buzz = snapshot.val();
+                    if (buzz) {
+                        showCommentsModal(buzzId, buzz);
+                    }
+                });
+        }
+
+        function showCommentsModal(buzzId, buzz) {
+            const modal = document.createElement('div');
+            modal.id = 'commentsModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-gray-800">Comments</h3>
+                            <button onclick="closeCommentsModal()" class="text-gray-500 hover:text-gray-700">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto p-6" id="commentsContainer">
+                        <!-- Comments will be loaded here -->
+                    </div>
+                    
+                    <div class="p-6 border-t border-gray-200">
+                        <div class="flex space-x-3">
+                            <div class="w-8 h-8 story-ring rounded-full flex-shrink-0">
+                                <div id="commentUserDP" class="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                                    U
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <textarea id="commentText" placeholder="Write a comment..." class="w-full p-3 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" rows="2"></textarea>
+                                <div class="flex justify-end mt-2">
+                                    <button onclick="postComment('${buzzId}')" class="instagram-gradient text-white px-4 py-2 rounded-full font-medium hover:opacity-90 transition text-sm">
+                                        Post
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            loadComments(buzzId);
+            
+            // Set user profile pic for comment input
+            database.ref('users/' + currentUser.uid).once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                const commentUserDP = document.getElementById('commentUserDP');
+                if (userData.profilePic) {
+                    commentUserDP.innerHTML = `<img src="${userData.profilePic}" class="w-full h-full object-cover rounded-full">`;
+                } else {
+                    commentUserDP.textContent = userData.fullName.charAt(0).toUpperCase();
+                }
+            });
+        }
+
+        function closeCommentsModal() {
+            const modal = document.getElementById('commentsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function loadComments(buzzId) {
+            database.ref(`comments/${buzzId}`).orderByChild('timestamp').once('value')
+                .then((snapshot) => {
+                    const comments = [];
+                    snapshot.forEach((child) => {
+                        comments.push({id: child.key, ...child.val()});
+                    });
+                    
+                    displayComments(comments);
+                });
+        }
+
+        function displayComments(comments) {
+            const container = document.getElementById('commentsContainer');
+            
+            if (comments.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">No comments yet. Be the first to comment!</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                database.ref('users/' + comment.uid).once('value').then((userSnapshot) => {
+                    const userData = userSnapshot.val();
+                    if (userData) {
+                        const commentElement = createCommentElement(comment, userData);
+                        container.appendChild(commentElement);
+                    }
+                });
+            });
+        }
+
+        function createCommentElement(comment, userData) {
+            const div = document.createElement('div');
+            div.className = 'flex space-x-3 mb-4';
+            
+            const profilePic = userData.profilePic 
+                ? `<img src="${userData.profilePic}" class="w-full h-full object-cover rounded-full">`
+                : userData.fullName.charAt(0).toUpperCase();
+            
+            const timeAgo = comment.timestamp ? new Date(comment.timestamp).toLocaleString() : 'Just now';
+            
+            div.innerHTML = `
+                <div class="w-8 h-8 story-ring rounded-full flex-shrink-0 cursor-pointer" onclick="viewUserProfile('${comment.uid}')">
+                    <div class="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                        ${profilePic}
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <div class="bg-gray-100 rounded-2xl p-3">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <h4 class="font-semibold text-gray-800 text-sm cursor-pointer hover:underline" onclick="viewUserProfile('${comment.uid}')">${userData.fullName}${userData.verified ? '<span class="verified-badge ml-1"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : ''}</h4>
+                            <span class="text-gray-500 text-xs">${timeAgo}</span>
+                        </div>
+                        <p class="text-gray-800 text-sm">${formatTextWithHashtagsAndMentions(comment.text)}</p>
+                    </div>
+                    ${comment.uid === currentUser.uid ? `
+                        <button onclick="deleteComment('${comment.buzzId}', '${comment.id}')" class="text-gray-400 hover:text-red-500 text-xs mt-1 ml-3">Delete</button>
+                    ` : ''}
+                </div>
+            `;
+            
+            return div;
+        }
+
+        function postComment(buzzId) {
+            const commentText = document.getElementById('commentText').value.trim();
+            if (!commentText) {
+                showCustomAlert('Please write a comment!');
+                return;
+            }
+            
+            // Check for inappropriate content
+            if (containsInappropriateContent(commentText)) {
+                showCustomAlert('Your comment contains inappropriate content and cannot be posted. Please review our community guidelines.');
+                return;
+            }
+            
+            database.ref('users/' + currentUser.uid).once('value')
+                .then((snapshot) => {
+                    const userData = snapshot.val();
+                    
+                    const commentData = {
+                        uid: currentUser.uid,
+                        buzzId: buzzId,
+                        text: commentText,
+                        authorName: userData.fullName,
+                        authorUsername: userData.username,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    };
+                    
+                    return database.ref(`comments/${buzzId}`).push(commentData);
+                })
+                .then(() => {
+                    // Update comment count
+                    database.ref(`buzzes/${buzzId}/comments`).transaction((count) => (count || 0) + 1);
+                    
+                    // Create notification for buzz author
+                    database.ref(`buzzes/${buzzId}/uid`).once('value').then((buzzSnapshot) => {
+                        const buzzAuthorId = buzzSnapshot.val();
+                        if (buzzAuthorId !== currentUser.uid) {
+                            createNotification(buzzAuthorId, 'comment', buzzId, currentUser.uid);
+                        }
+                    });
+                    
+                    document.getElementById('commentText').value = '';
+                    loadComments(buzzId);
+                    loadFeed(); // Refresh feed to update comment count
+                })
+                .catch((error) => {
+                    console.error('Error posting comment:', error);
+                    showCustomAlert('Failed to post comment');
+                });
+        }
+
+        function deleteComment(buzzId, commentId) {
+            showConfirmDialog(
+                'Delete Comment',
+                'Are you sure you want to delete this comment?',
+                'Delete',
+                (confirmed) => {
+                    if (confirmed) {
+                        database.ref(`comments/${buzzId}/${commentId}`).remove()
+                            .then(() => {
+                                database.ref(`buzzes/${buzzId}/comments`).transaction((count) => Math.max(0, (count || 1) - 1));
+                                loadComments(buzzId);
+                                loadFeed();
+                                showCustomAlert('Comment deleted successfully!');
+                            })
+                            .catch((error) => {
+                                console.error('Error deleting comment:', error);
+                                showCustomAlert('Failed to delete comment');
+                            });
+                    }
+                },
+                true
+            );
+        }
+
         // Listen for auth state changes
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -3214,6 +4000,39 @@
             }
         });
 
+        // Helper functions for new features
+        function openLocationMap(lat, lng, name) {
+            const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15&t=m`;
+            window.open(googleMapsUrl, '_blank');
+        }
+
+        function voteInPoll(buzzId, optionIndex) {
+            // Check if user already voted
+            database.ref(`polls/${buzzId}/voters/${currentUser.uid}`).once('value')
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        showCustomAlert('You have already voted in this poll!');
+                        return;
+                    }
+                    
+                    // Record the vote
+                    database.ref(`polls/${buzzId}/voters/${currentUser.uid}`).set(optionIndex);
+                    database.ref(`buzzes/${buzzId}/poll/votes/${optionIndex}`).transaction((count) => (count || 0) + 1);
+                    
+                    // Refresh the feed to show updated results
+                    loadFeed();
+                    showCustomAlert('Vote recorded successfully!');
+                });
+        }
+
+        function openLink(url) {
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                window.open(url, '_blank');
+            } else {
+                window.open('https://' + url, '_blank');
+            }
+        }
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             // Check if user is already signed in
@@ -3223,5 +4042,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978546fa91b55502',t:'MTc1NjczNTA1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9785586881a52e5e',t:'MTc1NjczNTc2Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
