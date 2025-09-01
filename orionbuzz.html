@@ -1,349 +1,526 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pulse 🌸💙</title>
-<style>
-body{margin:0;padding:0;font-family:Arial,sans-serif;background:#f0f2f5;}
-header{background:linear-gradient(90deg,#ff90b3,#90caff);color:white;padding:10px;text-align:center;font-weight:bold;font-size:1.5em;position:sticky;top:0;z-index:100;}
-nav{display:flex;justify-content:space-around;background:white;padding:10px;position:sticky;top:50px;z-index:99;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-nav button{background:transparent;border:none;font-size:1em;cursor:pointer;font-weight:bold;}
-.container{max-width:600px;margin:auto;padding:10px;}
-section{display:none;}
-section.active{display:block;}
-textarea,input{width:100%;padding:8px;margin:5px 0;border-radius:5px;border:1px solid #ccc;}
-button{padding:8px 12px;border-radius:5px;cursor:pointer;border:none;background:linear-gradient(90deg,#ff90b3,#90caff);color:white;font-weight:bold;}
-.buzz{background:white;border-radius:10px;margin:10px 0;padding:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-.buzz .author{display:flex;align-items:center;margin-bottom:5px;}
-.dp{width:40px;height:40px;border-radius:50%;margin-right:10px;object-fit:cover;}
-.dp-letter{width:40px;height:40px;border-radius:50%;background:#90caff;color:white;display:flex;align-items:center;justify-content:center;margin-right:10px;}
-.buzz .actions button{margin-right:5px;margin-top:5px;}
-#videoFeed video{width:100%;border-radius:10px;margin:10px 0;}
-.comment{margin-left:50px;margin-top:5px;padding:5px;background:#f0f0f0;border-radius:5px;}
-.profile-section img{width:80px;height:80px;border-radius:50%;object-fit:cover;}
-.user-list div{padding:5px;margin:2px 0;background:white;border-radius:5px;cursor:pointer;}
-</style>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pulse</title>
+    <style>
+        :root {
+            --primary-color: #add8e6; /* Light Sky Blue */
+            --secondary-color: #ffb6c1; /* Light Pink */
+            --white-color: #ffffff;
+            --text-color: #333;
+            --border-color: #ddd;
+            --verified-badge: linear-gradient(45deg, #add8e6, #ffb6c1);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--white-color);
+            color: var(--text-color);
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+        }
+        .main-content {
+            flex-grow: 1;
+            overflow-y: scroll;
+        }
+        .right-panel {
+            width: 350px;
+            border-left: 1px solid var(--border-color);
+            padding: 20px;
+        }
+        /* Login Page */
+        #login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        }
+        #login-page h1 {
+            font-size: 4rem;
+            color: var(--white-color);
+        }
+        #google-signin-btn {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            background-color: var(--white-color);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 20px;
+        }
 
-/* ------------------ Firebase ------------------ */
-const firebaseConfig = {
-  apiKey: "AIzaSyC30TcmMVhP_8HdFYS1WufRiZwSDYNMTF0",
-  authDomain: "pulse2-92372.firebaseapp.com",
-  databaseURL: "https://pulse2-92372-default-rtdb.firebaseio.com",
-  projectId: "pulse2-92372",
-  storageBucket: "pulse2-92372.firebasestorage.app",
-  messagingSenderId: "276235725177",
-  appId: "1:276235725177:web:0f4e0789fae80a435927a8"
-};
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-let currentUser = null;
+        /* Onboarding Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: var(--white-color);
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+        }
+        .modal-content input, .modal-content button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
 
-/* ------------------ SPA Navigation ------------------ */
-function showSection(id){
-  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+        /* Feed */
+        .buzz-input-container {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .buzz-input-container textarea {
+            width: 100%;
+            border: none;
+            resize: none;
+            font-size: 1.2rem;
+            outline: none;
+        }
+        .buzz-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        #buzz-btn {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .buzz {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+        }
+        .buzz-author-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .buzz-content .author-name {
+            font-weight: bold;
+        }
+        .buzz-footer {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
 
-/* ------------------ Login ------------------ */
-async function login(){
-  try{
-    const result = await signInWithPopup(auth, provider);
-    currentUser = result.user;
-    const userRef = ref(db, `users/${currentUser.uid}`);
-    const snap = await get(userRef);
-    if(!snap.exists()){
-      let verified=false;
-      if(currentUser.email==="customerserviceffrj4@gmail.com") verified=true;
-      let username=prompt("Enter username (lowercase letters & numbers):");
-      let dob=prompt("Enter DOB (YYYY-MM-DD) or skip:");
-      set(userRef,{name:currentUser.displayName,email:currentUser.email,username:username,dob:dob||"",bio:"",dp:"",verified:verified,followers:0,following:0});
-      if(verified) alert("Auto-verified!");
-    }
-    showSection('home'); renderFeed(); renderVideos(); renderNotifications(); renderProfile(); renderSearch();
-  }catch(e){console.error(e);}
-}
+        /* Profile */
+        .profile-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .profile-info {
+            display: flex;
+        }
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+        }
+        .profile-details {
+            margin-left: 20px;
+        }
+        .profile-stats {
+            display: flex;
+            margin-top: 10px;
+        }
+        .profile-stats div {
+            margin-right: 20px;
+        }
+        .profile-tabs {
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .profile-tabs div {
+            padding: 15px;
+            cursor: pointer;
+        }
+        .profile-tabs .active {
+            border-bottom: 2px solid var(--primary-color);
+        }
 
-/* ------------------ Base64 ------------------ */
-function toBase64(file){
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload=()=>resolve(reader.result);
-    reader.onerror=err=>reject(err);
-  });
-}
-
-/* ------------------ Buzz ------------------ */
-async function postBuzz(){
-  const text=document.getElementById("buzzInput").value;
-  const file=document.getElementById("buzzImage").files[0];
-  const imageBase64=file?await toBase64(file):"";
-  if(!text) return alert("Buzz cannot be empty");
-  try{
-    await push(ref(db,"buzzes"),{
-      authorName:currentUser.displayName,
-      authorId:currentUser.uid,
-      authorImage:imageBase64,
-      text:text,
-      likes:0,
-      comments:[],
-      rebuzz:0,
-      savedBy:[],
-      timestamp:Date.now()
-    });
-    document.getElementById("buzzInput").value="";document.getElementById("buzzImage").value="";
-  }catch(e){console.error(e);alert("Failed to post Buzz");}
-}
-
-/* ------------------ Feed Rendering ------------------ */
-function renderFeed(){
-  const feed=document.getElementById("feed");
-  feed.innerHTML="";
-  onValue(ref(db,"buzzes"),snap=>{
-    feed.innerHTML="";
-    snap.forEach(child=>{
-      const buzz=child.val();const id=child.key;
-      const authorImg=buzz.authorImage?`<img src="${buzz.authorImage}" class="dp">`:`<div class="dp-letter">${buzz.authorName[0]}</div>`;
-      feed.innerHTML+=`
-      <div class="buzz" id="${id}">
-        <div class="author">${authorImg} <strong>${buzz.authorName}${buzz.verified?" ✔️":""}</strong></div>
-        <div class="text">${buzz.text}</div>
-        <div class="actions">
-          <button onclick="likeBuzz('${id}')">❤️ ${buzz.likes}</button>
-          <button onclick="rebuzz('${id}')">🔁 ${buzz.rebuzz}</button>
-          <button onclick="deleteBuzz('${id}')">🗑️ Delete</button>
-          <button onclick="showComments('${id}')">💬 Comments (${buzz.comments.length||0})</button>
-        </div>
-        <div id="comments-${id}"></div>
-        <div style="margin-top:5px;">
-          <input type="text" id="commentInput-${id}" placeholder="Write a comment...">
-          <button onclick="postComment('${id}')">Post</button>
-        </div>
-      </div>
-      `;
-    });
-  });
-}
-
-/* ------------------ Like / Rebuzz / Delete ------------------ */
-async function likeBuzz(id){
-  const buzzRef=ref(db,"buzzes/"+id);
-  const snap=await get(buzzRef);
-  if(snap.exists()){
-    const data=snap.val();
-    update(buzzRef,{likes:(data.likes||0)+1});
-    if(data.authorId!==currentUser.uid){
-      push(ref(db,`notifications/${data.authorId}`),{message:`${currentUser.displayName} liked your Buzz`,timestamp:Date.now()});
-    }
-  }
-}
-async function rebuzz(id){
-  const buzzRef=ref(db,"buzzes/"+id);
-  const snap=await get(buzzRef);
-  if(snap.exists()){
-    const data=snap.val();
-    update(buzzRef,{rebuzz:(data.rebuzz||0)+1});
-    if(data.authorId!==currentUser.uid){
-      push(ref(db,`notifications/${data.authorId}`),{message:`${currentUser.displayName} rebuzzed your Buzz`,timestamp:Date.now()});
-    }
-  }
-}
-async function deleteBuzz(id){if(confirm("Delete this Buzz?")) set(ref(db,"buzzes/"+id),null);}
-
-/* ------------------ Comments ------------------ */
-async function postComment(id){
-  const input=document.getElementById(`commentInput-${id}`);
-  const text=input.value;
-  if(!text) return;
-  const buzzRef=ref(db,"buzzes/"+id);
-  const snap=await get(buzzRef);
-  if(snap.exists()){
-    const data=snap.val();
-    const comments=data.comments||[];
-    comments.push({author:currentUser.displayName,text:text});
-    update(buzzRef,{comments:comments});
-    input.value="";
-  }
-}
-function showComments(id){
-  const container=document.getElementById(`comments-${id}`);
-  const buzzRef=ref(db,"buzzes/"+id);
-  onValue(buzzRef,snap=>{
-    const data=snap.val();
-    container.innerHTML="";
-    (data.comments||[]).forEach(c=>{
-      container.innerHTML+=`<div class="comment"><strong>${c.author}</strong>: ${c.text}</div>`;
-    });
-  });
-}
-
-/* ------------------ Video Upload ------------------ */
-async function uploadVideo(){
-  const file=document.getElementById("videoFile").files[0];
-  if(!file) return alert("Select a video!");
-  const status=document.getElementById("videoStatus");status.innerText="Uploading...";
-  const formData=new FormData();
-  formData.append("file",file);formData.append("upload_preset","Pulsevideos");
-  try{
-    const res=await fetch("https://api.cloudinary.com/v1_1/dzjylmmcj/video/upload",{method:"POST",body:formData});
-    const data=await res.json();
-    await push(ref(db,"videos"),{videoURL:data.secure_url,format:data.format,width:data.width,height:data.height,duration:data.duration,uploadedAt:Date.now()});
-    status.innerText="Upload complete!";renderVideos();
-  }catch(e){status.innerText="Upload failed!";console.error(e);}
-}
-function renderVideos(){
-  const videoFeed=document.getElementById("videoFeed");videoFeed.innerHTML="";
-  onValue(ref(db,"videos"),snap=>{
-    snap.forEach(child=>{const vid=child.val();videoFeed.innerHTML+=`<video controls src="${vid.videoURL}"></video>`;});
-  });
-}
-
-/* ------------------ Notifications ------------------ */
-function renderNotifications(){
-  const notif=document.getElementById("notificationsFeed");notif.innerHTML="";
-  if(!currentUser) return;
-  onValue(ref(db,`notifications/${currentUser.uid}`),snap=>{
-    notif.innerHTML="";
-    snap.forEach(child=>{const n=child.val();notif.innerHTML+=`<div>${n.message}</div>`;});
-  });
-}
-
-/* ------------------ Profile ------------------ */
-function renderProfile(){
-  const profile=document.getElementById("profileFeed");profile.innerHTML="";
-  if(!currentUser) return;
-  const userRef=ref(db,`users/${currentUser.uid}`);
-  onValue(userRef,snap=>{
-    const u=snap.val();
-    const dp=u.dp?`<img src="${u.dp}">`:`<div class="dp-letter">${u.name[0]}</div>`;
-    profile.innerHTML=`
-      <div class="profile-section">${dp}<h3>${u.name}${u.verified?" ✔️":""}</h3>
-      <p>Username: ${u.username}</p>
-      <p>Bio: ${u.bio||"No bio set"}</p>
-      <p>Followers: ${u.followers} | Following: ${u.following}</p>
-      <input type="text" id="bioInput" placeholder="Edit bio">
-      <button onclick="updateBio()">Update Bio</button>
-      <input type="file" id="dpFile" accept="image/*">
-      <button onclick="updateDP()">Update DP</button>
-      </div>
-    `;
-  });
-}
-
-async function updateBio(){
-  const bio=document.getElementById("bioInput").value;
-  await update(ref(db,`users/${currentUser.uid}`),{bio:bio});
-}
-async function updateDP(){
-  const file=document.getElementById("dpFile").files[0];
-  if(!file) return;
-  const base64=await toBase64(file);
-  await update(ref(db,`users/${currentUser.uid}`),{dp:base64});
-}
-
-/* ------------------ Search Users ------------------ */
-function renderSearch(){
-  const container=document.getElementById("searchUsers");
-  container.innerHTML="";
-  onValue(ref(db,"users"),snap=>{
-    container.innerHTML="";
-    snap.forEach(child=>{
-      const u=child.val();
-      const uid=child.key;
-      const dp=u.dp?`<img src="${u.dp}" class="dp">`:`<div class="dp-letter">${u.name[0]}</div>`;
-      container.innerHTML+=`<div onclick="openProfile('${uid}')">${dp} ${u.name} (@${u.username})${u.verified?" ✔️":""}</div>`;
-    });
-  });
-}
-function openProfile(uid){
-  showSection('profile');
-  const profile=document.getElementById("profileFeed");profile.innerHTML="";
-  const userRef=ref(db,`users/${uid}`);
-  onValue(userRef,snap=>{
-    const u=snap.val();
-    const dp=u.dp?`<img src="${u.dp}">`:`<div class="dp-letter">${u.name[0]}</div>`;
-    profile.innerHTML=`
-      <div class="profile-section">${dp}<h3>${u.name}${u.verified?" ✔️":""}</h3>
-      <p>Username: ${u.username}</p>
-      <p>Bio: ${u.bio||"No bio set"}</p>
-      <p>Followers: ${u.followers} | Following: ${u.following}</p>
-      `;
-  });
-}
-
-/* ------------------ Expose Functions ------------------ */
-window.login=login;window.postBuzz=postBuzz;window.likeBuzz=likeBuzz;window.rebuzz=rebuzz;window.deleteBuzz=deleteBuzz;
-window.showComments=showComments;window.postComment=postComment;window.uploadVideo=uploadVideo;
-window.showSection=showSection;window.renderFeed=renderFeed;window.renderVideos=renderVideos;
-window.renderNotifications=renderNotifications;window.renderProfile=renderProfile;
-window.renderSearch=renderSearch;
-</script>
+        /* Verification */
+        .verification-form select, .verification-form input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+        /* Video Upload */
+        #video-upload-container {
+            padding: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 20px;
+            text-align: center;
+        }
+        #video-feed {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+        #video-feed video {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .verified-tick {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            background: var(--verified-badge);
+            border-radius: 50%;
+            margin-left: 5px;
+        }
+    </style>
 </head>
 <body>
-<header>Pulse 🌸💙</header>
-<nav>
-<button onclick="showSection('login')">Login</button>
-<button onclick="showSection('home')">Home</button>
-<button onclick="showSection('profile')">Profile</button>
-<button onclick="showSection('notifications')">Notifications</button>
-<button onclick="showSection('search')">Search</button>
-<button onclick="showSection('settings')">Settings</button>
-</nav>
 
-<section id="login" class="active">
-<div class="container">
-<button onclick="login()">Login with Google</button>
-</div>
-</section>
+    <div id="app-container" style="display: none;">
+        <div class="container">
+            <div class="sidebar">
+                <h2>Pulse</h2>
+                <ul>
+                    <li onclick="showPage('home')">Home</li>
+                    <li onclick="showPage('search')">Search</li>
+                    <li onclick="showPage('notifications')">Notifications</li>
+                    <li onclick="showPage('messages')">Messages</li>
+                    <li onclick="showPage('profile')">Profile</li>
+                    <li onclick="showPage('videos')">Videos</li>
+                    <li onclick="showPage('settings')">Settings</li>
+                </ul>
+            </div>
 
-<section id="home">
-<div class="container">
-<h3>Post a Buzz</h3>
-<textarea id="buzzInput" placeholder="What's happening?"></textarea>
-<input type="file" id="buzzImage" accept="image/*">
-<button onclick="postBuzz()">Post Buzz</button>
+            <div class="main-content">
+                <div id="home-page">
+                    <div class="buzz-input-container">
+                        <textarea id="buzz-input" placeholder="What's happening?"></textarea>
+                        <div class="buzz-actions">
+                            <input type="file" id="buzz-image-input" accept="image/*" style="display: none;">
+                            <button onclick="document.getElementById('buzz-image-input').click()">Image</button>
+                            <button id="buzz-btn">Buzz</button>
+                        </div>
+                    </div>
+                    <div id="feed-container"></div>
+                </div>
 
-<h3>Feed</h3>
-<div id="feed"></div>
+                <div id="search-page" style="display: none;">
+                    <input type="text" id="search-input" placeholder="Search Pulse">
+                    <div id="search-results"></div>
+                </div>
 
-<h3>Video Upload</h3>
-<input type="file" id="videoFile" accept="video/*">
-<button onclick="uploadVideo()">Upload Video</button>
-<p id="videoStatus"></p>
-<div id="videoFeed"></div>
-</div>
-</section>
+                <div id="profile-page" style="display: none;"></div>
 
-<section id="profile">
-<div class="container" id="profileFeed"></div>
-</section>
+                <div id="settings-page" style="display: none;">
+                    <h2>Settings</h2>
+                    <button id="logout-btn">Logout</button>
+                    <button onclick="showVerificationModal()">Request Verification</button>
+                </div>
 
-<section id="notifications">
-<div class="container">
-<h3>Notifications</h3>
-<div id="notificationsFeed"></div>
-</div>
-</section>
+                 <div id="videos-page" style="display: none;">
+                    <h2>Pulse Videos</h2>
+                    <div id="video-upload-container">
+                        <input type="file" id="video-file-input" accept="video/*">
+                        <button id="video-upload-btn">Upload Video</button>
+                        <p id="video-upload-status"></p>
+                    </div>
+                    <div id="video-feed"></div>
+                </div>
+            </div>
 
-<section id="search">
-<div class="container">
-<h3>Search Users</h3>
-<div class="user-list" id="searchUsers"></div>
-</div>
-</section>
+            <div class="right-panel">
+                <h3>Who to follow</h3>
+                <div id="who-to-follow"></div>
+            </div>
+        </div>
+    </div>
 
-<section id="settings">
-<div class="container">
-<h3>Settings</h3>
-<p>Private account, block/unblock, logout, verification requests etc. can be added here.</p>
-</div>
-</section>
+    <div id="login-page">
+        <h1>Pulse</h1>
+        <button id="google-signin-btn">Sign in with Google</button>
+    </div>
+
+    <div id="onboarding-modal" class="modal">
+        <div class="modal-content">
+            <h2>Welcome to Pulse!</h2>
+            <p>Let's get your profile set up.</p>
+            <input type="text" id="onboarding-name" placeholder="Full Name">
+            <input type="text" id="onboarding-username" placeholder="Username (letters and numbers only)">
+            <input type="date" id="onboarding-dob">
+            <input type="file" id="onboarding-dp" accept="image/*">
+            <button id="onboarding-submit">Complete Setup</button>
+        </div>
+    </div>
+
+    <div id="verification-modal" class="modal">
+        <div class="modal-content verification-form">
+             <h2>Request Verification</h2>
+            <input type="text" id="verification-name" placeholder="Full Name (as on National ID)">
+            <textarea id="verification-q1" placeholder="Why should you be verified?"></textarea>
+            <input type="text" id="verification-q2" placeholder="Known as (optional)">
+            <select id="verification-country"></select>
+            <select id="verification-document-type"></select>
+            <input type="file" id="verification-document-upload" accept="image/*">
+            <input type="text" id="verification-link1" placeholder="Link 1 (optional)">
+             <button id="verification-submit">Submit Request</button>
+        </div>
+    </div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC30TcmMVhP_8HdFYS1WufRiZwSDYNMTF0",
+            authDomain: "pulse2-92372.firebaseapp.com",
+            databaseURL: "https://pulse2-92372-default-rtdb.firebaseio.com",
+            projectId: "pulse2-92372",
+            storageBucket: "pulse2-92372.firebasestorage.app",
+            messagingSenderId: "276235725177",
+            appId: "1:276235725177:web:0f4e0789fae80a435927a8"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        // DOM Elements
+        const loginPage = document.getElementById('login-page');
+        const appContainer = document.getElementById('app-container');
+        const googleSignInBtn = document.getElementById('google-signin-btn');
+        const onboardingModal = document.getElementById('onboarding-modal');
+        const buzzBtn = document.getElementById('buzz-btn');
+        const feedContainer = document.getElementById('feed-container');
+
+        // State
+        let currentUser = null;
+
+        // Functions
+        function showPage(pageId) {
+            ['home-page', 'search-page', 'profile-page', 'settings-page', 'videos-page'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            document.getElementById(pageId + '-page').style.display = 'block';
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
+        googleSignInBtn.onclick = () => auth.signInWithPopup(googleProvider);
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                database.ref('users/' + user.uid).once('value', snapshot => {
+                    if (snapshot.exists()) {
+                        currentUser = snapshot.val();
+                        loginPage.style.display = 'none';
+                        appContainer.style.display = 'block';
+                        loadFeed();
+                        loadVideos();
+                    } else {
+                        onboardingModal.style.display = 'flex';
+                    }
+                });
+            } else {
+                loginPage.style.display = 'flex';
+                appContainer.style.display = 'none';
+            }
+        });
+
+        document.getElementById('onboarding-submit').onclick = async () => {
+            const name = document.getElementById('onboarding-name').value;
+            const username = document.getElementById('onboarding-username').value.toLowerCase();
+            const dob = document.getElementById('onboarding-dob').value;
+            const dpFile = document.getElementById('onboarding-dp').files[0];
+            let dpData = `https://ui-avatars.com/api/?name=${name.charAt(0)}&background=random`;
+
+            if (dpFile) {
+                dpData = await toBase64(dpFile);
+            }
+            
+            database.ref('users').orderByChild('username').equalTo(username).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    alert('Username already taken!');
+                } else {
+                    const userData = {
+                        uid: auth.currentUser.uid,
+                        name,
+                        username,
+                        dob,
+                        dp: dpData,
+                        bio: "",
+                        followers: {},
+                        following: {},
+                        verified: false
+                    };
+                    database.ref('users/' + auth.currentUser.uid).set(userData);
+                    onboardingModal.style.display = 'none';
+                    appContainer.style.display = 'block';
+                    currentUser = userData;
+                }
+            });
+        };
+        
+        buzzBtn.onclick = async () => {
+            const buzzText = document.getElementById('buzz-input').value;
+            const imageFile = document.getElementById('buzz-image-input').files[0];
+            let imageData = null;
+
+            if (imageFile) {
+                imageData = await toBase64(imageFile);
+            }
+
+            if (buzzText || imageData) {
+                const buzzData = {
+                    authorUid: currentUser.uid,
+                    authorName: currentUser.name,
+                    authorUsername: currentUser.username,
+                    authorImage: currentUser.dp,
+                    text: buzzText,
+                    image: imageData,
+                    timestamp: Date.now(),
+                    likes: {},
+                    rebuzzes: {},
+                    comments: {}
+                };
+                database.ref('buzzes').push(buzzData);
+                document.getElementById('buzz-input').value = '';
+                document.getElementById('buzz-image-input').value = '';
+            }
+        };
+
+        function loadFeed() {
+            database.ref('buzzes').on('value', snapshot => {
+                feedContainer.innerHTML = '';
+                snapshot.forEach(childSnapshot => {
+                    const buzz = childSnapshot.val();
+                    const buzzElement = document.createElement('div');
+                    buzzElement.classList.add('buzz');
+                    buzzElement.innerHTML = `
+                        <img src="${buzz.authorImage}" class="buzz-author-img">
+                        <div class="buzz-content">
+                            <div>
+                                <span class="author-name">${buzz.authorName}</span>
+                                ${buzz.verified ? '<span class="verified-tick"></span>' : ''}
+                                <span class="author-username">@${buzz.authorUsername}</span>
+                            </div>
+                            <p>${buzz.text}</p>
+                            ${buzz.image ? `<img src="${buzz.image}" style="width:100%; border-radius:10px;">` : ''}
+                            <div class="buzz-footer">
+                                <span>Like</span>
+                                <span>Comment</span>
+                                <span>Rebuzz</span>
+                                <span>Save</span>
+                            </div>
+                        </div>
+                    `;
+                    feedContainer.prepend(buzzElement);
+                });
+            });
+        }
+
+        // Video Upload Logic
+        const videoUploadBtn = document.getElementById('video-upload-btn');
+        const videoFileInput = document.getElementById('video-file-input');
+        const videoUploadStatus = document.getElementById('video-upload-status');
+        const videoFeed = document.getElementById('video-feed');
+        const cloudinaryCloudName = 'dzjylmmcj';
+        const cloudinaryUploadPreset = 'Pulsevideos';
+
+        videoUploadBtn.onclick = () => {
+            const file = videoFileInput.files[0];
+            if (file) {
+                videoUploadStatus.textContent = 'Uploading...';
+                const url = `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/video/upload`;
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', cloudinaryUploadPreset);
+                formData.append('eager', 'f_auto,q_auto,h_720,w_1280');
+                
+                fetch(url, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    videoUploadStatus.textContent = 'Upload complete!';
+                    const videoInfo = {
+                        videoURL: data.secure_url,
+                        duration: data.duration,
+                        format: data.format,
+                        width: data.width,
+                        height: data.height,
+                        uploadedAt: data.created_at,
+                        uploader: currentUser.uid
+                    };
+                    database.ref('videos').push(videoInfo);
+                })
+                .catch(err => {
+                    videoUploadStatus.textContent = 'Upload failed.';
+                    console.error(err);
+                });
+            }
+        };
+
+        function loadVideos() {
+            database.ref('videos').on('value', snapshot => {
+                videoFeed.innerHTML = '';
+                snapshot.forEach(childSnapshot => {
+                    const video = childSnapshot.val();
+                    const videoElement = document.createElement('video');
+                    videoElement.src = video.videoURL;
+                    videoElement.controls = true;
+                    videoFeed.prepend(videoElement);
+                });
+            });
+        }
+
+        document.getElementById('logout-btn').onclick = () => auth.signOut();
+        
+    </script>
 </body>
 </html>
+
