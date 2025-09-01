@@ -25,6 +25,31 @@
             /* Animation removed for better performance */
         }
         
+        .verified-badge {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 50%;
+        }
+        
+        .hashtag {
+            color: #3b82f6;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .hashtag:hover {
+            text-decoration: underline;
+        }
+        
+        .mention {
+            color: #3b82f6;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .mention:hover {
+            text-decoration: underline;
+        }
+        
         /* Mobile optimizations */
         @media (max-width: 640px) {
             .max-w-md {
@@ -189,14 +214,14 @@
             <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
                 <h1 class="text-2xl font-bold gradient-bg bg-clip-text text-transparent">Pulse</h1>
                 <div class="flex items-center space-x-4">
-                    <button id="notificationBtn" class="relative p-2">
+                    <button id="notificationBtn" class="relative p-2" onclick="openNotifications()">
                         <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19.5A2.5 2.5 0 016.5 17H20"></path>
                         </svg>
                         <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full notification-dot"></div>
                     </button>
-                    <button id="messageBtn" class="relative p-2">
+                    <button id="messageBtn" class="relative p-2" onclick="openMessages()">
                         <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                         </svg>
@@ -255,9 +280,11 @@
             </div>
         </div>
 
-        <!-- Feed -->
-        <div id="feed" class="max-w-md mx-auto">
-            <!-- Buzzes will be dynamically added here -->
+        <!-- Feed Container -->
+        <div id="feedContainer" class="bg-white">
+            <div id="feed" class="max-w-md mx-auto">
+                <!-- Buzzes will be dynamically added here -->
+            </div>
         </div>
 
         <!-- Search Page -->
@@ -308,7 +335,10 @@
                             <p id="profileUsername" class="text-gray-600"></p>
                             <p id="profileBio" class="text-gray-700 mt-2 text-sm"></p>
                         </div>
-                        <button id="editProfileBtn" class="border border-gray-300 px-4 py-2 rounded-full text-sm font-semibold">Edit Profile</button>
+                        <div class="flex space-x-2">
+                            <button id="verificationBtn" class="border border-blue-500 text-blue-500 px-3 py-1 rounded-full text-xs font-semibold hover:bg-blue-50">Request Verification</button>
+                            <button id="editProfileBtn" class="border border-gray-300 px-4 py-2 rounded-full text-sm font-semibold">Edit Profile</button>
+                        </div>
                     </div>
                     <div class="flex space-x-6 mt-4">
                         <div class="text-center">
@@ -1386,35 +1416,63 @@
         });
 
         function showPage(page) {
-            // Hide all pages
-            document.getElementById('feed').parentElement.style.display = 'none';
-            document.getElementById('profilePage').classList.add('hidden');
-            document.getElementById('settingsPage').classList.add('hidden');
-            document.getElementById('searchPage').classList.add('hidden');
-            document.getElementById('notificationsPage').classList.add('hidden');
-            document.getElementById('messagesPage').classList.add('hidden');
+            // Hide all main sections first
+            const feedContainer = document.getElementById('feedContainer');
+            if (feedContainer) feedContainer.style.display = 'none';
             
+            // Hide all page elements
+            const pages = ['profilePage', 'settingsPage', 'searchPage', 'notificationsPage', 'messagesPage', 'hashtagPage'];
+            pages.forEach(pageId => {
+                const pageElement = document.getElementById(pageId);
+                if (pageElement) {
+                    pageElement.classList.add('hidden');
+                    pageElement.style.display = 'none';
+                }
+            });
+            
+            // Show the requested page
             switch(page) {
                 case 'home':
-                    document.getElementById('feed').parentElement.style.display = 'block';
+                    const feedCont = document.getElementById('feedContainer');
+                    if (feedCont) feedCont.style.display = 'block';
                     break;
                 case 'profile':
-                    document.getElementById('profilePage').classList.remove('hidden');
-                    loadUserProfile();
+                    const profilePage = document.getElementById('profilePage');
+                    if (profilePage) {
+                        profilePage.classList.remove('hidden');
+                        profilePage.style.display = 'block';
+                        loadUserProfile();
+                    }
                     break;
                 case 'settings':
-                    document.getElementById('settingsPage').classList.remove('hidden');
+                    const settingsPage = document.getElementById('settingsPage');
+                    if (settingsPage) {
+                        settingsPage.classList.remove('hidden');
+                        settingsPage.style.display = 'block';
+                    }
                     break;
                 case 'search':
-                    document.getElementById('searchPage').classList.remove('hidden');
+                    const searchPage = document.getElementById('searchPage');
+                    if (searchPage) {
+                        searchPage.classList.remove('hidden');
+                        searchPage.style.display = 'block';
+                    }
                     break;
                 case 'notifications':
-                    document.getElementById('notificationsPage').classList.remove('hidden');
-                    loadNotifications();
+                    const notificationsPage = document.getElementById('notificationsPage');
+                    if (notificationsPage) {
+                        notificationsPage.classList.remove('hidden');
+                        notificationsPage.style.display = 'block';
+                        loadNotifications();
+                    }
                     break;
                 case 'messages':
-                    document.getElementById('messagesPage').classList.remove('hidden');
-                    loadMessages();
+                    const messagesPage = document.getElementById('messagesPage');
+                    if (messagesPage) {
+                        messagesPage.classList.remove('hidden');
+                        messagesPage.style.display = 'block';
+                        loadMessages();
+                    }
                     break;
             }
         }
@@ -2309,6 +2367,30 @@
             messagesList.innerHTML = '<div class="p-8 text-center text-gray-500">Messages feature coming soon!</div>';
         }
 
+        // Header button functions
+        function openNotifications() {
+            showPage('notifications');
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('active', 'text-pink-600');
+                b.classList.add('text-gray-600');
+            });
+            const notifBtn = document.querySelector('[data-page="notifications"]');
+            if (notifBtn) {
+                notifBtn.classList.add('active', 'text-pink-600');
+                notifBtn.classList.remove('text-gray-600');
+            }
+        }
+
+        function openMessages() {
+            showPage('messages');
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('active', 'text-pink-600');
+                b.classList.add('text-gray-600');
+            });
+        }
+
         // Hashtag functionality
         async function openHashtag(hashtag) {
             document.getElementById('hashtagPage').classList.remove('hidden');
@@ -2408,5 +2490,5 @@
         `;
         document.head.appendChild(style);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9782e408c1d9fab4',t:'MTc1NjcxMDAyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9782fa6ca48591bc',t:'MTc1NjcxMDk0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
