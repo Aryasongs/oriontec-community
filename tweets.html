@@ -529,7 +529,24 @@
 
         <!-- Messages Tab -->
         <div id="messagesTab" class="hidden max-w-2xl mx-auto p-4 pb-20 md:pb-4">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Messages</h2>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Messages</h2>
+                <button onclick="startNewConversation()" class="instagram-gradient text-white p-2 rounded-full hover:opacity-90 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <div class="relative">
+                    <input type="text" id="messageSearchInput" placeholder="Search conversations..." class="w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent" oninput="searchConversations()">
+                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+            </div>
+            
             <div id="conversationsContainer">
                 <!-- Conversations will be loaded here -->
             </div>
@@ -1930,7 +1947,7 @@
 
         function createNotification(recipientId, type, buzzId, actorId) {
             const notificationData = {
-                type: type, // 'like', 'rebuzz', 'comment', 'follow', 'mention'
+                type: type, // 'like', 'rebuzz', 'comment', 'follow', 'mention', 'message'
                 buzzId: buzzId,
                 actorId: actorId,
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
@@ -2210,7 +2227,10 @@
                                 </div>
                             </div>
                             <div>
-                                <h3 class="font-bold text-gray-800">${userData.fullName}</h3>
+                                <h3 class="font-bold text-gray-800 flex items-center">
+                                    ${userData.fullName}
+                                    ${userData.verified ? '<span class="verified-badge ml-1"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : ''}
+                                </h3>
                                 <p class="text-gray-500 text-sm">@${userData.username}</p>
                             </div>
                         </div>
@@ -2231,8 +2251,11 @@
                     </div>
                     
                     <div class="p-4 border-t border-gray-200">
+                        <div id="typingIndicator" class="hidden mb-2 text-xs text-gray-500 italic">
+                            ${userData.fullName} is typing...
+                        </div>
                         <div class="flex space-x-2">
-                            <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent" onkeypress="handleMessageKeyPress(event, '${userId}')">
+                            <input type="text" id="messageInput" placeholder="Type a message..." class="flex-1 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent" onkeypress="handleMessageKeyPress(event, '${userId}')" oninput="handleTyping('${userId}')">
                             <button onclick="sendMessage('${userId}')" class="instagram-gradient text-white px-4 py-3 rounded-xl font-medium hover:opacity-90 transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
@@ -2262,22 +2285,40 @@
         function loadMessages(userId) {
             const conversationId = [currentUser.uid, userId].sort().join('_');
             
-            database.ref(`messages/${conversationId}`).orderByChild('timestamp').once('value')
-                .then((snapshot) => {
-                    const messages = [];
-                    snapshot.forEach((child) => {
-                        messages.push({id: child.key, ...child.val()});
-                    });
-                    
-                    displayMessages(messages);
+            database.ref(`messages/${conversationId}`).orderByChild('timestamp').on('value', (snapshot) => {
+                const messages = [];
+                snapshot.forEach((child) => {
+                    messages.push({id: child.key, ...child.val()});
                 });
+                
+                displayMessages(messages);
+                
+                // Mark messages as seen when opening conversation
+                database.ref(`conversations/${conversationId}/seen`).set(true);
+                database.ref(`conversations/${conversationId}/unreadCount/${currentUser.uid}`).remove();
+                
+                // Mark individual messages as seen
+                messages.forEach(message => {
+                    if (message.receiverId === currentUser.uid && !message.seen) {
+                        database.ref(`messages/${conversationId}/${message.id}/seen`).set(true);
+                    }
+                });
+            });
         }
 
         function displayMessages(messages) {
             const container = document.getElementById('messagesContainer');
             
             if (messages.length === 0) {
-                return; // Keep the default "start conversation" message
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        <p>Start a conversation!</p>
+                    </div>
+                `;
+                return;
             }
             
             container.innerHTML = '';
@@ -2286,33 +2327,67 @@
                 container.appendChild(messageElement);
             });
             
-            // Scroll to bottom
-            container.scrollTop = container.scrollHeight;
+            // Scroll to bottom smoothly
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
         }
 
         function createMessageElement(message) {
             const div = document.createElement('div');
             const isOwnMessage = message.senderId === currentUser.uid;
             
-            div.className = `flex mb-3 ${isOwnMessage ? 'justify-end' : 'justify-start'}`;
+            div.className = `flex mb-4 ${isOwnMessage ? 'justify-end' : 'justify-start'}`;
             
             const timeAgo = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Now';
             
             div.innerHTML = `
-                <div class="max-w-xs ${isOwnMessage ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' : 'bg-gray-100 text-gray-800'} rounded-2xl px-4 py-2">
-                    <p class="text-sm">${message.text}</p>
-                    <p class="text-xs ${isOwnMessage ? 'text-pink-100' : 'text-gray-500'} mt-1">${timeAgo}</p>
+                <div class="max-w-xs lg:max-w-md ${isOwnMessage ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-l-2xl rounded-tr-2xl rounded-br-md' : 'bg-gray-100 text-gray-800 rounded-r-2xl rounded-tl-2xl rounded-bl-md'} px-4 py-3 shadow-sm">
+                    <p class="text-sm leading-relaxed">${formatTextWithHashtagsAndMentions(message.text)}</p>
+                    <div class="flex ${isOwnMessage ? 'justify-between' : 'justify-start'} items-center mt-2">
+                        <p class="text-xs ${isOwnMessage ? 'text-pink-100' : 'text-gray-500'}">${timeAgo}</p>
+                        ${isOwnMessage ? `
+                            <div class="flex items-center ml-2">
+                                ${message.seen ? 
+                                    '<svg class="w-4 h-4 text-pink-100" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>' : 
+                                    '<svg class="w-4 h-4 text-pink-200" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>'
+                                }
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
             `;
             
             return div;
         }
 
+        let typingTimeout;
+        
         function handleMessageKeyPress(event, userId) {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 sendMessage(userId);
             }
+        }
+        
+        function handleTyping(userId) {
+            const conversationId = [currentUser.uid, userId].sort().join('_');
+            
+            // Set typing indicator
+            database.ref(`typing/${conversationId}/${currentUser.uid}`).set({
+                isTyping: true,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            // Clear previous timeout
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+            }
+            
+            // Remove typing indicator after 3 seconds of inactivity
+            typingTimeout = setTimeout(() => {
+                database.ref(`typing/${conversationId}/${currentUser.uid}`).remove();
+            }, 3000);
         }
 
         function sendMessage(userId) {
@@ -2351,9 +2426,14 @@
                     const conversationData = {
                         lastMessage: messageText,
                         lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+                        lastMessageSender: currentUser.uid,
+                        seen: false,
                         participants: {
                             [currentUser.uid]: true,
                             [userId]: true
+                        },
+                        unreadCount: {
+                            [userId]: firebase.database.ServerValue.increment(1)
                         }
                     };
                     
@@ -2362,8 +2442,19 @@
                     // Create notification for receiver
                     createNotification(userId, 'message', null, currentUser.uid);
                     
+                    // Clear typing indicator
+                    const conversationId = [currentUser.uid, userId].sort().join('_');
+                    database.ref(`typing/${conversationId}/${currentUser.uid}`).remove();
+                    
                     messageInput.value = '';
-                    loadMessages(userId);
+                    
+                    // Show success feedback
+                    const sendButton = messageInput.nextElementSibling;
+                    const originalHTML = sendButton.innerHTML;
+                    sendButton.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
+                    setTimeout(() => {
+                        sendButton.innerHTML = originalHTML;
+                    }, 1000);
                 })
                 .catch((error) => {
                     console.error('Error sending message:', error);
@@ -2437,6 +2528,9 @@
                     break;
                 case 'mention':
                     actionText = 'mentioned you in a buzz';
+                    break;
+                case 'message':
+                    actionText = 'sent you a message';
                     break;
                 case 'verification':
                     actionText = '🎉 Congratulations! Your account has been verified!';
@@ -4238,18 +4332,17 @@
         }
 
         function loadConversations() {
-            database.ref('conversations').orderByChild('lastMessageTime').once('value')
-                .then((snapshot) => {
-                    const conversations = [];
-                    snapshot.forEach((child) => {
-                        const conversation = child.val();
-                        if (conversation.participants && conversation.participants[currentUser.uid]) {
-                            conversations.unshift({id: child.key, ...conversation});
-                        }
-                    });
-                    
-                    displayConversations(conversations);
+            database.ref('conversations').orderByChild('lastMessageTime').on('value', (snapshot) => {
+                const conversations = [];
+                snapshot.forEach((child) => {
+                    const conversation = child.val();
+                    if (conversation.participants && conversation.participants[currentUser.uid]) {
+                        conversations.unshift({id: child.key, ...conversation});
+                    }
                 });
+                
+                displayConversations(conversations);
+            });
         }
 
         function displayConversations(conversations) {
@@ -4297,24 +4390,98 @@
             
             const timeAgo = conversation.lastMessageTime ? new Date(conversation.lastMessageTime).toLocaleString() : 'Recently';
             
+            // Check if there are unread messages
+            const hasUnread = conversation.unreadCount && conversation.unreadCount[currentUser.uid] > 0;
+            const unreadCount = hasUnread ? conversation.unreadCount[currentUser.uid] : 0;
+            
             div.innerHTML = `
                 <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 story-ring rounded-full flex-shrink-0">
+                    <div class="w-12 h-12 story-ring rounded-full flex-shrink-0 relative">
                         <div class="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-lg font-bold text-white">
                             ${profilePic}
                         </div>
+                        ${hasUnread ? `<div class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">${unreadCount > 9 ? '9+' : unreadCount}</div>` : ''}
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between mb-1">
-                            <h3 class="font-bold text-gray-800 truncate">${userData.fullName}${userData.verified ? '<span class="verified-badge ml-1"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : ''}</h3>
-                            <span class="text-gray-500 text-xs">${timeAgo}</span>
+                            <h3 class="font-bold text-gray-800 truncate flex items-center">
+                                ${userData.fullName}
+                                ${userData.verified ? '<span class="verified-badge ml-1"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : ''}
+                            </h3>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-gray-500 text-xs">${timeAgo}</span>
+                                ${conversation.lastMessageSender === currentUser.uid ? 
+                                    `<div class="flex items-center">
+                                        ${conversation.seen ? 
+                                            '<svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>' : 
+                                            '<svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>'
+                                        }
+                                    </div>` : ''
+                                }
+                            </div>
                         </div>
-                        <p class="text-gray-600 text-sm truncate">${conversation.lastMessage || 'Start a conversation'}</p>
+                        <div class="flex items-center justify-between">
+                            <p class="text-gray-600 text-sm truncate ${hasUnread ? 'font-semibold' : ''}" id="lastMessage-${userId}">
+                                ${conversation.lastMessage || 'Start a conversation'}
+                            </p>
+                            <div id="typingIndicator-${userId}" class="hidden text-xs text-green-500 italic">
+                                typing...
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
             
+            // Listen for typing indicators
+            const conversationId = [currentUser.uid, userId].sort().join('_');
+            database.ref(`typing/${conversationId}/${userId}`).on('value', (snapshot) => {
+                const typingData = snapshot.val();
+                const typingIndicator = document.getElementById(`typingIndicator-${userId}`);
+                const lastMessage = document.getElementById(`lastMessage-${userId}`);
+                const modalTypingIndicator = document.getElementById('typingIndicator');
+                
+                if (typingData && typingData.isTyping) {
+                    if (typingIndicator) {
+                        typingIndicator.classList.remove('hidden');
+                        lastMessage.classList.add('hidden');
+                    }
+                    if (modalTypingIndicator) {
+                        modalTypingIndicator.classList.remove('hidden');
+                    }
+                } else {
+                    if (typingIndicator) {
+                        typingIndicator.classList.add('hidden');
+                        lastMessage.classList.remove('hidden');
+                    }
+                    if (modalTypingIndicator) {
+                        modalTypingIndicator.classList.add('hidden');
+                    }
+                }
+            });
+            
             return div;
+        }
+
+        function startNewConversation() {
+            showTab('search');
+            document.getElementById('searchInput').placeholder = 'Search users to message...';
+            document.getElementById('searchInput').focus();
+        }
+        
+        function searchConversations() {
+            const query = document.getElementById('messageSearchInput').value.toLowerCase().trim();
+            const conversations = document.querySelectorAll('#conversationsContainer > div');
+            
+            conversations.forEach(conversation => {
+                const userName = conversation.querySelector('h3').textContent.toLowerCase();
+                const lastMessage = conversation.querySelector('p').textContent.toLowerCase();
+                
+                if (userName.includes(query) || lastMessage.includes(query)) {
+                    conversation.style.display = 'block';
+                } else {
+                    conversation.style.display = 'none';
+                }
+            });
         }
 
         // Initialize app
@@ -4326,5 +4493,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97856c4b44fb8993',t:'MTc1NjczNjU4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9785752212fe856b',t:'MTc1NjczNjk0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
