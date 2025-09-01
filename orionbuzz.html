@@ -277,31 +277,21 @@
             </div>
         </nav>
 
-        <!-- Stories Section -->
-        <div class="bg-white border-b border-gray-200 py-4">
-            <div class="max-w-md mx-auto px-4">
-                <div class="flex space-x-4 overflow-x-auto">
-                    <div class="flex-shrink-0 text-center">
-                        <div class="story-ring rounded-full">
-                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <p class="text-xs mt-1">Your story</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Create Buzz -->
         <div class="bg-white border-b border-gray-200 p-4">
             <div class="max-w-md mx-auto">
                 <div class="flex space-x-3">
                     <div id="userAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0"></div>
-                    <div class="flex-1">
+                    <div class="flex-1 relative">
                         <textarea id="buzzText" placeholder="What's buzzing?" class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" rows="3"></textarea>
+                        
+                        <!-- Suggestions Dropdown -->
+                        <div id="suggestionsDropdown" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                            <!-- Suggestions will be populated here -->
+                        </div>
+                        
                         <div class="flex items-center justify-between mt-3">
                             <div class="flex space-x-4">
                                 <button id="addImage" class="text-blue-500 hover:bg-blue-50 p-2 rounded-full">
@@ -929,10 +919,243 @@
             }
         }
 
+        // Global variables for suggestions
+        let currentSuggestionType = null;
+        let currentSuggestionStart = 0;
+        let currentSuggestionQuery = '';
+        let selectedSuggestionIndex = -1;
+
         // Buzz creation
         document.getElementById('buzzText').addEventListener('input', (e) => {
             const postBtn = document.getElementById('postBuzz');
             postBtn.disabled = e.target.value.trim().length === 0 && !selectedImage;
+            
+            // Handle suggestions
+            handleSuggestions(e);
+        });
+
+        // Handle keyboard navigation for suggestions
+        document.getElementById('buzzText').addEventListener('keydown', (e) => {
+            const dropdown = document.getElementById('suggestionsDropdown');
+            if (!dropdown.classList.contains('hidden')) {
+                const suggestions = dropdown.querySelectorAll('.suggestion-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, suggestions.length - 1);
+                    updateSuggestionSelection(suggestions);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+                    updateSuggestionSelection(suggestions);
+                } else if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
+                    e.preventDefault();
+                    suggestions[selectedSuggestionIndex].click();
+                } else if (e.key === 'Escape') {
+                    hideSuggestions();
+                }
+            }
+        });
+
+        function handleSuggestions(e) {
+            const textarea = e.target;
+            const text = textarea.value;
+            const cursorPos = textarea.selectionStart;
+            
+            // Find the word at cursor position
+            const beforeCursor = text.substring(0, cursorPos);
+            const afterCursor = text.substring(cursorPos);
+            
+            // Check for hashtag
+            const hashtagMatch = beforeCursor.match(/#(\w*)$/);
+            if (hashtagMatch) {
+                currentSuggestionType = 'hashtag';
+                currentSuggestionStart = cursorPos - hashtagMatch[0].length;
+                currentSuggestionQuery = hashtagMatch[1].toLowerCase();
+                showHashtagSuggestions(currentSuggestionQuery);
+                return;
+            }
+            
+            // Check for mention
+            const mentionMatch = beforeCursor.match(/@(\w*)$/);
+            if (mentionMatch) {
+                currentSuggestionType = 'mention';
+                currentSuggestionStart = cursorPos - mentionMatch[0].length;
+                currentSuggestionQuery = mentionMatch[1].toLowerCase();
+                showMentionSuggestions(currentSuggestionQuery);
+                return;
+            }
+            
+            // Hide suggestions if no match
+            hideSuggestions();
+        }
+
+        async function showHashtagSuggestions(query) {
+            try {
+                const hashtagsSnapshot = await database.ref('hashtags').once('value');
+                const suggestions = [];
+                
+                hashtagsSnapshot.forEach((child) => {
+                    const hashtag = child.key;
+                    const data = child.val();
+                    if (hashtag.includes(query) && data.count > 0) {
+                        suggestions.push({
+                            text: hashtag,
+                            count: data.count || 0
+                        });
+                    }
+                });
+                
+                // Sort by usage count
+                suggestions.sort((a, b) => b.count - a.count);
+                
+                displaySuggestions(suggestions.slice(0, 8), 'hashtag');
+            } catch (error) {
+                console.error('Error loading hashtag suggestions:', error);
+            }
+        }
+
+        async function showMentionSuggestions(query) {
+            try {
+                const usersSnapshot = await database.ref('users').once('value');
+                const suggestions = [];
+                
+                usersSnapshot.forEach((child) => {
+                    const user = child.val();
+                    if (user && user.setupComplete && child.key !== currentUser.uid) {
+                        const username = (user.username || '').toLowerCase();
+                        const displayName = (user.displayName || '').toLowerCase();
+                        
+                        if (username.includes(query) || displayName.includes(query)) {
+                            suggestions.push({
+                                id: child.key,
+                                username: user.username,
+                                displayName: user.displayName,
+                                profilePhoto: user.profilePhoto,
+                                verified: user.verified || false
+                            });
+                        }
+                    }
+                });
+                
+                // Sort by username match first, then display name
+                suggestions.sort((a, b) => {
+                    const aUsernameMatch = a.username.toLowerCase().startsWith(query);
+                    const bUsernameMatch = b.username.toLowerCase().startsWith(query);
+                    
+                    if (aUsernameMatch && !bUsernameMatch) return -1;
+                    if (!aUsernameMatch && bUsernameMatch) return 1;
+                    
+                    return a.username.localeCompare(b.username);
+                });
+                
+                displaySuggestions(suggestions.slice(0, 8), 'mention');
+            } catch (error) {
+                console.error('Error loading mention suggestions:', error);
+            }
+        }
+
+        function displaySuggestions(suggestions, type) {
+            const dropdown = document.getElementById('suggestionsDropdown');
+            
+            if (suggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+            
+            let html = '';
+            
+            suggestions.forEach((suggestion, index) => {
+                if (type === 'hashtag') {
+                    html += `
+                        <div class="suggestion-item p-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between" data-value="${suggestion.text}">
+                            <div>
+                                <span class="font-semibold text-blue-600">#${suggestion.text}</span>
+                            </div>
+                            <span class="text-xs text-gray-500">${suggestion.count} posts</span>
+                        </div>
+                    `;
+                } else if (type === 'mention') {
+                    const userAvatar = suggestion.profilePhoto 
+                        ? `<img src="${suggestion.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                        : suggestion.displayName.charAt(0).toUpperCase();
+                    
+                    html += `
+                        <div class="suggestion-item p-3 hover:bg-gray-50 cursor-pointer flex items-center space-x-3" data-value="${suggestion.username}">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                                ${userAvatar}
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900 flex items-center">
+                                    ${suggestion.displayName}
+                                    ${suggestion.verified ? `<div class="verified-badge ml-1 w-3 h-3 flex items-center justify-center"><svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
+                                </div>
+                                <div class="text-sm text-gray-500">@${suggestion.username}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            dropdown.innerHTML = html;
+            dropdown.classList.remove('hidden');
+            selectedSuggestionIndex = -1;
+            
+            // Add click handlers
+            dropdown.querySelectorAll('.suggestion-item').forEach((item, index) => {
+                item.addEventListener('click', () => {
+                    selectSuggestion(item.dataset.value);
+                });
+            });
+        }
+
+        function updateSuggestionSelection(suggestions) {
+            suggestions.forEach((item, index) => {
+                if (index === selectedSuggestionIndex) {
+                    item.classList.add('bg-blue-50');
+                } else {
+                    item.classList.remove('bg-blue-50');
+                }
+            });
+        }
+
+        function selectSuggestion(value) {
+            const textarea = document.getElementById('buzzText');
+            const text = textarea.value;
+            const prefix = currentSuggestionType === 'hashtag' ? '#' : '@';
+            
+            const beforeSuggestion = text.substring(0, currentSuggestionStart);
+            const afterCursor = text.substring(textarea.selectionStart);
+            
+            const newText = beforeSuggestion + prefix + value + ' ' + afterCursor;
+            textarea.value = newText;
+            
+            // Set cursor position after the inserted suggestion
+            const newCursorPos = currentSuggestionStart + prefix.length + value.length + 1;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            
+            hideSuggestions();
+            textarea.focus();
+            
+            // Update post button state
+            const postBtn = document.getElementById('postBuzz');
+            postBtn.disabled = newText.trim().length === 0 && !selectedImage;
+        }
+
+        function hideSuggestions() {
+            document.getElementById('suggestionsDropdown').classList.add('hidden');
+            currentSuggestionType = null;
+            selectedSuggestionIndex = -1;
+        }
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('suggestionsDropdown');
+            const textarea = document.getElementById('buzzText');
+            
+            if (!dropdown.contains(e.target) && e.target !== textarea) {
+                hideSuggestions();
+            }
         });
 
         // Process hashtags and mentions in text
@@ -1835,7 +2058,7 @@
                     
                     usersSnapshot.forEach((child) => {
                         const user = child.val();
-                        if (user.setupComplete && child.key !== currentUser.uid) {
+                        if (user && user.setupComplete && child.key !== currentUser.uid) {
                             allUsers.push({id: child.key, ...user});
                         }
                     });
@@ -1848,7 +2071,7 @@
                         allUsers.forEach(user => {
                             const userAvatar = user.profilePhoto 
                                 ? `<img src="${user.profilePhoto}" class="w-full h-full rounded-full object-cover">`
-                                : user.displayName.charAt(0).toUpperCase();
+                                : (user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U');
                             
                             resultsHTML += `
                                 <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="viewUserProfile('${user.id}')">
@@ -1857,10 +2080,10 @@
                                     </div>
                                     <div class="flex-1">
                                         <div class="font-semibold text-gray-900 flex items-center">
-                                            ${user.displayName}
+                                            ${user.displayName || 'Unknown User'}
                                             ${user.verified ? `<div class="verified-badge ml-1 w-4 h-4 flex items-center justify-center"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
                                         </div>
-                                        <div class="text-sm text-gray-500">@${user.username}</div>
+                                        <div class="text-sm text-gray-500">@${user.username || 'unknown'}</div>
                                         ${user.bio ? `<div class="text-xs text-gray-400 mt-1">${user.bio}</div>` : ''}
                                     </div>
                                 </div>
@@ -1870,20 +2093,21 @@
                     resultsHTML += '</div>';
                     searchResults.innerHTML = resultsHTML;
                 } catch (error) {
+                    console.error('Error loading all users:', error);
                     searchResults.innerHTML = '<div class="text-center text-red-500 py-8">Error loading users</div>';
                 }
                 return;
             }
             
-            if (query.length < 2) {
-                searchResults.innerHTML = '<div class="text-center text-gray-500 py-8">Type at least 2 characters to search</div>';
+            if (query.length < 1) {
+                searchResults.innerHTML = '<div class="text-center text-gray-500 py-8">Start typing to search</div>';
                 return;
             }
             
             searchResults.innerHTML = '<div class="text-center text-gray-500 py-8">Searching...</div>';
             
             try {
-                // Search users
+                // Search users and buzzes
                 const usersSnapshot = await database.ref('users').once('value');
                 const buzzesSnapshot = await database.ref('buzzes').once('value');
                 
@@ -1893,17 +2117,27 @@
                 // Search through users
                 usersSnapshot.forEach((child) => {
                     const user = child.val();
-                    if (user.displayName.toLowerCase().includes(query) || 
-                        user.username.toLowerCase().includes(query)) {
-                        matchedUsers.push({id: child.key, ...user});
+                    if (user && user.setupComplete && child.key !== currentUser.uid) {
+                        const displayName = (user.displayName || '').toLowerCase();
+                        const username = (user.username || '').toLowerCase();
+                        const bio = (user.bio || '').toLowerCase();
+                        
+                        if (displayName.includes(query) || 
+                            username.includes(query) || 
+                            bio.includes(query)) {
+                            matchedUsers.push({id: child.key, ...user});
+                        }
                     }
                 });
                 
                 // Search through buzzes
                 buzzesSnapshot.forEach((child) => {
                     const buzz = child.val();
-                    if (buzz.text && buzz.text.toLowerCase().includes(query)) {
-                        matchedBuzzes.push({id: child.key, ...buzz});
+                    if (buzz && buzz.text) {
+                        const buzzText = buzz.text.toLowerCase();
+                        if (buzzText.includes(query)) {
+                            matchedBuzzes.push({id: child.key, ...buzz});
+                        }
                     }
                 });
                 
@@ -1915,7 +2149,7 @@
                     matchedUsers.forEach(user => {
                         const userAvatar = user.profilePhoto 
                             ? `<img src="${user.profilePhoto}" class="w-full h-full rounded-full object-cover">`
-                            : user.displayName.charAt(0).toUpperCase();
+                            : (user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U');
                         
                         resultsHTML += `
                             <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="viewUserProfile('${user.id}')">
@@ -1923,8 +2157,11 @@
                                     ${userAvatar}
                                 </div>
                                 <div class="flex-1">
-                                    <div class="font-semibold text-gray-900">${user.displayName}</div>
-                                    <div class="text-sm text-gray-500">@${user.username}</div>
+                                    <div class="font-semibold text-gray-900 flex items-center">
+                                        ${user.displayName || 'Unknown User'}
+                                        ${user.verified ? `<div class="verified-badge ml-1 w-4 h-4 flex items-center justify-center"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
+                                    </div>
+                                    <div class="text-sm text-gray-500">@${user.username || 'unknown'}</div>
                                     ${user.bio ? `<div class="text-xs text-gray-400 mt-1">${user.bio}</div>` : ''}
                                 </div>
                             </div>
@@ -1935,7 +2172,7 @@
                 
                 if (matchedBuzzes.length > 0) {
                     resultsHTML += '<div><h3 class="font-semibold text-gray-900 mb-2">Buzzes</h3>';
-                    for (const buzz of matchedBuzzes.slice(0, 5)) {
+                    for (const buzz of matchedBuzzes.slice(0, 10)) {
                         let userData;
                         if (buzz.authorName && buzz.authorUsername) {
                             userData = {
@@ -1945,6 +2182,13 @@
                             };
                         } else {
                             userData = await getUserData(buzz.uid);
+                            if (!userData) {
+                                userData = {
+                                    displayName: 'Unknown User',
+                                    username: 'unknown',
+                                    profilePhoto: null
+                                };
+                            }
                         }
                         
                         const userAvatar = userData.profilePhoto 
@@ -1952,7 +2196,7 @@
                             : userData.displayName.charAt(0).toUpperCase();
                         
                         resultsHTML += `
-                            <div class="p-3 border-b border-gray-100 last:border-b-0">
+                            <div class="p-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50">
                                 <div class="flex space-x-3">
                                     <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white text-sm font-semibold">
                                         ${userAvatar}
@@ -1962,7 +2206,7 @@
                                             <span class="font-semibold text-sm">${userData.displayName}</span>
                                             <span class="text-gray-500 text-xs">@${userData.username}</span>
                                         </div>
-                                        <p class="text-sm text-gray-900">${buzz.text.substring(0, 100)}${buzz.text.length > 100 ? '...' : ''}</p>
+                                        <p class="text-sm text-gray-900">${processTextContent(buzz.text.substring(0, 150))}${buzz.text.length > 150 ? '...' : ''}</p>
                                     </div>
                                 </div>
                             </div>
@@ -1972,7 +2216,7 @@
                 }
                 
                 if (matchedUsers.length === 0 && matchedBuzzes.length === 0) {
-                    resultsHTML = '<div class="text-center text-gray-500 py-8">No results found</div>';
+                    resultsHTML = '<div class="text-center text-gray-500 py-8">No results found for "' + query + '"</div>';
                 }
                 
                 searchResults.innerHTML = resultsHTML;
@@ -1986,9 +2230,16 @@
         // Load notifications
         async function loadNotifications() {
             const notificationsList = document.getElementById('notificationsList');
+            if (!notificationsList) return;
+            
             notificationsList.innerHTML = '<div class="p-4 text-center text-gray-500">Loading notifications...</div>';
             
             try {
+                if (!currentUser || !currentUser.uid) {
+                    notificationsList.innerHTML = '<div class="p-8 text-center text-gray-500">Please log in to view notifications</div>';
+                    return;
+                }
+
                 const snapshot = await database.ref(`notifications/${currentUser.uid}`).orderByChild('timestamp').limitToLast(50).once('value');
                 
                 if (!snapshot.exists()) {
@@ -1998,71 +2249,113 @@
                 
                 const notifications = [];
                 snapshot.forEach((child) => {
-                    notifications.unshift({id: child.key, ...child.val()});
+                    const notificationData = child.val();
+                    if (notificationData && typeof notificationData === 'object') {
+                        notifications.unshift({id: child.key, ...notificationData});
+                    }
                 });
+                
+                if (notifications.length === 0) {
+                    notificationsList.innerHTML = '<div class="p-8 text-center text-gray-500">No notifications yet</div>';
+                    return;
+                }
                 
                 notificationsList.innerHTML = '';
                 
                 for (const notification of notifications) {
-                    const notificationElement = createNotificationElement(notification);
-                    notificationsList.appendChild(notificationElement);
+                    try {
+                        const notificationElement = createNotificationElement(notification);
+                        if (notificationElement) {
+                            notificationsList.appendChild(notificationElement);
+                        }
+                    } catch (elementError) {
+                        console.error('Error creating notification element:', elementError);
+                    }
                 }
                 
-                // Mark notifications as read
-                database.ref(`notifications/${currentUser.uid}`).update(
-                    Object.fromEntries(notifications.map(n => [n.id + '/read', true]))
-                );
+                // Mark notifications as read (with error handling)
+                try {
+                    const updates = {};
+                    notifications.forEach(n => {
+                        if (n.id) {
+                            updates[n.id + '/read'] = true;
+                        }
+                    });
+                    
+                    if (Object.keys(updates).length > 0) {
+                        await database.ref(`notifications/${currentUser.uid}`).update(updates);
+                    }
+                } catch (updateError) {
+                    console.error('Error marking notifications as read:', updateError);
+                }
                 
             } catch (error) {
                 console.error('Error loading notifications:', error);
-                notificationsList.innerHTML = '<div class="p-4 text-center text-red-500">Error loading notifications</div>';
+                notificationsList.innerHTML = '<div class="p-4 text-center text-red-500">Error loading notifications. Please try again.</div>';
             }
         }
         
         function createNotificationElement(notification) {
+            if (!notification || typeof notification !== 'object') {
+                console.error('Invalid notification data:', notification);
+                return null;
+            }
+
             const div = document.createElement('div');
             div.className = `p-4 flex items-center space-x-3 cursor-pointer hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : ''}`;
             
+            // Safe fallbacks for notification data
+            const fromUserName = notification.fromUserName || 'Unknown User';
+            const fromUserId = notification.fromUserId || '';
+            const buzzText = notification.buzzText || 'a post';
+            const commentText = notification.commentText || '';
+            const title = notification.title || '';
+            const message = notification.message || '';
+            
             const userAvatar = notification.fromUserPhoto 
                 ? `<img src="${notification.fromUserPhoto}" class="w-full h-full rounded-full object-cover">`
-                : notification.fromUserName.charAt(0).toUpperCase();
+                : fromUserName.charAt(0).toUpperCase();
             
             let notificationText = '';
             let actionIcon = '';
             
             switch(notification.type) {
                 case 'like':
-                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> liked ${notification.buzzText}`;
+                    notificationText = `<span class="font-semibold">${fromUserName}</span> liked ${buzzText}`;
                     actionIcon = '❤️';
                     break;
                 case 'comment':
-                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> commented on ${notification.buzzText}: "${notification.commentText}"`;
+                    notificationText = `<span class="font-semibold">${fromUserName}</span> commented on ${buzzText}${commentText ? `: "${commentText}"` : ''}`;
                     actionIcon = '💬';
                     break;
                 case 'rebuzz':
-                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> rebuzzed ${notification.buzzText}`;
+                    notificationText = `<span class="font-semibold">${fromUserName}</span> rebuzzed ${buzzText}`;
                     actionIcon = '🔄';
                     break;
                 case 'save':
-                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> saved ${notification.buzzText}`;
+                    notificationText = `<span class="font-semibold">${fromUserName}</span> saved ${buzzText}`;
                     actionIcon = '🔖';
                     break;
                 case 'follow':
-                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> started following you`;
+                    notificationText = `<span class="font-semibold">${fromUserName}</span> started following you`;
                     actionIcon = '👤';
                     break;
                 case 'mention':
-                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> mentioned you in: "${notification.buzzText}"`;
+                    notificationText = `<span class="font-semibold">${fromUserName}</span> mentioned you in: "${buzzText}"`;
                     actionIcon = '📢';
                     break;
                 case 'verification_approved':
-                    notificationText = `<span class="font-semibold text-blue-600">${notification.title}</span><br><span class="text-sm">${notification.message}</span>`;
+                    notificationText = `<span class="font-semibold text-blue-600">${title}</span>${message ? `<br><span class="text-sm">${message}</span>` : ''}`;
                     actionIcon = '✅';
+                    break;
+                default:
+                    notificationText = `<span class="font-semibold">${fromUserName}</span> interacted with your content`;
+                    actionIcon = '🔔';
                     break;
             }
             
             div.innerHTML = `
-                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold cursor-pointer" onclick="viewUserProfile('${notification.fromUserId}')">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold cursor-pointer" ${fromUserId ? `onclick="viewUserProfile('${fromUserId}')"` : ''}>
                     ${userAvatar}
                 </div>
                 <div class="flex-1">
@@ -2073,16 +2366,23 @@
             `;
             
             // Add click handler to view buzz if applicable
-            if (notification.buzzId) {
+            if (notification.buzzId && notification.type !== 'verification_approved' && notification.type !== 'follow') {
                 div.addEventListener('click', () => {
-                    // Navigate to home and scroll to buzz
-                    showPage('home');
-                    document.querySelectorAll('.nav-btn').forEach(b => {
-                        b.classList.remove('active', 'text-pink-600');
-                        b.classList.add('text-gray-600');
-                    });
-                    document.querySelector('[data-page="home"]').classList.add('active', 'text-pink-600');
-                    document.querySelector('[data-page="home"]').classList.remove('text-gray-600');
+                    try {
+                        // Navigate to home and scroll to buzz
+                        showPage('home');
+                        document.querySelectorAll('.nav-btn').forEach(b => {
+                            b.classList.remove('active', 'text-pink-600');
+                            b.classList.add('text-gray-600');
+                        });
+                        const homeBtn = document.querySelector('[data-page="home"]');
+                        if (homeBtn) {
+                            homeBtn.classList.add('active', 'text-pink-600');
+                            homeBtn.classList.remove('text-gray-600');
+                        }
+                    } catch (error) {
+                        console.error('Error navigating from notification:', error);
+                    }
                 });
             }
             
@@ -2587,5 +2887,5 @@
         `;
         document.head.appendChild(style);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9782feb5e6be1b82',t:'MTc1NjcxMTEyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97830b66b7c10c2e',t:'MTc1NjcxMTY0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
