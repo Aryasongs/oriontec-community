@@ -22,6 +22,7 @@ button{padding:8px 12px;border-radius:5px;cursor:pointer;border:none;background:
 #videoFeed video{width:100%;border-radius:10px;margin:10px 0;}
 .comment{margin-left:50px;margin-top:5px;padding:5px;background:#f0f0f0;border-radius:5px;}
 .profile-section img{width:80px;height:80px;border-radius:50%;object-fit:cover;}
+.user-list div{padding:5px;margin:2px 0;background:white;border-radius:5px;cursor:pointer;}
 </style>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
@@ -101,6 +102,7 @@ async function postBuzz(){
   }catch(e){console.error(e);alert("Failed to post Buzz");}
 }
 
+/* ------------------ Feed Rendering ------------------ */
 function renderFeed(){
   const feed=document.getElementById("feed");
   feed.innerHTML="";
@@ -189,10 +191,12 @@ async function uploadVideo(){
   const status=document.getElementById("videoStatus");status.innerText="Uploading...";
   const formData=new FormData();
   formData.append("file",file);formData.append("upload_preset","Pulsevideos");
-  const res=await fetch("https://api.cloudinary.com/v1_1/dzjylmmcj/video/upload",{method:"POST",body:formData});
-  const data=await res.json();
-  await push(ref(db,"videos"),{videoURL:data.secure_url,format:data.format,width:data.width,height:data.height,duration:data.duration,uploadedAt:Date.now()});
-  status.innerText="Upload complete!";renderVideos();
+  try{
+    const res=await fetch("https://api.cloudinary.com/v1_1/dzjylmmcj/video/upload",{method:"POST",body:formData});
+    const data=await res.json();
+    await push(ref(db,"videos"),{videoURL:data.secure_url,format:data.format,width:data.width,height:data.height,duration:data.duration,uploadedAt:Date.now()});
+    status.innerText="Upload complete!";renderVideos();
+  }catch(e){status.innerText="Upload failed!";console.error(e);}
 }
 function renderVideos(){
   const videoFeed=document.getElementById("videoFeed");videoFeed.innerHTML="";
@@ -244,11 +248,42 @@ async function updateDP(){
   await update(ref(db,`users/${currentUser.uid}`),{dp:base64});
 }
 
+/* ------------------ Search Users ------------------ */
+function renderSearch(){
+  const container=document.getElementById("searchUsers");
+  container.innerHTML="";
+  onValue(ref(db,"users"),snap=>{
+    container.innerHTML="";
+    snap.forEach(child=>{
+      const u=child.val();
+      const uid=child.key;
+      const dp=u.dp?`<img src="${u.dp}" class="dp">`:`<div class="dp-letter">${u.name[0]}</div>`;
+      container.innerHTML+=`<div onclick="openProfile('${uid}')">${dp} ${u.name} (@${u.username})${u.verified?" ✔️":""}</div>`;
+    });
+  });
+}
+function openProfile(uid){
+  showSection('profile');
+  const profile=document.getElementById("profileFeed");profile.innerHTML="";
+  const userRef=ref(db,`users/${uid}`);
+  onValue(userRef,snap=>{
+    const u=snap.val();
+    const dp=u.dp?`<img src="${u.dp}">`:`<div class="dp-letter">${u.name[0]}</div>`;
+    profile.innerHTML=`
+      <div class="profile-section">${dp}<h3>${u.name}${u.verified?" ✔️":""}</h3>
+      <p>Username: ${u.username}</p>
+      <p>Bio: ${u.bio||"No bio set"}</p>
+      <p>Followers: ${u.followers} | Following: ${u.following}</p>
+      `;
+  });
+}
+
 /* ------------------ Expose Functions ------------------ */
 window.login=login;window.postBuzz=postBuzz;window.likeBuzz=likeBuzz;window.rebuzz=rebuzz;window.deleteBuzz=deleteBuzz;
 window.showComments=showComments;window.postComment=postComment;window.uploadVideo=uploadVideo;
 window.showSection=showSection;window.renderFeed=renderFeed;window.renderVideos=renderVideos;
 window.renderNotifications=renderNotifications;window.renderProfile=renderProfile;
+window.renderSearch=renderSearch;
 </script>
 </head>
 <body>
@@ -300,7 +335,7 @@ window.renderNotifications=renderNotifications;window.renderProfile=renderProfil
 <section id="search">
 <div class="container">
 <h3>Search Users</h3>
-<p>Search functionality can be added here.</p>
+<div class="user-list" id="searchUsers"></div>
 </div>
 </section>
 
