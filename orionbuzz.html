@@ -3,385 +3,659 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pulse</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Pulse - Social Media Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
-        :root {
-            --primary-color: #add8e6; /* Light Sky Blue */
-            --secondary-color: #ffb6c1; /* Light Pink */
-            --accent-color: #4A90E2; /* A stronger blue for actions */
-            --white-color: #ffffff;
-            --text-color: #333;
-            --light-text-color: #888;
-            --border-color: #e6ecf0;
-            --hover-bg: #f5f8fa;
-            --verified-badge: linear-gradient(45deg, #add8e6, #ffb6c1, #4A90E2);
-            --danger-color: #E0245E;
+        .gradient-bg {
+            background: linear-gradient(45deg, #f8bbd9 0%, #a7c7e7 50%, #87ceeb 100%);
         }
-
-        /* Global Styles */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            background-color: var(--white-color);
-            color: var(--text-color);
-            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-            -webkit-tap-highlight-color: transparent;
+        .pulse-gradient {
+            background: linear-gradient(135deg, #f8bbd9 0%, #87ceeb 100%);
         }
-
-        /* --- Login Page --- */
-        #login-page {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            transition: opacity 0.5s;
-        }
-        .login-box {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 40px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-        .login-box h1 {
-            font-size: 5rem;
-            color: var(--white-color);
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-        #google-signin-btn {
-            margin-top: 20px;
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            background-color: var(--white-color);
-            color: var(--primary-color);
-            border: none;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.2s ease;
-        }
-        #google-signin-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        /* --- Main App Container --- */
-        #app-container { display: none; }
-        .main-container {
-            display: flex;
-            max-width: 1200px;
-            margin: 0 auto;
-            height: 100vh;
-        }
-        .sidebar {
-            width: 275px;
-            padding: 10px;
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar-logo {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--accent-color);
-            padding: 15px;
-        }
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            cursor: pointer;
-            border-radius: 30px;
-            font-size: 1.2rem;
-        }
-        .nav-item:hover { background-color: var(--hover-bg); }
-        .nav-item.active { font-weight: bold; color: var(--accent-color); }
-        .nav-item i { width: 30px; font-size: 1.5rem; }
-
-        .main-content {
-            flex-grow: 1;
-            border-right: 1px solid var(--border-color);
-        }
-        .page { display: none; }
-        .page.active { display: block; }
-        
-        .page-header {
-            position: sticky;
-            top: 0;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-bottom: 1px solid var(--border-color);
-            z-index: 10;
-        }
-
-        .content-scroll-area {
-            height: 100vh;
-            overflow-y: scroll;
-        }
-
-        /* --- Buzz Input --- */
-        .buzz-input-container { padding: 15px; border-bottom: 10px solid var(--hover-bg); display: flex; }
-        .user-dp-small { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
-        .buzz-input-box { margin-left: 10px; width: 100%; }
-        #buzz-input { width: 100%; border: none; resize: none; font-size: 1.2rem; outline: none; padding-top: 10px; }
-        .buzz-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        #buzz-btn {
-            background-color: var(--accent-color);
-            color: var(--white-color);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            opacity: 0.5;
-        }
-        #buzz-btn.active { opacity: 1; }
-
-        /* --- Buzz Post --- */
-        .buzz { padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; cursor: pointer; }
-        .buzz:hover { background-color: var(--hover-bg); }
-        .buzz-content { width: 100%; margin-left: 10px; }
-        .buzz-author-info { display: flex; align-items: center; }
-        .author-name { font-weight: bold; }
-        .author-name:hover { text-decoration: underline; }
-        .author-username { color: var(--light-text-color); margin-left: 5px; }
-        .buzz-text { margin: 5px 0; white-space: pre-wrap; }
-        .buzz-media img { width: 100%; border-radius: 15px; margin-top: 10px; }
-        .buzz-footer { display: flex; justify-content: space-between; margin-top: 10px; color: var(--light-text-color); }
-        .buzz-footer-item { display: flex; align-items: center; cursor: pointer; }
-        .buzz-footer-item:hover, .buzz-footer-item.liked, .buzz-footer-item.rebuzzed { color: var(--danger-color); }
-        .buzz-footer-item span { margin-left: 5px; font-size: 0.9rem; }
-        
-        /* Verified Tick */
-        .verified-tick {
-            display: inline-block;
-            width: 15px;
-            height: 15px;
-            background: var(--verified-badge);
+        .story-ring {
+            background: linear-gradient(45deg, #f8bbd9, #a7c7e7, #87ceeb);
+            padding: 2px;
             border-radius: 50%;
-            margin-left: 5px;
-            vertical-align: middle;
         }
-
-        /* --- Profile Page --- */
-        .profile-header-bg { height: 200px; background: var(--primary-color); }
-        .profile-info { padding: 15px; }
-        .profile-info-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        .profile-img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--white-color); margin-top: -75px; object-fit: cover; }
-        #edit-profile-btn, #follow-btn {
-            border: 1px solid var(--accent-color);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
+        .notification-dot {
+            /* Animation removed for better performance */
         }
-        #follow-btn.following { background-color: var(--accent-color); color: var(--white-color); }
-        .profile-details { margin-top: 10px; }
-        .profile-bio { margin: 10px 0; }
-        .profile-stats { display: flex; gap: 20px; color: var(--light-text-color); }
-        .profile-stats span { font-weight: bold; color: var(--text-color); }
-        .profile-tabs { display: flex; justify-content: space-around; border-bottom: 1px solid var(--border-color); }
-        .profile-tab { padding: 15px; cursor: pointer; font-weight: bold; color: var(--light-text-color); }
-        .profile-tab.active { color: var(--accent-color); border-bottom: 2px solid var(--accent-color); }
         
-        /* --- Modals --- */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none; justify-content: center; align-items: center; z-index: 1000;
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .max-w-md {
+                max-width: 100%;
+            }
+            
+            /* Ensure proper touch targets */
+            button, .cursor-pointer {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            /* Better text sizing on mobile */
+            .text-xs { font-size: 0.75rem; }
+            .text-sm { font-size: 0.875rem; }
+            .text-base { font-size: 1rem; }
+            .text-lg { font-size: 1.125rem; }
+            
+            /* Improved spacing for mobile */
+            .p-4 { padding: 1rem; }
+            .px-4 { padding-left: 1rem; padding-right: 1rem; }
+            .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+            
+            /* Better modal sizing */
+            .max-h-96 { max-height: 70vh; }
+            
+            /* Improved image sizing */
+            .max-h-64 { max-height: 16rem; }
         }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: var(--white-color);
-            padding: 20px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .modal-header h2 { margin: 0; }
-        .close-modal { font-size: 1.5rem; cursor: pointer; }
-
-        .modal-content input, .modal-content textarea, .modal-content select, .modal-content button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            box-sizing: border-box;
-            border-radius: 5px;
-            border: 1px solid var(--border-color);
-        }
-        .modal-content button { background: var(--accent-color); color: var(--white-color); font-weight: bold; cursor: pointer; }
         
-        /* --- Video Page --- */
-        #video-upload-container {
-            padding: 20px;
-            border: 2px dashed var(--border-color);
-            margin: 20px;
-            text-align: center;
-            border-radius: 10px;
+        /* Prevent zoom on input focus (iOS) */
+        input[type="text"], input[type="email"], input[type="password"], textarea {
+            font-size: 16px;
         }
-        #video-feed {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            padding: 20px;
-        }
-        #video-feed video { width: 100%; border-radius: 10px; background: #000; }
         
-        /* Search Page */
-        #search-input-container { padding: 10px; border-bottom: 1px solid var(--border-color); }
-        #search-input { width: 100%; padding: 10px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--hover-bg); }
-        .user-search-result { display: flex; align-items: center; padding: 10px; cursor: pointer; }
-        .user-search-result:hover { background: var(--hover-bg); }
-        .user-search-info { margin-left: 10px; }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .sidebar { display: none; } /* Simplified for this example, would be a bottom nav bar */
-            .main-content { border: none; }
-            .main-container { width: 100%; }
+        /* Disable zoom and text selection */
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        /* Allow text selection in inputs and textareas */
+        input, textarea, [contenteditable] {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        
+        /* Better scrolling */
+        .overflow-y-auto {
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Safe area for devices with notches */
+        @supports (padding: max(0px)) {
+            .sticky.top-0 {
+                padding-top: max(env(safe-area-inset-top), 0px);
+            }
+            
+            .fixed.bottom-0 {
+                padding-bottom: max(env(safe-area-inset-bottom), 0px);
+            }
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="fixed inset-0 gradient-bg flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="text-6xl font-bold text-white mb-4">Pulse</div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+        </div>
+    </div>
 
-    <div id="login-page">
-        <div class="login-box">
-            <h1>Pulse</h1>
-            <button id="google-signin-btn">
-                <i class="fab fa-google"></i> Sign in with Google
+    <!-- Login Screen -->
+    <div id="loginScreen" class="hidden fixed inset-0 gradient-bg flex items-center justify-center">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold gradient-bg bg-clip-text text-transparent">Pulse</h1>
+                <p class="text-gray-600 mt-2">Connect with the world</p>
+            </div>
+            <button id="googleSignIn" class="w-full bg-white border-2 border-gray-300 rounded-full py-3 px-6 flex items-center justify-center hover:bg-gray-50 transition-colors">
+                <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
             </button>
         </div>
     </div>
 
-    <div id="app-container">
-        <div class="main-container">
-            <nav class="sidebar">
-                <div class="sidebar-logo">P</div>
-                <div class="nav-item active" data-page="home"><i class="fas fa-home"></i> Home</div>
-                <div class="nav-item" data-page="search"><i class="fas fa-search"></i> Search</div>
-                <div class="nav-item" data-page="notifications"><i class="fas fa-bell"></i> Notifications</div>
-                <div class="nav-item" data-page="messages"><i class="fas fa-envelope"></i> Messages</div>
-                <div class="nav-item" data-page="videos"><i class="fas fa-video"></i> Videos</div>
-                <div class="nav-item" data-page="profile"><i class="fas fa-user"></i> Profile</div>
-                <div class="nav-item" data-page="settings"><i class="fas fa-cog"></i> Settings</div>
-                <button id="sidebar-buzz-btn" style="margin-top: 20px; width: 100%; padding: 15px; border-radius: 30px; background: var(--accent-color); color: white; border: none; font-size: 1.1rem; font-weight: bold; cursor: pointer;">Buzz</button>
-            </nav>
+    <!-- Setup Screen -->
+    <div id="setupScreen" class="hidden fixed inset-0 bg-white">
+        <div class="max-w-md mx-auto p-6 pt-20">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">Welcome to Pulse!</h2>
+                <p class="text-gray-600 mt-2">Let's set up your profile</p>
+            </div>
+            
+            <div id="setupStep1" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                    <input id="displayName" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Enter your full name">
+                </div>
+                <button id="nameNext" class="w-full gradient-bg text-white py-3 rounded-xl font-semibold">Next</button>
+            </div>
 
-            <main class="main-content">
-                <div class="content-scroll-area">
-                    <div id="home-page" class="page active">
-                        <div class="page-header">Home</div>
-                        <div class="buzz-input-container">
-                            <img id="currentUserDpSmall" class="user-dp-small">
-                            <div class="buzz-input-box">
-                                <textarea id="buzz-input" placeholder="What's happening?" rows="3"></textarea>
-                                <div class="buzz-actions">
-                                    <input type="file" id="buzz-image-input" accept="image/*" style="display: none;">
-                                    <i class="fas fa-image" style="color: var(--accent-color); cursor: pointer;" onclick="document.getElementById('buzz-image-input').click()"></i>
-                                    <button id="buzz-btn">Buzz</button>
-                                </div>
+            <div id="setupStep2" class="hidden space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Choose Username</label>
+                    <input id="username" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="username123" pattern="[a-z0-9]+" title="Only lowercase letters and numbers">
+                    <p class="text-xs text-gray-500 mt-1">Only lowercase letters and numbers</p>
+                </div>
+                <button id="usernameNext" class="w-full gradient-bg text-white py-3 rounded-xl font-semibold">Next</button>
+            </div>
+
+            <div id="setupStep3" class="hidden space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                    <input id="dateOfBirth" type="date" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bio (Optional)</label>
+                    <textarea id="userBio" placeholder="Tell us about yourself..." class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none" rows="3" maxlength="150"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">150 characters max</p>
+                </div>
+                <button id="dobNext" class="w-full gradient-bg text-white py-3 rounded-xl font-semibold">Next</button>
+            </div>
+
+            <div id="setupStep4" class="hidden space-y-6">
+                <div class="text-center">
+                    <div class="relative inline-block">
+                        <div id="profilePreview" class="w-24 h-24 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4"></div>
+                        <button id="changePhoto" class="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <input id="photoInput" type="file" accept="image/*" class="hidden">
+                    <p class="text-sm text-gray-600 mb-4">Add a profile photo</p>
+                </div>
+                <div class="space-y-3">
+                    <button id="finishSetup" class="w-full gradient-bg text-white py-3 rounded-xl font-semibold">Finish Setup</button>
+                    <button id="skipPhoto" class="w-full border border-gray-300 text-gray-700 py-3 rounded-xl font-semibold">Skip for now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <!-- Top Navigation -->
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+            <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+                <h1 class="text-2xl font-bold gradient-bg bg-clip-text text-transparent">Pulse</h1>
+                <div class="flex items-center space-x-4">
+                    <button id="notificationBtn" class="relative p-2">
+                        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19.5A2.5 2.5 0 016.5 17H20"></path>
+                        </svg>
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full notification-dot"></div>
+                    </button>
+                    <button id="messageBtn" class="relative p-2">
+                        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full notification-dot"></div>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Stories Section -->
+        <div class="bg-white border-b border-gray-200 py-4">
+            <div class="max-w-md mx-auto px-4">
+                <div class="flex space-x-4 overflow-x-auto">
+                    <div class="flex-shrink-0 text-center">
+                        <div class="story-ring rounded-full">
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
                             </div>
                         </div>
-                        <div id="feed-container"></div>
+                        <p class="text-xs mt-1">Your story</p>
                     </div>
-                    <div id="search-page" class="page">
-                        <div class="page-header">Search</div>
-                        <div id="search-input-container">
-                            <input type="text" id="search-input" placeholder="Search Pulse">
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Buzz -->
+        <div class="bg-white border-b border-gray-200 p-4">
+            <div class="max-w-md mx-auto">
+                <div class="flex space-x-3">
+                    <div id="userAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0"></div>
+                    <div class="flex-1">
+                        <textarea id="buzzText" placeholder="What's buzzing?" class="w-full resize-none border-none outline-none text-lg placeholder-gray-500" rows="3"></textarea>
+                        <div class="flex items-center justify-between mt-3">
+                            <div class="flex space-x-4">
+                                <button id="addImage" class="text-blue-500 hover:bg-blue-50 p-2 rounded-full">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </button>
+                                <input id="buzzImageInput" type="file" accept="image/*" class="hidden">
+                            </div>
+                            <button id="postBuzz" class="gradient-bg text-white px-6 py-2 rounded-full font-semibold disabled:opacity-50" disabled>Buzz</button>
                         </div>
-                        <div id="search-results"></div>
-                    </div>
-                    <div id="notifications-page" class="page">
-                        <div class="page-header">Notifications</div>
-                        <div id="notifications-container"></div>
-                    </div>
-                    <div id="messages-page" class="page">
-                        <div class="page-header">Messages</div>
-                    </div>
-                    <div id="videos-page" class="page">
-                        <div class="page-header">Videos</div>
-                         <div id="video-upload-container">
-                            <h3>Share a Video</h3>
-                            <input type="file" id="video-file-input" accept="video/*">
-                            <button id="video-upload-btn">Upload Video</button>
-                            <p id="video-upload-status"></p>
-                        </div>
-                        <div id="video-feed"></div>
-                    </div>
-                    <div id="profile-page" class="page"></div>
-                    <div id="settings-page" class="page">
-                        <div class="page-header">Settings</div>
-                        <div style="padding: 20px;">
-                            <button id="edit-profile-modal-btn">Edit Profile</button>
-                            <button id="verification-modal-btn">Request Verification</button>
-                            <button id="logout-btn" style="background-color: var(--danger-color); color: white;">Logout</button>
+                        <div id="imagePreview" class="hidden mt-3 relative">
+                            <img id="previewImg" class="w-full rounded-lg max-h-64 object-cover">
+                            <button id="removeImage" class="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full p-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
-    </div>
-    
-    <div id="onboarding-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Welcome to Pulse!</h2></div>
-            <p>Let's get your profile set up.</p>
-            <input type="text" id="onboarding-name" placeholder="Full Name">
-            <input type="text" id="onboarding-username" placeholder="Username (letters & numbers only)">
-            <input type="date" id="onboarding-dob" placeholder="Date of Birth">
-            <label>Profile Picture (Optional)</label>
-            <input type="file" id="onboarding-dp" accept="image/*">
-            <button id="onboarding-submit">Complete Setup</button>
+
+        <!-- Feed -->
+        <div id="feed" class="max-w-md mx-auto">
+            <!-- Buzzes will be dynamically added here -->
         </div>
+
+        <!-- Search Page -->
+        <div id="searchPage" class="hidden bg-white min-h-screen">
+            <div class="max-w-md mx-auto">
+                <div class="p-4 border-b border-gray-200">
+                    <div class="relative">
+                        <input id="searchInput" type="text" placeholder="Search users, buzzes..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                        <svg class="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div id="searchResults" class="p-4">
+                    <div class="text-center text-gray-500 py-8">
+                        Search for users and buzzes
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Page -->
+        <div id="notificationsPage" class="hidden bg-white min-h-screen">
+            <div class="max-w-md mx-auto">
+                <div class="border-b border-gray-200 p-4">
+                    <h2 class="text-xl font-bold text-gray-900">Notifications</h2>
+                </div>
+                <div id="notificationsList" class="divide-y divide-gray-200">
+                    <!-- Notifications will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profilePage" class="hidden">
+            <div class="bg-white">
+                <!-- Profile Header -->
+                <div class="relative">
+                    <div class="h-32 gradient-bg"></div>
+                    <div class="absolute -bottom-16 left-4">
+                        <div id="profilePageAvatar" class="w-32 h-32 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white text-4xl font-bold border-4 border-white"></div>
+                    </div>
+                </div>
+                <div class="pt-20 px-4 pb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h2 id="profileName" class="text-2xl font-bold text-gray-900 flex items-center"></h2>
+                            <p id="profileUsername" class="text-gray-600"></p>
+                            <p id="profileBio" class="text-gray-700 mt-2 text-sm"></p>
+                        </div>
+                        <button id="editProfileBtn" class="border border-gray-300 px-4 py-2 rounded-full text-sm font-semibold">Edit Profile</button>
+                    </div>
+                    <div class="flex space-x-6 mt-4">
+                        <div class="text-center">
+                            <div id="followingCount" class="font-bold text-lg">0</div>
+                            <div class="text-gray-600 text-sm">Following</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="followersCount" class="font-bold text-lg">0</div>
+                            <div class="text-gray-600 text-sm">Followers</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile Tabs -->
+                <div class="border-b border-gray-200">
+                    <div class="flex">
+                        <button class="profile-tab active flex-1 py-3 text-center font-semibold border-b-2 border-pink-500 text-pink-600" data-tab="buzzes">Buzzes</button>
+                        <button class="profile-tab flex-1 py-3 text-center font-semibold text-gray-600" data-tab="rebuzzes">Rebuzzes</button>
+                        <button class="profile-tab flex-1 py-3 text-center font-semibold text-gray-600" data-tab="media">Media</button>
+                        <button class="profile-tab flex-1 py-3 text-center font-semibold text-gray-600" data-tab="likes">Likes</button>
+                    </div>
+                </div>
+                
+                <!-- Profile Content -->
+                <div id="profileContent" class="pb-20">
+                    <!-- Content will be loaded here based on selected tab -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settingsPage" class="hidden bg-white min-h-screen">
+            <div class="max-w-md mx-auto">
+                <!-- Settings Header -->
+                <div class="border-b border-gray-200 p-4">
+                    <h2 class="text-xl font-bold text-gray-900">Settings</h2>
+                </div>
+                
+                <!-- Settings Options -->
+                <div class="divide-y divide-gray-200">
+                    <!-- Account Settings -->
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Account</h3>
+                        <div class="space-y-3">
+                            <button class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    <span class="text-gray-900">Add Account</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                            <button id="privateAccountBtn" class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                    </svg>
+                                    <span class="text-gray-900">Private Account</span>
+                                </div>
+                                <div id="privateToggle" class="w-12 h-6 bg-gray-300 rounded-full relative cursor-pointer">
+                                    <div class="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Settings -->
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Privacy</h3>
+                        <div class="space-y-3">
+                            <button class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                    </svg>
+                                    <span class="text-gray-900">Privacy Settings</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                            <button id="blockedUsersBtn" class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                                    </svg>
+                                    <span class="text-gray-900">Blocked Users</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Other Settings -->
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Other</h3>
+                        <div class="space-y-3">
+                            <button class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-gray-900">Help & Support</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                            <button class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                    <span class="text-gray-900">About</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                            <button id="logoutBtn" class="w-full flex items-center justify-between p-3 hover:bg-red-50 rounded-lg text-red-600">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                    </svg>
+                                    <span>Logout</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+            <div class="max-w-md mx-auto px-4 py-2">
+                <div class="flex justify-around">
+                    <button class="nav-btn active p-3" data-page="home">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                        </svg>
+                    </button>
+                    <button class="nav-btn p-3" data-page="search">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </button>
+                    <button class="nav-btn p-3" data-page="notifications">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                        </svg>
+                    </button>
+                    <button class="nav-btn p-3" data-page="profile">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </button>
+                    <button class="nav-btn p-3" data-page="settings">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
     </div>
-    
-    <div id="edit-profile-modal" class="modal">
-        <div class="modal-content">
-             <div class="modal-header"><h2>Edit Profile</h2> <i class="fas fa-times close-modal"></i></div>
-             <input type="file" id="edit-dp-input" accept="image/*">
-             <input type="text" id="edit-name-input" placeholder="Name">
-             <textarea id="edit-bio-input" placeholder="Bio"></textarea>
-             <button id="save-profile-btn">Save</button>
+
+    <!-- Messages Page -->
+    <div id="messagesPage" class="hidden bg-white min-h-screen">
+        <div class="max-w-md mx-auto">
+            <div class="border-b border-gray-200 p-4">
+                <h2 class="text-xl font-bold text-gray-900">Messages</h2>
+            </div>
+            <div id="messagesList" class="divide-y divide-gray-200">
+                <div class="p-8 text-center text-gray-500">
+                    No messages yet
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="verification-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Request Verification</h2><i class="fas fa-times close-modal"></i></div>
-            <input type="text" id="verification-name" placeholder="* Full Name (as on National ID)">
-            <textarea id="verification-q1" placeholder="* Why should you be verified?"></textarea>
-            <input type="text" id="verification-q2" placeholder="Known as (optional)">
-            <select id="verification-country"></select>
-            <select id="verification-document-type"></select>
-            <label>* Upload Document Image</label>
-            <input type="file" id="verification-document-upload" accept="image/*">
-            <input type="text" class="verification-link" placeholder="Profile/News Link 1 (optional)">
-            <input type="text" class="verification-link" placeholder="Profile/News Link 2 (optional)">
-            <input type="text" class="verification-link" placeholder="Profile/News Link 3 (optional)">
-            <button id="verification-submit">Submit Request</button>
+    <!-- Hashtag Page -->
+    <div id="hashtagPage" class="hidden bg-white min-h-screen">
+        <div class="max-w-md mx-auto">
+            <div class="border-b border-gray-200 p-4 flex items-center space-x-4">
+                <button onclick="closeHashtagPage()" class="p-2 hover:bg-gray-100 rounded-full">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <div>
+                    <h2 id="hashtagTitle" class="text-xl font-bold text-gray-900">#hashtag</h2>
+                    <p id="hashtagStats" class="text-sm text-gray-500">0 posts • 0 users</p>
+                </div>
+            </div>
+            <div id="hashtagContent" class="divide-y divide-gray-200">
+                <div class="p-8 text-center text-gray-500">Loading...</div>
+            </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <!-- Verification Request Modal -->
+    <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Request Verification</h3>
+                <button id="closeVerification" class="text-gray-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name (as on National ID)</label>
+                    <input id="verifyFullName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your full legal name">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Why do you think you deserve verification?</label>
+                    <textarea id="verifyReason" placeholder="Explain why you should be verified..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="3" maxlength="500"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">500 characters max</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Other Name (Optional)</label>
+                    <input id="verifyOtherName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Stage name, pen name, etc.">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <select id="verifyCountry" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select Country</option>
+                        <option value="US">United States</option>
+                        <option value="IN">India</option>
+                        <option value="UK">United Kingdom</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="DE">Germany</option>
+                        <option value="FR">France</option>
+                        <option value="JP">Japan</option>
+                        <option value="BR">Brazil</option>
+                        <option value="MX">Mexico</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div id="documentTypeDiv" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
+                    <select id="verifyDocType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select Document Type</option>
+                    </select>
+                </div>
+                
+                <div id="documentUploadDiv" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Upload Document</label>
+                    <input id="verifyDocUpload" type="file" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <p class="text-xs text-gray-500 mt-1">Upload clear image of your document</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Social Media Links (Optional)</label>
+                    <div class="space-y-2">
+                        <input id="verifyLink1" type="url" placeholder="Instagram/Facebook/YouTube verified profile" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input id="verifyLink2" type="url" placeholder="News article or media mention" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input id="verifyLink3" type="url" placeholder="Additional link" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input id="verifyLink4" type="url" placeholder="Additional link" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input id="verifyLink5" type="url" placeholder="Additional link" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button id="cancelVerification" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-semibold">Cancel</button>
+                    <button id="submitVerification" class="flex-1 gradient-bg text-white py-2 rounded-lg font-semibold">Submit Request</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Edit Profile</h3>
+                <button id="closeEditProfile" class="text-gray-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="text-center">
+                    <div id="editProfilePreview" class="w-20 h-20 rounded-full bg-gradient-to-r from-pink-300 to-blue-300 flex items-center justify-center text-white text-xl font-bold mx-auto mb-3"></div>
+                    <button id="changeProfilePhoto" class="text-blue-500 text-sm">Change Photo</button>
+                    <input id="editPhotoInput" type="file" accept="image/*" class="hidden">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
+                    <input id="editDisplayName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                    <textarea id="editBio" placeholder="Tell us about yourself..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none" rows="3" maxlength="150"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">150 characters max</p>
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button id="cancelEdit" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-semibold">Cancel</button>
+                    <button id="saveProfile" class="flex-1 gradient-bg text-white py-2 rounded-lg font-semibold">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="commentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
+        <div class="bg-white w-full max-h-96 rounded-t-3xl p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Comments</h3>
+                <button id="closeComments" class="text-gray-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="commentsList" class="space-y-3 max-h-64 overflow-y-auto mb-4">
+                <!-- Comments will be added here -->
+            </div>
+            <div class="flex space-x-2">
+                <input id="commentInput" type="text" placeholder="Add a comment..." class="flex-1 border border-gray-300 rounded-full px-4 py-2">
+                <button id="postComment" class="gradient-bg text-white px-4 py-2 rounded-full">Post</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- INITIALIZATION ---
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC30TcmMVhP_8HdFYS1WufRiZwSDYNMTF0",
             authDomain: "pulse2-92372.firebaseapp.com",
@@ -391,491 +665,1748 @@
             messagingSenderId: "276235725177",
             appId: "1:276235725177:web:0f4e0789fae80a435927a8"
         };
+
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.database();
-        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        const database = firebase.database();
 
-        const CLOUDINARY_CLOUD_NAME = 'dzjylmmcj';
-        const CLOUDINARY_UPLOAD_PRESET = 'Pulsevideos';
-
-        // Global State
+        // Global variables
         let currentUser = null;
+        let currentBuzzId = null;
+        let selectedImage = null;
 
         // DOM Elements
-        const loginPage = document.getElementById('login-page');
-        const appContainer = document.getElementById('app-container');
-        const googleSignInBtn = document.getElementById('google-signin-btn');
-        const buzzInput = document.getElementById('buzz-input');
-        const buzzBtn = document.getElementById('buzz-btn');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loginScreen = document.getElementById('loginScreen');
+        const setupScreen = document.getElementById('setupScreen');
+        const mainApp = document.getElementById('mainApp');
 
-        // --- AUTHENTICATION ---
-        auth.onAuthStateChanged(user => {
+        // Initialize app
+        setTimeout(() => {
+            loadingScreen.classList.add('hidden');
+            checkAuthState();
+        }, 2000);
+
+        // Auth state observer
+        auth.onAuthStateChanged((user) => {
             if (user) {
-                db.ref('users/' + user.uid).on('value', snapshot => {
-                    if (snapshot.exists()) {
-                        currentUser = { uid: user.uid, ...snapshot.val() };
-                        initializeApp();
-                    } else {
-                        document.getElementById('onboarding-modal').classList.add('active');
-                        document.getElementById('onboarding-name').value = user.displayName;
-                    }
-                });
+                currentUser = user;
+                checkUserProfile();
             } else {
-                currentUser = null;
-                loginPage.style.display = 'flex';
-                appContainer.style.display = 'none';
+                showLoginScreen();
             }
         });
 
-        googleSignInBtn.onclick = () => auth.signInWithPopup(googleProvider);
-        document.getElementById('logout-btn').onclick = () => auth.signOut();
-
-        // --- ONBOARDING ---
-        document.getElementById('onboarding-submit').onclick = async () => {
-            const name = document.getElementById('onboarding-name').value.trim();
-            const username = document.getElementById('onboarding-username').value.trim().toLowerCase();
-            const dob = document.getElementById('onboarding-dob').value;
-            const dpFile = document.getElementById('onboarding-dp').files[0];
-
-            if (!name || !username || !/^[a-z0-9]+$/.test(username)) {
-                alert('Please enter a valid name and username (letters and numbers only).');
-                return;
+        function checkAuthState() {
+            const user = auth.currentUser;
+            if (user) {
+                checkUserProfile();
+            } else {
+                showLoginScreen();
             }
-
-            const usernameSnapshot = await db.ref('users').orderByChild('username').equalTo(username).once('value');
-            if (usernameSnapshot.exists()) {
-                alert('Username is already taken.');
-                return;
-            }
-
-            let dpData = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`;
-            if (dpFile) dpData = await toBase64(dpFile);
-
-            let isVerified = false;
-            if (auth.currentUser.email === 'customerserviceffrj4@gmail.com') isVerified = true;
-
-            const userData = { name, username, dob, dp: dpData, bio: "", followers: {}, following: {}, verified: isVerified, joined: firebase.database.ServerValue.TIMESTAMP };
-            await db.ref('users/' + auth.currentUser.uid).set(userData);
-            
-            if(isVerified) sendNotification(auth.currentUser.uid, 'verified');
-
-            document.getElementById('onboarding-modal').classList.remove('active');
-        };
-
-        // --- APP INITIALIZATION ---
-        function initializeApp() {
-            loginPage.style.display = 'none';
-            appContainer.style.display = 'block';
-            document.getElementById('currentUserDpSmall').src = currentUser.dp;
-            loadFeed();
-            loadVideos();
-            setupEventListeners();
-            showPage('home'); // Default page
         }
 
-        // --- UI & NAVIGATION ---
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId + '-page').classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
-
-            if (pageId === 'profile') loadProfilePage(currentUser.uid);
-            if (pageId === 'search') document.getElementById('search-input').focus();
+        function showLoginScreen() {
+            loginScreen.classList.remove('hidden');
+            setupScreen.classList.add('hidden');
+            mainApp.classList.add('hidden');
         }
 
-        function setupEventListeners() {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.onclick = () => showPage(item.dataset.page);
-            });
-
-            buzzInput.oninput = () => {
-                buzzBtn.classList.toggle('active', buzzInput.value.trim().length > 0);
-            };
-
-            buzzBtn.onclick = postBuzz;
-            document.getElementById('sidebar-buzz-btn').onclick = () => {
-                showPage('home');
-                buzzInput.focus();
-            };
-
-            document.getElementById('search-input').onkeyup = handleSearch;
-            
-            // Modals
-            document.getElementById('edit-profile-modal-btn').onclick = () => openEditProfileModal();
-            document.getElementById('verification-modal-btn').onclick = () => openVerificationModal();
-            document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = () => btn.closest('.modal').classList.remove('active'));
-        }
-
-        // --- FEED (BUZZES) ---
-        async function postBuzz() {
-            const text = buzzInput.value.trim();
-            const imageFile = document.getElementById('buzz-image-input').files[0];
-            if (!text && !imageFile) return;
-
-            let imageData = null;
-            if (imageFile) imageData = await toBase64(imageFile);
-
-            const buzzData = {
-                authorUid: currentUser.uid,
-                text: text,
-                image: imageData,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                likes: {},
-                rebuzzes: {},
-                comments: {}
-            };
-
-            await db.ref('buzzes').push(buzzData);
-            buzzInput.value = '';
-            document.getElementById('buzz-image-input').value = '';
-            buzzBtn.classList.remove('active');
-        }
-
-        function loadFeed() {
-            db.ref('buzzes').orderByChild('timestamp').on('value', snapshot => {
-                const container = document.getElementById('feed-container');
-                container.innerHTML = '';
-                snapshot.forEach(child => {
-                    const buzzId = child.key;
-                    const buzzData = child.val();
-                    db.ref('users/' + buzzData.authorUid).once('value', userSnapshot => {
-                        const authorData = userSnapshot.val();
-                        if(authorData) {
-                            const buzzElement = createBuzzElement(buzzId, buzzData, authorData);
-                            container.prepend(buzzElement);
-                        }
-                    });
-                });
-            });
-        }
-        
-        function createBuzzElement(buzzId, buzzData, authorData) {
-            const el = document.createElement('div');
-            el.className = 'buzz';
-            el.dataset.buzzId = buzzId;
-
-            const likesCount = Object.keys(buzzData.likes || {}).length;
-            const isLiked = currentUser && buzzData.likes && buzzData.likes[currentUser.uid];
-
-            el.innerHTML = `
-                <img src="${authorData.dp}" class="user-dp-small" onclick="event.stopPropagation(); loadProfilePage('${buzzData.authorUid}')">
-                <div class="buzz-content">
-                    <div class="buzz-author-info">
-                        <span class="author-name" onclick="event.stopPropagation(); loadProfilePage('${buzzData.authorUid}')">${authorData.name}</span>
-                        ${authorData.verified ? '<span class="verified-tick"></span>' : ''}
-                        <span class="author-username">@${authorData.username} · ${timeAgo(buzzData.timestamp)}</span>
-                    </div>
-                    ${buzzData.text ? `<p class="buzz-text">${buzzData.text}</p>` : ''}
-                    ${buzzData.image ? `<div class="buzz-media"><img src="${buzzData.image}"></div>` : ''}
-                    <div class="buzz-footer">
-                        <div class="buzz-footer-item comment-btn"><i class="far fa-comment"></i> <span>0</span></div>
-                        <div class="buzz-footer-item rebuzz-btn"><i class="fas fa-retweet"></i> <span>0</span></div>
-                        <div class="buzz-footer-item like-btn ${isLiked ? 'liked' : ''}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i> <span>${likesCount}</span></div>
-                        <div class="buzz-footer-item save-btn"><i class="far fa-bookmark"></i></div>
-                    </div>
-                </div>
-            `;
-            
-            // Like functionality
-            const likeBtn = el.querySelector('.like-btn');
-            likeBtn.onclick = (e) => {
-                e.stopPropagation();
-                toggleLike(buzzId);
-            };
-
-            return el;
-        }
-        
-        function toggleLike(buzzId) {
-            const buzzRef = db.ref(`buzzes/${buzzId}`);
-            buzzRef.transaction(buzz => {
-                if (buzz) {
-                    if (buzz.likes && buzz.likes[currentUser.uid]) {
-                        buzz.likes[currentUser.uid] = null; // Unlike
+        function checkUserProfile() {
+            database.ref(`users/${currentUser.uid}`).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.setupComplete) {
+                        showMainApp(userData);
                     } else {
-                        if (!buzz.likes) buzz.likes = {};
-                        buzz.likes[currentUser.uid] = true; // Like
-                        if(buzz.authorUid !== currentUser.uid) {
-                           sendNotification(buzz.authorUid, 'like', currentUser.uid, buzzId);
+                        showSetupScreen();
+                    }
+                } else {
+                    showSetupScreen();
+                }
+            });
+        }
+
+        function showSetupScreen() {
+            loginScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
+            mainApp.classList.add('hidden');
+        }
+
+        function showMainApp(userData) {
+            loginScreen.classList.add('hidden');
+            setupScreen.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            
+            // Set user avatar
+            const userAvatar = document.getElementById('userAvatar');
+            if (userData.profilePhoto) {
+                userAvatar.innerHTML = `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`;
+            } else {
+                userAvatar.textContent = userData.displayName.charAt(0).toUpperCase();
+            }
+            
+            loadFeed();
+        }
+
+        // Google Sign In
+        document.getElementById('googleSignIn').addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch((error) => {
+                console.error('Sign in error:', error);
+            });
+        });
+
+        // Setup Steps
+        document.getElementById('nameNext').addEventListener('click', () => {
+            const name = document.getElementById('displayName').value.trim();
+            if (name) {
+                document.getElementById('setupStep1').classList.add('hidden');
+                document.getElementById('setupStep2').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('usernameNext').addEventListener('click', async () => {
+            const username = document.getElementById('username').value.trim().toLowerCase();
+            if (username && /^[a-z0-9]+$/.test(username)) {
+                // Check if username exists
+                const snapshot = await database.ref('usernames').child(username).once('value');
+                if (!snapshot.exists()) {
+                    document.getElementById('setupStep2').classList.add('hidden');
+                    document.getElementById('setupStep3').classList.remove('hidden');
+                } else {
+                    alert('Username already taken. Please choose another.');
+                }
+            } else {
+                alert('Username can only contain lowercase letters and numbers.');
+            }
+        });
+
+        document.getElementById('dobNext').addEventListener('click', () => {
+            const dob = document.getElementById('dateOfBirth').value;
+            if (dob) {
+                const name = document.getElementById('displayName').value;
+                document.getElementById('profilePreview').textContent = name.charAt(0).toUpperCase();
+                document.getElementById('setupStep3').classList.add('hidden');
+                document.getElementById('setupStep4').classList.remove('hidden');
+            }
+        });
+
+        // Profile photo handling
+        document.getElementById('changePhoto').addEventListener('click', () => {
+            document.getElementById('photoInput').click();
+        });
+
+        document.getElementById('photoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedImage = e.target.result;
+                    document.getElementById('profilePreview').innerHTML = `<img src="${selectedImage}" class="w-full h-full rounded-full object-cover">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Finish setup
+        document.getElementById('finishSetup').addEventListener('click', finishUserSetup);
+        document.getElementById('skipPhoto').addEventListener('click', finishUserSetup);
+
+        async function finishUserSetup() {
+            const displayName = document.getElementById('displayName').value;
+            const username = document.getElementById('username').value.toLowerCase();
+            const dateOfBirth = document.getElementById('dateOfBirth').value;
+            const bio = document.getElementById('userBio').value.trim();
+
+            const userData = {
+                uid: currentUser.uid,
+                displayName,
+                username,
+                dateOfBirth,
+                bio: bio || '',
+                profilePhoto: selectedImage || null,
+                setupComplete: true,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                followers: 0,
+                following: 0
+            };
+
+            try {
+                // Save user data
+                await database.ref(`users/${currentUser.uid}`).set(userData);
+                // Reserve username
+                await database.ref(`usernames/${username}`).set(currentUser.uid);
+                
+                showMainApp(userData);
+            } catch (error) {
+                console.error('Setup error:', error);
+            }
+        }
+
+        // Buzz creation
+        document.getElementById('buzzText').addEventListener('input', (e) => {
+            const postBtn = document.getElementById('postBuzz');
+            postBtn.disabled = e.target.value.trim().length === 0 && !selectedImage;
+        });
+
+        // Process hashtags and mentions in text
+        function processTextContent(text) {
+            if (!text) return '';
+            
+            // Process hashtags
+            text = text.replace(/#(\w+)/g, '<span class="hashtag" onclick="openHashtag(\'$1\')">#$1</span>');
+            
+            // Process mentions
+            text = text.replace(/@(\w+)/g, '<span class="mention" onclick="openMention(\'$1\')">@$1</span>');
+            
+            return text;
+        }
+
+        // Extract hashtags from text
+        function extractHashtags(text) {
+            const hashtags = [];
+            const matches = text.match(/#(\w+)/g);
+            if (matches) {
+                matches.forEach(match => {
+                    const tag = match.substring(1).toLowerCase();
+                    if (!hashtags.includes(tag)) {
+                        hashtags.push(tag);
+                    }
+                });
+            }
+            return hashtags;
+        }
+
+        // Extract mentions from text
+        function extractMentions(text) {
+            const mentions = [];
+            const matches = text.match(/@(\w+)/g);
+            if (matches) {
+                matches.forEach(match => {
+                    const username = match.substring(1).toLowerCase();
+                    if (!mentions.includes(username)) {
+                        mentions.push(username);
+                    }
+                });
+            }
+            return mentions;
+        }
+
+        document.getElementById('addImage').addEventListener('click', () => {
+            document.getElementById('buzzImageInput').click();
+        });
+
+        document.getElementById('buzzImageInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedImage = e.target.result;
+                    document.getElementById('previewImg').src = selectedImage;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                    document.getElementById('postBuzz').disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('removeImage').addEventListener('click', () => {
+            selectedImage = null;
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('buzzImageInput').value = '';
+            const postBtn = document.getElementById('postBuzz');
+            postBtn.disabled = document.getElementById('buzzText').value.trim().length === 0;
+        });
+
+        document.getElementById('postBuzz').addEventListener('click', async () => {
+            const text = document.getElementById('buzzText').value.trim();
+            if (text || selectedImage) {
+                // Get current user data
+                const userSnapshot = await database.ref(`users/${currentUser.uid}`).once('value');
+                const userData = userSnapshot.val();
+                
+                // Extract hashtags and mentions
+                const hashtags = extractHashtags(text);
+                const mentions = extractMentions(text);
+                
+                const buzzData = {
+                    uid: currentUser.uid,
+                    authorName: userData.displayName,
+                    authorUsername: userData.username,
+                    authorImage: userData.profilePhoto || null,
+                    text: text || '',
+                    image: selectedImage || null,
+                    hashtags: hashtags,
+                    mentions: mentions,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    likes: 0,
+                    rebuzzes: 0,
+                    comments: 0,
+                    saves: 0
+                };
+
+                try {
+                    const buzzRef = await database.ref('buzzes').push(buzzData);
+                    const buzzId = buzzRef.key;
+                    
+                    // Store hashtags for trending
+                    for (const hashtag of hashtags) {
+                        await database.ref(`hashtags/${hashtag}/posts/${buzzId}`).set(true);
+                        await database.ref(`hashtags/${hashtag}/count`).transaction((count) => (count || 0) + 1);
+                        await database.ref(`hashtags/${hashtag}/users/${currentUser.uid}`).set(true);
+                    }
+                    
+                    // Send notifications to mentioned users
+                    for (const mentionedUsername of mentions) {
+                        const userSnapshot = await database.ref('usernames').child(mentionedUsername).once('value');
+                        if (userSnapshot.exists()) {
+                            const mentionedUserId = userSnapshot.val();
+                            if (mentionedUserId !== currentUser.uid) {
+                                const notificationData = {
+                                    type: 'mention',
+                                    fromUserId: currentUser.uid,
+                                    fromUserName: userData.displayName,
+                                    fromUserUsername: userData.username,
+                                    fromUserPhoto: userData.profilePhoto,
+                                    buzzId: buzzId,
+                                    buzzText: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+                                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                                    read: false
+                                };
+                                
+                                await database.ref(`notifications/${mentionedUserId}`).push(notificationData);
+                            }
                         }
                     }
+                    
+                    document.getElementById('buzzText').value = '';
+                    selectedImage = null;
+                    document.getElementById('imagePreview').classList.add('hidden');
+                    document.getElementById('buzzImageInput').value = '';
+                    document.getElementById('postBuzz').disabled = true;
+                    loadFeed();
+                } catch (error) {
+                    console.error('Failed to post buzz:', error);
+                    alert('Failed to post buzz. Please try again.');
                 }
-                return buzz;
+            }
+        });
+
+        // Load feed
+        function loadFeed() {
+            database.ref('buzzes').orderByChild('timestamp').limitToLast(20).on('value', (snapshot) => {
+                const buzzes = [];
+                snapshot.forEach((child) => {
+                    buzzes.unshift({id: child.key, ...child.val()});
+                });
+                renderFeed(buzzes);
             });
         }
 
+        async function renderFeed(buzzes) {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = '';
 
-        // --- PROFILE PAGE ---
-        async function loadProfilePage(userId) {
-            showPage('profile');
-            const pageContainer = document.getElementById('profile-page');
-            const userSnapshot = await db.ref(`users/${userId}`).once('value');
-            const userData = userSnapshot.val();
+            for (const buzz of buzzes) {
+                // Use stored author data if available, otherwise fetch from users
+                let userData;
+                if (buzz.authorName && buzz.authorUsername) {
+                    userData = {
+                        displayName: buzz.authorName,
+                        username: buzz.authorUsername,
+                        profilePhoto: buzz.authorImage
+                    };
+                } else {
+                    userData = await getUserData(buzz.uid);
+                }
+                const buzzElement = createBuzzElement(buzz, userData);
+                feed.appendChild(buzzElement);
+            }
+        }
+
+        async function getUserData(uid) {
+            const snapshot = await database.ref(`users/${uid}`).once('value');
+            return snapshot.val();
+        }
+
+        function createBuzzElement(buzz, userData) {
+            const div = document.createElement('div');
+            div.className = 'bg-white border-b border-gray-200 p-4';
             
-            const followersCount = Object.keys(userData.followers || {}).length;
-            const followingCount = Object.keys(userData.following || {}).length;
-            const isFollowing = currentUser.following && currentUser.following[userId];
+            const userAvatar = userData.profilePhoto 
+                ? `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                : userData.displayName.charAt(0).toUpperCase();
 
-            pageContainer.innerHTML = `
-                <div class="page-header">${userData.name}</div>
-                <div class="profile-header-bg"></div>
-                <div class="profile-info">
-                    <div class="profile-info-top">
-                        <img src="${userData.dp}" class="profile-img">
-                        ${currentUser.uid === userId 
-                            ? `<button id="edit-profile-btn-from-profile">Edit Profile</button>`
-                            : `<button id="follow-btn" class="${isFollowing ? 'following' : ''}">${isFollowing ? 'Following' : 'Follow'}</button>`
-                        }
+            div.innerHTML = `
+                <div class="flex space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0 cursor-pointer" onclick="viewUserProfile('${buzz.uid}')">
+                        ${userAvatar}
                     </div>
-                    <div class="profile-details">
-                        <h2 style="margin:0;">${userData.name} ${userData.verified ? '<span class="verified-tick"></span>' : ''}</h2>
-                        <p class="author-username">@${userData.username}</p>
-                        <p class="profile-bio">${userData.bio || ''}</p>
-                        <div class="profile-stats">
-                            <div><span>${followingCount}</span> Following</div>
-                            <div><span>${followersCount}</span> Followers</div>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold text-gray-900 cursor-pointer hover:underline flex items-center" onclick="viewUserProfile('${buzz.uid}')">
+                                ${userData.displayName}
+                                ${userData.verified ? `<div class="verified-badge ml-1 w-4 h-4 flex items-center justify-center"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
+                            </span>
+                            <span class="text-gray-500 text-sm cursor-pointer hover:underline" onclick="viewUserProfile('${buzz.uid}')">@${userData.username}</span>
+                            <span class="text-gray-500 text-sm">·</span>
+                            <span class="text-gray-500 text-sm">${formatTime(buzz.timestamp)}</span>
+                        </div>
+                        ${buzz.text ? `<p class="text-gray-900 mt-1">${processTextContent(buzz.text)}</p>` : ''}
+                        ${buzz.image ? `<img src="${buzz.image}" class="mt-3 rounded-lg max-w-full h-auto">` : ''}
+                        <div class="flex items-center justify-between mt-3 max-w-md">
+                            <button class="flex items-center space-x-2 text-gray-500 hover:text-blue-500" onclick="openComments('${buzz.id}')">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                <span>${buzz.comments || 0}</span>
+                            </button>
+                            <button class="flex items-center space-x-2 text-gray-500 hover:text-green-500" onclick="rebuzz('${buzz.id}')">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span>${buzz.rebuzzes || 0}</span>
+                            </button>
+                            <button class="flex items-center space-x-2 text-gray-500 hover:text-red-500" onclick="likeBuzz('${buzz.id}')">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                                <span>${buzz.likes || 0}</span>
+                            </button>
+                            <button class="flex items-center space-x-2 text-gray-500 hover:text-blue-500" onclick="saveBuzz('${buzz.id}')">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                                </svg>
+                            </button>
+                            <button class="text-gray-500 hover:text-gray-700" onclick="shareBuzz('${buzz.id}')">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                                </svg>
+                            </button>
+                            ${buzz.uid === currentUser?.uid ? `
+                            <button class="text-gray-500 hover:text-red-500" onclick="deleteBuzz('${buzz.id}')">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
-                <div class="profile-tabs">
-                    <div class="profile-tab active" data-tab="buzzes">Buzzes</div>
-                    <div class="profile-tab" data-tab="media">Media</div>
-                    <div class="profile-tab" data-tab="likes">Likes</div>
-                </div>
-                <div id="profile-content-container"></div>
             `;
-
-            if (currentUser.uid !== userId) {
-                document.getElementById('follow-btn').onclick = () => toggleFollow(userId);
-            } else {
-                 document.getElementById('edit-profile-btn-from-profile').onclick = () => openEditProfileModal();
-            }
-
-            loadProfileBuzzes(userId); // Default tab
-        }
-
-        async function loadProfileBuzzes(userId) {
-            const container = document.getElementById('profile-content-container');
-            container.innerHTML = '';
-            const buzzesSnapshot = await db.ref('buzzes').orderByChild('authorUid').equalTo(userId).once('value');
-            buzzesSnapshot.forEach(child => {
-                const buzzId = child.key;
-                const buzzData = child.val();
-                db.ref('users/' + buzzData.authorUid).once('value', userSnapshot => {
-                    const authorData = userSnapshot.val();
-                    if(authorData) {
-                        const buzzElement = createBuzzElement(buzzId, buzzData, authorData);
-                        container.prepend(buzzElement);
-                    }
-                });
-            });
-        }
-        
-        function toggleFollow(targetUserId) {
-            const currentUserFollowingRef = db.ref(`users/${currentUser.uid}/following/${targetUserId}`);
-            const targetUserFollowersRef = db.ref(`users/${targetUserId}/followers/${currentUser.uid}`);
             
-            db.ref(`users/${currentUser.uid}/following`).child(targetUserId).once('value', snapshot => {
-                if(snapshot.exists()) { // Unfollow
-                    currentUserFollowingRef.remove();
-                    targetUserFollowersRef.remove();
-                } else { // Follow
-                    currentUserFollowingRef.set(true);
-                    targetUserFollowersRef.set(true);
-                    sendNotification(targetUserId, 'follow', currentUser.uid);
+            return div;
+        }
+
+        // Buzz interactions
+        async function likeBuzz(buzzId) {
+            try {
+                const buzzSnapshot = await database.ref(`buzzes/${buzzId}`).once('value');
+                if (!buzzSnapshot.exists()) return;
+                
+                const buzz = buzzSnapshot.val();
+                
+                // Check if user already liked this buzz
+                const userLikeSnapshot = await database.ref(`userLikes/${currentUser.uid}/${buzzId}`).once('value');
+                
+                if (userLikeSnapshot.exists()) {
+                    // Unlike the buzz
+                    await database.ref(`userLikes/${currentUser.uid}/${buzzId}`).remove();
+                    await database.ref(`buzzes/${buzzId}/likes`).transaction((currentLikes) => {
+                        return Math.max(0, (currentLikes || 0) - 1);
+                    });
+                } else {
+                    // Like the buzz
+                    await database.ref(`userLikes/${currentUser.uid}/${buzzId}`).set(true);
+                    await database.ref(`buzzes/${buzzId}/likes`).transaction((currentLikes) => {
+                        return (currentLikes || 0) + 1;
+                    });
+                    
+                    // Create notification for buzz author (if not self-like)
+                    if (buzz.uid !== currentUser.uid) {
+                        const userSnapshot = await database.ref(`users/${currentUser.uid}`).once('value');
+                        const userData = userSnapshot.val();
+                        
+                        const notificationData = {
+                            type: 'like',
+                            fromUserId: currentUser.uid,
+                            fromUserName: userData.displayName,
+                            fromUserUsername: userData.username,
+                            fromUserPhoto: userData.profilePhoto,
+                            buzzId: buzzId,
+                            buzzText: buzz.text ? buzz.text.substring(0, 50) + '...' : 'your buzz',
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            read: false
+                        };
+                        
+                        await database.ref(`notifications/${buzz.uid}`).push(notificationData);
+                    }
+                }
+            } catch (error) {
+                console.error('Error liking buzz:', error);
+            }
+        }
+
+        async function rebuzz(buzzId) {
+            const buzzSnapshot = await database.ref(`buzzes/${buzzId}`).once('value');
+            const buzz = buzzSnapshot.val();
+            
+            // Update rebuzz count
+            database.ref(`buzzes/${buzzId}/rebuzzes`).transaction((currentRebuzzes) => {
+                return (currentRebuzzes || 0) + 1;
+            });
+            
+            // Create notification for buzz author (if not self-rebuzz)
+            if (buzz.uid !== currentUser.uid) {
+                const userSnapshot = await database.ref(`users/${currentUser.uid}`).once('value');
+                const userData = userSnapshot.val();
+                
+                const notificationData = {
+                    type: 'rebuzz',
+                    fromUserId: currentUser.uid,
+                    fromUserName: userData.displayName,
+                    fromUserUsername: userData.username,
+                    fromUserPhoto: userData.profilePhoto,
+                    buzzId: buzzId,
+                    buzzText: buzz.text ? buzz.text.substring(0, 50) + '...' : 'your buzz',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    read: false
+                };
+                
+                database.ref(`notifications/${buzz.uid}`).push(notificationData);
+            }
+        }
+
+        async function saveBuzz(buzzId) {
+            const buzzSnapshot = await database.ref(`buzzes/${buzzId}`).once('value');
+            const buzz = buzzSnapshot.val();
+            
+            // Add to user's saved buzzes
+            database.ref(`users/${currentUser.uid}/saved/${buzzId}`).set(true);
+            
+            // Create notification for buzz author (if not self-save)
+            if (buzz.uid !== currentUser.uid) {
+                const userSnapshot = await database.ref(`users/${currentUser.uid}`).once('value');
+                const userData = userSnapshot.val();
+                
+                const notificationData = {
+                    type: 'save',
+                    fromUserId: currentUser.uid,
+                    fromUserName: userData.displayName,
+                    fromUserUsername: userData.username,
+                    fromUserPhoto: userData.profilePhoto,
+                    buzzId: buzzId,
+                    buzzText: buzz.text ? buzz.text.substring(0, 50) + '...' : 'your buzz',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    read: false
+                };
+                
+                database.ref(`notifications/${buzz.uid}`).push(notificationData);
+            }
+        }
+
+        function shareBuzz(buzzId) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this Buzz on Pulse',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copied to clipboard!');
+            }
+        }
+
+        async function deleteBuzz(buzzId) {
+            if (confirm('Are you sure you want to delete this buzz?')) {
+                try {
+                    // Delete the buzz
+                    await database.ref(`buzzes/${buzzId}`).remove();
+                    // Delete associated comments
+                    await database.ref(`comments/${buzzId}`).remove();
+                    // Delete user likes for this buzz
+                    const likesSnapshot = await database.ref('userLikes').once('value');
+                    const updates = {};
+                    likesSnapshot.forEach((userChild) => {
+                        if (userChild.child(buzzId).exists()) {
+                            updates[`userLikes/${userChild.key}/${buzzId}`] = null;
+                        }
+                    });
+                    if (Object.keys(updates).length > 0) {
+                        await database.ref().update(updates);
+                    }
+                    
+                    alert('Buzz deleted successfully!');
+                } catch (error) {
+                    console.error('Error deleting buzz:', error);
+                    alert('Failed to delete buzz. Please try again.');
+                }
+            }
+        }
+
+        // Comments
+        function openComments(buzzId) {
+            currentBuzzId = buzzId;
+            document.getElementById('commentModal').classList.remove('hidden');
+            loadComments(buzzId);
+        }
+
+        document.getElementById('closeComments').addEventListener('click', () => {
+            document.getElementById('commentModal').classList.add('hidden');
+        });
+
+        document.getElementById('postComment').addEventListener('click', async () => {
+            const commentText = document.getElementById('commentInput').value.trim();
+            if (commentText && currentBuzzId) {
+                const commentData = {
+                    uid: currentUser.uid,
+                    text: commentText,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                try {
+                    await database.ref(`comments/${currentBuzzId}`).push(commentData);
+                    await database.ref(`buzzes/${currentBuzzId}/comments`).transaction((current) => {
+                        return (current || 0) + 1;
+                    });
+                    
+                    // Create notification for buzz author (if not self-comment)
+                    const buzzSnapshot = await database.ref(`buzzes/${currentBuzzId}`).once('value');
+                    const buzz = buzzSnapshot.val();
+                    
+                    if (buzz.uid !== currentUser.uid) {
+                        const userSnapshot = await database.ref(`users/${currentUser.uid}`).once('value');
+                        const userData = userSnapshot.val();
+                        
+                        const notificationData = {
+                            type: 'comment',
+                            fromUserId: currentUser.uid,
+                            fromUserName: userData.displayName,
+                            fromUserUsername: userData.username,
+                            fromUserPhoto: userData.profilePhoto,
+                            buzzId: currentBuzzId,
+                            buzzText: buzz.text ? buzz.text.substring(0, 50) + '...' : 'your buzz',
+                            commentText: commentText.substring(0, 50) + (commentText.length > 50 ? '...' : ''),
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            read: false
+                        };
+                        
+                        database.ref(`notifications/${buzz.uid}`).push(notificationData);
+                    }
+                    
+                    document.getElementById('commentInput').value = '';
+                    loadComments(currentBuzzId);
+                } catch (error) {
+                    console.error('Comment error:', error);
+                }
+            }
+        });
+
+        async function loadComments(buzzId) {
+            const snapshot = await database.ref(`comments/${buzzId}`).orderByChild('timestamp').once('value');
+            const commentsList = document.getElementById('commentsList');
+            commentsList.innerHTML = '';
+
+            if (snapshot.exists()) {
+                const comments = [];
+                snapshot.forEach((child) => {
+                    comments.push({id: child.key, ...child.val()});
+                });
+
+                for (const comment of comments) {
+                    const userData = await getUserData(comment.uid);
+                    const commentElement = createCommentElement(comment, userData);
+                    commentsList.appendChild(commentElement);
+                }
+            }
+        }
+
+        function createCommentElement(comment, userData) {
+            const div = document.createElement('div');
+            div.className = 'flex space-x-3';
+            
+            const userAvatar = userData.profilePhoto 
+                ? `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                : userData.displayName.charAt(0).toUpperCase();
+
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                    ${userAvatar}
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-semibold text-sm flex items-center">
+                            ${userData.displayName}
+                            ${userData.verified ? `<div class="verified-badge ml-1 w-3 h-3 flex items-center justify-center"><svg class="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
+                        </span>
+                        <span class="text-gray-500 text-xs">@${userData.username}</span>
+                        <span class="text-gray-500 text-xs">${formatTime(comment.timestamp)}</span>
+                    </div>
+                    <p class="text-sm text-gray-900 mt-1">${processTextContent(comment.text)}</p>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Utility functions
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'now';
+            if (minutes < 60) return `${minutes}m`;
+            if (hours < 24) return `${hours}h`;
+            return `${days}d`;
+        }
+
+        // Navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const page = e.target.closest('.nav-btn').dataset.page;
+                
+                // Update active state
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    b.classList.remove('active', 'text-pink-600');
+                    b.classList.add('text-gray-600');
+                });
+                e.target.closest('.nav-btn').classList.add('active', 'text-pink-600');
+                e.target.closest('.nav-btn').classList.remove('text-gray-600');
+                
+                // Show/hide pages
+                showPage(page);
+            });
+        });
+
+        function showPage(page) {
+            // Hide all pages
+            document.getElementById('feed').parentElement.style.display = 'none';
+            document.getElementById('profilePage').classList.add('hidden');
+            document.getElementById('settingsPage').classList.add('hidden');
+            document.getElementById('searchPage').classList.add('hidden');
+            document.getElementById('notificationsPage').classList.add('hidden');
+            document.getElementById('messagesPage').classList.add('hidden');
+            
+            switch(page) {
+                case 'home':
+                    document.getElementById('feed').parentElement.style.display = 'block';
+                    break;
+                case 'profile':
+                    document.getElementById('profilePage').classList.remove('hidden');
+                    loadUserProfile();
+                    break;
+                case 'settings':
+                    document.getElementById('settingsPage').classList.remove('hidden');
+                    break;
+                case 'search':
+                    document.getElementById('searchPage').classList.remove('hidden');
+                    break;
+                case 'notifications':
+                    document.getElementById('notificationsPage').classList.remove('hidden');
+                    loadNotifications();
+                    break;
+                case 'messages':
+                    document.getElementById('messagesPage').classList.remove('hidden');
+                    loadMessages();
+                    break;
+            }
+        }
+
+        // Profile functionality
+        async function loadUserProfile() {
+            const userData = await getUserData(currentUser.uid);
+            
+            // Set profile info
+            const profileNameElement = document.getElementById('profileName');
+            profileNameElement.innerHTML = `${userData.displayName} ${userData.verified ? `<div class="verified-badge ml-2 w-5 h-5 flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}`;
+            document.getElementById('profileUsername').textContent = `@${userData.username}`;
+            document.getElementById('profileBio').textContent = userData.bio || '';
+            document.getElementById('followingCount').textContent = userData.followingCount || 0;
+            document.getElementById('followersCount').textContent = userData.followersCount || 0;
+            
+            // Set profile avatar
+            const profileAvatar = document.getElementById('profilePageAvatar');
+            if (userData.profilePhoto) {
+                profileAvatar.innerHTML = `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`;
+            } else {
+                profileAvatar.textContent = userData.displayName.charAt(0).toUpperCase();
+            }
+            
+            // Load default tab (buzzes)
+            loadProfileTab('buzzes');
+        }
+
+        // Profile tabs
+        document.querySelectorAll('.profile-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.target.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.profile-tab').forEach(t => {
+                    t.classList.remove('active', 'border-pink-500', 'text-pink-600');
+                    t.classList.add('text-gray-600', 'border-transparent');
+                });
+                e.target.classList.add('active', 'border-pink-500', 'text-pink-600', 'border-b-2');
+                e.target.classList.remove('text-gray-600', 'border-transparent');
+                
+                loadProfileTab(tabName);
+            });
+        });
+
+        async function loadProfileTab(tabName) {
+            const profileContent = document.getElementById('profileContent');
+            profileContent.innerHTML = '<div class="p-4 text-center text-gray-500">Loading...</div>';
+            
+            try {
+                switch(tabName) {
+                    case 'buzzes':
+                        await loadUserBuzzes();
+                        break;
+                    case 'rebuzzes':
+                        await loadUserRebuzzes();
+                        break;
+                    case 'media':
+                        await loadUserMedia();
+                        break;
+                    case 'likes':
+                        await loadUserLikes();
+                        break;
+                }
+            } catch (error) {
+                profileContent.innerHTML = '<div class="p-4 text-center text-gray-500">Error loading content</div>';
+            }
+        }
+
+        async function loadUserBuzzes() {
+            const snapshot = await database.ref('buzzes').orderByChild('uid').equalTo(currentUser.uid).once('value');
+            const buzzes = [];
+            snapshot.forEach((child) => {
+                buzzes.unshift({id: child.key, ...child.val()});
+            });
+            
+            const profileContent = document.getElementById('profileContent');
+            if (buzzes.length === 0) {
+                profileContent.innerHTML = '<div class="p-8 text-center text-gray-500">No buzzes yet</div>';
+                return;
+            }
+            
+            profileContent.innerHTML = '';
+            const userData = await getUserData(currentUser.uid);
+            
+            for (const buzz of buzzes) {
+                const buzzElement = createBuzzElement(buzz, userData);
+                profileContent.appendChild(buzzElement);
+            }
+        }
+
+        async function loadUserRebuzzes() {
+            const profileContent = document.getElementById('profileContent');
+            profileContent.innerHTML = '<div class="p-8 text-center text-gray-500">No rebuzzes yet</div>';
+        }
+
+        async function loadUserMedia() {
+            const snapshot = await database.ref('buzzes').orderByChild('uid').equalTo(currentUser.uid).once('value');
+            const mediaBuzzes = [];
+            snapshot.forEach((child) => {
+                const buzz = child.val();
+                if (buzz.image) {
+                    mediaBuzzes.unshift({id: child.key, ...buzz});
                 }
             });
+            
+            const profileContent = document.getElementById('profileContent');
+            if (mediaBuzzes.length === 0) {
+                profileContent.innerHTML = '<div class="p-8 text-center text-gray-500">No media posts yet</div>';
+                return;
+            }
+            
+            profileContent.innerHTML = '<div class="grid grid-cols-3 gap-1 p-4"></div>';
+            const grid = profileContent.querySelector('.grid');
+            
+            for (const buzz of mediaBuzzes) {
+                const mediaElement = document.createElement('div');
+                mediaElement.className = 'aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer';
+                mediaElement.innerHTML = `<img src="${buzz.image}" class="w-full h-full object-cover">`;
+                grid.appendChild(mediaElement);
+            }
         }
-        
-        function openEditProfileModal() {
-            document.getElementById('edit-name-input').value = currentUser.name;
-            document.getElementById('edit-bio-input').value = currentUser.bio;
-            document.getElementById('edit-profile-modal').classList.add('active');
 
-            document.getElementById('save-profile-btn').onclick = async () => {
-                const newName = document.getElementById('edit-name-input').value;
-                const newBio = document.getElementById('edit-bio-input').value;
-                const newDpFile = document.getElementById('edit-dp-input').files[0];
+        async function loadUserLikes() {
+            const profileContent = document.getElementById('profileContent');
+            profileContent.innerHTML = '<div class="p-8 text-center text-gray-500">Liked buzzes will appear here</div>';
+        }
 
-                let updates = { name: newName, bio: newBio };
-                if(newDpFile) {
-                    updates.dp = await toBase64(newDpFile);
+        // Settings functionality
+        let isPrivateAccount = false;
+
+        document.getElementById('privateAccountBtn').addEventListener('click', () => {
+            isPrivateAccount = !isPrivateAccount;
+            const toggle = document.getElementById('privateToggle');
+            const toggleButton = toggle.querySelector('div');
+            
+            if (isPrivateAccount) {
+                toggle.classList.remove('bg-gray-300');
+                toggle.classList.add('bg-pink-500');
+                toggleButton.style.transform = 'translateX(24px)';
+            } else {
+                toggle.classList.remove('bg-pink-500');
+                toggle.classList.add('bg-gray-300');
+                toggleButton.style.transform = 'translateX(0)';
+            }
+            
+            // Update in database
+            database.ref(`users/${currentUser.uid}/isPrivate`).set(isPrivateAccount);
+        });
+
+        document.getElementById('blockedUsersBtn').addEventListener('click', () => {
+            alert('Blocked users management coming soon!');
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                auth.signOut().then(() => {
+                    showLoginScreen();
+                });
+            }
+        });
+
+        // Edit Profile functionality
+        document.getElementById('editProfileBtn').addEventListener('click', async () => {
+            const userData = await getUserData(currentUser.uid);
+            
+            // Populate edit form
+            document.getElementById('editDisplayName').value = userData.displayName;
+            document.getElementById('editBio').value = userData.bio || '';
+            
+            // Set profile preview
+            const editPreview = document.getElementById('editProfilePreview');
+            if (userData.profilePhoto) {
+                editPreview.innerHTML = `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`;
+            } else {
+                editPreview.textContent = userData.displayName.charAt(0).toUpperCase();
+            }
+            
+            document.getElementById('editProfileModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeEditProfile').addEventListener('click', () => {
+            document.getElementById('editProfileModal').classList.add('hidden');
+        });
+
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            document.getElementById('editProfileModal').classList.add('hidden');
+        });
+
+        document.getElementById('changeProfilePhoto').addEventListener('click', () => {
+            document.getElementById('editPhotoInput').click();
+        });
+
+        document.getElementById('editPhotoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const newPhoto = e.target.result;
+                    document.getElementById('editProfilePreview').innerHTML = `<img src="${newPhoto}" class="w-full h-full rounded-full object-cover">`;
+                    document.getElementById('editProfilePreview').dataset.newPhoto = newPhoto;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('saveProfile').addEventListener('click', async () => {
+            try {
+                const newName = document.getElementById('editDisplayName').value.trim();
+                const newBio = document.getElementById('editBio').value.trim();
+                const newPhoto = document.getElementById('editProfilePreview').dataset.newPhoto;
+                
+                if (!newName) {
+                    alert('Display name is required');
+                    return;
                 }
                 
-                await db.ref(`users/${currentUser.uid}`).update(updates);
-                document.getElementById('edit-profile-modal').classList.remove('active');
-                loadProfilePage(currentUser.uid); // Refresh profile
-            };
-        }
-
-        // --- SEARCH ---
-        async function handleSearch(event) {
-            const query = event.target.value.toLowerCase();
-            const resultsContainer = document.getElementById('search-results');
-            resultsContainer.innerHTML = '';
-            if (query.length < 2) return;
-
-            const usersSnapshot = await db.ref('users').orderByChild('username').startAt(query).endAt(query + '\uf8ff').once('value');
-            usersSnapshot.forEach(child => {
-                const userData = child.val();
-                const userId = child.key;
-                const resultEl = document.createElement('div');
-                resultEl.className = 'user-search-result';
-                resultEl.innerHTML = `
-                    <img src="${userData.dp}" class="user-dp-small">
-                    <div class="user-search-info">
-                        <span class="author-name">${userData.name}</span>
-                        ${userData.verified ? '<span class="verified-tick"></span>' : ''}
-                        <p class="author-username">@${userData.username}</p>
-                    </div>
-                `;
-                resultEl.onclick = () => loadProfilePage(userId);
-                resultsContainer.appendChild(resultEl);
-            });
-        }
-
-        // --- NOTIFICATIONS ---
-        function sendNotification(targetUid, type, fromUid = null, contextId = null) {
-            const notifData = {
-                type: type, // 'like', 'follow', 'comment', 'rebuzz', 'verified'
-                from: fromUid,
-                context: contextId, // buzzId
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                read: false
-            };
-            db.ref(`notifications/${targetUid}`).push(notifData);
-        }
-
-        // --- VIDEO PLATFORM ---
-        document.getElementById('video-upload-btn').onclick = () => {
-            const file = document.getElementById('video-file-input').files[0];
-            if (!file) return;
-
-            const statusEl = document.getElementById('video-upload-status');
-            statusEl.textContent = 'Uploading...';
-            const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`;
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-            formData.append('eager', 'f_auto,q_auto,h_720,w_1280');
-            
-            fetch(url, { method: 'POST', body: formData })
-                .then(response => response.json())
-                .then(data => {
-                    statusEl.textContent = 'Upload complete!';
-                    const videoInfo = {
-                        videoURL: data.secure_url, duration: data.duration, format: data.format,
-                        width: data.width, height: data.height, uploadedAt: data.created_at, uploaderUid: currentUser.uid
-                    };
-                    db.ref('videos').push(videoInfo);
-                })
-                .catch(err => {
-                    statusEl.textContent = 'Upload failed. See console for details.';
-                    console.error('Cloudinary Upload Error:', err);
-                });
-        };
-
-        function loadVideos() {
-            db.ref('videos').orderByChild('uploadedAt').on('value', snapshot => {
-                const container = document.getElementById('video-feed');
-                container.innerHTML = '';
-                snapshot.forEach(child => {
-                    const videoData = child.val();
-                    const videoEl = document.createElement('video');
-                    videoEl.src = videoData.videoURL;
-                    videoEl.controls = true;
-                    container.prepend(videoEl);
-                });
-            });
-        }
-
-        // --- VERIFICATION ---
-        function openVerificationModal() {
-            // Populate countries
-            const countrySelect = document.getElementById('verification-country');
-            // Simplified list for example
-            const countries = { 'US': 'United States', 'IN': 'India' }; 
-            countrySelect.innerHTML = '<option value="">Select Country</option>';
-            for (const code in countries) {
-                countrySelect.innerHTML += `<option value="${code}">${countries[code]}</option>`;
+                const updates = {
+                    displayName: newName,
+                    bio: newBio
+                };
+                
+                if (newPhoto) {
+                    updates.profilePhoto = newPhoto;
+                }
+                
+                await database.ref(`users/${currentUser.uid}`).update(updates);
+                
+                // Update UI
+                document.getElementById('profileName').textContent = newName;
+                document.getElementById('profileBio').textContent = newBio;
+                
+                const profileAvatar = document.getElementById('profilePageAvatar');
+                const userAvatar = document.getElementById('userAvatar');
+                
+                if (newPhoto) {
+                    profileAvatar.innerHTML = `<img src="${newPhoto}" class="w-full h-full rounded-full object-cover">`;
+                    userAvatar.innerHTML = `<img src="${newPhoto}" class="w-full h-full rounded-full object-cover">`;
+                } else {
+                    profileAvatar.textContent = newName.charAt(0).toUpperCase();
+                    userAvatar.textContent = newName.charAt(0).toUpperCase();
+                }
+                
+                document.getElementById('editProfileModal').classList.add('hidden');
+                alert('Profile updated successfully!');
+                
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile. Please try again.');
             }
-            countrySelect.onchange = updateDocumentTypes;
-            document.getElementById('verification-modal').classList.add('active');
-        }
+        });
 
-        function updateDocumentTypes() {
-            const country = document.getElementById('verification-country').value;
-            const docSelect = document.getElementById('verification-document-type');
-            let options = [];
-            if (country === 'US') options = ['Passport', 'Driving License'];
-            else if (country === 'IN') options = ['PAN Card', 'Voter Card', 'Aadhaar Card'];
-            docSelect.innerHTML = options.map(o => `<option value="${o}">${o}</option>`).join('');
-        }
-
-        document.getElementById('verification-submit').onclick = async () => {
-            const autoVerifyNames = ["anmol sunda", "dozeta group", "gursharn arya"];
-            const fullName = document.getElementById('verification-name').value.trim();
-            const reason = document.getElementById('verification-q1').value.trim();
-            const docFile = document.getElementById('verification-document-upload').files[0];
-
-            if(!fullName || !reason || !docFile) {
-                alert('Please fill all required fields and upload a document.');
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', async (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            const searchResults = document.getElementById('searchResults');
+            
+            if (query.length === 0) {
+                // Show all users when search is empty
+                try {
+                    const usersSnapshot = await database.ref('users').once('value');
+                    const allUsers = [];
+                    
+                    usersSnapshot.forEach((child) => {
+                        const user = child.val();
+                        if (user.setupComplete && child.key !== currentUser.uid) {
+                            allUsers.push({id: child.key, ...user});
+                        }
+                    });
+                    
+                    let resultsHTML = '<div class="mb-4"><h3 class="font-semibold text-gray-900 mb-2">All Users</h3>';
+                    
+                    if (allUsers.length === 0) {
+                        resultsHTML += '<div class="text-center text-gray-500 py-4">No other users found</div>';
+                    } else {
+                        allUsers.forEach(user => {
+                            const userAvatar = user.profilePhoto 
+                                ? `<img src="${user.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                                : user.displayName.charAt(0).toUpperCase();
+                            
+                            resultsHTML += `
+                                <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="viewUserProfile('${user.id}')">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-300 to-blue-300 flex items-center justify-center text-white font-semibold">
+                                        ${userAvatar}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-gray-900 flex items-center">
+                                            ${user.displayName}
+                                            ${user.verified ? `<div class="verified-badge ml-1 w-4 h-4 flex items-center justify-center"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
+                                        </div>
+                                        <div class="text-sm text-gray-500">@${user.username}</div>
+                                        ${user.bio ? `<div class="text-xs text-gray-400 mt-1">${user.bio}</div>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    resultsHTML += '</div>';
+                    searchResults.innerHTML = resultsHTML;
+                } catch (error) {
+                    searchResults.innerHTML = '<div class="text-center text-red-500 py-8">Error loading users</div>';
+                }
                 return;
             }
             
-            if (autoVerifyNames.includes(fullName.toLowerCase())) {
-                await db.ref(`users/${currentUser.uid}`).update({ verified: true });
-                sendNotification(currentUser.uid, 'verified');
-                alert('Your account has been instantly verified!');
-                document.getElementById('verification-modal').classList.remove('active');
+            if (query.length < 2) {
+                searchResults.innerHTML = '<div class="text-center text-gray-500 py-8">Type at least 2 characters to search</div>';
                 return;
             }
-
-            const docBase64 = await toBase64(docFile);
-            const requestData = {
-                fullName, reason,
-                knownAs: document.getElementById('verification-q2').value.trim(),
-                country: document.getElementById('verification-country').value,
-                docType: document.getElementById('verification-document-type').value,
-                docImage: docBase64,
-                links: Array.from(document.querySelectorAll('.verification-link')).map(i => i.value.trim()).filter(Boolean),
-                status: 'pending',
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
             
-            await db.ref(`verificationRequests/${currentUser.uid}`).set(requestData);
-            alert('Your request has been submitted for review.');
-            document.getElementById('verification-modal').classList.remove('active');
-        };
+            searchResults.innerHTML = '<div class="text-center text-gray-500 py-8">Searching...</div>';
+            
+            try {
+                // Search users
+                const usersSnapshot = await database.ref('users').once('value');
+                const buzzesSnapshot = await database.ref('buzzes').once('value');
+                
+                const matchedUsers = [];
+                const matchedBuzzes = [];
+                
+                // Search through users
+                usersSnapshot.forEach((child) => {
+                    const user = child.val();
+                    if (user.displayName.toLowerCase().includes(query) || 
+                        user.username.toLowerCase().includes(query)) {
+                        matchedUsers.push({id: child.key, ...user});
+                    }
+                });
+                
+                // Search through buzzes
+                buzzesSnapshot.forEach((child) => {
+                    const buzz = child.val();
+                    if (buzz.text && buzz.text.toLowerCase().includes(query)) {
+                        matchedBuzzes.push({id: child.key, ...buzz});
+                    }
+                });
+                
+                // Display results
+                let resultsHTML = '';
+                
+                if (matchedUsers.length > 0) {
+                    resultsHTML += '<div class="mb-4"><h3 class="font-semibold text-gray-900 mb-2">Users</h3>';
+                    matchedUsers.forEach(user => {
+                        const userAvatar = user.profilePhoto 
+                            ? `<img src="${user.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                            : user.displayName.charAt(0).toUpperCase();
+                        
+                        resultsHTML += `
+                            <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="viewUserProfile('${user.id}')">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-300 to-blue-300 flex items-center justify-center text-white font-semibold">
+                                    ${userAvatar}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-semibold text-gray-900">${user.displayName}</div>
+                                    <div class="text-sm text-gray-500">@${user.username}</div>
+                                    ${user.bio ? `<div class="text-xs text-gray-400 mt-1">${user.bio}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    resultsHTML += '</div>';
+                }
+                
+                if (matchedBuzzes.length > 0) {
+                    resultsHTML += '<div><h3 class="font-semibold text-gray-900 mb-2">Buzzes</h3>';
+                    for (const buzz of matchedBuzzes.slice(0, 5)) {
+                        let userData;
+                        if (buzz.authorName && buzz.authorUsername) {
+                            userData = {
+                                displayName: buzz.authorName,
+                                username: buzz.authorUsername,
+                                profilePhoto: buzz.authorImage
+                            };
+                        } else {
+                            userData = await getUserData(buzz.uid);
+                        }
+                        
+                        const userAvatar = userData.profilePhoto 
+                            ? `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                            : userData.displayName.charAt(0).toUpperCase();
+                        
+                        resultsHTML += `
+                            <div class="p-3 border-b border-gray-100 last:border-b-0">
+                                <div class="flex space-x-3">
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                                        ${userAvatar}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2 mb-1">
+                                            <span class="font-semibold text-sm">${userData.displayName}</span>
+                                            <span class="text-gray-500 text-xs">@${userData.username}</span>
+                                        </div>
+                                        <p class="text-sm text-gray-900">${buzz.text.substring(0, 100)}${buzz.text.length > 100 ? '...' : ''}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    resultsHTML += '</div>';
+                }
+                
+                if (matchedUsers.length === 0 && matchedBuzzes.length === 0) {
+                    resultsHTML = '<div class="text-center text-gray-500 py-8">No results found</div>';
+                }
+                
+                searchResults.innerHTML = resultsHTML;
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<div class="text-center text-red-500 py-8">Search failed. Please try again.</div>';
+            }
+        });
 
-        // --- HELPER FUNCTIONS ---
-        function toBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
+        // Load notifications
+        async function loadNotifications() {
+            const notificationsList = document.getElementById('notificationsList');
+            notificationsList.innerHTML = '<div class="p-4 text-center text-gray-500">Loading notifications...</div>';
+            
+            try {
+                const snapshot = await database.ref(`notifications/${currentUser.uid}`).orderByChild('timestamp').limitToLast(50).once('value');
+                
+                if (!snapshot.exists()) {
+                    notificationsList.innerHTML = '<div class="p-8 text-center text-gray-500">No notifications yet</div>';
+                    return;
+                }
+                
+                const notifications = [];
+                snapshot.forEach((child) => {
+                    notifications.unshift({id: child.key, ...child.val()});
+                });
+                
+                notificationsList.innerHTML = '';
+                
+                for (const notification of notifications) {
+                    const notificationElement = createNotificationElement(notification);
+                    notificationsList.appendChild(notificationElement);
+                }
+                
+                // Mark notifications as read
+                database.ref(`notifications/${currentUser.uid}`).update(
+                    Object.fromEntries(notifications.map(n => [n.id + '/read', true]))
+                );
+                
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                notificationsList.innerHTML = '<div class="p-4 text-center text-red-500">Error loading notifications</div>';
+            }
         }
         
-        function timeAgo(timestamp) {
-            const seconds = Math.floor((new Date() - timestamp) / 1000);
-            let interval = seconds / 31536000;
-            if (interval > 1) return Math.floor(interval) + "y";
-            interval = seconds / 2592000;
-            if (interval > 1) return Math.floor(interval) + "m";
-            interval = seconds / 86400;
-            if (interval > 1) return Math.floor(interval) + "d";
-            interval = seconds / 3600;
-            if (interval > 1) return Math.floor(interval) + "h";
-            interval = seconds / 60;
-            if (interval > 1) return Math.floor(interval) + "m";
-            return Math.floor(seconds) + "s";
+        function createNotificationElement(notification) {
+            const div = document.createElement('div');
+            div.className = `p-4 flex items-center space-x-3 cursor-pointer hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : ''}`;
+            
+            const userAvatar = notification.fromUserPhoto 
+                ? `<img src="${notification.fromUserPhoto}" class="w-full h-full rounded-full object-cover">`
+                : notification.fromUserName.charAt(0).toUpperCase();
+            
+            let notificationText = '';
+            let actionIcon = '';
+            
+            switch(notification.type) {
+                case 'like':
+                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> liked ${notification.buzzText}`;
+                    actionIcon = '❤️';
+                    break;
+                case 'comment':
+                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> commented on ${notification.buzzText}: "${notification.commentText}"`;
+                    actionIcon = '💬';
+                    break;
+                case 'rebuzz':
+                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> rebuzzed ${notification.buzzText}`;
+                    actionIcon = '🔄';
+                    break;
+                case 'save':
+                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> saved ${notification.buzzText}`;
+                    actionIcon = '🔖';
+                    break;
+                case 'follow':
+                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> started following you`;
+                    actionIcon = '👤';
+                    break;
+                case 'mention':
+                    notificationText = `<span class="font-semibold">${notification.fromUserName}</span> mentioned you in: "${notification.buzzText}"`;
+                    actionIcon = '📢';
+                    break;
+                case 'verification_approved':
+                    notificationText = `<span class="font-semibold text-blue-600">${notification.title}</span><br><span class="text-sm">${notification.message}</span>`;
+                    actionIcon = '✅';
+                    break;
+            }
+            
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold cursor-pointer" onclick="viewUserProfile('${notification.fromUserId}')">
+                    ${userAvatar}
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm">${notificationText}</p>
+                    <p class="text-xs text-gray-500">${formatTime(notification.timestamp)}</p>
+                </div>
+                <div class="text-lg">${actionIcon}</div>
+            `;
+            
+            // Add click handler to view buzz if applicable
+            if (notification.buzzId) {
+                div.addEventListener('click', () => {
+                    // Navigate to home and scroll to buzz
+                    showPage('home');
+                    document.querySelectorAll('.nav-btn').forEach(b => {
+                        b.classList.remove('active', 'text-pink-600');
+                        b.classList.add('text-gray-600');
+                    });
+                    document.querySelector('[data-page="home"]').classList.add('active', 'text-pink-600');
+                    document.querySelector('[data-page="home"]').classList.remove('text-gray-600');
+                });
+            }
+            
+            return div;
+        }
+        
+        // View user profile
+        async function viewUserProfile(userId) {
+            if (userId === currentUser.uid) {
+                // View own profile
+                showPage('profile');
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    b.classList.remove('active', 'text-pink-600');
+                    b.classList.add('text-gray-600');
+                });
+                document.querySelector('[data-page="profile"]').classList.add('active', 'text-pink-600');
+                document.querySelector('[data-page="profile"]').classList.remove('text-gray-600');
+                return;
+            }
+            
+            try {
+                const userData = await getUserData(userId);
+                showOtherUserProfile(userData, userId);
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                alert('Could not load user profile');
+            }
+        }
+        
+        function showOtherUserProfile(userData, userId) {
+            // Create a temporary profile page for other users
+            const existingOtherProfile = document.getElementById('otherUserProfile');
+            if (existingOtherProfile) {
+                existingOtherProfile.remove();
+            }
+            
+            const otherProfileDiv = document.createElement('div');
+            otherProfileDiv.id = 'otherUserProfile';
+            otherProfileDiv.className = 'fixed inset-0 bg-white z-50 overflow-y-auto';
+            
+            const userAvatar = userData.profilePhoto 
+                ? `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                : userData.displayName.charAt(0).toUpperCase();
+            
+            otherProfileDiv.innerHTML = `
+                <div class="bg-white">
+                    <!-- Header with back button -->
+                    <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center space-x-4 z-10">
+                        <button onclick="closeOtherUserProfile()" class="p-2 hover:bg-gray-100 rounded-full">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">${userData.displayName}</h2>
+                            <p class="text-sm text-gray-500">@${userData.username}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile Header -->
+                    <div class="relative">
+                        <div class="h-32 gradient-bg"></div>
+                        <div class="absolute -bottom-16 left-4">
+                            <div class="w-32 h-32 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white text-4xl font-bold border-4 border-white">
+                                ${userAvatar}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-20 px-4 pb-4">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+                                    ${userData.displayName}
+                                    ${userData.verified ? `<div class="verified-badge ml-2 w-5 h-5 flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
+                                </h2>
+                                <p class="text-gray-600">@${userData.username}</p>
+                                ${userData.bio ? `<p class="text-gray-700 mt-2 text-sm">${userData.bio}</p>` : ''}
+                            </div>
+                            <button class="gradient-bg text-white px-6 py-2 rounded-full font-semibold" onclick="followUser('${userId}')">Follow</button>
+                        </div>
+                        <div class="flex space-x-6 mt-4">
+                            <div class="text-center">
+                                <div class="font-bold text-lg">${userData.following || 0}</div>
+                                <div class="text-gray-600 text-sm">Following</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-bold text-lg">${userData.followers || 0}</div>
+                                <div class="text-gray-600 text-sm">Followers</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- User's Buzzes -->
+                    <div class="border-t border-gray-200">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-900 mb-4">Buzzes</h3>
+                            <div id="otherUserBuzzes">
+                                <div class="text-center text-gray-500 py-8">Loading buzzes...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(otherProfileDiv);
+            
+            // Load user's buzzes
+            loadOtherUserBuzzes(userId);
+        }
+        
+        async function loadOtherUserBuzzes(userId) {
+            try {
+                const snapshot = await database.ref('buzzes').orderByChild('uid').equalTo(userId).once('value');
+                const buzzes = [];
+                snapshot.forEach((child) => {
+                    buzzes.unshift({id: child.key, ...child.val()});
+                });
+                
+                const buzzesContainer = document.getElementById('otherUserBuzzes');
+                if (buzzes.length === 0) {
+                    buzzesContainer.innerHTML = '<div class="text-center text-gray-500 py-8">No buzzes yet</div>';
+                    return;
+                }
+                
+                buzzesContainer.innerHTML = '';
+                const userData = await getUserData(userId);
+                
+                for (const buzz of buzzes) {
+                    const buzzElement = createBuzzElement(buzz, userData);
+                    buzzesContainer.appendChild(buzzElement);
+                }
+            } catch (error) {
+                console.error('Error loading user buzzes:', error);
+                document.getElementById('otherUserBuzzes').innerHTML = '<div class="text-center text-red-500 py-8">Error loading buzzes</div>';
+            }
+        }
+        
+        function closeOtherUserProfile() {
+            const otherProfile = document.getElementById('otherUserProfile');
+            if (otherProfile) {
+                otherProfile.remove();
+            }
         }
 
-    </script>
-</body>
-</html>
+        async function followUser(userId) {
+            try {
+                // Check if already following
+                const followSnapshot = await database.ref(`users/${currentUser.uid}/following/${userId}`).once('value');
+                
+                if (followSnapshot.exists()) {
+                    // Unfollow
+                    await database.ref(`users/${currentUser.uid}/following/${userId}`).remove();
+                    await database.ref(`users/${userId}/followers/${currentUser.uid}`).remove();
+                    
+                    // Update counts
+                    await database.ref(`users/${currentUser.uid}/followingCount`).transaction((count) => Math.max(0, (count || 0) - 1));
+                    await database.ref(`users/${userId}/followersCount`).transaction((count) => Math.max(0, (count || 0) - 1));
+                    
+                    // Update button text
+                    event.target.textContent = 'Follow';
+                    event.target.classList.remove('bg-gray-500');
+                    event.target.classList.add('gradient-bg');
+                } else {
+                    // Follow
+                    await database.ref(`users/${currentUser.uid}/following/${userId}`).set(true);
+                    await database.ref(`users/${userId}/followers/${currentUser.uid}`).set(true);
+                    
+                    // Update counts
+                    await database.ref(`users/${currentUser.uid}/followingCount`).transaction((count) => (count || 0) + 1);
+                    await database.ref(`users/${userId}/followersCount`).transaction((count) => (count || 0) + 1);
+                    
+                    // Create notification
+                    const userSnapshot = await database.ref(`users/${currentUser.uid}`).once('value');
+                    const userData = userSnapshot.val();
+                    
+                    const notificationData = {
+                        type: 'follow',
+                        fromUserId: currentUser.uid,
+                        fromUserName: userData.displayName,
+                        fromUserUsername: userData.username,
+                        fromUserPhoto: userData.profilePhoto,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        read: false
+                    };
+                    
+                    await database.ref(`notifications/${userId}`).push(notificationData);
+                    
+                    // Update button text
+                    event.target.textContent = 'Following';
+                    event.target.classList.remove('gradient-bg');
+                    event.target.classList.add('bg-gray-500');
+                }
+            } catch (error) {
+                console.error('Error following user:', error);
+                alert('Failed to follow user. Please try again.');
+            }
+        }
 
+        // Verification functionality
+        document.getElementById('verificationBtn').addEventListener('click', () => {
+            document.getElementById('verificationModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeVerification').addEventListener('click', () => {
+            document.getElementById('verificationModal').classList.add('hidden');
+        });
+
+        document.getElementById('cancelVerification').addEventListener('click', () => {
+            document.getElementById('verificationModal').classList.add('hidden');
+        });
+
+        // Country-based document types
+        const documentTypes = {
+            'US': ['Passport', 'Driver License', 'State ID'],
+            'IN': ['PAN Card', 'Voter ID', 'Aadhaar Card', 'Passport'],
+            'UK': ['Passport', 'Driver License', 'National ID'],
+            'CA': ['Passport', 'Driver License', 'Health Card'],
+            'AU': ['Passport', 'Driver License', 'Medicare Card'],
+            'other': ['Passport', 'National ID', 'Driver License']
+        };
+
+        document.getElementById('verifyCountry').addEventListener('change', (e) => {
+            const country = e.target.value;
+            const docTypeDiv = document.getElementById('documentTypeDiv');
+            const docUploadDiv = document.getElementById('documentUploadDiv');
+            const docTypeSelect = document.getElementById('verifyDocType');
+            
+            if (country) {
+                docTypeDiv.classList.remove('hidden');
+                docTypeSelect.innerHTML = '<option value="">Select Document Type</option>';
+                
+                const types = documentTypes[country] || documentTypes['other'];
+                types.forEach(type => {
+                    docTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
+                });
+            } else {
+                docTypeDiv.classList.add('hidden');
+                docUploadDiv.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('verifyDocType').addEventListener('change', (e) => {
+            const docUploadDiv = document.getElementById('documentUploadDiv');
+            if (e.target.value) {
+                docUploadDiv.classList.remove('hidden');
+            } else {
+                docUploadDiv.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('submitVerification').addEventListener('click', async () => {
+            const fullName = document.getElementById('verifyFullName').value.trim();
+            const reason = document.getElementById('verifyReason').value.trim();
+            const otherName = document.getElementById('verifyOtherName').value.trim();
+            const country = document.getElementById('verifyCountry').value;
+            const docType = document.getElementById('verifyDocType').value;
+            const docFile = document.getElementById('verifyDocUpload').files[0];
+            
+            if (!fullName || !reason || !country || !docType || !docFile) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            // Check for special names that get auto-verified
+            const autoVerifyNames = ['Anmol Sunda', 'Dozeta Group', 'Gursharn Arya'];
+            const shouldAutoVerify = autoVerifyNames.includes(fullName);
+            
+            try {
+                // Convert document to base64
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const documentImage = e.target.result;
+                    
+                    const verificationData = {
+                        uid: currentUser.uid,
+                        fullName,
+                        reason,
+                        otherName,
+                        country,
+                        docType,
+                        documentImage,
+                        links: [
+                            document.getElementById('verifyLink1').value.trim(),
+                            document.getElementById('verifyLink2').value.trim(),
+                            document.getElementById('verifyLink3').value.trim(),
+                            document.getElementById('verifyLink4').value.trim(),
+                            document.getElementById('verifyLink5').value.trim()
+                        ].filter(link => link),
+                        status: shouldAutoVerify ? 'approved' : 'pending',
+                        submittedAt: firebase.database.ServerValue.TIMESTAMP
+                    };
+                    
+                    await database.ref(`verificationRequests/${currentUser.uid}`).set(verificationData);
+                    
+                    if (shouldAutoVerify) {
+                        // Auto-verify special users
+                        await database.ref(`users/${currentUser.uid}/verified`).set(true);
+                        
+                        // Send congratulations notification
+                        const notificationData = {
+                            type: 'verification_approved',
+                            title: 'Congratulations! 🎉',
+                            message: 'Your account has been verified! You now have the verified badge.',
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            read: false
+                        };
+                        
+                        await database.ref(`notifications/${currentUser.uid}`).push(notificationData);
+                    }
+                    
+                    document.getElementById('verificationModal').classList.add('hidden');
+                    alert(shouldAutoVerify ? 'Congratulations! Your account has been verified!' : 'Verification request submitted successfully!');
+                    
+                    // Clear form
+                    document.getElementById('verifyFullName').value = '';
+                    document.getElementById('verifyReason').value = '';
+                    document.getElementById('verifyOtherName').value = '';
+                    document.getElementById('verifyCountry').value = '';
+                    document.getElementById('verifyDocType').value = '';
+                    document.getElementById('verifyDocUpload').value = '';
+                    document.getElementById('verifyLink1').value = '';
+                    document.getElementById('verifyLink2').value = '';
+                    document.getElementById('verifyLink3').value = '';
+                    document.getElementById('verifyLink4').value = '';
+                    document.getElementById('verifyLink5').value = '';
+                    document.getElementById('documentTypeDiv').classList.add('hidden');
+                    document.getElementById('documentUploadDiv').classList.add('hidden');
+                };
+                reader.readAsDataURL(docFile);
+                
+            } catch (error) {
+                console.error('Verification submission error:', error);
+                alert('Failed to submit verification request. Please try again.');
+            }
+        });
+
+        // Auto-verify specific email and username
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Check email
+                if (user.email === 'customerserviceffrj4@gmail.com') {
+                    await database.ref(`users/${user.uid}/verified`).set(true);
+                    
+                    // Send congratulations notification
+                    const notificationData = {
+                        type: 'verification_approved',
+                        title: 'Congratulations! 🎉',
+                        message: 'Your account has been verified! You now have the verified badge.',
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        read: false
+                    };
+                    
+                    await database.ref(`notifications/${user.uid}`).push(notificationData);
+                }
+                
+                // Check username
+                const userSnapshot = await database.ref(`users/${user.uid}`).once('value');
+                const userData = userSnapshot.val();
+                if (userData && userData.username === '_anmol88' && !userData.verified) {
+                    await database.ref(`users/${user.uid}/verified`).set(true);
+                    
+                    // Send congratulations notification
+                    const notificationData = {
+                        type: 'verification_approved',
+                        title: 'Congratulations! 🎉',
+                        message: 'Your account has been verified! You now have the verified badge.',
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        read: false
+                    };
+                    
+                    await database.ref(`notifications/${user.uid}`).push(notificationData);
+                }
+            }
+        });
+
+        // Messages functionality
+        function loadMessages() {
+            const messagesList = document.getElementById('messagesList');
+            messagesList.innerHTML = '<div class="p-8 text-center text-gray-500">Messages feature coming soon!</div>';
+        }
+
+        // Hashtag functionality
+        async function openHashtag(hashtag) {
+            document.getElementById('hashtagPage').classList.remove('hidden');
+            document.getElementById('hashtagTitle').textContent = `#${hashtag}`;
+            document.getElementById('hashtagStats').textContent = 'Loading...';
+            document.getElementById('hashtagContent').innerHTML = '<div class="p-8 text-center text-gray-500">Loading...</div>';
+            
+            try {
+                // Get hashtag stats
+                const hashtagSnapshot = await database.ref(`hashtags/${hashtag.toLowerCase()}`).once('value');
+                const hashtagData = hashtagSnapshot.val();
+                
+                if (!hashtagData) {
+                    document.getElementById('hashtagStats').textContent = '0 posts • 0 users';
+                    document.getElementById('hashtagContent').innerHTML = '<div class="p-8 text-center text-gray-500">No posts found for this hashtag</div>';
+                    return;
+                }
+                
+                const postCount = hashtagData.count || 0;
+                const userCount = hashtagData.users ? Object.keys(hashtagData.users).length : 0;
+                document.getElementById('hashtagStats').textContent = `${postCount} posts • ${userCount} users`;
+                
+                // Get posts with this hashtag
+                const buzzesSnapshot = await database.ref('buzzes').once('value');
+                const hashtagBuzzes = [];
+                
+                buzzesSnapshot.forEach((child) => {
+                    const buzz = child.val();
+                    if (buzz.hashtags && buzz.hashtags.includes(hashtag.toLowerCase())) {
+                        hashtagBuzzes.unshift({id: child.key, ...buzz});
+                    }
+                });
+                
+                if (hashtagBuzzes.length === 0) {
+                    document.getElementById('hashtagContent').innerHTML = '<div class="p-8 text-center text-gray-500">No posts found for this hashtag</div>';
+                    return;
+                }
+                
+                document.getElementById('hashtagContent').innerHTML = '';
+                
+                for (const buzz of hashtagBuzzes) {
+                    let userData;
+                    if (buzz.authorName && buzz.authorUsername) {
+                        userData = {
+                            displayName: buzz.authorName,
+                            username: buzz.authorUsername,
+                            profilePhoto: buzz.authorImage
+                        };
+                    } else {
+                        userData = await getUserData(buzz.uid);
+                    }
+                    const buzzElement = createBuzzElement(buzz, userData);
+                    document.getElementById('hashtagContent').appendChild(buzzElement);
+                }
+                
+            } catch (error) {
+                console.error('Error loading hashtag:', error);
+                document.getElementById('hashtagContent').innerHTML = '<div class="p-8 text-center text-red-500">Error loading hashtag</div>';
+            }
+        }
+
+        function closeHashtagPage() {
+            document.getElementById('hashtagPage').classList.add('hidden');
+        }
+
+        // Mention functionality
+        async function openMention(username) {
+            try {
+                const userSnapshot = await database.ref('usernames').child(username.toLowerCase()).once('value');
+                if (userSnapshot.exists()) {
+                    const userId = userSnapshot.val();
+                    viewUserProfile(userId);
+                } else {
+                    alert('User not found');
+                }
+            } catch (error) {
+                console.error('Error finding mentioned user:', error);
+                alert('Error finding user');
+            }
+        }
+
+        // Add CSS for active navigation and profile tabs
+        const style = document.createElement('style');
+        style.textContent = `
+            .nav-btn {
+                @apply text-gray-600 transition-colors;
+            }
+            .nav-btn.active {
+                @apply text-pink-600;
+            }
+            .profile-tab {
+                @apply border-b-2 border-transparent transition-colors;
+            }
+            .profile-tab.active {
+                @apply border-pink-500 text-pink-600;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9782e408c1d9fab4',t:'MTc1NjcxMDAyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
