@@ -488,69 +488,103 @@
         </div>
 
         <!-- Profile Tab -->
-        <div id="profileTab" class="hidden max-w-2xl mx-auto p-4 pb-20 md:pb-4">
-            <!-- Profile Header -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex items-center space-x-4 mb-4">
-                    <div class="w-20 h-20 story-ring rounded-full">
-                        <div id="profilePageDP" class="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold text-white">
-                            U
+        <div id="profileTab" class="hidden w-full pb-20 md:pb-4">
+            <!-- Instagram-Style Profile Header -->
+            <div class="bg-white">
+                <!-- Profile Info Section -->
+                <div class="p-4">
+                    <div class="flex items-start space-x-4 mb-4">
+                        <!-- Profile Picture -->
+                        <div class="w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
+                            <div class="w-full h-full story-ring rounded-full p-0.5">
+                                <div id="profilePageDP" class="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden">
+                                    U
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats Section -->
+                        <div class="flex-1">
+                            <div class="flex justify-around text-center mb-3">
+                                <div class="cursor-pointer" onclick="showUserBuzzesModal()">
+                                    <div id="buzzCount" class="text-lg font-bold text-gray-800">0</div>
+                                    <div class="text-xs text-gray-600">Posts</div>
+                                </div>
+                                <div class="cursor-pointer" onclick="showFollowersModal()">
+                                    <div id="followersCount" class="text-lg font-bold text-gray-800">0</div>
+                                    <div class="text-xs text-gray-600">Followers</div>
+                                </div>
+                                <div class="cursor-pointer" onclick="showFollowingModal()">
+                                    <div id="followingCount" class="text-lg font-bold text-gray-800">0</div>
+                                    <div class="text-xs text-gray-600">Following</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex-1">
-                        <h2 id="profileName" class="text-xl font-bold text-gray-800 flex items-center">User Name</h2>
-                        <p id="profileUsername" class="text-gray-600">@username</p>
-                        <p id="profileBio" class="text-gray-700 mt-2 text-sm"></p>
-                        <div class="flex space-x-4 mt-2">
-                            <span class="text-sm text-gray-600 cursor-pointer hover:underline" onclick="showFollowingModal()"><span id="followingCount" class="font-bold">0</span> Following</span>
-                            <span class="text-sm text-gray-600 cursor-pointer hover:underline" onclick="showFollowersModal()"><span id="followersCount" class="font-bold">0</span> Followers</span>
-                        </div>
+                    
+                    <!-- Name and Bio -->
+                    <div class="mb-4">
+                        <h2 id="profileName" class="text-sm font-bold text-gray-800 flex items-center mb-1">User Name</h2>
+                        <p id="profileUsername" class="text-sm text-gray-600 mb-2">@username</p>
+                        <p id="profileBio" class="text-sm text-gray-800 leading-relaxed"></p>
                     </div>
-                    <button onclick="showEditProfile()" class="instagram-gradient text-white px-4 py-2 rounded-xl font-medium hover:opacity-90 transition">
-                        Edit Profile
-                    </button>
+                    
+                    <!-- Action Button -->
+                    <div class="profile-action-buttons">
+                        <button onclick="showEditProfile()" class="w-full instagram-gradient text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition text-sm">
+                            Edit Profile
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Instagram-Style Tabs -->
+                <div class="border-t border-gray-200">
+                    <div class="flex">
+                        <button onclick="showProfileSection('buzzes')" id="buzzesTabBtn" class="flex-1 py-3 flex items-center justify-center text-pink-600 border-b-2 border-pink-600">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </button>
+                        <button onclick="showProfileSection('media')" id="mediaTabBtn" class="flex-1 py-3 flex items-center justify-center text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </button>
+                        <button onclick="showProfileSection('likes')" id="likesTabBtn" class="flex-1 py-3 flex items-center justify-center text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                        </button>
+                        <button onclick="showProfileSection('rebuzzes')" id="rebuzzesTabBtn" class="flex-1 py-3 flex items-center justify-center text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Profile Tabs -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6">
-                <div class="flex border-b border-gray-200">
-                    <button onclick="showProfileSection('buzzes')" id="buzzesTabBtn" class="flex-1 py-4 px-6 text-center font-medium text-pink-600 border-b-2 border-pink-600">
-                        Buzzes
-                    </button>
-                    <button onclick="showProfileSection('rebuzzes')" id="rebuzzesTabBtn" class="flex-1 py-4 px-6 text-center font-medium text-gray-500 hover:text-gray-700">
-                        Rebuzzes
-                    </button>
-                    <button onclick="showProfileSection('media')" id="mediaTabBtn" class="flex-1 py-4 px-6 text-center font-medium text-gray-500 hover:text-gray-700">
-                        Media
-                    </button>
-                    <button onclick="showProfileSection('likes')" id="likesTabBtn" class="flex-1 py-4 px-6 text-center font-medium text-gray-500 hover:text-gray-700">
-                        Likes
-                    </button>
-                </div>
-            </div>
-
-            <!-- Profile Content Sections -->
+            <!-- Profile Content Grid -->
             <div id="profileBuzzesSection">
-                <div id="userBuzzesContainer">
+                <div id="userBuzzesContainer" class="grid grid-cols-3 gap-1">
                     <!-- User's buzzes will be loaded here -->
                 </div>
             </div>
 
             <div id="profileRebuzzesSection" class="hidden">
-                <div id="userRebuzzesContainer">
+                <div id="userRebuzzesContainer" class="grid grid-cols-3 gap-1">
                     <!-- User's rebuzzes will be loaded here -->
                 </div>
             </div>
 
             <div id="profileMediaSection" class="hidden">
-                <div id="userMediaContainer">
+                <div id="userMediaContainer" class="grid grid-cols-3 gap-1">
                     <!-- User's media posts will be loaded here -->
                 </div>
             </div>
 
             <div id="profileLikesSection" class="hidden">
-                <div id="userLikesContainer">
+                <div id="userLikesContainer" class="grid grid-cols-3 gap-1">
                     <!-- User's liked posts will be loaded here -->
                 </div>
             </div>
@@ -1189,6 +1223,7 @@
                         authorName: userData.fullName || 'User',
                         authorUsername: userData.username || 'user',
                         authorImage: userData.profilePic || null,
+                        authorVerified: userData.verified || false,
                         text: text || '',
                         image: buzzImageData || null,
                         timestamp: firebase.database.ServerValue.TIMESTAMP,
@@ -1206,6 +1241,9 @@
                 .then((buzzRef) => {
                     const buzzId = buzzRef.key;
                     
+                    // Update user's buzz count
+                    database.ref('users/' + currentUser.uid + '/buzzes').transaction((count) => (count || 0) + 1);
+                    
                     // Process hashtags
                     processHashtags(hashtags, buzzId);
                     
@@ -1215,6 +1253,13 @@
                     document.getElementById('buzzText').value = '';
                     removeBuzzImage();
                     loadFeed();
+                    
+                    // Refresh profile if currently viewing it
+                    if (currentTab === 'profile') {
+                        loadUserProfileData();
+                        loadUserBuzzes();
+                    }
+                    
                     showCustomAlert('Buzz posted successfully!');
                 })
                 .catch((error) => {
@@ -1319,6 +1364,9 @@
             
             const timeAgo = buzz.timestamp ? new Date(buzz.timestamp).toLocaleString() : 'Just now';
             
+            // Check for verification status from buzz data or user data
+            const isVerified = buzz.authorVerified || userData.verified || false;
+            
             div.innerHTML = `
                 <div class="flex space-x-4">
                     <div class="w-12 h-12 story-ring rounded-full flex-shrink-0">
@@ -1329,7 +1377,7 @@
                     <div class="flex-1">
                         <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center space-x-2">
-                                <h3 class="font-bold text-gray-800 cursor-pointer hover:underline flex items-center" onclick="viewUserProfile('${buzz.uid}')">${userData.fullName}${userData.verified ? '<span class="verified-badge ml-1"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : ''}</h3>
+                                <h3 class="font-bold text-gray-800 cursor-pointer hover:underline flex items-center" onclick="viewUserProfile('${buzz.uid}')">${userData.fullName}${isVerified ? '<span class="verified-badge ml-1"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : ''}</h3>
                                 <span class="text-gray-500 cursor-pointer hover:underline" onclick="viewUserProfile('${buzz.uid}')">@${userData.username}</span>
                                 <span class="text-gray-400">•</span>
                                 <span class="text-gray-500 text-sm">${timeAgo}</span>
@@ -2365,6 +2413,11 @@
                         const gridItem = createGridItem(buzz);
                         container.appendChild(gridItem);
                     });
+                })
+                .catch((error) => {
+                    console.error('Error loading user buzzes:', error);
+                    const container = document.getElementById('userBuzzesContainer');
+                    container.innerHTML = '<div class="col-span-3 text-center py-16 text-red-500"><p>Error loading posts</p></div>';
                 });
         }
 
@@ -3109,5 +3162,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97852f1db7944853',t:'MTc1NjczNDA3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97853957704f3c52',t:'MTc1NjczNDQ5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
