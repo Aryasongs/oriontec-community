@@ -570,9 +570,16 @@
         <div id="settingsTab" class="hidden max-w-2xl mx-auto p-4 pb-20 md:pb-4">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Settings</h2>
             <div class="space-y-4">
+                <!-- Account Settings -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Account</h3>
                     <div class="space-y-3">
+                        <button onclick="showAccountSettings()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition flex items-center justify-between">
+                            <span>Account Information</span>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
                         <button onclick="addAccount()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition">Add Account</button>
                         <button onclick="togglePrivateAccount()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition">
                             <span id="privateAccountText">Private Account</span>
@@ -583,6 +590,64 @@
                         <button onclick="showVerificationRequest()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition">Request Verification</button>
                     </div>
                 </div>
+
+                <!-- Monetization Settings (Only for eligible users) -->
+                <div id="monetizationSection" class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <span class="mr-2">💰</span>
+                        Monetization
+                        <span class="ml-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full">ELIGIBLE</span>
+                    </h3>
+                    <div class="space-y-3">
+                        <button onclick="showMonetizationDashboard()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">Monetization Dashboard</div>
+                                <div class="text-sm text-gray-500">View earnings and analytics</div>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                        <button onclick="showCreatorFund()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">Creator Fund</div>
+                                <div class="text-sm text-gray-500">Earn from your content</div>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                        <button onclick="showBrandPartnerships()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">Brand Partnerships</div>
+                                <div class="text-sm text-gray-500">Collaborate with brands</div>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                        <button onclick="showTipJar()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">Tip Jar</div>
+                                <div class="text-sm text-gray-500">Receive tips from followers</div>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                        <button onclick="showPaymentSettings()" class="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">Payment Settings</div>
+                                <div class="text-sm text-gray-500">Manage payment methods</div>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Support -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Support</h3>
                     <div class="space-y-3">
@@ -1025,6 +1090,214 @@
         </div>
     </div>
 
+    <!-- Account Settings Modal -->
+    <div id="accountSettingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Account Information</h3>
+                    <button onclick="closeAccountSettings()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="accountSettingsForm" class="space-y-6">
+                    <!-- Profile Picture -->
+                    <div class="text-center">
+                        <div class="w-24 h-24 mx-auto mb-4 story-ring rounded-full">
+                            <div id="accountSettingsDP" class="w-full h-full bg-gray-200 rounded-full flex items-center justify-center text-2xl font-bold text-gray-600">
+                                ?
+                            </div>
+                        </div>
+                        <input type="file" id="accountProfilePic" accept="image/*" class="hidden" onchange="previewAccountProfilePic()">
+                        <button type="button" onclick="document.getElementById('accountProfilePic').click()" class="bg-gray-100 text-gray-700 py-2 px-4 rounded-xl hover:bg-gray-200 transition">Change Photo</button>
+                    </div>
+                    
+                    <!-- Full Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                        <input type="text" id="accountFullName" required class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Username *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
+                            <input type="text" id="accountUsername" required class="w-full p-3 pl-8 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" oninput="checkUsernameAvailability()">
+                        </div>
+                        <div id="usernameAvailability" class="mt-2 text-sm"></div>
+                    </div>
+                    
+                    <!-- Bio -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                        <textarea id="accountBio" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none" rows="3" placeholder="Tell us about yourself..." maxlength="150" oninput="updateBioCharCount()"></textarea>
+                        <div class="text-right text-xs text-gray-500 mt-1">
+                            <span id="bioCharCount">0</span>/150
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="accountEmail" readonly class="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500" placeholder="Email from Google account">
+                        <p class="text-xs text-gray-500 mt-1">Email cannot be changed as it's linked to your Google account</p>
+                    </div>
+                    
+                    <!-- Phone Number -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number (Optional)</label>
+                        <input type="tel" id="accountPhone" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="+1 (555) 123-4567">
+                    </div>
+                    
+                    <!-- Website -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Website (Optional)</label>
+                        <input type="url" id="accountWebsite" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="https://yourwebsite.com">
+                    </div>
+                    
+                    <!-- Location -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Location (Optional)</label>
+                        <input type="text" id="accountLocation" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="City, Country">
+                    </div>
+                    
+                    <!-- Date of Birth -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                        <input type="date" id="accountDOB" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-1">This information is private and won't be shown on your profile</p>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="closeAccountSettings()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition">Cancel</button>
+                        <button type="submit" class="flex-1 instagram-gradient text-white py-3 rounded-xl font-medium hover:opacity-90 transition">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monetization Dashboard Modal -->
+    <div id="monetizationDashboardModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                        <span class="mr-2">💰</span>
+                        Monetization Dashboard
+                    </h3>
+                    <button onclick="closeMonetizationDashboard()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Earnings Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold">Total Earnings</h4>
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                            </svg>
+                        </div>
+                        <div class="text-3xl font-bold" id="totalEarnings">$0.00</div>
+                        <div class="text-green-100 text-sm mt-2">+$0.00 this month</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold">This Month</h4>
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="text-3xl font-bold" id="monthlyEarnings">$0.00</div>
+                        <div class="text-blue-100 text-sm mt-2">From 0 monetized posts</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl p-6 text-white">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold">Pending</h4>
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="text-3xl font-bold" id="pendingEarnings">$0.00</div>
+                        <div class="text-purple-100 text-sm mt-2">Next payout in 7 days</div>
+                    </div>
+                </div>
+                
+                <!-- Revenue Sources -->
+                <div class="bg-gray-50 rounded-2xl p-6 mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Revenue Sources</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">$0.00</div>
+                            <div class="text-sm text-gray-600">Creator Fund</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">$0.00</div>
+                            <div class="text-sm text-gray-600">Brand Deals</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-600">$0.00</div>
+                            <div class="text-sm text-gray-600">Tips</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-orange-600">$0.00</div>
+                            <div class="text-sm text-gray-600">Other</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Content Performance</h4>
+                        <div class="space-y-4">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total Views</span>
+                                <span class="font-semibold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Engagement Rate</span>
+                                <span class="font-semibold">0%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Monetized Posts</span>
+                                <span class="font-semibold">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Audience Insights</h4>
+                        <div class="space-y-4">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Followers</span>
+                                <span class="font-semibold" id="dashboardFollowers">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Avg. Engagement</span>
+                                <span class="font-semibold">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Top Demographics</span>
+                                <span class="font-semibold">18-24</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Verification Request Modal -->
     <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -1359,6 +1632,9 @@
                     database.ref('users/' + currentUser.uid).set(userData),
                     database.ref('usernames/' + username).set(currentUser.uid)
                 ]).then(() => {
+                    // Auto-follow official accounts for new users
+                    return autoFollowOfficialAccounts();
+                }).then(() => {
                     if (isVerified) {
                         // Send verification notification
                         createNotification(currentUser.uid, 'verification', null, 'system');
@@ -1389,8 +1665,24 @@
                     if (userData) {
                         updateProfilePics(userData);
                         checkVerificationStatus(userData);
+                        checkMonetizationEligibility(userData);
                     }
                 });
+        }
+
+        function checkMonetizationEligibility(userData) {
+            const followers = userData.followers || 0;
+            const username = userData.username || '';
+            
+            // Check if user is eligible for monetization (10K+ followers or special user)
+            const isEligible = followers >= 10000 || username === 'gursharnarya1';
+            
+            const monetizationSection = document.getElementById('monetizationSection');
+            if (isEligible) {
+                monetizationSection.classList.remove('hidden');
+            } else {
+                monetizationSection.classList.add('hidden');
+            }
         }
 
         function checkVerificationStatus(userData) {
@@ -2341,9 +2633,34 @@
             
             const timeAgo = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Now';
             
+            // Check if message contains links
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const urls = message.text.match(urlRegex);
+            let linkPreviewHTML = '';
+            
+            if (urls && urls.length > 0) {
+                const url = urls[0];
+                const linkPreview = generateMessageLinkPreview(url);
+                linkPreviewHTML = `
+                    <div onclick="openLink('${url}')" class="mt-3 p-3 ${isOwnMessage ? 'bg-white bg-opacity-20' : 'bg-white'} rounded-xl border ${isOwnMessage ? 'border-white border-opacity-30' : 'border-gray-200'} cursor-pointer hover:opacity-80 transition">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-medium ${isOwnMessage ? 'text-white' : 'text-gray-800'} text-sm line-clamp-2">${linkPreview.title}</h4>
+                                <p class="${isOwnMessage ? 'text-pink-100' : 'text-gray-600'} text-xs mt-1 line-clamp-2">${linkPreview.description}</p>
+                                <p class="${isOwnMessage ? 'text-pink-200' : 'text-gray-500'} text-xs mt-1">${linkPreview.domain}</p>
+                            </div>
+                            <svg class="w-4 h-4 ${isOwnMessage ? 'text-white' : 'text-gray-400'} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            }
+            
             div.innerHTML = `
                 <div class="max-w-xs lg:max-w-md ${isOwnMessage ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-l-2xl rounded-tr-2xl rounded-br-md' : 'bg-gray-100 text-gray-800 rounded-r-2xl rounded-tl-2xl rounded-bl-md'} px-4 py-3 shadow-sm">
-                    <p class="text-sm leading-relaxed">${formatTextWithHashtagsAndMentions(message.text)}</p>
+                    <p class="text-sm leading-relaxed">${formatMessageTextWithLinks(message.text)}</p>
+                    ${linkPreviewHTML}
                     <div class="flex ${isOwnMessage ? 'justify-between' : 'justify-start'} items-center mt-2">
                         <p class="text-xs ${isOwnMessage ? 'text-pink-100' : 'text-gray-500'}">${timeAgo}</p>
                         ${isOwnMessage ? `
@@ -2812,6 +3129,199 @@
             loadUserProfileData();
             // Reset profile section to buzzes
             showProfileSection('buzzes');
+        }
+
+        // Account Settings Functions
+        function showAccountSettings() {
+            database.ref('users/' + currentUser.uid).once('value')
+                .then((snapshot) => {
+                    const userData = snapshot.val();
+                    if (userData) {
+                        // Populate form with current data
+                        document.getElementById('accountFullName').value = userData.fullName || '';
+                        document.getElementById('accountUsername').value = userData.username || '';
+                        document.getElementById('accountBio').value = userData.bio || '';
+                        document.getElementById('accountEmail').value = currentUser.email || '';
+                        document.getElementById('accountPhone').value = userData.phone || '';
+                        document.getElementById('accountWebsite').value = userData.website || '';
+                        document.getElementById('accountLocation').value = userData.location || '';
+                        document.getElementById('accountDOB').value = userData.dateOfBirth || '';
+                        
+                        // Update bio character count
+                        updateBioCharCount();
+                        
+                        // Set profile picture
+                        const accountDP = document.getElementById('accountSettingsDP');
+                        if (userData.profilePic) {
+                            accountDP.innerHTML = `<img src="${userData.profilePic}" class="w-full h-full object-cover rounded-full">`;
+                        } else {
+                            accountDP.textContent = userData.fullName.charAt(0).toUpperCase();
+                        }
+                        
+                        document.getElementById('accountSettingsModal').classList.remove('hidden');
+                    }
+                });
+        }
+
+        function closeAccountSettings() {
+            document.getElementById('accountSettingsModal').classList.add('hidden');
+        }
+
+        function previewAccountProfilePic() {
+            showPermissionDialog(
+                'Camera & Photos Access',
+                'Pulse wants to access your photos to update your profile picture.',
+                'camera',
+                (allowed) => {
+                    if (allowed) {
+                        const file = document.getElementById('accountProfilePic').files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                document.getElementById('accountSettingsDP').innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-full">`;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    } else {
+                        document.getElementById('accountProfilePic').value = '';
+                        showCustomAlert('Photo access denied.');
+                    }
+                }
+            );
+        }
+
+        function checkUsernameAvailability() {
+            const username = document.getElementById('accountUsername').value.toLowerCase().trim();
+            const availability = document.getElementById('usernameAvailability');
+            
+            if (username.length < 3) {
+                availability.innerHTML = '<span class="text-red-500">Username must be at least 3 characters</span>';
+                return;
+            }
+            
+            if (!/^[a-z0-9_]+$/.test(username)) {
+                availability.innerHTML = '<span class="text-red-500">Only lowercase letters, numbers, and underscores allowed</span>';
+                return;
+            }
+            
+            // Check current user's username
+            database.ref('users/' + currentUser.uid + '/username').once('value')
+                .then((currentSnapshot) => {
+                    const currentUsername = currentSnapshot.val();
+                    
+                    if (username === currentUsername) {
+                        availability.innerHTML = '<span class="text-blue-500">Current username</span>';
+                        return;
+                    }
+                    
+                    // Check if username exists
+                    database.ref('usernames/' + username).once('value')
+                        .then((snapshot) => {
+                            if (snapshot.exists()) {
+                                availability.innerHTML = '<span class="text-red-500">Username already taken</span>';
+                            } else {
+                                availability.innerHTML = '<span class="text-green-500">Username available!</span>';
+                            }
+                        });
+                });
+        }
+
+        function updateBioCharCount() {
+            const bio = document.getElementById('accountBio').value;
+            document.getElementById('bioCharCount').textContent = bio.length;
+        }
+
+        // Add event listener for bio character count
+        document.addEventListener('DOMContentLoaded', function() {
+            const bioTextarea = document.getElementById('accountBio');
+            if (bioTextarea) {
+                bioTextarea.addEventListener('input', updateBioCharCount);
+            }
+        });
+
+        // Handle account settings form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const accountForm = document.getElementById('accountSettingsForm');
+            if (accountForm) {
+                accountForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    saveAccountSettings();
+                });
+            }
+        });
+
+        function saveAccountSettings() {
+            const newFullName = document.getElementById('accountFullName').value.trim();
+            const newUsername = document.getElementById('accountUsername').value.toLowerCase().trim();
+            const newBio = document.getElementById('accountBio').value.trim();
+            const newPhone = document.getElementById('accountPhone').value.trim();
+            const newWebsite = document.getElementById('accountWebsite').value.trim();
+            const newLocation = document.getElementById('accountLocation').value.trim();
+            const newDOB = document.getElementById('accountDOB').value;
+            const newProfilePicFile = document.getElementById('accountProfilePic').files[0];
+            
+            if (!newFullName) {
+                showCustomAlert('Full name is required!');
+                return;
+            }
+            
+            if (!newUsername) {
+                showCustomAlert('Username is required!');
+                return;
+            }
+            
+            // Get current user data first
+            database.ref('users/' + currentUser.uid).once('value')
+                .then((snapshot) => {
+                    const currentData = snapshot.val();
+                    const currentUsername = currentData.username;
+                    
+                    let updates = {
+                        fullName: newFullName,
+                        username: newUsername,
+                        bio: newBio,
+                        phone: newPhone,
+                        website: newWebsite,
+                        location: newLocation,
+                        dateOfBirth: newDOB
+                    };
+                    
+                    const saveUpdates = () => {
+                        const promises = [];
+                        
+                        // Update user data
+                        promises.push(database.ref('users/' + currentUser.uid).update(updates));
+                        
+                        // Update username mapping if changed
+                        if (newUsername !== currentUsername) {
+                            promises.push(database.ref('usernames/' + currentUsername).remove());
+                            promises.push(database.ref('usernames/' + newUsername).set(currentUser.uid));
+                        }
+                        
+                        Promise.all(promises)
+                            .then(() => {
+                                closeAccountSettings();
+                                loadUserProfile();
+                                loadUserProfileData();
+                                showCustomAlert('Account settings updated successfully!');
+                            })
+                            .catch((error) => {
+                                console.error('Error updating account:', error);
+                                showCustomAlert('Failed to update account settings');
+                            });
+                    };
+                    
+                    if (newProfilePicFile) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            updates.profilePic = e.target.result;
+                            saveUpdates();
+                        };
+                        reader.readAsDataURL(newProfilePicFile);
+                    } else {
+                        saveUpdates();
+                    }
+                });
         }
 
         // Settings Functions
@@ -4484,6 +4994,510 @@
             });
         }
 
+        // Auto-follow official accounts for new users
+        function autoFollowOfficialAccounts() {
+            const officialAccounts = ['pulse', 'gursharnarya1'];
+            const promises = [];
+            
+            officialAccounts.forEach(username => {
+                // Find user ID by username
+                const promise = database.ref('usernames/' + username).once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const officialUserId = snapshot.val();
+                            
+                            // Add to current user's following
+                            database.ref(`users/${currentUser.uid}/followingList/${officialUserId}`).set(true);
+                            database.ref(`users/${currentUser.uid}/following`).transaction((count) => (count || 0) + 1);
+                            
+                            // Add to official account's followers
+                            database.ref(`users/${officialUserId}/followersList/${currentUser.uid}`).set(true);
+                            database.ref(`users/${officialUserId}/followers`).transaction((count) => (count || 0) + 1);
+                            
+                            // Create welcome notification from official account
+                            if (username === 'pulse') {
+                                createNotification(currentUser.uid, 'follow', null, officialUserId);
+                                
+                                // Send welcome message from Pulse
+                                setTimeout(() => {
+                                    sendWelcomeMessage(officialUserId);
+                                }, 2000);
+                            }
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(`Official account @${username} not found, skipping auto-follow`);
+                    });
+                
+                promises.push(promise);
+            });
+            
+            return Promise.all(promises);
+        }
+        
+        // Send welcome message from Pulse official account
+        function sendWelcomeMessage(pulseUserId) {
+            const conversationId = [currentUser.uid, pulseUserId].sort().join('_');
+            
+            database.ref('users/' + pulseUserId).once('value')
+                .then((snapshot) => {
+                    const pulseData = snapshot.val();
+                    if (pulseData) {
+                        const welcomeMessage = {
+                            senderId: pulseUserId,
+                            receiverId: currentUser.uid,
+                            text: "🎉 Welcome to Pulse! We're excited to have you join our community. Start by creating your first buzz, following interesting people, and engaging with content. If you need any help, feel free to reach out. Happy buzzing! ✨",
+                            senderName: pulseData.fullName,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        };
+                        
+                        // Send the welcome message
+                        database.ref(`messages/${conversationId}`).push(welcomeMessage);
+                        
+                        // Update conversation list
+                        const conversationData = {
+                            lastMessage: welcomeMessage.text,
+                            lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+                            lastMessageSender: pulseUserId,
+                            seen: false,
+                            participants: {
+                                [currentUser.uid]: true,
+                                [pulseUserId]: true
+                            },
+                            unreadCount: {
+                                [currentUser.uid]: 1
+                            }
+                        };
+                        
+                        database.ref(`conversations/${conversationId}`).set(conversationData);
+                        
+                        // Create message notification
+                        createNotification(currentUser.uid, 'message', null, pulseUserId);
+                    }
+                });
+        }
+
+        // Message link preview functions
+        function generateMessageLinkPreview(url) {
+            try {
+                const urlObj = new URL(url);
+                const domain = urlObj.hostname.replace('www.', '');
+                
+                let linkPreview = {
+                    url: url,
+                    title: `Link from ${domain}`,
+                    description: `Visit ${domain} to see the full content`,
+                    domain: domain
+                };
+                
+                // Set specific previews for popular sites
+                if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
+                    linkPreview.title = '🎥 YouTube Video';
+                    linkPreview.description = 'Watch this video on YouTube';
+                } else if (domain.includes('twitter.com') || domain.includes('x.com')) {
+                    linkPreview.title = '🐦 Twitter/X Post';
+                    linkPreview.description = 'View this post on Twitter/X';
+                } else if (domain.includes('instagram.com')) {
+                    linkPreview.title = '📸 Instagram Post';
+                    linkPreview.description = 'View this post on Instagram';
+                } else if (domain.includes('facebook.com')) {
+                    linkPreview.title = '👥 Facebook Post';
+                    linkPreview.description = 'View this post on Facebook';
+                } else if (domain.includes('linkedin.com')) {
+                    linkPreview.title = '💼 LinkedIn Post';
+                    linkPreview.description = 'View this post on LinkedIn';
+                } else if (domain.includes('github.com')) {
+                    linkPreview.title = '💻 GitHub Repository';
+                    linkPreview.description = 'View this repository on GitHub';
+                } else if (domain.includes('spotify.com')) {
+                    linkPreview.title = '🎵 Spotify';
+                    linkPreview.description = 'Listen on Spotify';
+                } else if (domain.includes('apple.com')) {
+                    linkPreview.title = '🍎 Apple';
+                    linkPreview.description = 'View on Apple';
+                } else if (domain.includes('amazon.com')) {
+                    linkPreview.title = '🛒 Amazon';
+                    linkPreview.description = 'View product on Amazon';
+                } else if (domain.includes('netflix.com')) {
+                    linkPreview.title = '🎬 Netflix';
+                    linkPreview.description = 'Watch on Netflix';
+                } else if (domain.includes('reddit.com')) {
+                    linkPreview.title = '🔴 Reddit Post';
+                    linkPreview.description = 'View this post on Reddit';
+                } else if (domain.includes('tiktok.com')) {
+                    linkPreview.title = '🎵 TikTok Video';
+                    linkPreview.description = 'Watch this video on TikTok';
+                } else if (domain.includes('whatsapp.com')) {
+                    linkPreview.title = '💬 WhatsApp';
+                    linkPreview.description = 'Open in WhatsApp';
+                } else if (domain.includes('telegram.org') || domain.includes('t.me')) {
+                    linkPreview.title = '✈️ Telegram';
+                    linkPreview.description = 'Open in Telegram';
+                }
+                
+                return linkPreview;
+            } catch (error) {
+                return {
+                    url: url,
+                    title: 'Link',
+                    description: 'Click to open link',
+                    domain: 'External Link'
+                };
+            }
+        }
+
+        function formatMessageTextWithLinks(text) {
+            if (!text) return '';
+            
+            // Make URLs clickable but don't show them as full links since we have preview
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            let formattedText = text.replace(urlRegex, (url) => {
+                try {
+                    const urlObj = new URL(url);
+                    const domain = urlObj.hostname.replace('www.', '');
+                    return `<span class="underline cursor-pointer font-medium" onclick="openLink('${url}')">${domain}</span>`;
+                } catch (error) {
+                    return `<span class="underline cursor-pointer font-medium" onclick="openLink('${url}')">Link</span>`;
+                }
+            });
+            
+            // Also format hashtags and mentions
+            formattedText = formattedText.replace(/#([a-zA-Z0-9_]+)/g, '<span class="font-semibold">#$1</span>');
+            formattedText = formattedText.replace(/@([a-zA-Z0-9_]+)/g, '<span class="font-semibold">@$1</span>');
+            
+            return formattedText;
+        }
+
+        // Monetization Functions
+        function showMonetizationDashboard() {
+            // Load user's follower count for dashboard
+            database.ref('users/' + currentUser.uid + '/followers').once('value')
+                .then((snapshot) => {
+                    const followers = snapshot.val() || 0;
+                    document.getElementById('dashboardFollowers').textContent = followers.toLocaleString();
+                });
+            
+            document.getElementById('monetizationDashboardModal').classList.remove('hidden');
+        }
+
+        function closeMonetizationDashboard() {
+            document.getElementById('monetizationDashboardModal').classList.add('hidden');
+        }
+
+        function showCreatorFund() {
+            const modal = document.createElement('div');
+            modal.id = 'creatorFundModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-2xl w-full p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                            <span class="mr-2">🎯</span>
+                            Creator Fund
+                        </h3>
+                        <button onclick="closeCreatorFund()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+                            <h4 class="text-lg font-semibold mb-2">Earn from Your Content</h4>
+                            <p class="text-green-100 mb-4">Get paid based on views, engagement, and content quality. The more engaging your content, the more you earn!</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <div class="text-2xl font-bold">$0.05</div>
+                                    <div class="text-green-100 text-sm">Per 1K views</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold">$0.10</div>
+                                    <div class="text-green-100 text-sm">Per 1K engagements</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-2xl p-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">How It Works</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                                    <div>
+                                        <div class="font-medium">Create Quality Content</div>
+                                        <div class="text-gray-600 text-sm">Post engaging buzzes that your audience loves</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                                    <div>
+                                        <div class="font-medium">Earn from Views & Engagement</div>
+                                        <div class="text-gray-600 text-sm">Get paid for likes, comments, shares, and views</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                                    <div>
+                                        <div class="font-medium">Monthly Payouts</div>
+                                        <div class="text-gray-600 text-sm">Receive payments directly to your bank account</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="joinCreatorFund()" class="w-full instagram-gradient text-white py-3 rounded-xl font-medium hover:opacity-90 transition">
+                            Join Creator Fund
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function closeCreatorFund() {
+            const modal = document.getElementById('creatorFundModal');
+            if (modal) modal.remove();
+        }
+
+        function joinCreatorFund() {
+            showCustomAlert('🎉 Welcome to the Creator Fund! You can now start earning from your content. Your earnings will appear in the monetization dashboard.');
+            closeCreatorFund();
+        }
+
+        function showBrandPartnerships() {
+            const modal = document.createElement('div');
+            modal.id = 'brandPartnershipsModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-2xl w-full p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                            <span class="mr-2">🤝</span>
+                            Brand Partnerships
+                        </h3>
+                        <button onclick="closeBrandPartnerships()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white">
+                            <h4 class="text-lg font-semibold mb-2">Collaborate with Top Brands</h4>
+                            <p class="text-blue-100 mb-4">Connect with brands that align with your content and audience. Earn through sponsored posts and long-term partnerships.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border border-gray-200 rounded-xl p-4">
+                                <h5 class="font-semibold mb-2">Available Campaigns</h5>
+                                <div class="text-gray-600 text-sm">No active campaigns at the moment. Check back soon!</div>
+                            </div>
+                            <div class="border border-gray-200 rounded-xl p-4">
+                                <h5 class="font-semibold mb-2">Your Stats</h5>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Avg. Engagement</span>
+                                        <span>5.2%</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Reach</span>
+                                        <span>10K+</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="applyForPartnerships()" class="w-full instagram-gradient text-white py-3 rounded-xl font-medium hover:opacity-90 transition">
+                            Apply for Brand Partnerships
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function closeBrandPartnerships() {
+            const modal = document.getElementById('brandPartnershipsModal');
+            if (modal) modal.remove();
+        }
+
+        function applyForPartnerships() {
+            showCustomAlert('📝 Your application has been submitted! Brands will be able to see your profile and reach out for collaboration opportunities.');
+            closeBrandPartnerships();
+        }
+
+        function showTipJar() {
+            const modal = document.createElement('div');
+            modal.id = 'tipJarModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-2xl w-full p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                            <span class="mr-2">💝</span>
+                            Tip Jar
+                        </h3>
+                        <button onclick="closeTipJar()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl p-6 text-white">
+                            <h4 class="text-lg font-semibold mb-2">Receive Tips from Followers</h4>
+                            <p class="text-purple-100 mb-4">Enable your followers to show appreciation for your content with tips. Set custom amounts and messages.</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-2xl p-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">Tip Settings</h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Tip Amount</label>
+                                    <select class="w-full p-3 border border-gray-300 rounded-xl">
+                                        <option>$1.00</option>
+                                        <option>$2.00</option>
+                                        <option>$5.00</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Suggested Amounts</label>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <input type="number" placeholder="$5" class="p-2 border border-gray-300 rounded-lg text-center">
+                                        <input type="number" placeholder="$10" class="p-2 border border-gray-300 rounded-lg text-center">
+                                        <input type="number" placeholder="$25" class="p-2 border border-gray-300 rounded-lg text-center">
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" id="enableTips" class="rounded">
+                                    <label for="enableTips" class="text-sm text-gray-700">Enable tip jar on my profile</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="saveTipSettings()" class="w-full instagram-gradient text-white py-3 rounded-xl font-medium hover:opacity-90 transition">
+                            Save Tip Settings
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function closeTipJar() {
+            const modal = document.getElementById('tipJarModal');
+            if (modal) modal.remove();
+        }
+
+        function saveTipSettings() {
+            showCustomAlert('💝 Tip jar settings saved! Your followers can now send you tips to show their appreciation.');
+            closeTipJar();
+        }
+
+        function showPaymentSettings() {
+            const modal = document.createElement('div');
+            modal.id = 'paymentSettingsModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-2xl w-full p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                            <span class="mr-2">💳</span>
+                            Payment Settings
+                        </h3>
+                        <button onclick="closePaymentSettings()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+                            <h4 class="text-lg font-semibold mb-2">Secure Payment Processing</h4>
+                            <p class="text-green-100">All payments are processed securely. Add your payment method to receive earnings from monetization.</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                                <div class="border border-gray-300 rounded-xl p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-6 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">BANK</div>
+                                            <div>
+                                                <div class="font-medium">Bank Account</div>
+                                                <div class="text-gray-500 text-sm">Not connected</div>
+                                            </div>
+                                        </div>
+                                        <button onclick="addBankAccount()" class="text-blue-600 hover:underline text-sm">Add</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tax Information</label>
+                                <div class="border border-gray-300 rounded-xl p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-medium">Tax Forms</div>
+                                            <div class="text-gray-500 text-sm">Required for payments over $600/year</div>
+                                        </div>
+                                        <button onclick="addTaxInfo()" class="text-blue-600 hover:underline text-sm">Setup</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Payout Schedule</label>
+                                <select class="w-full p-3 border border-gray-300 rounded-xl">
+                                    <option>Monthly (Recommended)</option>
+                                    <option>Weekly (Minimum $50)</option>
+                                    <option>Daily (Minimum $100)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                            <div class="flex items-start space-x-3">
+                                <svg class="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                </svg>
+                                <div>
+                                    <div class="font-medium text-yellow-800">Payment Information Required</div>
+                                    <div class="text-yellow-700 text-sm">You need to add a bank account to receive payments from monetization features.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function closePaymentSettings() {
+            const modal = document.getElementById('paymentSettingsModal');
+            if (modal) modal.remove();
+        }
+
+        function addBankAccount() {
+            showCustomAlert('🏦 Bank account setup would redirect to a secure payment processor like Stripe or PayPal to add your banking information.');
+        }
+
+        function addTaxInfo() {
+            showCustomAlert('📋 Tax information setup would collect necessary tax forms (W-9, etc.) required for payment processing.');
+        }
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             // Check if user is already signed in
@@ -4493,5 +5507,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9785752212fe856b',t:'MTc1NjczNjk0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9785992db6ad91ac',t:'MTc1NjczODQxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
