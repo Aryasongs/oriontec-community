@@ -279,8 +279,8 @@
 
 
 
-        <!-- Create Buzz -->
-        <div class="bg-white border-b border-gray-200 p-4">
+        <!-- Create Buzz (Only on Home) -->
+        <div id="createBuzzSection" class="bg-white border-b border-gray-200 p-4">
             <div class="max-w-md mx-auto">
                 <div class="flex space-x-3">
                     <div id="userAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0"></div>
@@ -299,17 +299,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                     </svg>
                                 </button>
-                                <input id="buzzImageInput" type="file" accept="image/*" class="hidden">
+                                <input id="buzzImageInput" type="file" accept="image/*" multiple class="hidden">
                             </div>
                             <button id="postBuzz" class="gradient-bg text-white px-6 py-2 rounded-full font-semibold disabled:opacity-50" disabled>Buzz</button>
                         </div>
-                        <div id="imagePreview" class="hidden mt-3 relative">
-                            <img id="previewImg" class="w-full rounded-lg max-h-64 object-cover">
-                            <button id="removeImage" class="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full p-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
+                        <div id="imagePreview" class="hidden mt-3">
+                            <div id="imageGrid" class="grid grid-cols-2 gap-2">
+                                <!-- Images will be added here -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -328,15 +325,24 @@
             <div class="max-w-md mx-auto">
                 <div class="p-4 border-b border-gray-200">
                     <div class="relative">
-                        <input id="searchInput" type="text" placeholder="Search users, buzzes..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                        <input id="searchInput" type="text" placeholder="Search users, buzzes, hashtags..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-pink-500 focus:border-transparent">
                         <svg class="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
+                    
+                    <!-- Search Tabs -->
+                    <div class="flex mt-4 border-b border-gray-200">
+                        <button class="search-tab active flex-1 py-2 text-center font-semibold border-b-2 border-pink-500 text-pink-600" data-tab="all">All</button>
+                        <button class="search-tab flex-1 py-2 text-center font-semibold text-gray-600" data-tab="users">Users</button>
+                        <button class="search-tab flex-1 py-2 text-center font-semibold text-gray-600" data-tab="buzzes">Buzzes</button>
+                        <button class="search-tab flex-1 py-2 text-center font-semibold text-gray-600" data-tab="hashtags">Hashtags</button>
+                    </div>
                 </div>
+                
                 <div id="searchResults" class="p-4">
                     <div class="text-center text-gray-500 py-8">
-                        Search for users and buzzes
+                        Search for users, buzzes, and hashtags
                     </div>
                 </div>
             </div>
@@ -473,27 +479,67 @@
                         </div>
                     </div>
 
-                    <!-- Other Settings -->
+                    <!-- Communication -->
                     <div class="p-4">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Other</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Communication</h3>
                         <div class="space-y-3">
-                            <button class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                            <button id="messagesSettingBtn" class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                     </svg>
-                                    <span class="text-gray-900">Help & Support</span>
+                                    <span class="text-gray-900">Messages</span>
                                 </div>
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
                             </button>
-                            <button class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                            <button id="notificationSettingsBtn" class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h8v-2H4v2zM4 11h10V9H4v2z"></path>
                                     </svg>
-                                    <span class="text-gray-900">About</span>
+                                    <span class="text-gray-900">Notification Settings</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Other Settings -->
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Support</h3>
+                        <div class="space-y-3">
+                            <button id="helpCenterBtn" class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-gray-900">Help Center</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                            <button id="reportBugBtn" class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                    </svg>
+                                    <span class="text-gray-900">Report a Bug</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                            <button id="aboutBtn" class="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-gray-900">About Pulse</span>
                                 </div>
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -552,12 +598,189 @@
         <!-- Messages Page -->
         <div id="messagesPage" class="hidden bg-white min-h-screen">
             <div class="max-w-md mx-auto">
-                <div class="border-b border-gray-200 p-4">
+                <div class="border-b border-gray-200 p-4 flex items-center justify-between">
                     <h2 class="text-xl font-bold text-gray-900">Messages</h2>
+                    <button id="newMessageBtn" class="gradient-bg text-white p-2 rounded-full">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </button>
                 </div>
                 <div id="messagesList" class="divide-y divide-gray-200">
-                    <div class="p-8 text-center text-gray-500">
-                        No messages yet
+                    <!-- Messages will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Page -->
+        <div id="chatPage" class="hidden bg-white min-h-screen">
+            <div class="max-w-md mx-auto h-screen flex flex-col">
+                <!-- Chat Header -->
+                <div class="border-b border-gray-200 p-4 flex items-center space-x-3">
+                    <button onclick="closeChatPage()" class="p-2 hover:bg-gray-100 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="chatUserAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold"></div>
+                    <div>
+                        <h3 id="chatUserName" class="font-semibold text-gray-900"></h3>
+                        <p id="chatUserStatus" class="text-sm text-gray-500">Online</p>
+                    </div>
+                </div>
+                
+                <!-- Chat Messages -->
+                <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- Messages will be loaded here -->
+                </div>
+                
+                <!-- Chat Input -->
+                <div class="border-t border-gray-200 p-4">
+                    <div class="flex space-x-2">
+                        <input id="chatInput" type="text" placeholder="Type a message..." class="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                        <button id="sendMessageBtn" class="gradient-bg text-white p-2 rounded-full">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Message Modal -->
+        <div id="newMessageModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">New Message</h3>
+                    <button id="closeNewMessage" class="text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <input id="userSearchInput" type="text" placeholder="Search users..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                    </div>
+                    <div id="userSearchResults" class="max-h-64 overflow-y-auto">
+                        <div class="text-center text-gray-500 py-4">Start typing to search users</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Center Modal -->
+        <div id="helpCenterModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">Help Center</h3>
+                    <button id="closeHelpCenter" class="text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="border-b border-gray-200 pb-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Frequently Asked Questions</h4>
+                        <div class="space-y-2">
+                            <button class="w-full text-left p-2 hover:bg-gray-50 rounded-lg text-sm">How do I create a buzz?</button>
+                            <button class="w-full text-left p-2 hover:bg-gray-50 rounded-lg text-sm">How do I get verified?</button>
+                            <button class="w-full text-left p-2 hover:bg-gray-50 rounded-lg text-sm">How do I report inappropriate content?</button>
+                            <button class="w-full text-left p-2 hover:bg-gray-50 rounded-lg text-sm">How do I change my password?</button>
+                        </div>
+                    </div>
+                    
+                    <div class="border-b border-gray-200 pb-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Contact Support</h4>
+                        <div class="space-y-2">
+                            <button class="w-full text-left p-2 hover:bg-gray-50 rounded-lg text-sm flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                Email Support
+                            </button>
+                            <button class="w-full text-left p-2 hover:bg-gray-50 rounded-lg text-sm flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                Live Chat
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-2">Community Guidelines</h4>
+                        <p class="text-sm text-gray-600">Learn about our community standards and how to keep Pulse a safe space for everyone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Bug Modal -->
+        <div id="reportBugModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">Report a Bug</h3>
+                    <button id="closeReportBug" class="text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bug Title</label>
+                        <input id="bugTitle" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Brief description of the bug">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="bugDescription" placeholder="Describe what happened and what you expected to happen..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none" rows="4"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Steps to Reproduce</label>
+                        <textarea id="bugSteps" placeholder="1. Go to...\n2. Click on...\n3. See error..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button id="cancelBugReport" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-semibold">Cancel</button>
+                        <button id="submitBugReport" class="flex-1 gradient-bg text-white py-2 rounded-lg font-semibold">Submit Report</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Modal -->
+        <div id="aboutModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">About Pulse</h3>
+                    <button id="closeAbout" class="text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="text-center space-y-4">
+                    <div class="text-6xl font-bold gradient-bg bg-clip-text text-transparent">Pulse</div>
+                    <p class="text-gray-600">Version 1.0.0</p>
+                    <p class="text-sm text-gray-500">Connect with the world through Pulse - the social media platform that brings people together.</p>
+                    
+                    <div class="border-t border-gray-200 pt-4 mt-4">
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <p>© 2024 Pulse. All rights reserved.</p>
+                            <div class="flex justify-center space-x-4">
+                                <button class="text-blue-500 hover:underline">Privacy Policy</button>
+                                <button class="text-blue-500 hover:underline">Terms of Service</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -741,7 +964,9 @@
         // Global variables
         let currentUser = null;
         let currentBuzzId = null;
-        let selectedImage = null;
+        let selectedImages = [];
+        let currentChatUserId = null;
+        let currentSearchTab = 'all';
 
         // DOM Elements
         const loadingScreen = document.getElementById('loadingScreen');
@@ -1206,30 +1431,67 @@
         });
 
         document.getElementById('buzzImageInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    selectedImage = e.target.result;
-                    document.getElementById('previewImg').src = selectedImage;
-                    document.getElementById('imagePreview').classList.remove('hidden');
-                    document.getElementById('postBuzz').disabled = false;
-                };
-                reader.readAsDataURL(file);
+            const files = Array.from(e.target.files).slice(0, 4); // Maximum 4 images
+            if (files.length > 0) {
+                selectedImages = [];
+                const imageGrid = document.getElementById('imageGrid');
+                imageGrid.innerHTML = '';
+                
+                files.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        selectedImages.push(e.target.result);
+                        
+                        const imageContainer = document.createElement('div');
+                        imageContainer.className = 'relative';
+                        imageContainer.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                            <button onclick="removeImage(${index})" class="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        `;
+                        imageGrid.appendChild(imageContainer);
+                        
+                        document.getElementById('imagePreview').classList.remove('hidden');
+                        document.getElementById('postBuzz').disabled = false;
+                    };
+                    reader.readAsDataURL(file);
+                });
             }
         });
 
-        document.getElementById('removeImage').addEventListener('click', () => {
-            selectedImage = null;
-            document.getElementById('imagePreview').classList.add('hidden');
-            document.getElementById('buzzImageInput').value = '';
-            const postBtn = document.getElementById('postBuzz');
-            postBtn.disabled = document.getElementById('buzzText').value.trim().length === 0;
-        });
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            const imageGrid = document.getElementById('imageGrid');
+            imageGrid.innerHTML = '';
+            
+            if (selectedImages.length === 0) {
+                document.getElementById('imagePreview').classList.add('hidden');
+                document.getElementById('buzzImageInput').value = '';
+                const postBtn = document.getElementById('postBuzz');
+                postBtn.disabled = document.getElementById('buzzText').value.trim().length === 0;
+            } else {
+                selectedImages.forEach((image, newIndex) => {
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'relative';
+                    imageContainer.innerHTML = `
+                        <img src="${image}" class="w-full h-32 object-cover rounded-lg">
+                        <button onclick="removeImage(${newIndex})" class="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    `;
+                    imageGrid.appendChild(imageContainer);
+                });
+            }
+        }
 
         document.getElementById('postBuzz').addEventListener('click', async () => {
             const text = document.getElementById('buzzText').value.trim();
-            if (text || selectedImage) {
+            if (text || selectedImages.length > 0) {
                 // Get current user data
                 const userSnapshot = await database.ref(`users/${currentUser.uid}`).once('value');
                 const userData = userSnapshot.val();
@@ -1244,7 +1506,7 @@
                     authorUsername: userData.username,
                     authorImage: userData.profilePhoto || null,
                     text: text || '',
-                    image: selectedImage || null,
+                    images: selectedImages.length > 0 ? selectedImages : null,
                     hashtags: hashtags,
                     mentions: mentions,
                     timestamp: firebase.database.ServerValue.TIMESTAMP,
@@ -1289,7 +1551,7 @@
                     }
                     
                     document.getElementById('buzzText').value = '';
-                    selectedImage = null;
+                    selectedImages = [];
                     document.getElementById('imagePreview').classList.add('hidden');
                     document.getElementById('buzzImageInput').value = '';
                     document.getElementById('postBuzz').disabled = true;
@@ -1384,7 +1646,14 @@
                             <span class="text-gray-500 text-sm">${formatTime(buzz.timestamp)}</span>
                         </div>
                         ${buzz.text ? `<p class="text-gray-900 mt-1">${processTextContent(buzz.text)}</p>` : ''}
-                        ${buzz.image ? `<img src="${buzz.image}" class="mt-3 rounded-lg max-w-full h-auto">` : ''}
+                        ${buzz.images && buzz.images.length > 0 ? `
+                            <div class="mt-3 grid ${buzz.images.length === 1 ? 'grid-cols-1' : buzz.images.length === 2 ? 'grid-cols-2' : buzz.images.length === 3 ? 'grid-cols-2' : 'grid-cols-2'} gap-2">
+                                ${buzz.images.map((img, index) => `
+                                    <img src="${img}" class="rounded-lg object-cover ${buzz.images.length === 1 ? 'max-h-96' : buzz.images.length === 3 && index === 0 ? 'row-span-2 h-64' : 'h-32'} w-full cursor-pointer" onclick="openImageModal('${img}')">
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        ${buzz.image ? `<img src="${buzz.image}" class="mt-3 rounded-lg max-w-full h-auto cursor-pointer" onclick="openImageModal('${buzz.image}')">` : ''}
                         <div class="flex items-center justify-between mt-3 max-w-md">
                             <button class="flex items-center space-x-2 text-gray-500 hover:text-blue-500" onclick="openComments('${buzz.id}')">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1717,10 +1986,12 @@
         function showPage(page) {
             // Hide all main sections first
             const feedContainer = document.getElementById('feedContainer');
+            const createBuzzSection = document.getElementById('createBuzzSection');
             if (feedContainer) feedContainer.classList.add('hidden');
+            if (createBuzzSection) createBuzzSection.classList.add('hidden');
             
             // Hide all page elements
-            const pages = ['profilePage', 'settingsPage', 'searchPage', 'notificationsPage', 'messagesPage', 'hashtagPage'];
+            const pages = ['profilePage', 'settingsPage', 'searchPage', 'notificationsPage', 'messagesPage', 'hashtagPage', 'chatPage'];
             pages.forEach(pageId => {
                 const pageElement = document.getElementById(pageId);
                 if (pageElement) {
@@ -1732,7 +2003,9 @@
             switch(page) {
                 case 'home':
                     const feedCont = document.getElementById('feedContainer');
+                    const createBuzz = document.getElementById('createBuzzSection');
                     if (feedCont) feedCont.classList.remove('hidden');
+                    if (createBuzz) createBuzz.classList.remove('hidden');
                     break;
                 case 'profile':
                     const profilePage = document.getElementById('profilePage');
@@ -2869,6 +3142,509 @@
             }
         }
 
+        // Search tabs functionality
+        document.querySelectorAll('.search-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.target.dataset.tab;
+                currentSearchTab = tabName;
+                
+                // Update active tab
+                document.querySelectorAll('.search-tab').forEach(t => {
+                    t.classList.remove('active', 'border-pink-500', 'text-pink-600');
+                    t.classList.add('text-gray-600', 'border-transparent');
+                });
+                e.target.classList.add('active', 'border-pink-500', 'text-pink-600', 'border-b-2');
+                e.target.classList.remove('text-gray-600', 'border-transparent');
+                
+                // Re-run search with current query
+                const query = document.getElementById('searchInput').value.trim();
+                if (query) {
+                    performSearch(query, tabName);
+                }
+            });
+        });
+
+        // Enhanced search functionality
+        async function performSearch(query, tab = 'all') {
+            const searchResults = document.getElementById('searchResults');
+            
+            if (query.length === 0) {
+                searchResults.innerHTML = '<div class="text-center text-gray-500 py-8">Search for users, buzzes, and hashtags</div>';
+                return;
+            }
+            
+            searchResults.innerHTML = '<div class="text-center text-gray-500 py-8">Searching...</div>';
+            
+            try {
+                let resultsHTML = '';
+                
+                if (tab === 'all' || tab === 'users') {
+                    const users = await searchUsers(query);
+                    if (users.length > 0 && (tab === 'all' || tab === 'users')) {
+                        resultsHTML += '<div class="mb-4"><h3 class="font-semibold text-gray-900 mb-2">Users</h3>';
+                        users.slice(0, tab === 'users' ? 20 : 5).forEach(user => {
+                            const userAvatar = user.profilePhoto 
+                                ? `<img src="${user.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                                : user.displayName.charAt(0).toUpperCase();
+                            
+                            resultsHTML += `
+                                <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="viewUserProfile('${user.id}')">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-300 to-blue-300 flex items-center justify-center text-white font-semibold">
+                                        ${userAvatar}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-gray-900 flex items-center">
+                                            ${user.displayName}
+                                            ${user.verified ? `<div class="verified-badge ml-1 w-4 h-4 flex items-center justify-center"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>` : ''}
+                                        </div>
+                                        <div class="text-sm text-gray-500">@${user.username}</div>
+                                        ${user.bio ? `<div class="text-xs text-gray-400 mt-1">${user.bio}</div>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        resultsHTML += '</div>';
+                    }
+                }
+                
+                if (tab === 'all' || tab === 'buzzes') {
+                    const buzzes = await searchBuzzes(query);
+                    if (buzzes.length > 0) {
+                        resultsHTML += '<div class="mb-4"><h3 class="font-semibold text-gray-900 mb-2">Buzzes</h3>';
+                        for (const buzz of buzzes.slice(0, tab === 'buzzes' ? 20 : 5)) {
+                            let userData = await getUserData(buzz.uid);
+                            if (!userData) continue;
+                            
+                            const userAvatar = userData.profilePhoto 
+                                ? `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                                : userData.displayName.charAt(0).toUpperCase();
+                            
+                            resultsHTML += `
+                                <div class="p-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50">
+                                    <div class="flex space-x-3">
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                                            ${userAvatar}
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex items-center space-x-2 mb-1">
+                                                <span class="font-semibold text-sm">${userData.displayName}</span>
+                                                <span class="text-gray-500 text-xs">@${userData.username}</span>
+                                            </div>
+                                            <p class="text-sm text-gray-900">${processTextContent(buzz.text.substring(0, 150))}${buzz.text.length > 150 ? '...' : ''}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        resultsHTML += '</div>';
+                    }
+                }
+                
+                if (tab === 'all' || tab === 'hashtags') {
+                    const hashtags = await searchHashtags(query);
+                    if (hashtags.length > 0) {
+                        resultsHTML += '<div><h3 class="font-semibold text-gray-900 mb-2">Hashtags</h3>';
+                        hashtags.slice(0, tab === 'hashtags' ? 20 : 5).forEach(hashtag => {
+                            resultsHTML += `
+                                <div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="openHashtag('${hashtag.name}')">
+                                    <div>
+                                        <span class="font-semibold text-blue-600">#${hashtag.name}</span>
+                                    </div>
+                                    <span class="text-xs text-gray-500">${hashtag.count} posts</span>
+                                </div>
+                            `;
+                        });
+                        resultsHTML += '</div>';
+                    }
+                }
+                
+                if (!resultsHTML) {
+                    resultsHTML = '<div class="text-center text-gray-500 py-8">No results found</div>';
+                }
+                
+                searchResults.innerHTML = resultsHTML;
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<div class="text-center text-red-500 py-8">Search failed. Please try again.</div>';
+            }
+        }
+
+        async function searchUsers(query) {
+            const usersSnapshot = await database.ref('users').once('value');
+            const users = [];
+            
+            usersSnapshot.forEach((child) => {
+                const user = child.val();
+                if (user && user.setupComplete && child.key !== currentUser.uid) {
+                    const displayName = (user.displayName || '').toLowerCase();
+                    const username = (user.username || '').toLowerCase();
+                    const bio = (user.bio || '').toLowerCase();
+                    
+                    if (displayName.includes(query.toLowerCase()) || 
+                        username.includes(query.toLowerCase()) || 
+                        bio.includes(query.toLowerCase())) {
+                        users.push({id: child.key, ...user});
+                    }
+                }
+            });
+            
+            return users;
+        }
+
+        async function searchBuzzes(query) {
+            const buzzesSnapshot = await database.ref('buzzes').once('value');
+            const buzzes = [];
+            
+            buzzesSnapshot.forEach((child) => {
+                const buzz = child.val();
+                if (buzz && buzz.text && buzz.text.toLowerCase().includes(query.toLowerCase())) {
+                    buzzes.push({id: child.key, ...buzz});
+                }
+            });
+            
+            return buzzes;
+        }
+
+        async function searchHashtags(query) {
+            const hashtagsSnapshot = await database.ref('hashtags').once('value');
+            const hashtags = [];
+            
+            hashtagsSnapshot.forEach((child) => {
+                const hashtag = child.key;
+                const data = child.val();
+                if (hashtag.includes(query.toLowerCase()) && data.count > 0) {
+                    hashtags.push({
+                        name: hashtag,
+                        count: data.count || 0
+                    });
+                }
+            });
+            
+            return hashtags.sort((a, b) => b.count - a.count);
+        }
+
+        // Update search input handler
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            performSearch(query, currentSearchTab);
+        });
+
+        // Messages functionality
+        async function loadMessages() {
+            const messagesList = document.getElementById('messagesList');
+            messagesList.innerHTML = '<div class="p-4 text-center text-gray-500">Loading messages...</div>';
+            
+            try {
+                const messagesSnapshot = await database.ref(`messages/${currentUser.uid}`).once('value');
+                
+                if (!messagesSnapshot.exists()) {
+                    messagesList.innerHTML = '<div class="p-8 text-center text-gray-500">No messages yet</div>';
+                    return;
+                }
+                
+                const conversations = {};
+                messagesSnapshot.forEach((child) => {
+                    const message = child.val();
+                    const otherUserId = message.fromUserId === currentUser.uid ? message.toUserId : message.fromUserId;
+                    
+                    if (!conversations[otherUserId] || conversations[otherUserId].timestamp < message.timestamp) {
+                        conversations[otherUserId] = message;
+                    }
+                });
+                
+                messagesList.innerHTML = '';
+                
+                for (const userId in conversations) {
+                    const message = conversations[userId];
+                    const userData = await getUserData(userId);
+                    if (!userData) continue;
+                    
+                    const messageElement = createMessageElement(message, userData, userId);
+                    messagesList.appendChild(messageElement);
+                }
+                
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                messagesList.innerHTML = '<div class="p-4 text-center text-red-500">Error loading messages</div>';
+            }
+        }
+
+        function createMessageElement(message, userData, userId) {
+            const div = document.createElement('div');
+            div.className = 'p-4 hover:bg-gray-50 cursor-pointer';
+            div.onclick = () => openChat(userId, userData);
+            
+            const userAvatar = userData.profilePhoto 
+                ? `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                : userData.displayName.charAt(0).toUpperCase();
+            
+            div.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-white font-semibold">
+                        ${userAvatar}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-semibold text-gray-900">${userData.displayName}</h3>
+                            <span class="text-xs text-gray-500">${formatTime(message.timestamp)}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 truncate">${message.text}</p>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        function openChat(userId, userData) {
+            currentChatUserId = userId;
+            
+            // Set chat header
+            document.getElementById('chatUserName').textContent = userData.displayName;
+            const chatAvatar = document.getElementById('chatUserAvatar');
+            if (userData.profilePhoto) {
+                chatAvatar.innerHTML = `<img src="${userData.profilePhoto}" class="w-full h-full rounded-full object-cover">`;
+            } else {
+                chatAvatar.textContent = userData.displayName.charAt(0).toUpperCase();
+            }
+            
+            // Show chat page
+            document.getElementById('chatPage').classList.remove('hidden');
+            loadChatMessages(userId);
+        }
+
+        function closeChatPage() {
+            document.getElementById('chatPage').classList.add('hidden');
+            currentChatUserId = null;
+        }
+
+        async function loadChatMessages(userId) {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '<div class="text-center text-gray-500">Loading messages...</div>';
+            
+            try {
+                const messagesSnapshot = await database.ref(`messages/${currentUser.uid}`).orderByChild('timestamp').once('value');
+                const messages = [];
+                
+                messagesSnapshot.forEach((child) => {
+                    const message = child.val();
+                    if ((message.fromUserId === currentUser.uid && message.toUserId === userId) ||
+                        (message.fromUserId === userId && message.toUserId === currentUser.uid)) {
+                        messages.push({id: child.key, ...message});
+                    }
+                });
+                
+                chatMessages.innerHTML = '';
+                
+                messages.forEach(message => {
+                    const messageElement = createChatMessageElement(message);
+                    chatMessages.appendChild(messageElement);
+                });
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+            } catch (error) {
+                console.error('Error loading chat messages:', error);
+                chatMessages.innerHTML = '<div class="text-center text-red-500">Error loading messages</div>';
+            }
+        }
+
+        function createChatMessageElement(message) {
+            const div = document.createElement('div');
+            const isOwnMessage = message.fromUserId === currentUser.uid;
+            
+            div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`;
+            div.innerHTML = `
+                <div class="max-w-xs px-4 py-2 rounded-lg ${isOwnMessage ? 'bg-pink-500 text-white' : 'bg-gray-200 text-gray-900'}">
+                    <p class="text-sm">${message.text}</p>
+                    <p class="text-xs ${isOwnMessage ? 'text-pink-100' : 'text-gray-500'} mt-1">${formatTime(message.timestamp)}</p>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Send message functionality
+        document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const messageText = document.getElementById('chatInput').value.trim();
+            if (!messageText || !currentChatUserId) return;
+            
+            try {
+                const messageData = {
+                    fromUserId: currentUser.uid,
+                    toUserId: currentChatUserId,
+                    text: messageText,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                // Save message for both users
+                await database.ref(`messages/${currentUser.uid}`).push(messageData);
+                await database.ref(`messages/${currentChatUserId}`).push(messageData);
+                
+                document.getElementById('chatInput').value = '';
+                loadChatMessages(currentChatUserId);
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            }
+        }
+
+        // New message modal functionality
+        document.getElementById('newMessageBtn').addEventListener('click', () => {
+            document.getElementById('newMessageModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeNewMessage').addEventListener('click', () => {
+            document.getElementById('newMessageModal').classList.add('hidden');
+        });
+
+        document.getElementById('userSearchInput').addEventListener('input', async (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            const searchResults = document.getElementById('userSearchResults');
+            
+            if (query.length === 0) {
+                searchResults.innerHTML = '<div class="text-center text-gray-500 py-4">Start typing to search users</div>';
+                return;
+            }
+            
+            try {
+                const users = await searchUsers(query);
+                
+                if (users.length === 0) {
+                    searchResults.innerHTML = '<div class="text-center text-gray-500 py-4">No users found</div>';
+                    return;
+                }
+                
+                searchResults.innerHTML = '';
+                
+                users.slice(0, 10).forEach(user => {
+                    const userElement = document.createElement('div');
+                    userElement.className = 'flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer';
+                    userElement.onclick = () => {
+                        document.getElementById('newMessageModal').classList.add('hidden');
+                        openChat(user.id, user);
+                    };
+                    
+                    const userAvatar = user.profilePhoto 
+                        ? `<img src="${user.profilePhoto}" class="w-full h-full rounded-full object-cover">`
+                        : user.displayName.charAt(0).toUpperCase();
+                    
+                    userElement.innerHTML = `
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-300 to-blue-300 flex items-center justify-center text-white font-semibold">
+                            ${userAvatar}
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-semibold text-gray-900">${user.displayName}</div>
+                            <div class="text-sm text-gray-500">@${user.username}</div>
+                        </div>
+                    `;
+                    
+                    searchResults.appendChild(userElement);
+                });
+                
+            } catch (error) {
+                console.error('Error searching users:', error);
+                searchResults.innerHTML = '<div class="text-center text-red-500 py-4">Error searching users</div>';
+            }
+        });
+
+        // Settings functionality
+        document.getElementById('messagesSettingBtn').addEventListener('click', () => {
+            showPage('messages');
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('active', 'text-pink-600');
+                b.classList.add('text-gray-600');
+            });
+        });
+
+        document.getElementById('helpCenterBtn').addEventListener('click', () => {
+            document.getElementById('helpCenterModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeHelpCenter').addEventListener('click', () => {
+            document.getElementById('helpCenterModal').classList.add('hidden');
+        });
+
+        document.getElementById('reportBugBtn').addEventListener('click', () => {
+            document.getElementById('reportBugModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeReportBug').addEventListener('click', () => {
+            document.getElementById('reportBugModal').classList.add('hidden');
+        });
+
+        document.getElementById('cancelBugReport').addEventListener('click', () => {
+            document.getElementById('reportBugModal').classList.add('hidden');
+        });
+
+        document.getElementById('submitBugReport').addEventListener('click', async () => {
+            const title = document.getElementById('bugTitle').value.trim();
+            const description = document.getElementById('bugDescription').value.trim();
+            const steps = document.getElementById('bugSteps').value.trim();
+            
+            if (!title || !description) {
+                alert('Please fill in the title and description');
+                return;
+            }
+            
+            try {
+                const bugData = {
+                    userId: currentUser.uid,
+                    title,
+                    description,
+                    steps,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    status: 'open'
+                };
+                
+                await database.ref('bugReports').push(bugData);
+                
+                document.getElementById('reportBugModal').classList.add('hidden');
+                document.getElementById('bugTitle').value = '';
+                document.getElementById('bugDescription').value = '';
+                document.getElementById('bugSteps').value = '';
+                
+                alert('Bug report submitted successfully! Thank you for helping us improve Pulse.');
+                
+            } catch (error) {
+                console.error('Error submitting bug report:', error);
+                alert('Failed to submit bug report. Please try again.');
+            }
+        });
+
+        document.getElementById('aboutBtn').addEventListener('click', () => {
+            document.getElementById('aboutModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeAbout').addEventListener('click', () => {
+            document.getElementById('aboutModal').classList.add('hidden');
+        });
+
+        // Image modal functionality
+        function openImageModal(imageSrc) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center';
+            modal.onclick = () => modal.remove();
+            
+            modal.innerHTML = `
+                <div class="max-w-4xl max-h-full p-4">
+                    <img src="${imageSrc}" class="max-w-full max-h-full object-contain rounded-lg">
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
         // Add CSS for active navigation and profile tabs
         const style = document.createElement('style');
         style.textContent = `
@@ -2884,8 +3660,14 @@
             .profile-tab.active {
                 @apply border-pink-500 text-pink-600;
             }
+            .search-tab {
+                @apply border-b-2 border-transparent transition-colors;
+            }
+            .search-tab.active {
+                @apply border-pink-500 text-pink-600;
+            }
         `;
         document.head.appendChild(style);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97830b66b7c10c2e',t:'MTc1NjcxMTY0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9783197a3699595d',t:'MTc1NjcxMjIxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
