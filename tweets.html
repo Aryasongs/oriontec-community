@@ -178,6 +178,47 @@
             -ms-user-select: text;
             user-select: text;
         }
+        
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .buzz-card {
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                margin-bottom: 0;
+            }
+            
+            .profile-stats {
+                padding: 1rem;
+            }
+            
+            .mobile-friendly {
+                padding: 0.75rem;
+            }
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Better touch targets */
+        button, .cursor-pointer {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        /* Improved tap highlights */
+        * {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -384,22 +425,22 @@
         </div>
 
         <!-- Home Feed -->
-        <div id="homeTab" class="max-w-2xl mx-auto p-4 pb-20 md:pb-4">
+        <div id="homeTab" class="w-full max-w-2xl mx-auto pb-20 md:pb-4">
             <!-- Create Buzz -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex space-x-4">
-                    <div class="w-12 h-12 story-ring rounded-full flex-shrink-0">
-                        <div id="createBuzzDP" class="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-lg font-bold text-white">
+            <div class="bg-white border-b border-gray-200 p-4 mb-0">
+                <div class="flex space-x-3">
+                    <div class="w-10 h-10 story-ring rounded-full flex-shrink-0">
+                        <div id="createBuzzDP" class="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-sm font-bold text-white">
                             U
                         </div>
                     </div>
                     <div class="flex-1 relative">
-                        <textarea id="buzzText" placeholder="What's buzzing?" class="w-full p-3 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" rows="3" oninput="handleTextInput()" onkeydown="handleKeyDown(event)"></textarea>
+                        <textarea id="buzzText" placeholder="What's buzzing?" class="w-full p-3 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-lg" rows="2" oninput="handleTextInput()" onkeydown="handleKeyDown(event)"></textarea>
                         <div id="suggestionDropdown" class="suggestions-dropdown">
                             <!-- Suggestions will be populated here -->
                         </div>
-                        <div class="flex justify-between items-center mt-4">
-                            <div class="flex space-x-4">
+                        <div class="flex justify-between items-center mt-3">
+                            <div class="flex space-x-2">
                                 <button onclick="document.getElementById('buzzImage').click()" class="text-pink-500 hover:bg-pink-50 p-2 rounded-lg transition">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -407,12 +448,12 @@
                                 </button>
                                 <input type="file" id="buzzImage" accept="image/*" class="hidden" onchange="previewBuzzImage()">
                             </div>
-                            <button onclick="createBuzz()" class="instagram-gradient text-white px-6 py-2 rounded-xl font-medium hover:opacity-90 transition">
+                            <button onclick="createBuzz()" class="instagram-gradient text-white px-5 py-2 rounded-full font-medium hover:opacity-90 transition text-sm">
                                 Buzz
                             </button>
                         </div>
-                        <div id="buzzImagePreview" class="hidden mt-4">
-                            <img id="buzzPreviewImg" class="w-full max-h-64 object-cover rounded-xl">
+                        <div id="buzzImagePreview" class="hidden mt-3">
+                            <img id="buzzPreviewImg" class="w-full max-h-48 object-cover rounded-xl">
                             <button onclick="removeBuzzImage()" class="mt-2 text-red-500 text-sm hover:underline">Remove Image</button>
                         </div>
                     </div>
@@ -420,7 +461,7 @@
             </div>
 
             <!-- Feed -->
-            <div id="feedContainer">
+            <div id="feedContainer" class="divide-y divide-gray-200">
                 <!-- Sample Buzz Posts will be loaded here -->
             </div>
         </div>
@@ -565,26 +606,26 @@
             </div>
 
             <!-- Profile Content Grid -->
-            <div id="profileBuzzesSection">
-                <div id="userBuzzesContainer" class="grid grid-cols-3 gap-1">
+            <div id="profileBuzzesSection" class="p-4">
+                <div id="userBuzzesContainer" class="space-y-0">
                     <!-- User's buzzes will be loaded here -->
                 </div>
             </div>
 
-            <div id="profileRebuzzesSection" class="hidden">
-                <div id="userRebuzzesContainer" class="grid grid-cols-3 gap-1">
+            <div id="profileRebuzzesSection" class="hidden p-4">
+                <div id="userRebuzzesContainer" class="space-y-0">
                     <!-- User's rebuzzes will be loaded here -->
                 </div>
             </div>
 
-            <div id="profileMediaSection" class="hidden">
-                <div id="userMediaContainer" class="grid grid-cols-3 gap-1">
+            <div id="profileMediaSection" class="hidden p-4">
+                <div id="userMediaContainer" class="space-y-0">
                     <!-- User's media posts will be loaded here -->
                 </div>
             </div>
 
-            <div id="profileLikesSection" class="hidden">
-                <div id="userLikesContainer" class="grid grid-cols-3 gap-1">
+            <div id="profileLikesSection" class="hidden p-4">
+                <div id="userLikesContainer" class="space-y-0">
                     <!-- User's liked posts will be loaded here -->
                 </div>
             </div>
@@ -1352,14 +1393,14 @@
 
         function createBuzzElement(buzz, userData) {
             const div = document.createElement('div');
-            div.className = 'bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6 buzz-card';
+            div.className = 'bg-white p-4 hover:bg-gray-50 transition-colors cursor-pointer';
             
             const profilePic = userData.profilePic 
                 ? `<img src="${userData.profilePic}" class="w-full h-full object-cover rounded-full">`
                 : userData.fullName.charAt(0).toUpperCase();
             
             const buzzImage = buzz.image 
-                ? `<img src="${buzz.image}" class="w-full max-h-96 object-cover rounded-xl mt-4">`
+                ? `<img src="${buzz.image}" class="w-full max-h-80 object-cover rounded-2xl mt-3 border border-gray-200">`
                 : '';
             
             const timeAgo = buzz.timestamp ? new Date(buzz.timestamp).toLocaleString() : 'Just now';
@@ -1368,57 +1409,65 @@
             const isVerified = buzz.authorVerified || userData.verified || false;
             
             div.innerHTML = `
-                <div class="flex space-x-4">
-                    <div class="w-12 h-12 story-ring rounded-full flex-shrink-0">
-                        <div class="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-lg font-bold text-white">
+                <div class="flex space-x-3">
+                    <div class="w-10 h-10 story-ring rounded-full flex-shrink-0">
+                        <div class="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-sm font-bold text-white">
                             ${profilePic}
                         </div>
                     </div>
-                    <div class="flex-1">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center space-x-2">
-                                <h3 class="font-bold text-gray-800 cursor-pointer hover:underline flex items-center" onclick="viewUserProfile('${buzz.uid}')">${userData.fullName}${isVerified ? '<span class="verified-badge ml-1"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : ''}</h3>
-                                <span class="text-gray-500 cursor-pointer hover:underline" onclick="viewUserProfile('${buzz.uid}')">@${userData.username}</span>
-                                <span class="text-gray-400">•</span>
-                                <span class="text-gray-500 text-sm">${timeAgo}</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center space-x-2 min-w-0">
+                                <h3 class="font-bold text-gray-900 text-sm cursor-pointer hover:underline truncate" onclick="viewUserProfile('${buzz.uid}')">${userData.fullName}${isVerified ? '<span class="verified-badge ml-1"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : ''}</h3>
+                                <span class="text-gray-500 text-sm cursor-pointer hover:underline truncate" onclick="viewUserProfile('${buzz.uid}')">@${userData.username}</span>
+                                <span class="text-gray-400 text-sm">•</span>
+                                <span class="text-gray-500 text-xs whitespace-nowrap">${timeAgo}</span>
                             </div>
                             ${buzz.uid === currentUser.uid ? `
-                                <button onclick="deleteBuzz('${buzz.id}')" class="text-red-500 hover:text-red-700 p-1">
+                                <button onclick="event.stopPropagation(); deleteBuzz('${buzz.id}')" class="text-gray-400 hover:text-red-500 p-1 rounded-full hover:bg-red-50 transition">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                     </svg>
                                 </button>
                             ` : ''}
                         </div>
-                        <p class="text-gray-800 mb-3">${formatTextWithHashtagsAndMentions(buzz.text)}</p>
+                        <p class="text-gray-900 text-sm mb-3 leading-relaxed">${formatTextWithHashtagsAndMentions(buzz.text)}</p>
                         ${buzzImage}
                         
-                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                            <button onclick="toggleLike('${buzz.id}')" class="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition" id="likeBtn-${buzz.id}">
-                                <svg class="w-5 h-5 ${buzz.likedBy && buzz.likedBy[currentUser.uid] ? 'fill-red-500 text-red-500' : 'fill-none'}" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                                </svg>
-                                <span id="likeCount-${buzz.id}">${buzz.likes || 0}</span>
+                        <div class="flex items-center justify-between mt-3 max-w-md">
+                            <button onclick="event.stopPropagation(); toggleLike('${buzz.id}')" class="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition group" id="likeBtn-${buzz.id}">
+                                <div class="p-2 rounded-full group-hover:bg-red-50 transition">
+                                    <svg class="w-5 h-5 ${buzz.likedBy && buzz.likedBy[currentUser.uid] ? 'fill-red-500 text-red-500' : 'fill-none'}" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm" id="likeCount-${buzz.id}">${buzz.likes || 0}</span>
                             </button>
                             
-                            <button onclick="showComments('${buzz.id}')" class="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                </svg>
-                                <span>${buzz.comments || 0}</span>
+                            <button onclick="event.stopPropagation(); showComments('${buzz.id}')" class="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition group">
+                                <div class="p-2 rounded-full group-hover:bg-blue-50 transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm">${buzz.comments || 0}</span>
                             </button>
                             
-                            <button onclick="rebuzz('${buzz.id}')" class="flex items-center space-x-2 text-gray-500 hover:text-green-500 transition" id="rebuzzBtn-${buzz.id}">
-                                <svg class="w-5 h-5 ${buzz.rebuzzedBy && buzz.rebuzzedBy[currentUser.uid] ? 'text-green-500' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                </svg>
-                                <span id="rebuzzCount-${buzz.id}">${buzz.rebuzzes || 0}</span>
+                            <button onclick="event.stopPropagation(); rebuzz('${buzz.id}')" class="flex items-center space-x-2 text-gray-500 hover:text-green-500 transition group" id="rebuzzBtn-${buzz.id}">
+                                <div class="p-2 rounded-full group-hover:bg-green-50 transition">
+                                    <svg class="w-5 h-5 ${buzz.rebuzzedBy && buzz.rebuzzedBy[currentUser.uid] ? 'text-green-500' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm" id="rebuzzCount-${buzz.id}">${buzz.rebuzzes || 0}</span>
                             </button>
                             
-                            <button onclick="shareBuzz('${buzz.id}')" class="flex items-center space-x-2 text-gray-500 hover:text-pink-500 transition">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
-                                </svg>
+                            <button onclick="event.stopPropagation(); shareBuzz('${buzz.id}')" class="flex items-center space-x-2 text-gray-500 hover:text-pink-500 transition group">
+                                <div class="p-2 rounded-full group-hover:bg-pink-50 transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                                    </svg>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -2403,7 +2452,7 @@
                     
                     const container = document.getElementById('userBuzzesContainer');
                     if (buzzes.length === 0) {
-                        container.innerHTML = '<div class="col-span-3 text-center py-16 text-gray-500"><svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><p>No posts yet</p></div>';
+                        container.innerHTML = '<div class="text-center py-16 text-gray-500"><svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><p>No posts yet</p></div>';
                         return;
                     }
                     
@@ -2422,52 +2471,65 @@
 
         function createGridItem(buzz) {
             const div = document.createElement('div');
-            div.className = 'aspect-square bg-gray-100 cursor-pointer hover:opacity-75 transition relative';
+            div.className = 'bg-white border border-gray-200 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all duration-200 mb-4';
             div.onclick = () => showBuzzModal(buzz);
             
-            if (buzz.image) {
-                div.innerHTML = `
-                    <img src="${buzz.image}" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition flex items-center justify-center">
-                        <div class="text-white opacity-0 hover:opacity-100 transition flex items-center space-x-4">
+            // Get user data for the buzz
+            const userData = {
+                fullName: buzz.authorName || 'User',
+                username: buzz.authorUsername || 'user',
+                profilePic: buzz.authorImage,
+                verified: buzz.authorVerified || false
+            };
+            
+            const profilePic = userData.profilePic 
+                ? `<img src="${userData.profilePic}" class="w-full h-full object-cover rounded-full">`
+                : userData.fullName.charAt(0).toUpperCase();
+            
+            const timeAgo = buzz.timestamp ? new Date(buzz.timestamp).toLocaleString() : 'Just now';
+            
+            div.innerHTML = `
+                <div class="flex space-x-3">
+                    <div class="w-10 h-10 story-ring rounded-full flex-shrink-0">
+                        <div class="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-sm font-bold text-white">
+                            ${profilePic}
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <h4 class="font-bold text-gray-900 text-sm truncate">${userData.fullName}${userData.verified ? '<span class="verified-badge ml-1"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : ''}</h4>
+                            <span class="text-gray-500 text-sm truncate">@${userData.username}</span>
+                            <span class="text-gray-400 text-sm">•</span>
+                            <span class="text-gray-500 text-xs">${timeAgo}</span>
+                        </div>
+                        
+                        <p class="text-gray-800 text-sm mb-3 line-clamp-3">${formatTextWithHashtagsAndMentions(buzz.text || '')}</p>
+                        
+                        ${buzz.image ? `<img src="${buzz.image}" class="w-full max-h-48 object-cover rounded-lg mb-3">` : ''}
+                        
+                        <div class="flex items-center justify-between text-gray-500 text-xs">
                             <div class="flex items-center space-x-1">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                                 </svg>
-                                <span class="text-sm font-medium">${buzz.likes || 0}</span>
+                                <span>${buzz.likes || 0}</span>
                             </div>
                             <div class="flex items-center space-x-1">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                 </svg>
-                                <span class="text-sm font-medium">${buzz.comments || 0}</span>
+                                <span>${buzz.comments || 0}</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                                <span>${buzz.rebuzzes || 0}</span>
                             </div>
                         </div>
                     </div>
-                `;
-            } else {
-                // Text-only post
-                div.className += ' flex items-center justify-center p-4';
-                div.innerHTML = `
-                    <div class="text-center">
-                        <p class="text-gray-800 text-sm font-medium line-clamp-3">${buzz.text.substring(0, 100)}${buzz.text.length > 100 ? '...' : ''}</p>
-                        <div class="mt-2 flex items-center justify-center space-x-4 text-gray-600">
-                            <div class="flex items-center space-x-1">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                                </svg>
-                                <span class="text-xs">${buzz.likes || 0}</span>
-                            </div>
-                            <div class="flex items-center space-x-1">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                </svg>
-                                <span class="text-xs">${buzz.comments || 0}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+                </div>
+            `;
             
             return div;
         }
@@ -2501,7 +2563,7 @@
                     
                     const container = document.getElementById('userRebuzzesContainer');
                     if (rebuzzes.length === 0) {
-                        container.innerHTML = '<div class="col-span-3 text-center py-16 text-gray-500"><svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><p>No rebuzzes yet</p></div>';
+                        container.innerHTML = '<div class="text-center py-16 text-gray-500"><svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><p>No rebuzzes yet</p></div>';
                         return;
                     }
                     
@@ -2528,7 +2590,7 @@
                     
                     const container = document.getElementById('userMediaContainer');
                     if (mediaBuzzes.length === 0) {
-                        container.innerHTML = '<div class="col-span-3 text-center py-16 text-gray-500"><svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><p>No photos or videos</p></div>';
+                        container.innerHTML = '<div class="text-center py-16 text-gray-500"><svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><p>No photos or videos</p></div>';
                         return;
                     }
                     
@@ -2555,7 +2617,7 @@
                     
                     const container = document.getElementById('userLikesContainer');
                     if (likedBuzzes.length === 0) {
-                        container.innerHTML = '<div class="col-span-3 text-center py-16 text-gray-500"><svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><p>No liked posts yet</p></div>';
+                        container.innerHTML = '<div class="text-center py-16 text-gray-500"><svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><p>No liked posts yet</p></div>';
                         return;
                     }
                     
@@ -3161,5 +3223,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978540b9b51c5502',t:'MTc1NjczNDc5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978546fa91b55502',t:'MTc1NjczNTA1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
