@@ -1727,6 +1727,9 @@
                 document.getElementById('mobileHomeBtn')?.classList.add('text-pink-600');
             }
             
+            // Cleanup previous tab listeners
+            cleanupTabListeners(tab);
+            
             // Load content based on tab
             if (tab === 'notifications') {
                 loadNotifications();
@@ -1737,6 +1740,32 @@
                 loadConversations();
             } else if (tab === 'hashtag') {
                 // Hashtag tab content is loaded by loadHashtagFeed function
+            }
+        }
+
+        function cleanupTabListeners(newTab) {
+            // Clean up message-related listeners when leaving messages tab
+            if (currentTab === 'messages' && newTab !== 'messages') {
+                if (conversationsListener) {
+                    conversationsListener.off();
+                    conversationsListener = null;
+                }
+                
+                // Clean up typing listeners
+                typingListeners.forEach((listener, userId) => {
+                    listener.off();
+                });
+                typingListeners.clear();
+                
+                // Clean up message listeners
+                if (currentMessagesListener) {
+                    currentMessagesListener.off();
+                    currentMessagesListener = null;
+                }
+                
+                // Clear caches
+                conversationsCache.clear();
+                messagesCache.clear();
             }
         }
 
@@ -2570,35 +2599,64 @@
         function closeMessageModal() {
             const modal = document.getElementById('messageModal');
             if (modal) {
+                // Clean up listeners before closing
+                if (currentMessagesListener) {
+                    currentMessagesListener.off();
+                    currentMessagesListener = null;
+                }
+                
+                // Clear typing timeout
+                if (typingTimeout) {
+                    clearTimeout(typingTimeout);
+                    typingTimeout = null;
+                }
+                
                 modal.remove();
             }
         }
 
+        let currentMessagesListener = null;
+        let messagesCache = new Map();
+
         function loadMessages(userId) {
             const conversationId = [currentUser.uid, userId].sort().join('_');
             
-            database.ref(`messages/${conversationId}`).orderByChild('timestamp').on('value', (snapshot) => {
+            // Remove existing listener
+            if (currentMessagesListener) {
+                currentMessagesListener.off();
+            }
+            
+            currentMessagesListener = database.ref(`messages/${conversationId}`).orderByChild('timestamp').limitToLast(50);
+            currentMessagesListener.on('value', (snapshot) => {
                 const messages = [];
                 snapshot.forEach((child) => {
                     messages.push({id: child.key, ...child.val()});
                 });
                 
-                displayMessages(messages);
+                displayMessages(messages, conversationId);
                 
-                // Mark messages as seen when opening conversation
-                database.ref(`conversations/${conversationId}/seen`).set(true);
-                database.ref(`conversations/${conversationId}/unreadCount/${currentUser.uid}`).remove();
-                
-                // Mark individual messages as seen
-                messages.forEach(message => {
-                    if (message.receiverId === currentUser.uid && !message.seen) {
-                        database.ref(`messages/${conversationId}/${message.id}/seen`).set(true);
+                // Mark messages as seen when opening conversation (debounced)
+                debounce(() => {
+                    database.ref(`conversations/${conversationId}/seen`).set(true);
+                    database.ref(`conversations/${conversationId}/unreadCount/${currentUser.uid}`).remove();
+                    
+                    // Mark individual messages as seen
+                    const unseenMessages = messages.filter(message => 
+                        message.receiverId === currentUser.uid && !message.seen
+                    );
+                    
+                    if (unseenMessages.length > 0) {
+                        const updates = {};
+                        unseenMessages.forEach(message => {
+                            updates[`messages/${conversationId}/${message.id}/seen`] = true;
+                        });
+                        database.ref().update(updates);
                     }
-                });
+                }, 500)();
             });
         }
 
-        function displayMessages(messages) {
+        function displayMessages(messages, conversationId) {
             const container = document.getElementById('messagesContainer');
             
             if (messages.length === 0) {
@@ -2613,16 +2671,54 @@
                 return;
             }
             
-            container.innerHTML = '';
-            messages.forEach(message => {
-                const messageElement = createMessageElement(message);
-                container.appendChild(messageElement);
-            });
+            // Check if we need to update or just append new messages
+            const cachedMessages = messagesCache.get(conversationId) || [];
+            const newMessages = messages.slice(cachedMessages.length);
             
-            // Scroll to bottom smoothly
-            setTimeout(() => {
+            if (newMessages.length === 0 && cachedMessages.length === messages.length) {
+                return; // No new messages, no need to update
+            }
+            
+            // Store in cache
+            messagesCache.set(conversationId, messages);
+            
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
+            
+            if (newMessages.length > 0 && cachedMessages.length > 0) {
+                // Only append new messages
+                newMessages.forEach(message => {
+                    const messageElement = createMessageElement(message);
+                    fragment.appendChild(messageElement);
+                });
+                container.appendChild(fragment);
+            } else {
+                // Full rebuild
+                container.innerHTML = '';
+                messages.forEach(message => {
+                    const messageElement = createMessageElement(message);
+                    fragment.appendChild(messageElement);
+                });
+                container.appendChild(fragment);
+            }
+            
+            // Scroll to bottom smoothly with requestAnimationFrame
+            requestAnimationFrame(() => {
                 container.scrollTop = container.scrollHeight;
-            }, 100);
+            });
+        }
+
+        // Debounce utility function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         }
 
         function createMessageElement(message) {
@@ -2679,9 +2775,16 @@
         }
 
         let typingTimeout;
+        let typingDebounce = debounce((userId) => {
+            const conversationId = [currentUser.uid, userId].sort().join('_');
+            database.ref(`typing/${conversationId}/${currentUser.uid}`).set({
+                isTyping: true,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+        }, 300);
         
         function handleMessageKeyPress(event, userId) {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
                 sendMessage(userId);
             }
@@ -2690,21 +2793,18 @@
         function handleTyping(userId) {
             const conversationId = [currentUser.uid, userId].sort().join('_');
             
-            // Set typing indicator
-            database.ref(`typing/${conversationId}/${currentUser.uid}`).set({
-                isTyping: true,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
+            // Debounced typing indicator
+            typingDebounce(userId);
             
             // Clear previous timeout
             if (typingTimeout) {
                 clearTimeout(typingTimeout);
             }
             
-            // Remove typing indicator after 3 seconds of inactivity
+            // Remove typing indicator after 2 seconds of inactivity (reduced from 3)
             typingTimeout = setTimeout(() => {
                 database.ref(`typing/${conversationId}/${currentUser.uid}`).remove();
-            }, 3000);
+            }, 2000);
         }
 
         function sendMessage(userId) {
@@ -4841,8 +4941,18 @@
             }
         }
 
+        let conversationsCache = new Map();
+        let conversationsListener = null;
+        let typingListeners = new Map();
+
         function loadConversations() {
-            database.ref('conversations').orderByChild('lastMessageTime').on('value', (snapshot) => {
+            // Remove existing listener to prevent duplicates
+            if (conversationsListener) {
+                conversationsListener.off();
+            }
+            
+            conversationsListener = database.ref('conversations').orderByChild('lastMessageTime');
+            conversationsListener.on('value', (snapshot) => {
                 const conversations = [];
                 snapshot.forEach((child) => {
                     const conversation = child.val();
@@ -4871,21 +4981,40 @@
                 return;
             }
             
-            container.innerHTML = '';
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
+            const loadPromises = [];
+            
             conversations.forEach(conversation => {
                 // Get the other participant's ID
                 const participantIds = Object.keys(conversation.participants);
                 const otherUserId = participantIds.find(id => id !== currentUser.uid);
                 
                 if (otherUserId) {
-                    database.ref('users/' + otherUserId).once('value').then((userSnapshot) => {
-                        const userData = userSnapshot.val();
-                        if (userData) {
-                            const conversationElement = createConversationElement(conversation, userData, otherUserId);
-                            container.appendChild(conversationElement);
-                        }
-                    });
+                    // Check cache first
+                    if (conversationsCache.has(otherUserId)) {
+                        const userData = conversationsCache.get(otherUserId);
+                        const conversationElement = createConversationElement(conversation, userData, otherUserId);
+                        fragment.appendChild(conversationElement);
+                    } else {
+                        // Load from database and cache
+                        const promise = database.ref('users/' + otherUserId).once('value').then((userSnapshot) => {
+                            const userData = userSnapshot.val();
+                            if (userData) {
+                                conversationsCache.set(otherUserId, userData);
+                                const conversationElement = createConversationElement(conversation, userData, otherUserId);
+                                fragment.appendChild(conversationElement);
+                            }
+                        });
+                        loadPromises.push(promise);
+                    }
                 }
+            });
+            
+            // Update DOM once all elements are ready
+            Promise.all(loadPromises).then(() => {
+                container.innerHTML = '';
+                container.appendChild(fragment);
             });
         }
 
@@ -4898,7 +5027,7 @@
                 ? `<img src="${userData.profilePic}" class="w-full h-full object-cover rounded-full">`
                 : userData.fullName.charAt(0).toUpperCase();
             
-            const timeAgo = conversation.lastMessageTime ? new Date(conversation.lastMessageTime).toLocaleString() : 'Recently';
+            const timeAgo = conversation.lastMessageTime ? formatTimeAgo(conversation.lastMessageTime) : 'Recently';
             
             // Check if there are unread messages
             const hasUnread = conversation.unreadCount && conversation.unreadCount[currentUser.uid] > 0;
@@ -4942,9 +5071,29 @@
                 </div>
             `;
             
-            // Listen for typing indicators
+            // Optimize typing indicators with throttling
+            setupTypingIndicator(userId);
+            
+            return div;
+        }
+
+        function setupTypingIndicator(userId) {
             const conversationId = [currentUser.uid, userId].sort().join('_');
-            database.ref(`typing/${conversationId}/${userId}`).on('value', (snapshot) => {
+            
+            // Remove existing listener if any
+            if (typingListeners.has(userId)) {
+                typingListeners.get(userId).off();
+            }
+            
+            // Create new listener with throttling
+            const typingRef = database.ref(`typing/${conversationId}/${userId}`);
+            let lastUpdate = 0;
+            
+            const listener = typingRef.on('value', (snapshot) => {
+                const now = Date.now();
+                if (now - lastUpdate < 500) return; // Throttle updates to 500ms
+                lastUpdate = now;
+                
                 const typingData = snapshot.val();
                 const typingIndicator = document.getElementById(`typingIndicator-${userId}`);
                 const lastMessage = document.getElementById(`lastMessage-${userId}`);
@@ -4953,7 +5102,7 @@
                 if (typingData && typingData.isTyping) {
                     if (typingIndicator) {
                         typingIndicator.classList.remove('hidden');
-                        lastMessage.classList.add('hidden');
+                        lastMessage?.classList.add('hidden');
                     }
                     if (modalTypingIndicator) {
                         modalTypingIndicator.classList.remove('hidden');
@@ -4961,7 +5110,7 @@
                 } else {
                     if (typingIndicator) {
                         typingIndicator.classList.add('hidden');
-                        lastMessage.classList.remove('hidden');
+                        lastMessage?.classList.remove('hidden');
                     }
                     if (modalTypingIndicator) {
                         modalTypingIndicator.classList.add('hidden');
@@ -4969,7 +5118,21 @@
                 }
             });
             
-            return div;
+            typingListeners.set(userId, typingRef);
+        }
+
+        function formatTimeAgo(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Now';
+            if (minutes < 60) return `${minutes}m`;
+            if (hours < 24) return `${hours}h`;
+            if (days < 7) return `${days}d`;
+            return new Date(timestamp).toLocaleDateString();
         }
 
         function startNewConversation() {
@@ -5507,5 +5670,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9785992db6ad91ac',t:'MTc1NjczODQxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9785ac60b6b3a9ec',t:'MTc1NjczOTIwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
