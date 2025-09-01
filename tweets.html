@@ -1707,24 +1707,18 @@
         }
 
         function updateProfileActionButtons(userId) {
-            // Find the existing button container or create it
-            const profileHeader = document.querySelector('#profileTab .bg-white .flex.items-center.space-x-4');
-            let buttonsContainer = profileHeader.querySelector('.profile-action-buttons');
-            
-            // Remove existing buttons
-            const existingButtons = profileHeader.querySelectorAll('button');
-            existingButtons.forEach(btn => btn.remove());
+            // Find the profile action buttons container
+            const buttonsContainer = document.querySelector('.profile-action-buttons');
             
             if (!buttonsContainer) {
-                buttonsContainer = document.createElement('div');
-                buttonsContainer.className = 'profile-action-buttons flex space-x-2';
-                profileHeader.appendChild(buttonsContainer);
+                console.error('Profile action buttons container not found');
+                return;
             }
             
             if (userId === currentUser.uid) {
                 // Show edit profile button for own profile
                 buttonsContainer.innerHTML = `
-                    <button onclick="showEditProfile()" class="instagram-gradient text-white px-4 py-2 rounded-xl font-medium hover:opacity-90 transition">
+                    <button onclick="showEditProfile()" class="w-full instagram-gradient text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition text-sm">
                         Edit Profile
                     </button>
                 `;
@@ -1735,12 +1729,14 @@
                         const isFollowing = snapshot.exists();
                         
                         buttonsContainer.innerHTML = `
-                            <button onclick="toggleFollow('${userId}')" id="followButton-${userId}" class="${isFollowing ? 'bg-gray-200 text-gray-700' : 'instagram-gradient text-white'} px-4 py-2 rounded-xl font-medium hover:opacity-90 transition">
-                                ${isFollowing ? 'Following' : 'Follow'}
-                            </button>
-                            <button onclick="messageUser('${userId}')" class="border border-gray-300 text-gray-700 px-4 py-2 rounded-xl font-medium hover:bg-gray-50 transition">
-                                Message
-                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="toggleFollow('${userId}')" id="followButton-${userId}" class="flex-1 ${isFollowing ? 'bg-gray-200 text-gray-700' : 'instagram-gradient text-white'} py-2 px-4 rounded-lg font-medium hover:opacity-90 transition text-sm">
+                                    ${isFollowing ? 'Following' : 'Follow'}
+                                </button>
+                                <button onclick="messageUser('${userId}')" class="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 transition text-sm">
+                                    Message
+                                </button>
+                            </div>
                         `;
                     });
             }
@@ -2359,6 +2355,9 @@
                     if (userData) {
                         const profileNameEl = document.getElementById('profileName');
                         profileNameEl.innerHTML = userData.fullName + (userData.verified ? '<span class="verified-badge ml-2"><svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></span>' : '');
+                        
+                        // Fix username display
+                        document.getElementById('profileUsername').textContent = '@' + userData.username;
                         
                         document.getElementById('profileBio').textContent = userData.bio || '';
                         
@@ -3162,5 +3161,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97853957704f3c52',t:'MTc1NjczNDQ5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978540b9b51c5502',t:'MTc1NjczNDc5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
