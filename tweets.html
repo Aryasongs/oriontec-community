@@ -45,6 +45,125 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         
+        .hashtag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .hashtag:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .mention {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .mention:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(240, 147, 251, 0.3);
+        }
+        
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s ease;
+        }
+        
+        .suggestion-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .hashtag-suggestion {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .hashtag-text {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .hashtag-count {
+            font-size: 12px;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+        
+        .mention-suggestion {
+            display: flex;
+            align-items: center;
+            space-x: 3;
+        }
+        
+        .mention-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 12px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .mention-info {
+            flex: 1;
+        }
+        
+        .mention-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .mention-username {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
         * {
             -webkit-user-select: none;
             -moz-user-select: none;
@@ -274,8 +393,11 @@
                             U
                         </div>
                     </div>
-                    <div class="flex-1">
-                        <textarea id="buzzText" placeholder="What's buzzing?" class="w-full p-3 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" rows="3"></textarea>
+                    <div class="flex-1 relative">
+                        <textarea id="buzzText" placeholder="What's buzzing?" class="w-full p-3 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" rows="3" oninput="handleTextInput()" onkeydown="handleKeyDown(event)"></textarea>
+                        <div id="suggestionDropdown" class="suggestions-dropdown">
+                            <!-- Suggestions will be populated here -->
+                        </div>
                         <div class="flex justify-between items-center mt-4">
                             <div class="flex space-x-4">
                                 <button onclick="document.getElementById('buzzImage').click()" class="text-pink-500 hover:bg-pink-50 p-2 rounded-lg transition">
@@ -616,6 +738,11 @@
         let currentUser = null;
         let currentTab = 'home';
         let buzzImageData = null;
+        let currentSuggestionType = null;
+        let currentSuggestionQuery = '';
+        let selectedSuggestionIndex = -1;
+        let availableHashtags = [];
+        let availableUsers = [];
 
         // Authentication
         function signInWithGoogle() {
@@ -1156,11 +1283,11 @@
         function formatTextWithHashtagsAndMentions(text) {
             if (!text) return '';
             
-            // Replace hashtags with clickable links
-            text = text.replace(/#([a-zA-Z0-9_]+)/g, '<span class="text-blue-600 cursor-pointer hover:underline" onclick="showHashtagFeed(\'$1\')">#$1</span>');
+            // Replace hashtags with styled clickable elements
+            text = text.replace(/#([a-zA-Z0-9_]+)/g, '<span class="hashtag" onclick="showHashtagFeed(\'$1\')">#$1</span>');
             
-            // Replace mentions with clickable links
-            text = text.replace(/@([a-zA-Z0-9_]+)/g, '<span class="text-purple-600 cursor-pointer hover:underline" onclick="viewUserByUsername(\'$1\')">@$1</span>');
+            // Replace mentions with styled clickable elements
+            text = text.replace(/@([a-zA-Z0-9_]+)/g, '<span class="mention" onclick="viewUserByUsername(\'$1\')">@$1</span>');
             
             return text;
         }
@@ -1347,8 +1474,12 @@
             // Update profile display with other user's data
             document.getElementById('profileName').textContent = userData.fullName;
             document.getElementById('profileUsername').textContent = '@' + userData.username;
-            document.getElementById('followingCount').textContent = userData.following || 0;
-            document.getElementById('followersCount').textContent = userData.followers || 0;
+            
+            // Fix follower/following count display for other users
+            const followingCount = (userData.following && typeof userData.following === 'number') ? userData.following : 0;
+            const followersCount = (userData.followers && typeof userData.followers === 'number') ? userData.followers : 0;
+            document.getElementById('followingCount').textContent = followingCount;
+            document.getElementById('followersCount').textContent = followersCount;
             
             const profileDP = document.getElementById('profilePageDP');
             if (userData.profilePic) {
@@ -1538,10 +1669,7 @@
             });
         }
 
-        function showComments(buzzId) {
-            // This would open a comments modal - simplified for demo
-            alert('Comments feature coming soon!');
-        }
+
 
         function shareBuzz(buzzId) {
             if (navigator.share) {
@@ -1693,8 +1821,12 @@
                         
                         document.getElementById('profileUsername').textContent = '@' + userData.username;
                         document.getElementById('profileBio').textContent = userData.bio || '';
-                        document.getElementById('followingCount').textContent = userData.following || 0;
-                        document.getElementById('followersCount').textContent = userData.followers || 0;
+                        
+                        // Fix follower/following count display
+                        const followingCount = (userData.following && typeof userData.following === 'number') ? userData.following : 0;
+                        const followersCount = (userData.followers && typeof userData.followers === 'number') ? userData.followers : 0;
+                        document.getElementById('followingCount').textContent = followingCount;
+                        document.getElementById('followersCount').textContent = followersCount;
                         
                         const profileDP = document.getElementById('profilePageDP');
                         if (userData.profilePic) {
@@ -1992,6 +2124,235 @@
                 });
         }
 
+        function handleTextInput() {
+            const textarea = document.getElementById('buzzText');
+            const text = textarea.value;
+            const cursorPosition = textarea.selectionStart;
+            
+            // Find the current word being typed
+            const textBeforeCursor = text.substring(0, cursorPosition);
+            const words = textBeforeCursor.split(/\s/);
+            const currentWord = words[words.length - 1];
+            
+            if (currentWord.startsWith('#') && currentWord.length > 1) {
+                // Hashtag suggestion
+                currentSuggestionType = 'hashtag';
+                currentSuggestionQuery = currentWord.substring(1).toLowerCase();
+                showHashtagSuggestions();
+            } else if (currentWord.startsWith('@') && currentWord.length > 1) {
+                // Mention suggestion
+                currentSuggestionType = 'mention';
+                currentSuggestionQuery = currentWord.substring(1).toLowerCase();
+                showMentionSuggestions();
+            } else {
+                hideSuggestions();
+            }
+        }
+
+        function handleKeyDown(event) {
+            const dropdown = document.getElementById('suggestionDropdown');
+            const suggestions = dropdown.querySelectorAll('.suggestion-item');
+            
+            if (dropdown.style.display === 'block' && suggestions.length > 0) {
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, suggestions.length - 1);
+                    updateSuggestionSelection(suggestions);
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+                    updateSuggestionSelection(suggestions);
+                } else if (event.key === 'Enter' && selectedSuggestionIndex >= 0) {
+                    event.preventDefault();
+                    selectSuggestion(selectedSuggestionIndex);
+                } else if (event.key === 'Escape') {
+                    hideSuggestions();
+                }
+            }
+        }
+
+        function updateSuggestionSelection(suggestions) {
+            suggestions.forEach((item, index) => {
+                if (index === selectedSuggestionIndex) {
+                    item.style.backgroundColor = '#f3f4f6';
+                } else {
+                    item.style.backgroundColor = '';
+                }
+            });
+        }
+
+        function showHashtagSuggestions() {
+            // Load existing hashtags from database
+            database.ref('hashtags').once('value').then((snapshot) => {
+                const hashtags = [];
+                snapshot.forEach((child) => {
+                    const hashtagData = child.val();
+                    const hashtagName = child.key;
+                    if (hashtagName.toLowerCase().includes(currentSuggestionQuery)) {
+                        hashtags.push({
+                            name: hashtagName,
+                            count: hashtagData.postCount || 0
+                        });
+                    }
+                });
+                
+                // Sort by post count (most popular first)
+                hashtags.sort((a, b) => b.count - a.count);
+                
+                displayHashtagSuggestions(hashtags.slice(0, 5)); // Show top 5
+            });
+        }
+
+        function displayHashtagSuggestions(hashtags) {
+            const dropdown = document.getElementById('suggestionDropdown');
+            dropdown.innerHTML = '';
+            
+            if (hashtags.length === 0) {
+                // Show option to create new hashtag
+                const newHashtagItem = document.createElement('div');
+                newHashtagItem.className = 'suggestion-item';
+                newHashtagItem.innerHTML = `
+                    <div class="hashtag-suggestion">
+                        <span class="hashtag-text">#${currentSuggestionQuery}</span>
+                        <span class="hashtag-count">New</span>
+                    </div>
+                `;
+                newHashtagItem.onclick = () => selectSuggestion(0);
+                dropdown.appendChild(newHashtagItem);
+            } else {
+                hashtags.forEach((hashtag, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.innerHTML = `
+                        <div class="hashtag-suggestion">
+                            <span class="hashtag-text">#${hashtag.name}</span>
+                            <span class="hashtag-count">${hashtag.count} posts</span>
+                        </div>
+                    `;
+                    item.onclick = () => selectSuggestion(index);
+                    dropdown.appendChild(item);
+                });
+            }
+            
+            dropdown.style.display = 'block';
+            selectedSuggestionIndex = -1;
+        }
+
+        function showMentionSuggestions() {
+            // Load users from database
+            database.ref('users').once('value').then((snapshot) => {
+                const users = [];
+                snapshot.forEach((child) => {
+                    const userData = child.val();
+                    if (userData.username && userData.username.toLowerCase().includes(currentSuggestionQuery)) {
+                        users.push({
+                            id: child.key,
+                            username: userData.username,
+                            fullName: userData.fullName,
+                            profilePic: userData.profilePic
+                        });
+                    }
+                });
+                
+                // Sort alphabetically
+                users.sort((a, b) => a.username.localeCompare(b.username));
+                
+                displayMentionSuggestions(users.slice(0, 5)); // Show top 5
+            });
+        }
+
+        function displayMentionSuggestions(users) {
+            const dropdown = document.getElementById('suggestionDropdown');
+            dropdown.innerHTML = '';
+            
+            if (users.length === 0) {
+                const noUsersItem = document.createElement('div');
+                noUsersItem.className = 'suggestion-item';
+                noUsersItem.innerHTML = `
+                    <div class="text-gray-500 text-center">No users found</div>
+                `;
+                dropdown.appendChild(noUsersItem);
+            } else {
+                users.forEach((user, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    
+                    const avatar = user.profilePic 
+                        ? `<img src="${user.profilePic}" class="mention-avatar">`
+                        : `<div class="mention-avatar">${user.fullName.charAt(0).toUpperCase()}</div>`;
+                    
+                    item.innerHTML = `
+                        <div class="mention-suggestion">
+                            ${avatar}
+                            <div class="mention-info">
+                                <div class="mention-name">${user.fullName}</div>
+                                <div class="mention-username">@${user.username}</div>
+                            </div>
+                        </div>
+                    `;
+                    item.onclick = () => selectSuggestion(index);
+                    dropdown.appendChild(item);
+                });
+            }
+            
+            dropdown.style.display = 'block';
+            selectedSuggestionIndex = -1;
+        }
+
+        function selectSuggestion(index) {
+            const textarea = document.getElementById('buzzText');
+            const text = textarea.value;
+            const cursorPosition = textarea.selectionStart;
+            
+            // Find the current word being typed
+            const textBeforeCursor = text.substring(0, cursorPosition);
+            const textAfterCursor = text.substring(cursorPosition);
+            const words = textBeforeCursor.split(/\s/);
+            const currentWord = words[words.length - 1];
+            
+            let replacement = '';
+            const dropdown = document.getElementById('suggestionDropdown');
+            const suggestions = dropdown.querySelectorAll('.suggestion-item');
+            
+            if (currentSuggestionType === 'hashtag') {
+                const hashtagText = suggestions[index].querySelector('.hashtag-text').textContent;
+                replacement = hashtagText + ' ';
+            } else if (currentSuggestionType === 'mention') {
+                const usernameText = suggestions[index].querySelector('.mention-username').textContent;
+                replacement = usernameText + ' ';
+            }
+            
+            // Replace the current word with the selected suggestion
+            const beforeCurrentWord = textBeforeCursor.substring(0, textBeforeCursor.length - currentWord.length);
+            const newText = beforeCurrentWord + replacement + textAfterCursor;
+            const newCursorPosition = beforeCurrentWord.length + replacement.length;
+            
+            textarea.value = newText;
+            textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+            textarea.focus();
+            
+            hideSuggestions();
+        }
+
+        function hideSuggestions() {
+            const dropdown = document.getElementById('suggestionDropdown');
+            dropdown.style.display = 'none';
+            dropdown.innerHTML = '';
+            currentSuggestionType = null;
+            currentSuggestionQuery = '';
+            selectedSuggestionIndex = -1;
+        }
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(event) {
+            const textarea = document.getElementById('buzzText');
+            const dropdown = document.getElementById('suggestionDropdown');
+            
+            if (textarea && dropdown && !textarea.contains(event.target) && !dropdown.contains(event.target)) {
+                hideSuggestions();
+            }
+        });
+
         function signOut() {
             auth.signOut().then(() => {
                 currentUser = null;
@@ -2022,5 +2383,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9784fcb9a70b3a32',t:'MTc1NjczMjAxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97850b0df07f3c4c',t:'MTc1NjczMjU5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
