@@ -58,6 +58,24 @@
             font-size: 10px;
             font-weight: bold;
         }
+        .hashtag {
+            color: #1DA1F2;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .hashtag:hover {
+            text-decoration: underline;
+        }
+        .mention {
+            color: #1DA1F2;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .mention:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-pink-50 to-blue-50 min-h-screen">
@@ -327,6 +345,33 @@
             </div>
         </div>
 
+        <!-- Hashtag Screen -->
+        <div id="hashtagScreen" class="hidden bg-white min-h-screen">
+            <div class="max-w-md mx-auto p-4">
+                <div class="flex items-center gap-3 mb-6">
+                    <button id="backFromHashtag" class="p-2">
+                        <span class="text-xl">⬅️</span>
+                    </button>
+                    <h2 id="hashtagTitle" class="text-xl font-bold">#hashtag</h2>
+                </div>
+                <div id="hashtagStats" class="bg-gray-50 rounded-xl p-4 mb-4">
+                    <div class="flex justify-between">
+                        <div class="text-center">
+                            <p id="hashtagPostCount" class="font-bold text-lg">0</p>
+                            <p class="text-gray-500 text-sm">Posts</p>
+                        </div>
+                        <div class="text-center">
+                            <p id="hashtagUserCount" class="font-bold text-lg">0</p>
+                            <p class="text-gray-500 text-sm">Users</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="hashtagPosts" class="space-y-3">
+                    <!-- Hashtag posts will be loaded here -->
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div id="homeContent" class="max-w-md mx-auto">
             <!-- Create Buzz -->
@@ -463,7 +508,7 @@
         }
 
         function showMainScreen(screenId) {
-            const screens = ['homeContent', 'searchScreen', 'profileScreen', 'settingsScreen', 'notificationsScreen'];
+            const screens = ['homeContent', 'searchScreen', 'profileScreen', 'settingsScreen', 'notificationsScreen', 'messagesScreen', 'hashtagScreen'];
             screens.forEach(screen => {
                 document.getElementById(screen).classList.add('hidden');
             });
@@ -671,6 +716,10 @@
             const text = document.getElementById('buzzText').value.trim();
             if (!text && !currentBuzzImage) return;
 
+            // Extract hashtags and mentions
+            const hashtags = extractHashtags(text);
+            const mentions = extractMentions(text);
+
             const buzzData = {
                 userId: currentUser.uid,
                 authorName: currentUserData.fullName,
@@ -678,6 +727,8 @@
                 authorImage: currentUserData.profilePicture || null,
                 isVerified: currentUserData.isVerified || false,
                 text: text,
+                hashtags: hashtags,
+                mentions: mentions,
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 likes: {},
                 comments: {},
@@ -689,7 +740,27 @@
                 buzzData.image = currentBuzzImage;
             }
 
-            database.ref('buzzes').push(buzzData).then(() => {
+            database.ref('buzzes').push(buzzData).then((buzzRef) => {
+                const buzzId = buzzRef.key;
+                
+                // Store hashtags
+                hashtags.forEach(hashtag => {
+                    database.ref(`hashtags/${hashtag.toLowerCase()}/posts/${buzzId}`).set(true);
+                    database.ref(`hashtags/${hashtag.toLowerCase()}/users/${currentUser.uid}`).set(true);
+                });
+
+                // Send mention notifications
+                mentions.forEach(username => {
+                    database.ref('usernames').child(username.toLowerCase()).once('value', (snapshot) => {
+                        if (snapshot.exists()) {
+                            const mentionedUserId = snapshot.val();
+                            if (mentionedUserId !== currentUser.uid) {
+                                sendNotification(mentionedUserId, 'mention', buzzId);
+                            }
+                        }
+                    });
+                });
+
                 document.getElementById('buzzText').value = '';
                 document.getElementById('imagePreview').classList.add('hidden');
                 document.getElementById('buzzImageInput').value = '';
@@ -723,6 +794,31 @@
                 const buzzElement = createBuzzElement(buzz);
                 feed.appendChild(buzzElement);
             });
+        }
+
+        // Hashtag and mention utility functions
+        function extractHashtags(text) {
+            const hashtagRegex = /#[a-zA-Z0-9_]+/g;
+            const matches = text.match(hashtagRegex);
+            return matches ? matches.map(tag => tag.substring(1)) : [];
+        }
+
+        function extractMentions(text) {
+            const mentionRegex = /@[a-zA-Z0-9_]+/g;
+            const matches = text.match(mentionRegex);
+            return matches ? matches.map(mention => mention.substring(1)) : [];
+        }
+
+        function formatTextWithHashtagsAndMentions(text) {
+            if (!text) return '';
+            
+            // Replace hashtags
+            text = text.replace(/#([a-zA-Z0-9_]+)/g, '<span class="hashtag" onclick="showHashtag(\'$1\')">#$1</span>');
+            
+            // Replace mentions
+            text = text.replace(/@([a-zA-Z0-9_]+)/g, '<span class="mention" onclick="showMentionedUser(\'$1\')">@$1</span>');
+            
+            return text;
         }
 
         // Create buzz element
@@ -759,7 +855,7 @@
                                 </button>
                             ` : ''}
                         </div>
-                        <p class="mb-3">${buzz.text}</p>
+                        <p class="mb-3">${formatTextWithHashtagsAndMentions(buzz.text)}</p>
                         ${buzz.image ? `<img src="${buzz.image}" class="w-full rounded-lg mb-3 max-h-96 object-cover">` : ''}
                         <div class="flex items-center justify-between text-gray-500 max-w-md">
                             <button class="flex items-center gap-2 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors ${isLiked ? 'text-red-500' : ''}" onclick="toggleLike('${buzz.id}', '${buzz.userId}')">
@@ -895,6 +991,66 @@
             }
         }
 
+        // Hashtag and mention navigation
+        function showHashtag(hashtag) {
+            document.getElementById('hashtagTitle').textContent = `#${hashtag}`;
+            loadHashtagData(hashtag);
+            showMainScreen('hashtagScreen');
+        }
+
+        function showMentionedUser(username) {
+            database.ref('usernames').child(username.toLowerCase()).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const userId = snapshot.val();
+                    showUserProfile(userId);
+                } else {
+                    alert('User not found');
+                }
+            });
+        }
+
+        function loadHashtagData(hashtag) {
+            const hashtagRef = database.ref(`hashtags/${hashtag.toLowerCase()}`);
+            
+            hashtagRef.once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const postCount = data.posts ? Object.keys(data.posts).length : 0;
+                    const userCount = data.users ? Object.keys(data.users).length : 0;
+                    
+                    document.getElementById('hashtagPostCount').textContent = postCount;
+                    document.getElementById('hashtagUserCount').textContent = userCount;
+                    
+                    // Load posts with this hashtag
+                    if (data.posts) {
+                        const postIds = Object.keys(data.posts);
+                        loadHashtagPosts(postIds);
+                    } else {
+                        document.getElementById('hashtagPosts').innerHTML = '<p class="text-gray-500 text-center py-8">No posts found</p>';
+                    }
+                } else {
+                    document.getElementById('hashtagPostCount').textContent = '0';
+                    document.getElementById('hashtagUserCount').textContent = '0';
+                    document.getElementById('hashtagPosts').innerHTML = '<p class="text-gray-500 text-center py-8">No posts found</p>';
+                }
+            });
+        }
+
+        function loadHashtagPosts(postIds) {
+            const hashtagPosts = document.getElementById('hashtagPosts');
+            hashtagPosts.innerHTML = '';
+            
+            postIds.forEach(postId => {
+                database.ref(`buzzes/${postId}`).once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const buzz = { id: snapshot.key, ...snapshot.val() };
+                        const buzzElement = createBuzzElement(buzz);
+                        hashtagPosts.appendChild(buzzElement);
+                    }
+                });
+            });
+        }
+
         // Notification system
         function sendNotification(userId, type, buzzId) {
             const notificationData = {
@@ -960,6 +1116,7 @@
                     'save': '🔖',
                     'comment': '💬',
                     'follow': '👤',
+                    'mention': '📢',
                     'verification_approved': '✅'
                 };
                 
@@ -969,6 +1126,7 @@
                     'save': 'saved your buzz',
                     'comment': 'commented on your buzz',
                     'follow': 'started following you',
+                    'mention': 'mentioned you in a buzz',
                     'verification_approved': 'Congratulations! Your account has been verified'
                 };
                 
@@ -1412,6 +1570,10 @@
             });
         });
 
+        document.getElementById('messageBtn').addEventListener('click', () => {
+            showMainScreen('messagesScreen');
+        });
+
         // Back button event listeners
         document.getElementById('backToHome').addEventListener('click', () => {
             showMainScreen('homeContent');
@@ -1437,10 +1599,22 @@
             document.getElementById('homeBtn').classList.add('text-pink-500');
         });
 
+        document.getElementById('backFromMessages').addEventListener('click', () => {
+            showMainScreen('homeContent');
+            document.getElementById('homeBtn').classList.remove('text-gray-400');
+            document.getElementById('homeBtn').classList.add('text-pink-500');
+        });
+
+        document.getElementById('backFromHashtag').addEventListener('click', () => {
+            showMainScreen('homeContent');
+            document.getElementById('homeBtn').classList.remove('text-gray-400');
+            document.getElementById('homeBtn').classList.add('text-pink-500');
+        });
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
             // App will initialize through auth state observer
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97837262e3455988',t:'MTc1NjcxNTg1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9783764e94c054e9',t:'MTc1NjcxNjAxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
