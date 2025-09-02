@@ -1397,30 +1397,42 @@
                         
                         <div class="flex items-center justify-between mt-4 max-w-md">
                             <button class="buzz-action flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors p-2 rounded-full hover:bg-blue-50" data-action="comment" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
-                                <span class="text-lg">💬</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
                                 <span class="text-xs">${buzz.comments || 0}</span>
                             </button>
                             
                             <button class="buzz-action flex items-center space-x-1 text-gray-500 hover:text-green-500 transition-colors p-2 rounded-full hover:bg-green-50" data-action="rebuzz" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
-                                <span class="text-lg">🔄</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
                                 <span class="text-xs">${buzz.rebuzzes || 0}</span>
                             </button>
                             
                             <button class="buzz-action flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50" data-action="like" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
-                                <span class="text-lg">❤️</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
                                 <span class="text-xs">${buzz.likes || 0}</span>
                             </button>
                             
                             <button class="buzz-action flex items-center space-x-1 text-gray-500 hover:text-purple-500 transition-colors p-2 rounded-full hover:bg-purple-50" data-action="share" data-buzz-id="${buzz.key}">
-                                <span class="text-lg">📤</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                                </svg>
                             </button>
                             
                             <button class="buzz-action flex items-center space-x-1 text-gray-500 hover:text-yellow-500 transition-colors p-2 rounded-full hover:bg-yellow-50" data-action="save" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
-                                <span class="text-lg">🔖</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                                </svg>
                             </button>
                             ${buzz.userId === currentUser.uid ? `
                             <button class="buzz-action flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50" data-action="delete" data-buzz-id="${buzz.key}">
-                                <span class="text-lg">🗑️</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
                             </button>
                             ` : ''}
                         </div>
@@ -1817,40 +1829,54 @@
             
             console.log('Loading profile for userId:', targetUserId, 'isOwnProfile:', isOwnProfile);
             
+            // Show loading state
+            document.getElementById('profilePageName').textContent = 'Loading...';
+            document.getElementById('profilePageUsername').textContent = '';
+            
             database.ref(`users/${targetUserId}`).once('value', snapshot => {
                 const userData = snapshot.val();
+                console.log('User data loaded:', userData);
+                
                 if (userData) {
                     // Update profile info with the correct user data
                     const nameElement = document.getElementById('profilePageName');
                     const usernameElement = document.getElementById('profilePageUsername');
                     const avatar = document.getElementById('profilePageAvatar');
                     
-                    nameElement.textContent = userData.name || 'Unknown User';
+                    // Clear any existing content first
+                    nameElement.innerHTML = '';
+                    usernameElement.textContent = '';
+                    avatar.innerHTML = '';
+                    
+                    // Set new content
+                    if (userData.verified) {
+                        nameElement.innerHTML = `${userData.name || 'Unknown User'} <span class="text-blue-500 text-lg ml-1">✓</span>`;
+                    } else {
+                        nameElement.textContent = userData.name || 'Unknown User';
+                    }
+                    
                     usernameElement.textContent = `@${userData.username || 'unknown'}`;
                     
                     if (userData.profilePhoto) {
                         avatar.innerHTML = `<img src="${userData.profilePhoto}" class="w-full h-full object-cover rounded-full">`;
                     } else {
                         avatar.textContent = generateAvatar(userData.name || 'U');
+                        avatar.className = 'w-24 h-24 mx-auto mb-4 rounded-full blue-pink-gradient flex items-center justify-center text-white text-2xl font-bold';
                     }
                     
-                    console.log('Profile updated for:', userData.name, 'userId:', targetUserId);
-                    
-                    // Add verification badge if verified
-                    const nameElement = document.getElementById('profilePageName');
-                    if (userData.verified) {
-                        nameElement.innerHTML = `${userData.name || 'Unknown User'} <span class="text-blue-500 text-lg ml-1">✓</span>`;
-                    }
+                    console.log('Profile UI updated for:', userData.name, 'userId:', targetUserId);
                     
                     // Update bio if exists
                     let bioElement = document.getElementById('profilePageBio');
-                    if (!bioElement) {
+                    if (!bioElement && userData.bio) {
                         bioElement = document.createElement('p');
                         bioElement.id = 'profilePageBio';
                         bioElement.className = 'text-gray-600 text-center mt-2';
-                        document.getElementById('profilePageUsername').parentNode.appendChild(bioElement);
+                        usernameElement.parentNode.appendChild(bioElement);
                     }
-                    bioElement.textContent = userData.bio || '';
+                    if (bioElement) {
+                        bioElement.textContent = userData.bio || '';
+                    }
                     
                     // Show/hide edit button and follow button
                     const editBtn = document.getElementById('editProfileBtn');
@@ -1858,17 +1884,21 @@
                     
                     if (isOwnProfile) {
                         // Show edit button for own profile
-                        editBtn.style.display = 'block';
+                        if (editBtn) editBtn.style.display = 'block';
                         if (followBtn) followBtn.remove();
+                        console.log('Showing own profile with edit button');
                     } else {
                         // Hide edit button and show follow button for other profiles
-                        editBtn.style.display = 'none';
+                        if (editBtn) editBtn.style.display = 'none';
                         
                         if (!followBtn) {
                             followBtn = document.createElement('button');
                             followBtn.id = 'followUserBtn';
                             followBtn.className = 'mt-4 px-6 py-2 rounded-full font-semibold transition-colors';
-                            document.querySelector('.text-center').appendChild(followBtn);
+                            const statsContainer = document.querySelector('.flex.justify-center.space-x-8');
+                            if (statsContainer) {
+                                statsContainer.parentNode.appendChild(followBtn);
+                            }
                         }
                         
                         // Check if already following
@@ -1883,6 +1913,7 @@
                             
                             followBtn.onclick = () => toggleFollow(targetUserId, userData.name);
                         });
+                        console.log('Showing other user profile with follow button');
                     }
                     
                     // Load user's buzzes
@@ -1890,7 +1921,14 @@
                     
                     // Store current profile user ID
                     window.currentProfileUserId = targetUserId;
+                } else {
+                    console.error('No user data found for userId:', targetUserId);
+                    document.getElementById('profilePageName').textContent = 'User not found';
+                    document.getElementById('profilePageUsername').textContent = '';
                 }
+            }).catch(error => {
+                console.error('Error loading user profile:', error);
+                document.getElementById('profilePageName').textContent = 'Error loading profile';
             });
         }
 
@@ -2638,5 +2676,5 @@
             }
         }, 2000);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d3d5305153f03',t:'MTc1NjgxODU0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d442710203f03',t:'MTc1NjgxODgyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
