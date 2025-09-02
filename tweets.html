@@ -400,8 +400,8 @@
                         <span>⬅️</span>
                     </button>
                     <h1 class="text-xl font-bold">Profile</h1>
-                    <button class="p-2 rounded-full hover:bg-gray-100">
-                        <span>⚙️</span>
+                    <button id="editProfileBtn" class="p-2 rounded-full hover:bg-gray-100">
+                        <span>✏️</span>
                     </button>
                 </div>
             </header>
@@ -491,6 +491,45 @@
                 
                 <div id="followersListContainer" class="space-y-3">
                     <!-- Followers/Following list will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Modal -->
+        <div id="editProfileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full max-h-96 overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold">Edit Profile</h2>
+                    <button id="closeEditProfile" class="p-2 rounded-full hover:bg-gray-100 text-2xl">×</button>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Profile Photo -->
+                    <div class="text-center">
+                        <div id="editProfileAvatar" class="w-20 h-20 mx-auto mb-3 rounded-full blue-pink-gradient flex items-center justify-center text-white text-xl font-bold relative">
+                            U
+                            <button id="changePhotoBtn" class="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                                📷
+                            </button>
+                        </div>
+                        <input id="editPhotoInput" type="file" accept="image/*" class="hidden">
+                    </div>
+                    
+                    <!-- Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input id="editNameInput" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Your name">
+                    </div>
+                    
+                    <!-- Bio -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                        <textarea id="editBioInput" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="3" maxlength="150" placeholder="Tell us about yourself..."></textarea>
+                        <p class="text-xs text-gray-500 mt-1"><span id="editBioCount">0</span>/150 characters</p>
+                    </div>
+                    
+                    <!-- Save Button -->
+                    <button id="saveProfileBtn" class="w-full blue-pink-gradient text-white py-3 rounded-xl font-semibold">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -1790,9 +1829,18 @@
                     }
                     bioElement.textContent = userData.bio || '';
                     
-                    // Show/hide follow button
+                    // Show/hide edit button and follow button
+                    const editBtn = document.getElementById('editProfileBtn');
                     let followBtn = document.getElementById('followUserBtn');
-                    if (!isOwnProfile) {
+                    
+                    if (isOwnProfile) {
+                        // Show edit button for own profile
+                        editBtn.style.display = 'block';
+                        if (followBtn) followBtn.remove();
+                    } else {
+                        // Hide edit button and show follow button for other profiles
+                        editBtn.style.display = 'none';
+                        
                         if (!followBtn) {
                             followBtn = document.createElement('button');
                             followBtn.id = 'followUserBtn';
@@ -1812,8 +1860,6 @@
                             
                             followBtn.onclick = () => toggleFollow(targetUserId, userData.name);
                         });
-                    } else if (followBtn) {
-                        followBtn.remove();
                     }
                     
                     // Load user's buzzes
@@ -2116,26 +2162,152 @@
             showCustomToast('Add account feature coming soon! 👤', 'info');
         });
 
+        // Edit Profile functionality
+        document.getElementById('editProfileBtn').addEventListener('click', () => {
+            // Load current user data into edit form
+            database.ref(`users/${currentUser.uid}`).once('value', snapshot => {
+                const userData = snapshot.val();
+                if (userData) {
+                    document.getElementById('editNameInput').value = userData.name || '';
+                    document.getElementById('editBioInput').value = userData.bio || '';
+                    document.getElementById('editBioCount').textContent = (userData.bio || '').length;
+                    
+                    const editAvatar = document.getElementById('editProfileAvatar');
+                    if (userData.profilePhoto) {
+                        editAvatar.innerHTML = `<img src="${userData.profilePhoto}" class="w-full h-full object-cover rounded-full">
+                            <button id="changePhotoBtn" class="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                                📷
+                            </button>`;
+                    } else {
+                        editAvatar.innerHTML = `${generateAvatar(userData.name)}
+                            <button id="changePhotoBtn" class="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                                📷
+                            </button>`;
+                    }
+                    
+                    // Re-attach photo change event
+                    document.getElementById('changePhotoBtn').addEventListener('click', () => {
+                        document.getElementById('editPhotoInput').click();
+                    });
+                }
+            });
+            
+            document.getElementById('editProfileModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeEditProfile').addEventListener('click', () => {
+            document.getElementById('editProfileModal').classList.add('hidden');
+        });
+
+        document.getElementById('changePhotoBtn').addEventListener('click', () => {
+            document.getElementById('editPhotoInput').click();
+        });
+
+        document.getElementById('editPhotoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const editAvatar = document.getElementById('editProfileAvatar');
+                    editAvatar.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-full">
+                        <button id="changePhotoBtn" class="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                            📷
+                        </button>`;
+                    
+                    // Re-attach event listener
+                    document.getElementById('changePhotoBtn').addEventListener('click', () => {
+                        document.getElementById('editPhotoInput').click();
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('editBioInput').addEventListener('input', (e) => {
+            const text = e.target.value;
+            document.getElementById('editBioCount').textContent = text.length;
+        });
+
+        document.getElementById('saveProfileBtn').addEventListener('click', () => {
+            const name = document.getElementById('editNameInput').value.trim();
+            const bio = document.getElementById('editBioInput').value.trim();
+            const photoInput = document.getElementById('editPhotoInput');
+            
+            if (!name) {
+                showCustomToast('Name is required! ⚠️', 'warning');
+                return;
+            }
+            
+            let profilePhoto = null;
+            const currentAvatar = document.getElementById('editProfileAvatar').querySelector('img');
+            if (currentAvatar) {
+                profilePhoto = currentAvatar.src;
+            }
+            
+            if (photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    profilePhoto = e.target.result;
+                    saveProfile();
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                saveProfile();
+            }
+            
+            function saveProfile() {
+                const updates = {};
+                updates[`users/${currentUser.uid}/name`] = name;
+                updates[`users/${currentUser.uid}/bio`] = bio;
+                if (profilePhoto) {
+                    updates[`users/${currentUser.uid}/profilePhoto`] = profilePhoto;
+                }
+                
+                database.ref().update(updates).then(() => {
+                    document.getElementById('editProfileModal').classList.add('hidden');
+                    showCustomToast('Profile updated successfully! ✅', 'success');
+                    
+                    // Refresh profile display
+                    loadUserProfile(currentUser.uid);
+                    loadUserData(); // Update create page avatar too
+                }).catch(error => {
+                    console.error('Error updating profile:', error);
+                    showCustomToast('Failed to update profile. Please try again!', 'error');
+                });
+            }
+        });
+
         // Profile viewing and search functionality
         document.addEventListener('click', (e) => {
             if (e.target.closest('.user-profile-btn')) {
                 const userId = e.target.closest('.user-profile-btn').dataset.userId;
-                if (userId && userId !== currentUser.uid) {
+                if (userId) {
                     viewUserProfile(userId);
                 }
             }
         });
 
         function viewUserProfile(userId) {
+            // Always close settings modal first
+            document.getElementById('settingsModal').classList.add('hidden');
+            
+            // Show profile page and load the specific user's profile
+            showPage('profilePage');
+            loadUserProfile(userId);
+            
+            // Update back button behavior based on whose profile we're viewing
+            const backBtn = document.getElementById('backToSettings');
             if (userId === currentUser.uid) {
-                // Show own profile
-                document.getElementById('settingsModal').classList.add('hidden');
-                showPage('profilePage');
-                loadUserProfile();
+                // Own profile - back to settings
+                backBtn.onclick = () => {
+                    document.getElementById('settingsModal').classList.remove('hidden');
+                    showPage('homePage');
+                };
             } else {
-                // Show other user's profile
-                showPage('profilePage');
-                loadUserProfile(userId);
+                // Other user's profile - back to previous page
+                backBtn.onclick = () => {
+                    showPage('homePage');
+                };
             }
         }
 
@@ -2447,5 +2619,5 @@
             }
         }, 2000);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d3329e0674478',t:'MTc1NjgxODEyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d39827484f4aa',t:'MTc1NjgxODM4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
