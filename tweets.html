@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -14,13 +14,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
         .gradient-bg {
-            background: linear-gradient(45deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%);
+            background: linear-gradient(45deg, #fce7f3 0%, #dbeafe 50%, #e0f2fe 100%);
         }
         .pulse-gradient {
-            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%);
+            background: linear-gradient(135deg, #f8bbd9 0%, #93c5fd 50%, #7dd3fc 100%);
         }
         .instagram-gradient {
-            background: linear-gradient(45deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%);
+            background: linear-gradient(45deg, #f8bbd9 0%, #93c5fd 50%, #7dd3fc 100%);
         }
         .story-ring {
             background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
@@ -65,12 +65,28 @@
             }
         }
         
-        /* Prevent text selection on buttons */
-        button {
+        /* Prevent text selection on buttons and copy */
+        button, .buzz-card, .nav-btn {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        input, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
         }
         
         /* Smooth scrolling */
@@ -141,6 +157,15 @@
                 <button id="dobNextBtn" class="w-full instagram-gradient text-white py-3 rounded-xl font-semibold">Next</button>
             </div>
 
+            <div id="setupStep3_5" class="hidden space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bio (Optional)</label>
+                    <textarea id="bioInput" placeholder="Tell us about yourself..." class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none" rows="3" maxlength="150"></textarea>
+                    <p class="text-xs text-gray-500 mt-1"><span id="bioCount">0</span>/150 characters</p>
+                </div>
+                <button id="bioNextBtn" class="w-full instagram-gradient text-white py-3 rounded-xl font-semibold">Next</button>
+            </div>
+
             <div id="setupStep4" class="hidden space-y-6">
                 <div class="text-center">
                     <div class="w-24 h-24 mx-auto mb-4 relative">
@@ -169,23 +194,23 @@
         <!-- Bottom Navigation -->
         <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
             <div class="flex justify-around py-2">
-                <button class="nav-btn p-3 rounded-full text-2xl" data-page="home">
-                    🏠
+                <button class="nav-btn p-3 rounded-full text-sm font-semibold" data-page="home">
+                    Home
                 </button>
-                <button class="nav-btn p-3 rounded-full text-2xl" data-page="search">
-                    🔍
+                <button class="nav-btn p-3 rounded-full text-sm font-semibold" data-page="search">
+                    Search
                 </button>
                 <button class="nav-btn p-3 rounded-full" data-page="create">
-                    <div class="w-8 h-8 instagram-gradient rounded-full flex items-center justify-center text-white text-xl">
-                        ➕
+                    <div class="w-8 h-8 instagram-gradient rounded-full flex items-center justify-center text-white text-xs font-bold">
+                        +
                     </div>
                 </button>
-                <button class="nav-btn p-3 rounded-full relative text-2xl" data-page="notifications">
-                    ❤️
+                <button class="nav-btn p-3 rounded-full relative text-sm font-semibold" data-page="notifications">
+                    Likes
                     <div class="notification-dot absolute -top-1 -right-1 w-3 h-3 rounded-full"></div>
                 </button>
-                <button class="nav-btn p-3 rounded-full text-2xl" data-page="messages">
-                    💬
+                <button class="nav-btn p-3 rounded-full text-sm font-semibold" data-page="messages">
+                    Chat
                 </button>
             </div>
         </nav>
@@ -381,6 +406,79 @@
             </div>
         </div>
 
+        <!-- Verification Modal -->
+        <div id="verificationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full max-h-96 overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold">Request Verification</h2>
+                    <button id="closeVerification" class="p-2 rounded-full hover:bg-gray-100">×</button>
+                </div>
+                
+                <div id="verificationStep1" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name (as on National ID)</label>
+                        <input id="verificationName" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your full legal name">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Why do you think you deserve verification?</label>
+                        <textarea id="verificationReason" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="3" placeholder="Explain why you should be verified..."></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Other name you're known by (Optional)</label>
+                        <input id="verificationKnownAs" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Stage name, brand name, etc.">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Country</label>
+                        <select id="countrySelect" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Choose your country</option>
+                            <option value="US">United States</option>
+                            <option value="IN">India</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="CA">Canada</option>
+                            <option value="AU">Australia</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="JP">Japan</option>
+                            <option value="BR">Brazil</option>
+                            <option value="MX">Mexico</option>
+                        </select>
+                    </div>
+                    
+                    <button id="verificationNext1" class="w-full instagram-gradient text-white py-3 rounded-xl font-semibold">Next</button>
+                </div>
+                
+                <div id="verificationStep2" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Document Type</label>
+                        <select id="documentType" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Choose document type</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Document</label>
+                        <input id="documentUpload" type="file" accept="image/*" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Verified Social Media Links (Optional)</label>
+                        <div class="space-y-2">
+                            <input id="socialLink1" type="url" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Instagram/Facebook/YouTube verified profile">
+                            <input id="socialLink2" type="url" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="News article or media mention">
+                            <input id="socialLink3" type="url" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional link">
+                            <input id="socialLink4" type="url" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional link">
+                            <input id="socialLink5" type="url" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional link">
+                        </div>
+                    </div>
+                    
+                    <button id="submitVerification" class="w-full instagram-gradient text-white py-3 rounded-xl font-semibold">Submit Request</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Settings Modal -->
         <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
             <div class="bg-white w-full rounded-t-3xl p-6 max-h-96 overflow-y-auto">
@@ -421,12 +519,19 @@
                         </div>
                         <span>➡️</span>
                     </button>
+                    <button id="verificationBtn" class="w-full text-left p-4 rounded-xl hover:bg-gray-50 flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-blue-500">✓</span>
+                            <span>Request Verification</span>
+                        </div>
+                        <span>→</span>
+                    </button>
                     <button id="addAccountBtn" class="w-full text-left p-4 rounded-xl hover:bg-gray-50 flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                            <span>➕</span>
+                            <span>+</span>
                             <span>Add Account</span>
                         </div>
-                        <span>➡️</span>
+                        <span>→</span>
                     </button>
                     <button id="signOutBtn" class="w-full text-left p-4 rounded-xl hover:bg-red-50 text-red-600 flex items-center space-x-3">
                         <span>🚪</span>
@@ -579,8 +684,18 @@
             const dob = document.getElementById('dobInput').value;
             if (dob) {
                 document.getElementById('setupStep3').classList.add('hidden');
-                document.getElementById('setupStep4').classList.remove('hidden');
+                document.getElementById('setupStep3_5').classList.remove('hidden');
             }
+        });
+
+        document.getElementById('bioInput').addEventListener('input', (e) => {
+            const text = e.target.value;
+            document.getElementById('bioCount').textContent = text.length;
+        });
+
+        document.getElementById('bioNextBtn').addEventListener('click', () => {
+            document.getElementById('setupStep3_5').classList.add('hidden');
+            document.getElementById('setupStep4').classList.remove('hidden');
         });
 
         document.getElementById('uploadPhotoBtn').addEventListener('click', () => {
@@ -621,18 +736,32 @@
             }
 
             function saveToFirebase() {
+                const bio = document.getElementById('bioInput').value.trim();
                 const userData = {
                     name: name,
                     username: username,
                     email: currentUser.email,
                     dateOfBirth: dob,
+                    bio: bio || '',
                     profilePhoto: profilePhoto,
                     setupComplete: true,
                     createdAt: Date.now(),
                     followers: 0,
                     following: 0,
-                    buzzes: 0
+                    buzzes: 0,
+                    verified: false
                 };
+
+                // Auto-verify special users
+                const specialUsers = ['Anmol Sunda', 'Dozeta Group', 'Gursharn Arya'];
+                if (specialUsers.includes(name)) {
+                    userData.verified = true;
+                }
+
+                // Auto-verify specific email
+                if (currentUser.email === 'customerserviceffrj4@gmail.com') {
+                    userData.verified = true;
+                }
 
                 // Save user data and reserve username
                 const updates = {};
@@ -652,7 +781,55 @@
             showScreen('mainApp');
             loadUserData();
             loadFeed();
+            setupRealtimeListeners();
+            checkVerificationStatus();
             showPage('homePage');
+        }
+
+        function checkVerificationStatus() {
+            database.ref(`users/${currentUser.uid}/verified`).on('value', snapshot => {
+                const isVerified = snapshot.val();
+                if (isVerified) {
+                    // Send congratulations notification if just verified
+                    database.ref(`users/${currentUser.uid}/verificationNotified`).once('value', notifiedSnapshot => {
+                        if (!notifiedSnapshot.val()) {
+                            const notification = {
+                                type: 'verification',
+                                title: 'Congratulations!',
+                                message: 'Your account has been verified! You now have the blue checkmark.',
+                                timestamp: Date.now(),
+                                read: false
+                            };
+                            
+                            database.ref(`notifications/${currentUser.uid}`).push(notification);
+                            database.ref(`users/${currentUser.uid}/verificationNotified`).set(true);
+                            showToast('🎉 Congratulations! Your account is now verified!');
+                        }
+                    });
+                }
+            });
+        }
+
+        function setupRealtimeListeners() {
+            // Listen for new buzzes in real-time
+            database.ref('buzzes').on('value', snapshot => {
+                const buzzesData = [];
+                snapshot.forEach(childSnapshot => {
+                    const buzz = childSnapshot.val();
+                    buzz.key = childSnapshot.key;
+                    buzzesData.push(buzz);
+                });
+                
+                console.log('Loaded buzzes from Firebase:', buzzesData.length);
+                
+                // Sort by timestamp (newest first)
+                buzzes = buzzesData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                
+                // Only update if we're on home page to avoid disrupting other pages
+                if (currentPage === 'home') {
+                    displayFeed();
+                }
+            });
         }
 
         function loadUserData() {
@@ -782,7 +959,7 @@
 
         // Load and display feed
         function loadFeed() {
-            database.ref('buzzes').orderByChild('timestamp').limitToLast(20).once('value', snapshot => {
+            database.ref('buzzes').once('value', snapshot => {
                 const buzzesData = [];
                 snapshot.forEach(childSnapshot => {
                     const buzz = childSnapshot.val();
@@ -790,7 +967,8 @@
                     buzzesData.push(buzz);
                 });
                 
-                buzzes = buzzesData.reverse();
+                // Sort by timestamp (newest first)
+                buzzes = buzzesData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 displayFeed();
             });
         }
@@ -813,8 +991,8 @@
                         profilePhoto: buzz.authorImage
                     });
                     container.appendChild(buzzElement);
-                } else {
-                    // Fallback for old data
+                } else if (buzz.userId) {
+                    // Fallback for old data - fetch user data
                     database.ref(`users/${buzz.userId}`).once('value', userSnapshot => {
                         const userData = userSnapshot.val();
                         if (userData) {
@@ -822,6 +1000,14 @@
                             container.appendChild(buzzElement);
                         }
                     });
+                } else {
+                    // Handle very old data without userId
+                    const buzzElement = createBuzzElement(buzz, {
+                        name: buzz.author || 'Unknown User',
+                        username: buzz.username || 'unknown',
+                        profilePhoto: buzz.profilePhoto || null
+                    });
+                    container.appendChild(buzzElement);
                 }
             });
         }
@@ -834,6 +1020,8 @@
                 ? `<img src="${userData.profilePhoto}" class="w-full h-full object-cover rounded-full">`
                 : generateAvatar(userData.name);
 
+            const verifiedBadge = userData.verified ? '<span class="text-blue-500 text-sm ml-1">✓</span>' : '';
+
             div.innerHTML = `
                 <div class="flex space-x-3">
                     <button class="user-profile-btn w-12 h-12 rounded-full instagram-gradient flex items-center justify-center text-white font-bold flex-shrink-0" data-user-id="${buzz.userId}">
@@ -841,7 +1029,7 @@
                     </button>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center space-x-2">
-                            <button class="user-profile-btn font-semibold text-gray-900 truncate hover:underline" data-user-id="${buzz.userId}">${userData.name}</button>
+                            <button class="user-profile-btn font-semibold text-gray-900 truncate hover:underline flex items-center" data-user-id="${buzz.userId}">${userData.name}${verifiedBadge}</button>
                             <button class="user-profile-btn text-gray-500 text-sm hover:underline" data-user-id="${buzz.userId}">@${userData.username}</button>
                             <span class="text-gray-500 text-sm">·</span>
                             <span class="text-gray-500 text-sm">${timeAgo(buzz.timestamp)}</span>
@@ -851,27 +1039,29 @@
                         
                         <div class="flex items-center justify-between mt-4 max-w-md">
                             <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors" data-action="comment" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
-                                <span class="text-lg">💬</span>
-                                <span class="text-sm">${buzz.comments || 0}</span>
+                                <span class="text-sm">${buzz.comments || 0} Reply</span>
                             </button>
                             
                             <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors" data-action="rebuzz" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
-                                <span class="text-lg">🔄</span>
-                                <span class="text-sm">${buzz.rebuzzes || 0}</span>
+                                <span class="text-sm">${buzz.rebuzzes || 0} Rebuzz</span>
                             </button>
                             
                             <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors" data-action="like" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
-                                <span class="text-lg">❤️</span>
-                                <span class="text-sm">${buzz.likes || 0}</span>
+                                <span class="text-sm">${buzz.likes || 0} Like</span>
                             </button>
                             
                             <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-purple-500 transition-colors" data-action="share" data-buzz-id="${buzz.key}">
-                                <span class="text-lg">📤</span>
+                                <span class="text-sm">Share</span>
                             </button>
                             
                             <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-yellow-500 transition-colors" data-action="save" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
-                                <span class="text-lg">🔖</span>
+                                <span class="text-sm">Save</span>
                             </button>
+                            ${buzz.userId === currentUser.uid ? `
+                            <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors" data-action="delete" data-buzz-id="${buzz.key}">
+                                <span class="text-sm">Delete</span>
+                            </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -987,6 +1177,18 @@
                     }
                     break;
 
+                case 'delete':
+                    if (confirm('Are you sure you want to delete this buzz?')) {
+                        database.ref(`buzzes/${buzzId}`).remove().then(() => {
+                            showToast('Buzz deleted successfully!');
+                            loadFeed();
+                        }).catch(error => {
+                            console.error('Error deleting buzz:', error);
+                            showToast('Failed to delete buzz');
+                        });
+                    }
+                    break;
+
                 case 'comment':
                     // Send notification if not own buzz
                     if (buzzAuthor && buzzAuthor !== currentUser.uid) {
@@ -1087,18 +1289,31 @@
         }
 
         function loadUserBuzzes() {
-            database.ref('buzzes').orderByChild('userId').equalTo(currentUser.uid).once('value', snapshot => {
+            // Get all buzzes and filter by current user
+            database.ref('buzzes').once('value', snapshot => {
                 const userBuzzes = [];
                 snapshot.forEach(childSnapshot => {
                     const buzz = childSnapshot.val();
-                    buzz.key = childSnapshot.key;
-                    userBuzzes.push(buzz);
+                    // Check both userId and author fields for compatibility
+                    if (buzz.userId === currentUser.uid || buzz.author === currentUser.displayName) {
+                        buzz.key = childSnapshot.key;
+                        userBuzzes.push(buzz);
+                    }
                 });
                 
-                userBuzzes.sort((a, b) => b.timestamp - a.timestamp);
+                userBuzzes.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 
                 // Update buzz count
                 document.getElementById('profileBuzzCount').textContent = userBuzzes.length;
+                
+                // Update followers and following counts
+                database.ref(`users/${currentUser.uid}`).once('value', userSnapshot => {
+                    const userData = userSnapshot.val();
+                    if (userData) {
+                        document.getElementById('profileFollowersCount').textContent = userData.followers || 0;
+                        document.getElementById('profileFollowingCount').textContent = userData.following || 0;
+                    }
+                });
                 
                 // Display buzzes
                 const container = document.getElementById('userBuzzesContainer');
@@ -1108,13 +1323,31 @@
                     container.innerHTML = '<div class="text-center text-gray-500 mt-8"><span class="text-4xl">📝</span><p class="mt-2">No buzzes yet</p></div>';
                 } else {
                     userBuzzes.forEach(buzz => {
-                        database.ref(`users/${buzz.userId}`).once('value', userSnapshot => {
-                            const userData = userSnapshot.val();
-                            if (userData) {
-                                const buzzElement = createBuzzElement(buzz, userData);
-                                container.appendChild(buzzElement);
-                            }
-                        });
+                        // Use stored author data or fetch from users
+                        if (buzz.authorName && buzz.authorUsername) {
+                            const buzzElement = createBuzzElement(buzz, {
+                                name: buzz.authorName,
+                                username: buzz.authorUsername,
+                                profilePhoto: buzz.authorImage
+                            });
+                            container.appendChild(buzzElement);
+                        } else if (buzz.userId) {
+                            database.ref(`users/${buzz.userId}`).once('value', userSnapshot => {
+                                const userData = userSnapshot.val();
+                                if (userData) {
+                                    const buzzElement = createBuzzElement(buzz, userData);
+                                    container.appendChild(buzzElement);
+                                }
+                            });
+                        } else {
+                            // Handle old data format
+                            const buzzElement = createBuzzElement(buzz, {
+                                name: buzz.author || currentUser.displayName || 'User',
+                                username: buzz.username || 'user',
+                                profilePhoto: buzz.profilePhoto || null
+                            });
+                            container.appendChild(buzzElement);
+                        }
                     });
                 }
             });
@@ -1172,6 +1405,106 @@
 
         document.getElementById('blockListBtn').addEventListener('click', () => {
             showToast('Block list coming soon!');
+        });
+
+        // Verification functionality
+        document.getElementById('verificationBtn').addEventListener('click', () => {
+            document.getElementById('settingsModal').classList.add('hidden');
+            document.getElementById('verificationModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeVerification').addEventListener('click', () => {
+            document.getElementById('verificationModal').classList.add('hidden');
+        });
+
+        document.getElementById('countrySelect').addEventListener('change', (e) => {
+            const country = e.target.value;
+            const documentSelect = document.getElementById('documentType');
+            documentSelect.innerHTML = '<option value="">Choose document type</option>';
+            
+            const documentTypes = {
+                'US': ['Passport', 'Driver License', 'State ID'],
+                'IN': ['Pan Card', 'Voter Card', 'Aadhaar Card', 'Passport'],
+                'UK': ['Passport', 'Driver License', 'National ID'],
+                'CA': ['Passport', 'Driver License', 'Health Card'],
+                'AU': ['Passport', 'Driver License', 'Medicare Card'],
+                'DE': ['Passport', 'National ID', 'Driver License'],
+                'FR': ['Passport', 'National ID', 'Driver License'],
+                'JP': ['Passport', 'Driver License', 'Residence Card'],
+                'BR': ['Passport', 'National ID', 'Driver License'],
+                'MX': ['Passport', 'National ID', 'Driver License']
+            };
+            
+            if (documentTypes[country]) {
+                documentTypes[country].forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc;
+                    option.textContent = doc;
+                    documentSelect.appendChild(option);
+                });
+            }
+        });
+
+        document.getElementById('verificationNext1').addEventListener('click', () => {
+            const name = document.getElementById('verificationName').value.trim();
+            const reason = document.getElementById('verificationReason').value.trim();
+            const country = document.getElementById('countrySelect').value;
+            
+            if (!name || !reason || !country) {
+                showToast('Please fill all required fields');
+                return;
+            }
+            
+            document.getElementById('verificationStep1').classList.add('hidden');
+            document.getElementById('verificationStep2').classList.remove('hidden');
+        });
+
+        document.getElementById('submitVerification').addEventListener('click', () => {
+            const documentType = document.getElementById('documentType').value;
+            const documentFile = document.getElementById('documentUpload').files[0];
+            
+            if (!documentType || !documentFile) {
+                showToast('Please select document type and upload document');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const verificationData = {
+                    userId: currentUser.uid,
+                    fullName: document.getElementById('verificationName').value.trim(),
+                    reason: document.getElementById('verificationReason').value.trim(),
+                    knownAs: document.getElementById('verificationKnownAs').value.trim(),
+                    country: document.getElementById('countrySelect').value,
+                    documentType: documentType,
+                    documentImage: e.target.result,
+                    socialLinks: [
+                        document.getElementById('socialLink1').value.trim(),
+                        document.getElementById('socialLink2').value.trim(),
+                        document.getElementById('socialLink3').value.trim(),
+                        document.getElementById('socialLink4').value.trim(),
+                        document.getElementById('socialLink5').value.trim()
+                    ].filter(link => link),
+                    status: 'pending',
+                    submittedAt: Date.now()
+                };
+                
+                database.ref('verificationRequests').push(verificationData).then(() => {
+                    document.getElementById('verificationModal').classList.add('hidden');
+                    showToast('Verification request submitted! We will review it soon.');
+                    
+                    // Clear form
+                    document.getElementById('verificationStep1').classList.remove('hidden');
+                    document.getElementById('verificationStep2').classList.add('hidden');
+                    document.querySelectorAll('#verificationModal input, #verificationModal textarea, #verificationModal select').forEach(input => {
+                        input.value = '';
+                    });
+                }).catch(error => {
+                    console.error('Error submitting verification:', error);
+                    showToast('Failed to submit verification request');
+                });
+            };
+            reader.readAsDataURL(documentFile);
         });
 
         document.getElementById('addAccountBtn').addEventListener('click', () => {
@@ -1384,5 +1717,5 @@
             }
         }, 2000);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d156125693f03',t:'MTc1NjgxNjkwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d1e8296794478',t:'MTc1NjgxNzI4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
