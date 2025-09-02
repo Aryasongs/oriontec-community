@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Pulse - Social Media Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -39,6 +42,40 @@
         .buzz-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .buzz-card {
+                margin: 0 -4px;
+            }
+            
+            .nav-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            button, input, textarea {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .buzz-action {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
+        
+        /* Prevent text selection on buttons */
+        button {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
         }
     </style>
 </head>
@@ -217,13 +254,18 @@
             <header class="sticky top-0 bg-white border-b border-gray-200 z-30">
                 <div class="p-4">
                     <div class="relative">
-                        <input type="text" placeholder="Search Pulse" class="w-full bg-gray-100 rounded-full py-3 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <input id="searchInput" type="text" placeholder="Search users and buzzes" class="w-full bg-gray-100 rounded-full py-3 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <span class="absolute left-3 top-3.5 text-lg">🔍</span>
                     </div>
                 </div>
             </header>
             <div class="p-4">
-                <p class="text-gray-500 text-center mt-8">Search for users and buzzes</p>
+                <div id="searchResults" class="space-y-4">
+                    <div class="text-center text-gray-500 mt-8">
+                        <span class="text-4xl">🔍</span>
+                        <p class="mt-2">Search for users and buzzes</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -234,7 +276,12 @@
                 </div>
             </header>
             <div class="p-4">
-                <p class="text-gray-500 text-center mt-8">No notifications yet</p>
+                <div id="notificationsContainer" class="space-y-4">
+                    <div class="text-center text-gray-500 mt-8">
+                        <span class="text-4xl">🔔</span>
+                        <p class="mt-2">No notifications yet</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -674,46 +721,59 @@
             
             if (text.length === 0) return;
 
-            let imageData = null;
-            if (imageInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    imageData = e.target.result;
+            // Get current user data first
+            database.ref(`users/${currentUser.uid}`).once('value', userSnapshot => {
+                const userData = userSnapshot.val();
+                
+                let imageData = null;
+                if (imageInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imageData = e.target.result;
+                        saveBuzz();
+                    };
+                    reader.readAsDataURL(imageInput.files[0]);
+                } else {
                     saveBuzz();
-                };
-                reader.readAsDataURL(imageInput.files[0]);
-            } else {
-                saveBuzz();
-            }
+                }
 
-            function saveBuzz() {
-                const buzzData = {
-                    id: Date.now().toString(),
-                    userId: currentUser.uid,
-                    text: text,
-                    image: imageData,
-                    timestamp: Date.now(),
-                    likes: 0,
-                    comments: 0,
-                    rebuzzes: 0,
-                    saves: 0
-                };
+                function saveBuzz() {
+                    const buzzData = {
+                        userId: currentUser.uid,
+                        authorName: userData.name,
+                        authorUsername: userData.username,
+                        authorImage: userData.profilePhoto || null,
+                        text: text,
+                        image: imageData || null,
+                        timestamp: Date.now(),
+                        likes: 0,
+                        comments: 0,
+                        rebuzzes: 0,
+                        saves: 0
+                    };
 
-                database.ref('buzzes').push(buzzData).then(() => {
-                    // Clear form
-                    document.getElementById('buzzText').value = '';
-                    document.getElementById('buzzImagePreview').classList.add('hidden');
-                    document.getElementById('buzzImageInput').value = '';
-                    document.getElementById('charCount').textContent = '0';
-                    
-                    // Go back to home
-                    showPage('homePage');
-                    loadFeed();
-                }).catch(error => {
-                    console.error('Error posting buzz:', error);
-                    alert('Error posting buzz. Please try again.');
-                });
-            }
+                    database.ref('buzzes').push(buzzData).then(() => {
+                        // Update user buzz count
+                        database.ref(`users/${currentUser.uid}/buzzes`).transaction(count => (count || 0) + 1);
+                        
+                        // Clear form
+                        document.getElementById('buzzText').value = '';
+                        document.getElementById('buzzImagePreview').classList.add('hidden');
+                        document.getElementById('buzzImageInput').value = '';
+                        document.getElementById('charCount').textContent = '0';
+                        document.getElementById('postBuzz').classList.add('opacity-50');
+                        document.getElementById('postBuzz').disabled = true;
+                        
+                        // Go back to home
+                        showPage('homePage');
+                        loadFeed();
+                        showToast('Buzz posted! 🎉');
+                    }).catch(error => {
+                        console.error('Error posting buzz:', error);
+                        showToast('Failed to post buzz. Try again!');
+                    });
+                }
+            });
         });
 
         document.getElementById('cancelBuzz').addEventListener('click', () => {
@@ -739,14 +799,30 @@
             const container = document.getElementById('feedContainer');
             container.innerHTML = '';
 
+            if (buzzes.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 mt-8"><span class="text-4xl">📝</span><p class="mt-2">No buzzes yet. Be the first to buzz!</p></div>';
+                return;
+            }
+
             buzzes.forEach(buzz => {
-                database.ref(`users/${buzz.userId}`).once('value', userSnapshot => {
-                    const userData = userSnapshot.val();
-                    if (userData) {
-                        const buzzElement = createBuzzElement(buzz, userData);
-                        container.appendChild(buzzElement);
-                    }
-                });
+                // Use stored author data if available, otherwise fetch from users
+                if (buzz.authorName && buzz.authorUsername) {
+                    const buzzElement = createBuzzElement(buzz, {
+                        name: buzz.authorName,
+                        username: buzz.authorUsername,
+                        profilePhoto: buzz.authorImage
+                    });
+                    container.appendChild(buzzElement);
+                } else {
+                    // Fallback for old data
+                    database.ref(`users/${buzz.userId}`).once('value', userSnapshot => {
+                        const userData = userSnapshot.val();
+                        if (userData) {
+                            const buzzElement = createBuzzElement(buzz, userData);
+                            container.appendChild(buzzElement);
+                        }
+                    });
+                }
             });
         }
 
@@ -760,13 +836,13 @@
 
             div.innerHTML = `
                 <div class="flex space-x-3">
-                    <div class="w-12 h-12 rounded-full instagram-gradient flex items-center justify-center text-white font-bold flex-shrink-0">
+                    <button class="user-profile-btn w-12 h-12 rounded-full instagram-gradient flex items-center justify-center text-white font-bold flex-shrink-0" data-user-id="${buzz.userId}">
                         ${avatar}
-                    </div>
+                    </button>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center space-x-2">
-                            <h3 class="font-semibold text-gray-900 truncate">${userData.name}</h3>
-                            <span class="text-gray-500 text-sm">@${userData.username}</span>
+                            <button class="user-profile-btn font-semibold text-gray-900 truncate hover:underline" data-user-id="${buzz.userId}">${userData.name}</button>
+                            <button class="user-profile-btn text-gray-500 text-sm hover:underline" data-user-id="${buzz.userId}">@${userData.username}</button>
                             <span class="text-gray-500 text-sm">·</span>
                             <span class="text-gray-500 text-sm">${timeAgo(buzz.timestamp)}</span>
                         </div>
@@ -774,17 +850,17 @@
                         ${buzz.image ? `<img src="${buzz.image}" class="mt-3 rounded-xl max-w-full h-auto">` : ''}
                         
                         <div class="flex items-center justify-between mt-4 max-w-md">
-                            <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors" data-action="comment" data-buzz-id="${buzz.key}">
+                            <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors" data-action="comment" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
                                 <span class="text-lg">💬</span>
                                 <span class="text-sm">${buzz.comments || 0}</span>
                             </button>
                             
-                            <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors" data-action="rebuzz" data-buzz-id="${buzz.key}">
+                            <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors" data-action="rebuzz" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
                                 <span class="text-lg">🔄</span>
                                 <span class="text-sm">${buzz.rebuzzes || 0}</span>
                             </button>
                             
-                            <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors" data-action="like" data-buzz-id="${buzz.key}">
+                            <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors" data-action="like" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
                                 <span class="text-lg">❤️</span>
                                 <span class="text-sm">${buzz.likes || 0}</span>
                             </button>
@@ -793,7 +869,7 @@
                                 <span class="text-lg">📤</span>
                             </button>
                             
-                            <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-yellow-500 transition-colors" data-action="save" data-buzz-id="${buzz.key}">
+                            <button class="buzz-action flex items-center space-x-2 text-gray-500 hover:text-yellow-500 transition-colors" data-action="save" data-buzz-id="${buzz.key}" data-buzz-author="${buzz.userId}">
                                 <span class="text-lg">🔖</span>
                             </button>
                         </div>
@@ -820,6 +896,7 @@
 
             const buzzRef = database.ref(`buzzes/${buzzId}`);
             const userInteractionRef = database.ref(`userInteractions/${currentUser.uid}/${buzzId}`);
+            const buzzAuthor = button.dataset.buzzAuthor;
 
             switch(action) {
                 case 'like':
@@ -840,6 +917,11 @@
                             userInteractionRef.child('liked').set(true);
                             button.classList.remove('text-gray-500');
                             button.classList.add('text-red-500');
+                            
+                            // Send notification if not own buzz
+                            if (buzzAuthor && buzzAuthor !== currentUser.uid) {
+                                sendNotification(buzzAuthor, 'like', buzzId);
+                            }
                         }
                         countSpan.textContent = isLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
                     });
@@ -863,6 +945,11 @@
                             userInteractionRef.child('rebuzzed').set(true);
                             button.classList.remove('text-gray-500');
                             button.classList.add('text-green-500');
+                            
+                            // Send notification if not own buzz
+                            if (buzzAuthor && buzzAuthor !== currentUser.uid) {
+                                sendNotification(buzzAuthor, 'rebuzz', buzzId);
+                            }
                         }
                         countSpan.textContent = isRebuzzed ? Math.max(0, currentCount - 1) : currentCount + 1;
                     });
@@ -901,9 +988,33 @@
                     break;
 
                 case 'comment':
+                    // Send notification if not own buzz
+                    if (buzzAuthor && buzzAuthor !== currentUser.uid) {
+                        sendNotification(buzzAuthor, 'comment', buzzId);
+                    }
                     showToast('Comments feature coming soon!');
                     break;
             }
+        }
+
+        function sendNotification(recipientId, type, buzzId) {
+            database.ref(`users/${currentUser.uid}`).once('value', snapshot => {
+                const userData = snapshot.val();
+                if (userData) {
+                    const notification = {
+                        type: type,
+                        from: currentUser.uid,
+                        fromName: userData.name,
+                        fromUsername: userData.username,
+                        fromImage: userData.profilePhoto,
+                        buzzId: buzzId,
+                        timestamp: Date.now(),
+                        read: false
+                    };
+                    
+                    database.ref(`notifications/${recipientId}`).push(notification);
+                }
+            });
         }
 
         function showToast(message) {
@@ -1067,6 +1178,204 @@
             showToast('Add account feature coming soon!');
         });
 
+        // Profile viewing and search functionality
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.user-profile-btn')) {
+                const userId = e.target.closest('.user-profile-btn').dataset.userId;
+                if (userId && userId !== currentUser.uid) {
+                    viewUserProfile(userId);
+                }
+            }
+        });
+
+        function viewUserProfile(userId) {
+            database.ref(`users/${userId}`).once('value', snapshot => {
+                const userData = snapshot.val();
+                if (userData) {
+                    showToast(`Viewing ${userData.name}'s profile`);
+                    // For now just show toast, full profile view can be added later
+                }
+            });
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            if (query.length > 0) {
+                performSearch(query);
+            } else {
+                document.getElementById('searchResults').innerHTML = `
+                    <div class="text-center text-gray-500 mt-8">
+                        <span class="text-4xl">🔍</span>
+                        <p class="mt-2">Search for users and buzzes</p>
+                    </div>
+                `;
+            }
+        });
+
+        function performSearch(query) {
+            const resultsContainer = document.getElementById('searchResults');
+            resultsContainer.innerHTML = '<div class="text-center"><span class="text-2xl">🔍</span><p>Searching...</p></div>';
+            
+            // Search users
+            database.ref('users').once('value', snapshot => {
+                const users = [];
+                const buzzMatches = [];
+                
+                snapshot.forEach(userSnapshot => {
+                    const user = userSnapshot.val();
+                    const userId = userSnapshot.key;
+                    
+                    if (user.name.toLowerCase().includes(query) || 
+                        user.username.toLowerCase().includes(query)) {
+                        users.push({...user, id: userId});
+                    }
+                });
+                
+                // Search buzzes
+                database.ref('buzzes').once('value', buzzSnapshot => {
+                    buzzSnapshot.forEach(childSnapshot => {
+                        const buzz = childSnapshot.val();
+                        if (buzz.text.toLowerCase().includes(query)) {
+                            buzzMatches.push({...buzz, key: childSnapshot.key});
+                        }
+                    });
+                    
+                    displaySearchResults(users, buzzMatches, query);
+                });
+            });
+        }
+
+        function displaySearchResults(users, buzzes, query) {
+            const container = document.getElementById('searchResults');
+            let html = '';
+            
+            if (users.length === 0 && buzzes.length === 0) {
+                html = `
+                    <div class="text-center text-gray-500 mt-8">
+                        <span class="text-4xl">😔</span>
+                        <p class="mt-2">No results found for "${query}"</p>
+                    </div>
+                `;
+            } else {
+                if (users.length > 0) {
+                    html += '<h3 class="font-bold text-lg mb-3">👥 Users</h3>';
+                    users.forEach(user => {
+                        const avatar = user.profilePhoto 
+                            ? `<img src="${user.profilePhoto}" class="w-full h-full object-cover rounded-full">`
+                            : generateAvatar(user.name);
+                        
+                        html += `
+                            <div class="bg-white rounded-xl p-4 border border-gray-200 mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <button class="user-profile-btn w-12 h-12 rounded-full instagram-gradient flex items-center justify-center text-white font-bold" data-user-id="${user.id}">
+                                        ${avatar}
+                                    </button>
+                                    <div>
+                                        <button class="user-profile-btn font-semibold hover:underline" data-user-id="${user.id}">${user.name}</button>
+                                        <p class="text-gray-500 text-sm">@${user.username}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                if (buzzes.length > 0) {
+                    html += '<h3 class="font-bold text-lg mb-3 mt-6">📝 Buzzes</h3>';
+                    buzzes.forEach(buzz => {
+                        html += `
+                            <div class="bg-white rounded-xl p-4 border border-gray-200 mb-3">
+                                <p class="text-gray-800">${buzz.text}</p>
+                                <p class="text-gray-500 text-sm mt-2">${timeAgo(buzz.timestamp)}</p>
+                            </div>
+                        `;
+                    });
+                }
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // Load notifications
+        function loadNotifications() {
+            if (!currentUser) return;
+            
+            database.ref(`notifications/${currentUser.uid}`).orderByChild('timestamp').limitToLast(20).once('value', snapshot => {
+                const notifications = [];
+                snapshot.forEach(childSnapshot => {
+                    notifications.push({...childSnapshot.val(), key: childSnapshot.key});
+                });
+                
+                notifications.reverse();
+                displayNotifications(notifications);
+            });
+        }
+
+        function displayNotifications(notifications) {
+            const container = document.getElementById('notificationsContainer');
+            
+            if (notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 mt-8">
+                        <span class="text-4xl">🔔</span>
+                        <p class="mt-2">No notifications yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            notifications.forEach(notification => {
+                const avatar = notification.fromImage 
+                    ? `<img src="${notification.fromImage}" class="w-full h-full object-cover rounded-full">`
+                    : generateAvatar(notification.fromName);
+                
+                let actionText = '';
+                let emoji = '';
+                
+                switch(notification.type) {
+                    case 'like':
+                        actionText = 'liked your buzz';
+                        emoji = '❤️';
+                        break;
+                    case 'rebuzz':
+                        actionText = 'rebuzzed your buzz';
+                        emoji = '🔄';
+                        break;
+                    case 'comment':
+                        actionText = 'commented on your buzz';
+                        emoji = '💬';
+                        break;
+                }
+                
+                html += `
+                    <div class="bg-white rounded-xl p-4 border border-gray-200 ${!notification.read ? 'border-pink-200 bg-pink-50' : ''}">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full instagram-gradient flex items-center justify-center text-white font-bold flex-shrink-0">
+                                ${avatar}
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm">
+                                    <span class="font-semibold">${notification.fromName}</span>
+                                    <span class="text-gray-600"> ${actionText}</span>
+                                    <span class="ml-2">${emoji}</span>
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">${timeAgo(notification.timestamp)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Load notifications when notifications page is opened
+        document.querySelector('[data-page="notifications"]').addEventListener('click', () => {
+            loadNotifications();
+        });
+
         // Initialize app
         setTimeout(() => {
             document.getElementById('loadingScreen').classList.add('hidden');
@@ -1075,5 +1384,5 @@
             }
         }, 2000);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d0d22c7834478',t:'MTc1NjgxNjU2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d156125693f03',t:'MTc1NjgxNjkwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
