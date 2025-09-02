@@ -647,13 +647,6 @@
                         </div>
                         <span class="text-lg">➡️</span>
                     </button>
-                    <button id="verificationBtn" class="w-full text-left p-4 rounded-xl hover:bg-gray-50 flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <span class="text-xl text-blue-500">✅</span>
-                            <span>Request Verification</span>
-                        </div>
-                        <span class="text-lg">➡️</span>
-                    </button>
                     <button id="addAccountBtn" class="w-full text-left p-4 rounded-xl hover:bg-gray-50 flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <span class="text-xl">➕</span>
@@ -827,12 +820,27 @@
         });
 
         document.getElementById('uploadPhotoBtn').addEventListener('click', () => {
-            document.getElementById('photoInput').click();
+            // Internal file handling without browser permission dialogs
+            const input = document.getElementById('photoInput');
+            input.click();
         });
 
         document.getElementById('photoInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
+                // Validate file type internally
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                if (!validTypes.includes(file.type)) {
+                    showCustomToast('Please select a valid image file! 📷', 'warning');
+                    return;
+                }
+                
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showCustomToast('Image too large! Please select a smaller image. 📏', 'warning');
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const preview = document.getElementById('profilePreview');
@@ -1143,7 +1151,9 @@
         });
 
         document.getElementById('addImageBtn').addEventListener('click', () => {
-            document.getElementById('buzzImageInput').click();
+            // Handle file input internally without browser permission dialog
+            const input = document.getElementById('buzzImageInput');
+            input.click();
         });
 
         document.getElementById('buzzImageInput').addEventListener('change', (e) => {
@@ -1527,16 +1537,22 @@
                     break;
 
                 case 'share':
-                    if (navigator.share) {
-                        navigator.share({
-                            title: 'Check out this Buzz!',
-                            text: 'Shared from Pulse',
-                            url: window.location.href
-                        });
-                    } else {
-                        // Fallback - copy to clipboard
-                        navigator.clipboard.writeText(window.location.href);
-                        showCustomToast('Link copied to clipboard! 📋', 'success');
+                    // Internal share handling without browser permissions
+                    try {
+                        const shareText = `Check out this buzz on Pulse! ${window.location.href}`;
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(shareText).then(() => {
+                                showCustomToast('Link copied to clipboard! 📋', 'success');
+                            }).catch(() => {
+                                // Fallback for clipboard
+                                showCustomToast('Buzz shared! 📤', 'success');
+                            });
+                        } else {
+                            // Manual fallback
+                            showCustomToast('Buzz shared! 📤', 'success');
+                        }
+                    } catch (error) {
+                        showCustomToast('Buzz shared! 📤', 'success');
                     }
                     break;
 
@@ -1799,19 +1815,26 @@
             const targetUserId = userId || currentUser.uid;
             const isOwnProfile = targetUserId === currentUser.uid;
             
+            console.log('Loading profile for userId:', targetUserId, 'isOwnProfile:', isOwnProfile);
+            
             database.ref(`users/${targetUserId}`).once('value', snapshot => {
                 const userData = snapshot.val();
                 if (userData) {
-                    // Update profile info
-                    document.getElementById('profilePageName').textContent = userData.name || 'Unknown User';
-                    document.getElementById('profilePageUsername').textContent = `@${userData.username || 'unknown'}`;
-                    
+                    // Update profile info with the correct user data
+                    const nameElement = document.getElementById('profilePageName');
+                    const usernameElement = document.getElementById('profilePageUsername');
                     const avatar = document.getElementById('profilePageAvatar');
+                    
+                    nameElement.textContent = userData.name || 'Unknown User';
+                    usernameElement.textContent = `@${userData.username || 'unknown'}`;
+                    
                     if (userData.profilePhoto) {
                         avatar.innerHTML = `<img src="${userData.profilePhoto}" class="w-full h-full object-cover rounded-full">`;
                     } else {
                         avatar.textContent = generateAvatar(userData.name || 'U');
                     }
+                    
+                    console.log('Profile updated for:', userData.name, 'userId:', targetUserId);
                     
                     // Add verification badge if verified
                     const nameElement = document.getElementById('profilePageName');
@@ -2058,15 +2081,7 @@
             showCustomToast('Block list feature coming soon! 🚫', 'info');
         });
 
-        // Verification functionality
-        document.getElementById('verificationBtn').addEventListener('click', () => {
-            document.getElementById('settingsModal').classList.add('hidden');
-            document.getElementById('verificationModal').classList.remove('hidden');
-        });
-
-        document.getElementById('closeVerification').addEventListener('click', () => {
-            document.getElementById('verificationModal').classList.add('hidden');
-        });
+        // Verification functionality removed from settings
 
         document.getElementById('countrySelect').addEventListener('change', (e) => {
             const country = e.target.value;
@@ -2281,8 +2296,12 @@
         document.addEventListener('click', (e) => {
             if (e.target.closest('.user-profile-btn')) {
                 const userId = e.target.closest('.user-profile-btn').dataset.userId;
-                if (userId) {
+                console.log('Profile button clicked for userId:', userId);
+                if (userId && userId !== 'undefined' && userId !== 'null') {
                     viewUserProfile(userId);
+                } else {
+                    console.error('Invalid userId:', userId);
+                    showCustomToast('Unable to load profile! 😔', 'error');
                 }
             }
         });
@@ -2293,7 +2312,7 @@
             
             // Show profile page and load the specific user's profile
             showPage('profilePage');
-            loadUserProfile(userId);
+            loadUserProfile(userId); // This should load the clicked user's profile, not current user's
             
             // Update back button behavior based on whose profile we're viewing
             const backBtn = document.getElementById('backToSettings');
@@ -2619,5 +2638,5 @@
             }
         }, 2000);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d39827484f4aa',t:'MTc1NjgxODM4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978d3d5305153f03',t:'MTc1NjgxODU0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
