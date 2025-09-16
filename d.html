@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dozera News - Latest Breaking News</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+        }
+
+        /* CNN Style Header */
+        .header {
+            background: #fff;
+            border-bottom: 2px solid #cc0000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .top-bar {
+            background: #000;
+            padding: 0.5rem 0;
+            font-size: 0.85rem;
+            color: #fff;
+        }
+
+        .breaking-news {
+            background: #cc0000;
+            color: white;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .breaking-ticker {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .breaking-label {
+            background: #fff;
+            color: #d32f2f;
+            padding: 0.25rem 0.5rem;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .ticker-content {
+            animation: scroll-left 30s linear infinite;
+        }
+
+        @keyframes scroll-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #cc0000;
+            text-decoration: none;
+            font-family: 'Arial', sans-serif;
+            letter-spacing: -1px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 0;
+            background: #000;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        .nav-menu a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-menu a:hover, .nav-menu a.active {
+            background: #cc0000;
+            color: white;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #cc0000;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #990000;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #cc0000;
+            border: 1px solid #cc0000;
+        }
+
+        .btn-secondary:hover {
+            background: #cc0000;
+            color: white;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        /* Hindustan Times Main Content Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .hero-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .main-story {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .main-story img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .main-story-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 2rem;
+        }
+
+        .main-story h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .side-stories {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .side-story {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            transition: box-shadow 0.3s;
+        }
+
+        .side-story:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .side-story img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .side-story h4 {
+            font-size: 0.95rem;
+            line-height: 1.3;
+            color: #333;
+        }
+
+        .news-section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #cc0000;
+            color: white;
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .live-indicator {
+            background: #ff0000;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            animation: pulse 2s infinite;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .article-card {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.3s;
+            position: relative;
+        }
+
+        .article-card:hover {
+            background: #f9f9f9;
+        }
+
+        .article-card.live-editing {
+            border-left: 4px solid #4caf50;
+            background: #f1f8e9;
+        }
+
+        .article-image {
+            width: 120px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .article-content {
+            flex: 1;
+        }
+
+        .article-content h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+
+        .article-content h3:hover {
+            color: #cc0000;
+        }
+
+        .article-meta {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .article-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: #f0f0f0;
+            color: #666;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            text-decoration: none;
+        }
+
+        .tag:hover {
+            background: #cc0000;
+            color: white;
+        }
+
+        .breaking-badge {
+            background: #cc0000;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+            text-transform: uppercase;
+        }
+
+        .article-excerpt {
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .edit-controls {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: none;
+            gap: 0.5rem;
+        }
+
+        .article-card:hover .edit-controls {
+            display: flex;
+        }
+
+        .edit-btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .widget {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .trending-item {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .trending-number {
+            background: #007bff;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        /* Rich Editor Styles */
+        .rich-editor {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            min-height: 300px;
+            padding: 1rem;
+            background: white;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        .rich-editor:focus {
+            outline: none;
+            border-color: #cc0000;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            background: #f8f9fa;
+            flex-wrap: wrap;
+        }
+
+        .highlight {
+            background: #ffeb3b;
+            padding: 0.1rem 0.2rem;
+        }
+
+        .blur-text {
+            filter: blur(3px);
+            transition: filter 0.3s;
+        }
+
+        .blur-text:hover {
+            filter: blur(0);
+        }
+
+        .linked-text {
+            color: #cc0000;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .editor-btn {
+            padding: 0.5rem;
+            border: none;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .editor-btn:hover {
+            background: #e9ecef;
+        }
+
+        .editor-btn.active {
+            background: #cc0000;
+            color: white;
+        }
+
+        .media-upload {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .media-btn {
+            padding: 0.75rem 1rem;
+            border: 2px dashed #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+
+        .media-btn:hover {
+            border-color: #cc0000;
+            background: #fafafa;
+        }
+
+        .media-preview {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .media-item {
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 200px;
+        }
+
+        .media-item img, .media-item video {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .media-remove {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .admin-header {
+            background: #cc0000;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-content {
+            padding: 1.5rem;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .user-info {
+            background: #e8f5e8;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #4caf50;
+        }
+
+        .live-edit-panel {
+            background: #f1f8e9;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .live-edit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .inline-edit {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+        }
+
+        /* Article View Modal */
+        .article-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .article-modal-content {
+            background: white;
+            margin: 2rem auto;
+            padding: 0;
+            border-radius: 10px;
+            max-width: 800px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .article-header {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .article-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .article-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 2rem;
+        }
+
+        .article-body {
+            padding: 2rem;
+        }
+
+        .article-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        .article-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        .article-full-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        .article-full-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .article-full-content p {
+            margin-bottom: 1.5rem;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .share-whatsapp { background: #25d366; color: white; }
+        .share-twitter { background: #1da1f2; color: white; }
+        .share-facebook { background: #1877f2; color: white; }
+        .share-linkedin { background: #0077b5; color: white; }
+        .share-copy { background: #6c757d; color: white; }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .seo-info {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            z-index: 1001;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+        }
+
+        .save-indicator.show {
+            transform: translateX(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .article-card {
+                flex-direction: column;
+            }
+            
+            .article-image {
+                width: 100%;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 0.5rem;">
+                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                    </svg>
+                    <span id="current-date"></span>
+                </div>
+                <div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 0.5rem;">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    New Delhi: 25°C | USD: ₹83.12 | Sensex: 65,245
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breaking News Ticker -->
+    <div class="breaking-news">
+        <div class="container">
+            <div class="breaking-ticker">
+                <div class="breaking-label">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 0.25rem;">
+                        <circle cx="12" cy="12" r="8"/>
+                    </svg>
+                    BREAKING
+                </div>
+                <div class="ticker-content" id="breakingTicker">
+                    Major policy announcement expected • Cricket team wins series • Tech stocks surge • Weather alert issued
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-container">
+                <a href="#" class="logo">Dozera News</a>
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="#home" class="active">Home</a></li>
+                        <li><a href="#politics">Politics</a></li>
+                        <li><a href="#sports">Sports</a></li>
+                        <li><a href="#business">Business</a></li>
+                        <li><a href="#tech">Technology</a></li>
+                        <li><a href="#entertainment">Entertainment</a></li>
+                        <li><a href="#world">World</a></li>
+                    </ul>
+                </nav>
+                <div class="auth-buttons">
+                    <button class="btn btn-secondary" id="loginBtn">Login</button>
+                    <button class="btn btn-primary hidden" id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- User Info -->
+    <div class="container">
+        <div class="user-info hidden" id="userInfo">
+            <strong>Welcome, <span id="userEmail"></span></strong>
+            <span id="adminBadge" class="hidden" style="background: #007bff; color: white; padding: 0.25rem 0.5rem; border-radius: 3px; margin-left: 1rem;">Admin</span>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="container">
+        <div class="admin-panel hidden" id="adminPanel">
+            <div class="admin-header">
+                <h2>Admin Control Panel</h2>
+                <div class="live-indicator">🔴 LIVE</div>
+            </div>
+            <div class="admin-content">
+                <div class="admin-controls">
+                    <button class="btn btn-primary" id="addArticleBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 0.5rem;">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                        Add New Article
+                    </button>
+                    <button class="btn btn-success" id="liveEditBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 0.5rem;">
+                            <circle cx="12" cy="12" r="8"/>
+                        </svg>
+                        Live Edit Mode
+                    </button>
+                    <button class="btn btn-warning" id="manageUsersBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 0.5rem;">
+                            <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.996 2.996 0 0 0 17.06 7H16.94c-1.05 0-1.99.54-2.54 1.37L12 16h2.5v6h5.5z"/>
+                        </svg>
+                        Manage Users
+                    </button>
+                    <button class="btn btn-secondary" id="mediaLibraryBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 0.5rem;">
+                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                        </svg>
+                        Media Library
+                    </button>
+                </div>
+                
+                <div class="live-edit-panel hidden" id="liveEditPanel">
+                    <div class="live-edit-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 0.5rem;">
+                                <circle cx="12" cy="12" r="8"/>
+                            </svg>
+                            Live Editing Mode Active
+                        </h3>
+                        <button class="btn btn-danger" id="stopLiveEdit">Stop Live Edit</button>
+                    </div>
+                    <p>Click on any article to edit it live. Changes will be visible to all users immediately.</p>
+                </div>
+
+                <div id="articleForm" class="hidden">
+                    <h3>Create New Article</h3>
+                    <div class="form-group">
+                        <label>Title / Headline:</label>
+                        <input type="text" id="articleTitle" placeholder="Enter catchy headline with keywords">
+                    </div>
+                    <div class="form-group">
+                        <label>Subheading / Summary (Excerpt):</label>
+                        <textarea id="articleSubtitle" placeholder="Brief intro about the article (150-200 chars)" maxlength="200"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Category:</label>
+                        <select id="articleCategory">
+                            <option value="politics">Politics</option>
+                            <option value="sports">Sports</option>
+                            <option value="business">Business</option>
+                            <option value="tech">Technology</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="world">World</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tags (comma separated):</label>
+                        <input type="text" id="articleTags" placeholder="Modi, India, Politics, Breaking">
+                    </div>
+                    <div class="form-group">
+                        <label>Location / Region:</label>
+                        <input type="text" id="articleLocation" placeholder="New Delhi, Mumbai, International">
+                    </div>
+                    <div class="form-group">
+                        <label>Source / References:</label>
+                        <input type="text" id="articleSource" placeholder="PTI, ANI, Reuters">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="breakingNews"> Breaking News
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>SEO Title (max 60 chars):</label>
+                        <input type="text" id="seoTitle" placeholder="SEO optimized title" maxlength="60">
+                    </div>
+                    <div class="form-group">
+                        <label>Meta Description (150-160 chars):</label>
+                        <textarea id="metaDescription" placeholder="Brief description for search engines" maxlength="160"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL Slug:</label>
+                        <input type="text" id="urlSlug" placeholder="article-url-slug">
+                    </div>
+                    
+                    <!-- Rich Text Editor -->
+                    <div class="form-group">
+                        <label>Content:</label>
+                        <div class="editor-toolbar">
+                            <button type="button" class="editor-btn" data-command="bold"><b>B</b></button>
+                            <button type="button" class="editor-btn" data-command="italic"><i>I</i></button>
+                            <button type="button" class="editor-btn" data-command="underline"><u>U</u></button>
+                            <button type="button" class="editor-btn" data-command="insertOrderedList">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="insertUnorderedList">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="createLink">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="insertImage">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="highlight">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 3l-1.5 1.5L12 6l1.5-1.5L12 3zm6.5 9L17 10.5 15.5 12 17 13.5 18.5 12zM12 18l1.5-1.5L12 15l-1.5 1.5L12 18zM5.5 12L7 13.5 8.5 12 7 10.5 5.5 12z"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="blur">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="fontSize">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M9 4v3h5v12h3V7h5V4H9zm-6 8h3v7h3v-7h3V9H3v3z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="articleContent" class="rich-editor" contenteditable="true" placeholder="Write your article content here..."></div>
+                    </div>
+
+                    <!-- Media Upload Section -->
+                    <div class="form-group">
+                        <label>Media:</label>
+                        <div class="media-upload">
+                            <div class="media-btn" id="imageBtn">
+                                📷<br>Add Image
+                                <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                            </div>
+                            <div class="media-btn" id="videoBtn">
+                                🎥<br>Add Video
+                                <input type="file" id="videoUpload" accept="video/*" style="display: none;">
+                            </div>
+                            <div class="media-btn" id="embedBtn">
+                                📺<br>Embed URL
+                            </div>
+                        </div>
+                        <div class="media-preview" id="mediaPreview"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Featured Image URL or Base64:</label>
+                        <input type="text" id="articleImage" placeholder="Paste image URL or base64 data">
+                    </div>
+
+                    <button class="btn btn-primary" id="publishBtn">🚀 Publish Article</button>
+                    <button class="btn btn-secondary" id="saveDraftBtn">💾 Save Draft</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="container">
+        <div class="hero-section" id="heroSection">
+            <!-- Main story and side stories will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <!-- News Section -->
+            <div class="news-section">
+                <div class="section-header">
+                    <span>Latest News</span>
+                    <div class="live-indicator">🔴 LIVE</div>
+                </div>
+                <div id="articlesContainer">
+                    <!-- Articles will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Trending News -->
+                <div class="widget">
+                    <div class="section-header">
+                        <span>Trending Now</span>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <div id="trendingNews">
+                            <div class="trending-item">
+                                <div class="trending-number">1</div>
+                                <div>Breaking: Major policy announcement expected today</div>
+                            </div>
+                            <div class="trending-item">
+                                <div class="trending-number">2</div>
+                                <div>Sports: Cricket world cup preparations underway</div>
+                            </div>
+                            <div class="trending-item">
+                                <div class="trending-number">3</div>
+                                <div>Tech: New smartphone launches this week</div>
+                            </div>
+                            <div class="trending-item">
+                                <div class="trending-number">4</div>
+                                <div>Business: Stock market hits new high</div>
+                            </div>
+                            <div class="trending-item">
+                                <div class="trending-number">5</div>
+                                <div>Entertainment: Bollywood star announces new project</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weather Widget -->
+                <div class="widget">
+                    <div class="section-header">
+                        <span>Weather</span>
+                    </div>
+                    <div style="padding: 1rem; text-align: center;">
+                        <div style="font-size: 2rem;">🌤️</div>
+                        <div style="font-size: 1.5rem; font-weight: bold;">25°C</div>
+                        <div>Partly Cloudy</div>
+                        <div style="font-size: 0.9rem; color: #666;">New Delhi</div>
+                        <div style="margin-top: 1rem; font-size: 0.8rem; color: #666;">
+                            High: 28°C | Low: 18°C<br>
+                            Humidity: 65% | Wind: 12 km/h
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Updates -->
+                <div class="widget">
+                    <div class="section-header">
+                        <span>Live Updates</span>
+                        <div class="live-indicator">🔴 LIVE</div>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <div id="liveUpdates">
+                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">2 minutes ago</div>
+                            <div style="margin-bottom: 1rem;">Parliament session begins with heated debate</div>
+                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">5 minutes ago</div>
+                            <div style="margin-bottom: 1rem;">Cricket team arrives at stadium</div>
+                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">8 minutes ago</div>
+                            <div>Stock market opens with gains</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Indicator -->
+    <div class="save-indicator" id="saveIndicator">
+        ✅ Changes saved automatically
+    </div>
+
+    <!-- Article View Modal -->
+    <div class="article-modal" id="articleModal">
+        <div class="article-modal-content">
+            <span class="close" id="closeArticleModal" style="position: absolute; top: 1rem; right: 1rem; z-index: 10; background: rgba(0,0,0,0.5); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.5rem;">&times;</span>
+            <div class="article-header">
+                <img id="modalArticleImage" src="" alt="">
+                <div class="article-overlay">
+                    <div id="modalBreakingBadge" class="breaking-badge hidden">🔴 BREAKING</div>
+                    <h1 class="article-title" id="modalArticleTitle"></h1>
+                    <p class="article-subtitle" id="modalArticleSubtitle"></p>
+                </div>
+            </div>
+            <div class="article-body">
+                <div class="article-full-meta">
+                    <span id="modalArticleDate">📅 Date</span>
+                    <span id="modalArticleCategory">🏷️ Category</span>
+                    <span id="modalArticleLocation">📍 Location</span>
+                    <span id="modalArticleSource">📰 Source</span>
+                </div>
+                <div class="article-tags" id="modalArticleTags"></div>
+                <div class="article-full-content" id="modalArticleContent"></div>
+                
+                <div class="share-buttons">
+                    <h4 style="width: 100%; margin-bottom: 1rem;">Share this article:</h4>
+                    <a href="#" class="share-btn share-whatsapp" id="shareWhatsApp">📱 WhatsApp</a>
+                    <a href="#" class="share-btn share-twitter" id="shareTwitter">🐦 Twitter</a>
+                    <a href="#" class="share-btn share-facebook" id="shareFacebook">📘 Facebook</a>
+                    <a href="#" class="share-btn share-linkedin" id="shareLinkedIn">💼 LinkedIn</a>
+                    <button class="share-btn share-copy" id="copyLink">📋 Copy Link</button>
+                </div>
+
+                <div class="seo-info" id="modalSeoInfo">
+                    <strong>SEO Information:</strong><br>
+                    <span id="modalSeoTitle"></span><br>
+                    <span id="modalMetaDesc"></span><br>
+                    <span id="modalUrlSlug"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Login to Dozera News</h2>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password">
+            </div>
+            <button class="btn btn-primary" id="loginSubmit">Login</button>
+            <p style="margin-top: 1rem; text-align: center;">
+                Don't have an account? <a href="#" id="signupLink">Sign up here</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjfNlHwhT4xYb7vVym_SAqMlSuY_TMz0o",
+            authDomain: "orioplay.firebaseapp.com",
+            databaseURL: "https://orioplay-default-rtdb.firebaseio.com",
+            projectId: "orioplay",
+            storageBucket: "orioplay.firebasestorage.app",
+            messagingSenderId: "300811706751",
+            appId: "1:300811706751:web:bdce98b1ba7e11d34d7a4a"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        // Global variables
+        let currentUser = null;
+        let isAdmin = false;
+        let liveEditMode = false;
+        let currentEditingArticle = null;
+        let mediaFiles = [];
+
+        // Sample articles for initial load
+        const sampleArticles = [
+            {
+                id: 'sample1',
+                title: 'Breaking: Major Economic Policy Announced by Government',
+                subtitle: 'New policy aims to create 2 million jobs and boost economic growth across multiple sectors',
+                content: 'The government today announced a comprehensive economic policy aimed at boosting growth and creating employment opportunities across various sectors. The new policy includes tax reforms, infrastructure development, and support for small businesses. <span class="highlight">Finance Minister stated that this policy will create over 2 million jobs in the next two years.</span><br><br>The policy focuses on <a href="#" class="linked-text">digital infrastructure</a> and green energy initiatives. <span class="blur-text">Some details remain confidential</span> until the official announcement next week.',
+                category: 'politics',
+                tags: ['Modi', 'Economic Policy', 'Jobs', 'Breaking'],
+                location: 'New Delhi',
+                source: 'PTI',
+                breaking: true,
+                seoTitle: 'Government Announces Major Economic Policy - 2M Jobs Expected',
+                metaDescription: 'Breaking: Government unveils comprehensive economic policy to create 2 million jobs with focus on digital infrastructure and green energy.',
+                urlSlug: 'government-economic-policy-2-million-jobs-2024',
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2QzMmYyZiIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCI+UG9saXRpY3M8L3RleHQ+PC9zdmc+',
+                timestamp: Date.now() - 1800000,
+                author: 'Political Correspondent',
+                featured: true
+            },
+            {
+                id: 'sample2',
+                title: 'Cricket World Cup: Team India Wins Thrilling Match',
+                subtitle: 'Rohit Sharma\'s brilliant 89* guides India to victory against Australia',
+                content: 'In a nail-biting finish, Team India secured victory against Australia by 6 wickets. <span class="highlight">Captain Rohit Sharma played a magnificent innings of 89 not out</span> to guide the team home. The victory puts India at the top of the points table.<br><br>The match saw some <a href="#" class="linked-text">spectacular catches</a> and bowling performances.',
+                category: 'sports',
+                tags: ['Cricket', 'India vs Australia', 'Rohit Sharma', 'World Cup'],
+                location: 'Mumbai',
+                source: 'Sports Bureau',
+                breaking: false,
+                seoTitle: 'India Beats Australia in Thrilling Cricket World Cup Match',
+                metaDescription: 'Rohit Sharma\'s unbeaten 89 leads India to victory over Australia in nail-biting World Cup encounter.',
+                urlSlug: 'india-beats-australia-cricket-world-cup-rohit-sharma',
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzRjYWY1MCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCI+U3BvcnRzPC90ZXh0Pjwvc3ZnPg==',
+                timestamp: Date.now() - 3600000,
+                author: 'Sports Desk'
+            },
+            {
+                id: 'sample3',
+                title: 'Tech Giants Announce Revolutionary AI Partnership',
+                content: 'Leading technology companies including Google, Microsoft, and OpenAI have joined forces to develop next-generation artificial intelligence solutions for healthcare and education sectors. The partnership aims to make AI more accessible and beneficial for society.',
+                category: 'tech',
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzJhNTI5OCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCI+VGVjaG5vbG9neTwvdGV4dD48L3N2Zz4=',
+                timestamp: Date.now() - 7200000,
+                author: 'Tech Reporter'
+            },
+            {
+                id: 'sample4',
+                title: 'Stock Market Reaches All-Time High Amid Positive Sentiment',
+                content: 'The BSE Sensex crossed the 66,000 mark for the first time in history, driven by strong corporate earnings and positive global cues. Banking and IT stocks led the rally.',
+                category: 'business',
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmOTgwMCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCI+QnVzaW5lc3M8L3RleHQ+PC9zdmc+',
+                timestamp: Date.now() - 10800000,
+                author: 'Business Reporter'
+            },
+            {
+                id: 'sample5',
+                title: 'Bollywood Superstar Announces New Film with International Director',
+                content: 'In a surprise announcement, Bollywood superstar Shah Rukh Khan revealed his collaboration with acclaimed Hollywood director Christopher Nolan for an upcoming thriller.',
+                category: 'entertainment',
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2U5MWU2MyIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiI+RW50ZXJ0YWlubWVudDwvdGV4dD48L3N2Zz4=',
+                timestamp: Date.now() - 14400000,
+                author: 'Entertainment Desk'
+            }
+        ];
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            loadArticles();
+            setupEventListeners();
+            handleUrlRouting();
+        });
+
+        // Handle URL routing for direct article access
+        function handleUrlRouting() {
+            const hash = window.location.hash.substring(1);
+            if (hash && hash !== 'home') {
+                // Try to find and open article by slug
+                setTimeout(() => {
+                    const article = sampleArticles.find(a => a.urlSlug === hash || a.id === hash);
+                    if (article) {
+                        displayArticleModal(article);
+                    }
+                }, 1000);
+            }
+        }
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function(event) {
+            const hash = window.location.hash.substring(1);
+            if (!hash || hash === 'home') {
+                hideArticleModal();
+            } else {
+                handleUrlRouting();
+            }
+        });
+
+        function initializeApp() {
+            // Set current date
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-IN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Check authentication state
+            auth.onAuthStateChanged(function(user) {
+                if (user) {
+                    currentUser = user;
+                    isAdmin = user.email === 'customerserviceffrj4@gmail.com';
+                    updateUIForLoggedInUser();
+                } else {
+                    currentUser = null;
+                    isAdmin = false;
+                    updateUIForLoggedOutUser();
+                }
+            });
+        }
+
+        function setupEventListeners() {
+            // Login/Logout buttons
+            document.getElementById('loginBtn').addEventListener('click', showLoginModal);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('closeModal').addEventListener('click', hideLoginModal);
+            document.getElementById('loginSubmit').addEventListener('click', login);
+            document.getElementById('signupLink').addEventListener('click', signup);
+
+            // Admin panel
+            document.getElementById('addArticleBtn').addEventListener('click', toggleArticleForm);
+            document.getElementById('liveEditBtn').addEventListener('click', toggleLiveEditMode);
+            document.getElementById('stopLiveEdit').addEventListener('click', stopLiveEditMode);
+            document.getElementById('publishBtn').addEventListener('click', publishArticle);
+            document.getElementById('saveDraftBtn').addEventListener('click', saveDraft);
+
+            // Rich text editor
+            setupRichTextEditor();
+
+            // Media upload
+            document.getElementById('imageBtn').addEventListener('click', () => {
+                document.getElementById('imageUpload').click();
+            });
+            document.getElementById('videoBtn').addEventListener('click', () => {
+                document.getElementById('videoUpload').click();
+            });
+            document.getElementById('embedBtn').addEventListener('click', handleEmbedUrl);
+            document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+            document.getElementById('videoUpload').addEventListener('change', handleVideoUpload);
+
+            // Close modal on outside click
+            document.getElementById('loginModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideLoginModal();
+                }
+            });
+
+            // Article modal
+            document.getElementById('closeArticleModal').addEventListener('click', hideArticleModal);
+            document.getElementById('articleModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideArticleModal();
+                }
+            });
+
+            // Share buttons
+            document.getElementById('copyLink').addEventListener('click', copyArticleLink);
+        }
+
+        function setupRichTextEditor() {
+            const toolbar = document.querySelector('.editor-toolbar');
+            const editor = document.getElementById('articleContent');
+
+            toolbar.addEventListener('click', function(e) {
+                if (e.target.classList.contains('editor-btn')) {
+                    e.preventDefault();
+                    const command = e.target.getAttribute('data-command');
+                    
+                    if (command === 'createLink') {
+                        const url = prompt('Enter URL:');
+                        if (url) {
+                            const selection = window.getSelection();
+                            if (selection.rangeCount > 0) {
+                                const range = selection.getRangeAt(0);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.className = 'linked-text';
+                                link.textContent = selection.toString() || url;
+                                range.deleteContents();
+                                range.insertNode(link);
+                            }
+                        }
+                    } else if (command === 'insertImage') {
+                        const url = prompt('Enter image URL:');
+                        if (url) {
+                            document.execCommand(command, false, url);
+                        }
+                    } else if (command === 'highlight') {
+                        const selection = window.getSelection();
+                        if (selection.rangeCount > 0) {
+                            const range = selection.getRangeAt(0);
+                            const span = document.createElement('span');
+                            span.className = 'highlight';
+                            range.surroundContents(span);
+                        }
+                    } else if (command === 'blur') {
+                        const selection = window.getSelection();
+                        if (selection.rangeCount > 0) {
+                            const range = selection.getRangeAt(0);
+                            const span = document.createElement('span');
+                            span.className = 'blur-text';
+                            range.surroundContents(span);
+                        }
+                    } else if (command === 'fontSize') {
+                        const size = prompt('Enter font size (1-7):');
+                        if (size && size >= 1 && size <= 7) {
+                            document.execCommand('fontSize', false, size);
+                        }
+                    } else {
+                        document.execCommand(command, false, null);
+                    }
+                    
+                    e.target.classList.toggle('active');
+                }
+            });
+
+            // Auto-save functionality
+            editor.addEventListener('input', debounce(autoSave, 2000));
+
+            // Auto-generate URL slug from title
+            document.getElementById('articleTitle').addEventListener('input', function() {
+                const title = this.value;
+                const slug = title.toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-')
+                    .trim('-');
+                document.getElementById('urlSlug').value = slug;
+            });
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function autoSave() {
+            if (currentEditingArticle && liveEditMode) {
+                saveArticleChanges(currentEditingArticle);
+                showSaveIndicator();
+            }
+        }
+
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        function showLoginModal() {
+            document.getElementById('loginModal').style.display = 'block';
+        }
+
+        function hideLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    hideLoginModal();
+                    alert('Login successful!');
+                })
+                .catch((error) => {
+                    alert('Login failed: ' + error.message);
+                });
+        }
+
+        function signup() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    hideLoginModal();
+                    alert('Account created successfully!');
+                })
+                .catch((error) => {
+                    alert('Signup failed: ' + error.message);
+                });
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                alert('Logged out successfully!');
+            });
+        }
+
+        function updateUIForLoggedInUser() {
+            document.getElementById('loginBtn').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('userEmail').textContent = currentUser.email;
+
+            if (isAdmin) {
+                document.getElementById('adminBadge').classList.remove('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+            }
+        }
+
+        function updateUIForLoggedOutUser() {
+            document.getElementById('loginBtn').classList.remove('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+        }
+
+        function toggleArticleForm() {
+            const form = document.getElementById('articleForm');
+            form.classList.toggle('hidden');
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('articleImage').value = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function toggleLiveEditMode() {
+            if (!isAdmin) {
+                alert('Only admin can use live edit mode');
+                return;
+            }
+
+            liveEditMode = !liveEditMode;
+            const panel = document.getElementById('liveEditPanel');
+            const btn = document.getElementById('liveEditBtn');
+
+            if (liveEditMode) {
+                panel.classList.remove('hidden');
+                btn.textContent = '🟢 Live Edit ON';
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-primary');
+                enableLiveEditing();
+            } else {
+                panel.classList.add('hidden');
+                btn.textContent = '🔴 Live Edit Mode';
+                btn.classList.add('btn-primary');
+                btn.classList.remove('btn-success');
+                disableLiveEditing();
+            }
+        }
+
+        function stopLiveEditMode() {
+            liveEditMode = false;
+            document.getElementById('liveEditPanel').classList.add('hidden');
+            const btn = document.getElementById('liveEditBtn');
+            btn.textContent = '🔴 Live Edit Mode';
+            btn.classList.add('btn-primary');
+            btn.classList.remove('btn-success');
+            disableLiveEditing();
+        }
+
+        function enableLiveEditing() {
+            const articles = document.querySelectorAll('.article-card');
+            articles.forEach(article => {
+                article.style.cursor = 'pointer';
+                article.addEventListener('click', handleArticleEdit);
+            });
+        }
+
+        function disableLiveEditing() {
+            const articles = document.querySelectorAll('.article-card');
+            articles.forEach(article => {
+                article.style.cursor = 'default';
+                article.removeEventListener('click', handleArticleEdit);
+                article.classList.remove('live-editing');
+            });
+        }
+
+        function handleArticleEdit(event) {
+            if (!liveEditMode) return;
+
+            const articleCard = event.currentTarget;
+            const articleId = articleCard.getAttribute('data-id');
+            
+            // Remove editing class from other articles
+            document.querySelectorAll('.article-card').forEach(card => {
+                card.classList.remove('live-editing');
+            });
+
+            // Add editing class to current article
+            articleCard.classList.add('live-editing');
+            currentEditingArticle = articleId;
+
+            // Make content editable
+            const title = articleCard.querySelector('h3');
+            const excerpt = articleCard.querySelector('.article-excerpt');
+
+            if (title && excerpt) {
+                title.contentEditable = true;
+                excerpt.contentEditable = true;
+                title.classList.add('inline-edit');
+                excerpt.classList.add('inline-edit');
+
+                title.addEventListener('blur', () => saveInlineEdit(articleId, 'title', title.textContent));
+                excerpt.addEventListener('blur', () => saveInlineEdit(articleId, 'content', excerpt.textContent));
+            }
+        }
+
+        function saveInlineEdit(articleId, field, value) {
+            if (!isAdmin) return;
+
+            const updates = {};
+            updates[field] = value;
+            updates['lastModified'] = Date.now();
+
+            database.ref(`articles/${articleId}`).update(updates)
+                .then(() => {
+                    showSaveIndicator();
+                })
+                .catch((error) => {
+                    console.error('Error updating article:', error);
+                });
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const mediaItem = createMediaItem(e.target.result, 'image');
+                    document.getElementById('mediaPreview').appendChild(mediaItem);
+                    mediaFiles.push({type: 'image', data: e.target.result});
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleVideoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const mediaItem = createMediaItem(e.target.result, 'video');
+                    document.getElementById('mediaPreview').appendChild(mediaItem);
+                    mediaFiles.push({type: 'video', data: e.target.result});
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleEmbedUrl() {
+            const url = prompt('Enter YouTube, Twitter, or Instagram URL:');
+            if (url) {
+                const embedCode = generateEmbedCode(url);
+                if (embedCode) {
+                    const mediaItem = createMediaItem(embedCode, 'embed');
+                    document.getElementById('mediaPreview').appendChild(mediaItem);
+                    mediaFiles.push({type: 'embed', data: embedCode});
+                }
+            }
+        }
+
+        function generateEmbedCode(url) {
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                const videoId = extractYouTubeId(url);
+                return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+            } else if (url.includes('twitter.com')) {
+                return `<blockquote class="twitter-tweet"><a href="${url}"></a></blockquote>`;
+            } else if (url.includes('instagram.com')) {
+                return `<blockquote class="instagram-media"><a href="${url}"></a></blockquote>`;
+            }
+            return null;
+        }
+
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function createMediaItem(data, type) {
+            const div = document.createElement('div');
+            div.className = 'media-item';
+            
+            if (type === 'image') {
+                div.innerHTML = `
+                    <img src="${data}" alt="Media">
+                    <button class="media-remove" onclick="removeMediaItem(this)">×</button>
+                `;
+            } else if (type === 'video') {
+                div.innerHTML = `
+                    <video src="${data}" controls></video>
+                    <button class="media-remove" onclick="removeMediaItem(this)">×</button>
+                `;
+            } else if (type === 'embed') {
+                div.innerHTML = `
+                    <div style="background: #f0f0f0; padding: 1rem; text-align: center;">
+                        📺 Embedded Content
+                    </div>
+                    <button class="media-remove" onclick="removeMediaItem(this)">×</button>
+                `;
+            }
+            
+            return div;
+        }
+
+        function removeMediaItem(button) {
+            const mediaItem = button.parentElement;
+            const index = Array.from(mediaItem.parentElement.children).indexOf(mediaItem);
+            mediaFiles.splice(index, 1);
+            mediaItem.remove();
+        }
+
+        function publishArticle() {
+            if (!isAdmin) {
+                alert('Only admin can publish articles');
+                return;
+            }
+
+            const title = document.getElementById('articleTitle').value;
+            const subtitle = document.getElementById('articleSubtitle').value;
+            const content = document.getElementById('articleContent').innerHTML;
+            const category = document.getElementById('articleCategory').value;
+            const tags = document.getElementById('articleTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
+            const location = document.getElementById('articleLocation').value;
+            const source = document.getElementById('articleSource').value;
+            const breaking = document.getElementById('breakingNews').checked;
+            const seoTitle = document.getElementById('seoTitle').value;
+            const metaDescription = document.getElementById('metaDescription').value;
+            const urlSlug = document.getElementById('urlSlug').value;
+            const image = document.getElementById('articleImage').value;
+
+            if (!title || !content) {
+                alert('Please fill in title and content');
+                return;
+            }
+
+            const article = {
+                title: title,
+                subtitle: subtitle,
+                content: content,
+                category: category,
+                tags: tags,
+                location: location,
+                source: source,
+                breaking: breaking,
+                seoTitle: seoTitle || title,
+                metaDescription: metaDescription || subtitle,
+                urlSlug: urlSlug || generateSlug(title),
+                image: image || generateDefaultImage(category),
+                timestamp: Date.now(),
+                author: currentUser.email,
+                media: mediaFiles,
+                status: 'published'
+            };
+
+            // Save to Firebase
+            const articleRef = database.ref('articles').push();
+            articleRef.set(article)
+                .then(() => {
+                    alert('Article published successfully!');
+                    clearArticleForm();
+                    loadArticles();
+                    loadHeroSection();
+                    // Update URL
+                    window.history.pushState({}, '', `#${article.urlSlug}`);
+                })
+                .catch((error) => {
+                    alert('Error publishing article: ' + error.message);
+                });
+        }
+
+        function generateSlug(title) {
+            return title.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim('-');
+        }
+
+        function saveDraft() {
+            if (!isAdmin) {
+                alert('Only admin can save drafts');
+                return;
+            }
+
+            const title = document.getElementById('articleTitle').value;
+            const content = document.getElementById('articleContent').innerHTML;
+            const category = document.getElementById('articleCategory').value;
+            const image = document.getElementById('articleImage').value;
+
+            if (!title) {
+                alert('Please enter a title');
+                return;
+            }
+
+            const draft = {
+                title: title,
+                content: content,
+                category: category,
+                image: image,
+                timestamp: Date.now(),
+                author: currentUser.email,
+                media: mediaFiles,
+                status: 'draft'
+            };
+
+            const draftRef = database.ref('drafts').push();
+            draftRef.set(draft)
+                .then(() => {
+                    alert('Draft saved successfully!');
+                    showSaveIndicator();
+                })
+                .catch((error) => {
+                    alert('Error saving draft: ' + error.message);
+                });
+        }
+
+        function generateDefaultImage(category) {
+            const colors = {
+                politics: '#d32f2f',
+                sports: '#4caf50',
+                business: '#ff9800',
+                tech: '#2196f3',
+                entertainment: '#e91e63',
+                world: '#9c27b0'
+            };
+            
+            const color = colors[category] || '#6c757d';
+            const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
+            
+            return `data:image/svg+xml;base64,${btoa(`<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="${color}"/><text x="150" y="100" fill="white" text-anchor="middle" dy=".3em" font-family="Arial" font-size="18">${categoryName}</text></svg>`)}`;
+        }
+
+        function clearArticleForm() {
+            document.getElementById('articleTitle').value = '';
+            document.getElementById('articleContent').innerHTML = '';
+            document.getElementById('articleImage').value = '';
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('videoUpload').value = '';
+            document.getElementById('mediaPreview').innerHTML = '';
+            mediaFiles = [];
+            document.getElementById('articleForm').classList.add('hidden');
+            
+            // Reset publish button
+            const publishBtn = document.getElementById('publishBtn');
+            publishBtn.textContent = '🚀 Publish Article';
+            publishBtn.onclick = publishArticle;
+        }
+
+        function loadArticles() {
+            const container = document.getElementById('articlesContainer');
+            
+            // Load from Firebase
+            database.ref('articles').orderByChild('timestamp').limitToLast(15).on('value', (snapshot) => {
+                const articles = [];
+                snapshot.forEach((childSnapshot) => {
+                    const article = childSnapshot.val();
+                    article.id = childSnapshot.key;
+                    articles.unshift(article); // Add to beginning for newest first
+                });
+
+                // If no Firebase articles, show sample articles
+                if (articles.length === 0) {
+                    displayArticles(sampleArticles);
+                    loadHeroSection(sampleArticles);
+                } else {
+                    displayArticles(articles);
+                    loadHeroSection(articles);
+                }
+            });
+        }
+
+        function loadHeroSection(articles = sampleArticles) {
+            const heroContainer = document.getElementById('heroSection');
+            if (!heroContainer) return;
+
+            const featuredArticle = articles.find(a => a.featured) || articles[0];
+            const sideArticles = articles.slice(1, 4);
+
+            heroContainer.innerHTML = `
+                <div class="main-story">
+                    <img src="${featuredArticle.image}" alt="${featuredArticle.title}" onerror="this.src='${generateDefaultImage(featuredArticle.category)}'">
+                    <div class="main-story-overlay">
+                        <h2>${featuredArticle.title}</h2>
+                        <p>${featuredArticle.content.substring(0, 200)}...</p>
+                        <div style="font-size: 0.9rem; margin-top: 1rem; opacity: 0.9;">
+                            📅 ${getTimeAgo(featuredArticle.timestamp)} • 👤 ${featuredArticle.author}
+                        </div>
+                    </div>
+                </div>
+                <div class="side-stories">
+                    ${sideArticles.map(article => `
+                        <div class="side-story">
+                            <img src="${article.image}" alt="${article.title}" onerror="this.src='${generateDefaultImage(article.category)}'">
+                            <div>
+                                <h4>${article.title}</h4>
+                                <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">
+                                    ${getTimeAgo(article.timestamp)}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function displayArticles(articles) {
+            const container = document.getElementById('articlesContainer');
+            container.innerHTML = '';
+
+            articles.forEach(article => {
+                const articleElement = createArticleElement(article);
+                container.appendChild(articleElement);
+            });
+
+            // Re-enable live editing if active
+            if (liveEditMode) {
+                enableLiveEditing();
+            }
+        }
+
+        function createArticleElement(article) {
+            const div = document.createElement('div');
+            div.className = 'article-card';
+            div.setAttribute('data-id', article.id);
+            
+            const timeAgo = getTimeAgo(article.timestamp);
+            const contentPreview = article.content.replace(/<[^>]*>/g, '').substring(0, 150);
+            
+            div.innerHTML = `
+                <img src="${article.image}" alt="${article.title}" class="article-image" onerror="this.src='${generateDefaultImage(article.category)}'">
+                <div class="article-content">
+                    ${article.breaking ? '<div class="breaking-badge">🔴 BREAKING</div>' : ''}
+                    <h3 onclick="openArticleModal('${article.id}')">${article.title}</h3>
+                    <div class="article-meta">
+                        <span>📅 ${timeAgo}</span>
+                        <span>🏷️ ${article.category.charAt(0).toUpperCase() + article.category.slice(1)}</span>
+                        ${article.location ? `<span>📍 ${article.location}</span>` : ''}
+                        ${article.source ? `<span>📰 ${article.source}</span>` : ''}
+                    </div>
+                    ${article.tags && article.tags.length > 0 ? `
+                        <div class="article-tags">
+                            ${article.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    <p class="article-excerpt">${contentPreview}...</p>
+                </div>
+                ${isAdmin ? `
+                    <div class="edit-controls">
+                        <button class="edit-btn" onclick="editArticle('${article.id}')">✏️</button>
+                        <button class="delete-btn" onclick="deleteArticle('${article.id}')">🗑️</button>
+                    </div>
+                ` : ''}
+            `;
+
+            return div;
+        }
+
+        function openArticleModal(articleId) {
+            // Find article in sample articles or fetch from Firebase
+            let article = sampleArticles.find(a => a.id === articleId);
+            
+            if (!article) {
+                database.ref(`articles/${articleId}`).once('value', (snapshot) => {
+                    article = snapshot.val();
+                    if (article) {
+                        article.id = articleId;
+                        displayArticleModal(article);
+                    }
+                });
+            } else {
+                displayArticleModal(article);
+            }
+        }
+
+        function displayArticleModal(article) {
+            // Update URL
+            window.history.pushState({}, '', `#${article.urlSlug || article.id}`);
+            
+            // Populate modal
+            document.getElementById('modalArticleImage').src = article.image;
+            document.getElementById('modalArticleTitle').textContent = article.title;
+            document.getElementById('modalArticleSubtitle').textContent = article.subtitle || '';
+            document.getElementById('modalArticleContent').innerHTML = article.content;
+            
+            // Meta information
+            document.getElementById('modalArticleDate').textContent = `📅 ${new Date(article.timestamp).toLocaleDateString('en-IN')}`;
+            document.getElementById('modalArticleCategory').textContent = `🏷️ ${article.category.charAt(0).toUpperCase() + article.category.slice(1)}`;
+            document.getElementById('modalArticleLocation').textContent = article.location ? `📍 ${article.location}` : '';
+            document.getElementById('modalArticleSource').textContent = article.source ? `📰 ${article.source}` : '';
+            
+            // Breaking news badge
+            if (article.breaking) {
+                document.getElementById('modalBreakingBadge').classList.remove('hidden');
+            } else {
+                document.getElementById('modalBreakingBadge').classList.add('hidden');
+            }
+            
+            // Tags
+            const tagsContainer = document.getElementById('modalArticleTags');
+            if (article.tags && article.tags.length > 0) {
+                tagsContainer.innerHTML = article.tags.map(tag => `<span class="tag">#${tag}</span>`).join('');
+            } else {
+                tagsContainer.innerHTML = '';
+            }
+            
+            // SEO Info
+            document.getElementById('modalSeoTitle').textContent = `SEO Title: ${article.seoTitle || article.title}`;
+            document.getElementById('modalMetaDesc').textContent = `Meta Description: ${article.metaDescription || ''}`;
+            document.getElementById('modalUrlSlug').textContent = `URL: ${window.location.origin}#${article.urlSlug || article.id}`;
+            
+            // Setup share buttons
+            setupShareButtons(article);
+            
+            // Show modal
+            document.getElementById('articleModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideArticleModal() {
+            document.getElementById('articleModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            window.history.pushState({}, '', '#home');
+        }
+
+        function setupShareButtons(article) {
+            const url = `${window.location.origin}#${article.urlSlug || article.id}`;
+            const title = article.title;
+            const description = article.subtitle || article.content.replace(/<[^>]*>/g, '').substring(0, 100);
+            
+            document.getElementById('shareWhatsApp').href = `https://wa.me/?text=${encodeURIComponent(title + ' - ' + url)}`;
+            document.getElementById('shareTwitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+            document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            document.getElementById('shareLinkedIn').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        }
+
+        function copyArticleLink() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Link copied to clipboard!');
+            });
+        }
+
+        function editArticle(articleId) {
+            if (!isAdmin) return;
+
+            database.ref(`articles/${articleId}`).once('value', (snapshot) => {
+                const article = snapshot.val();
+                if (article) {
+                    // Populate form with article data
+                    document.getElementById('articleTitle').value = article.title;
+                    document.getElementById('articleContent').innerHTML = article.content;
+                    document.getElementById('articleCategory').value = article.category;
+                    document.getElementById('articleImage').value = article.image || '';
+                    
+                    // Show form
+                    document.getElementById('articleForm').classList.remove('hidden');
+                    
+                    // Change publish button to update
+                    const publishBtn = document.getElementById('publishBtn');
+                    publishBtn.textContent = '🔄 Update Article';
+                    publishBtn.onclick = () => updateArticle(articleId);
+                }
+            });
+        }
+
+        function updateArticle(articleId) {
+            if (!isAdmin) return;
+
+            const title = document.getElementById('articleTitle').value;
+            const content = document.getElementById('articleContent').innerHTML;
+            const category = document.getElementById('articleCategory').value;
+            const image = document.getElementById('articleImage').value;
+
+            if (!title || !content) {
+                alert('Please fill in title and content');
+                return;
+            }
+
+            const updates = {
+                title: title,
+                content: content,
+                category: category,
+                image: image || generateDefaultImage(category),
+                lastModified: Date.now(),
+                media: mediaFiles
+            };
+
+            database.ref(`articles/${articleId}`).update(updates)
+                .then(() => {
+                    alert('Article updated successfully!');
+                    clearArticleForm();
+                    loadArticles();
+                    loadHeroSection();
+                })
+                .catch((error) => {
+                    alert('Error updating article: ' + error.message);
+                });
+        }
+
+        function deleteArticle(articleId) {
+            if (!isAdmin) return;
+
+            if (confirm('Are you sure you want to delete this article?')) {
+                database.ref(`articles/${articleId}`).remove()
+                    .then(() => {
+                        alert('Article deleted successfully!');
+                        loadArticles();
+                        loadHeroSection();
+                    })
+                    .catch((error) => {
+                        alert('Error deleting article: ' + error.message);
+                    });
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+            if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            return 'Just now';
+        }
+
+        // Add some sample articles to Firebase on first load (admin only)
+        function addSampleArticles() {
+            if (isAdmin) {
+                sampleArticles.forEach(article => {
+                    database.ref('articles').push(article);
+                });
+            }
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97fdc5f225083d4e',t:'MTc1Nzk5ODU0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
