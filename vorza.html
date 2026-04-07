@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>HeartFit Pro</title>
+    <title>HeartFit Pro | Ultra</title>
     <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet">
     <style>
         :root {
             --ios-red: #FF2D55;
             --ios-green: #34C759;
             --ios-blue: #007AFF;
-            --ios-cyan: #58CCFB;
-            --ios-yellow: #FFCC00;
+            --ios-cyan: #5AC8FA;
+            --ios-gold: #FFD700;
             --bg: #000000;
             --card: #1C1C1E;
-            --glass: rgba(28, 28, 30, 0.8);
+            --glass: rgba(28, 28, 30, 0.85);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -26,265 +26,192 @@
             overflow-x: hidden;
         }
 
-        /* --- TAB NAVIGATION --- */
+        /* --- NAVIGATION --- */
         .tab-bar {
             position: fixed; bottom: 0; width: 100%;
-            background: var(--glass); backdrop-filter: blur(25px);
+            background: var(--glass); backdrop-filter: blur(30px);
             display: flex; justify-content: space-around;
             padding: 12px 0 34px; border-top: 0.5px solid #333;
             z-index: 1000;
         }
-        .tab-item { 
-            color: #8E8E93; font-size: 11px; text-align: center; 
-            flex: 1; transition: 0.2s;
-        }
-        .tab-item.active { color: var(--ios-blue); transform: scale(1.1); }
-        .tab-item i { font-size: 24px; display: block; margin-bottom: 4px; }
+        .tab-item { color: #8E8E93; font-size: 10px; text-align: center; flex: 1; cursor: pointer; }
+        .tab-item.active { color: var(--ios-blue); }
+        .tab-icon { font-size: 22px; display: block; margin-bottom: 4px; }
 
-        /* --- CONTAINERS --- */
-        .page { padding: 20px; padding-bottom: 120px; min-height: 100vh; display: none; }
-        .page.active { display: block; animation: slideUp 0.4s ease-out; }
+        /* --- PAGES --- */
+        .page { padding: 20px; padding-bottom: 140px; min-height: 100vh; display: none; }
+        .page.active { display: block; animation: slideUp 0.4s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        header { margin: 20px 0 30px; }
-        .date-label { color: var(--ios-red); font-weight: 700; text-transform: uppercase; font-size: 13px; }
-        h1 { font-size: 34px; font-weight: 800; margin: 5px 0; }
+        h1 { font-size: 34px; font-weight: 800; margin: 5px 0 20px; }
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; border: 1px solid #2c2c2e; }
 
-        /* --- PREMIUM CARDS --- */
-        .card {
-            background: var(--card); border-radius: 22px; padding: 20px;
-            margin-bottom: 16px; position: relative;
-        }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .span-2 { grid-column: span 2; }
-
-        .label { font-size: 14px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
-        .val { font-size: 32px; font-weight: 800; }
-        .sub { font-size: 14px; color: #8E8E93; margin-top: 4px; }
-
-        /* --- ACTIVITY RINGS --- */
+        /* --- RINGS --- */
         .rings-box { display: flex; align-items: center; justify-content: space-between; }
-        .ring-svg { transform: rotate(-90deg); width: 140px; height: 140px; }
-        .ring-path { fill: none; stroke-width: 12; stroke-linecap: round; transition: 1s ease-in-out; }
+        .ring-svg { transform: rotate(-90deg); width: 130px; height: 130px; }
+        .ring-path { fill: none; stroke-width: 12; stroke-linecap: round; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* --- BREATHING ENGINE --- */
-        .breath-container {
-            height: 250px; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center;
+        /* --- HEALTH BAND SECTION (PREMIUM BLUR) --- */
+        .band-promo {
+            position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #1c1c1e 0%, #000 100%);
+            border: 1px solid #444; text-align: center; padding: 40px 20px;
         }
-        .breath-circle {
-            width: 100px; height: 100px; background: rgba(88, 204, 251, 0.2);
-            border: 2px solid var(--ios-cyan); border-radius: 50%;
-            transition: all 4s ease-in-out;
+        .band-blur-overlay {
+            position: absolute; inset: 0; backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.4); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 5;
         }
-        .inhale { transform: scale(2.2); background: rgba(88, 204, 251, 0.5); }
+        .band-icon { font-size: 80px; filter: drop-shadow(0 0 20px var(--ios-cyan)); margin-bottom: 20px; }
+        .price-tag { font-size: 24px; font-weight: 800; color: var(--ios-green); margin: 10px 0; }
 
-        /* --- BUTTONS --- */
-        .btn {
-            background: #2C2C2E; color: var(--ios-blue); border: none;
-            padding: 12px; border-radius: 12px; font-weight: 600; 
-            width: 100%; margin-top: 15px; cursor: pointer;
+        /* --- SETTINGS LIST --- */
+        .settings-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 0.5px solid #333;
         }
-        .btn-gps { background: var(--ios-green); color: black; }
+        .settings-item:last-child { border: none; }
+        .toggle { width: 50px; height: 28px; background: #333; border-radius: 15px; position: relative; cursor: pointer; }
+        .toggle.on { background: var(--ios-green); }
+        .toggle::after { content: ''; position: absolute; width: 24px; height: 24px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
+        .toggle.on::after { left: 24px; }
 
-        /* --- TASK DOTS --- */
-        .task { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; background: #333; transition: 0.3s; }
-        .dot.active { background: var(--ios-green); box-shadow: 0 0 12px var(--ios-green); }
-
-        .hidden { display: none; }
+        /* --- UTILS --- */
+        .btn { 
+            background: var(--ios-blue); color: white; border: none; padding: 16px; 
+            border-radius: 14px; font-weight: 700; width: 100%; cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.96); opacity: 0.8; }
+        .label-red { color: var(--ios-red); font-size: 13px; font-weight: 700; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div id="onboarding" class="page active" style="background: black; justify-content: center; display: flex; flex-direction: column; align-items: center; text-align: center;">
-        <h1 style="font-size: 45px;">HeartFit<span style="color:var(--ios-red)">Pro</span></h1>
-        <p style="color: #8E8E93; margin-bottom: 30px;">Premium Health Ecosystem</p>
-        <input type="text" id="name" placeholder="Full Name" style="width: 80%; padding: 15px; border-radius: 12px; border: none; margin-bottom: 10px; background: #1c1c1e; color: white;">
-        <input type="number" id="weight" placeholder="Weight (kg)" style="width: 80%; padding: 15px; border-radius: 12px; border: none; margin-bottom: 10px; background: #1c1c1e; color: white;">
-        <input type="number" id="height" placeholder="Height (cm)" style="width: 80%; padding: 15px; border-radius: 12px; border: none; margin-bottom: 20px; background: #1c1c1e; color: white;">
-        <button class="btn" style="width: 80%; background: var(--ios-blue); color: white;" onclick="startApp()">Enter Dashboard</button>
-    </div>
-
-    <div id="page-summary" class="page">
+    <div id="page-summary" class="page active">
         <header>
-            <p class="date-label" id="top-date"></p>
+            <span class="label-red" id="current-date">TODAY</span>
             <h1>Summary</h1>
         </header>
 
         <div class="card rings-box">
-            <div style="font-weight: 700; line-height: 1.8;">
-                <div style="color: var(--ios-red)">● MOVE</div>
-                <div style="color: var(--ios-green)">● WATER</div>
-                <div style="color: var(--ios-cyan)">● STAND</div>
+            <div style="font-weight: 700; font-size: 14px;">
+                <div style="color: var(--ios-red)">🔴 MOVE</div>
+                <div style="color: var(--ios-green)">🟢 WATER</div>
+                <div style="color: var(--ios-cyan)">🔵 STAND</div>
             </div>
             <svg class="ring-svg">
-                <circle cx="70" cy="70" r="55" stroke="#331111" stroke-width="12" fill="none"/>
-                <circle id="r-move" cx="70" cy="70" r="55" class="ring-path" stroke="var(--ios-red)" stroke-dasharray="345" stroke-dashoffset="345"/>
-                
-                <circle cx="70" cy="70" r="40" stroke="#113311" stroke-width="12" fill="none"/>
-                <circle id="r-water" cx="70" cy="70" r="40" class="ring-path" stroke="var(--ios-green)" stroke-dasharray="251" stroke-dashoffset="251"/>
-
-                <circle cx="70" cy="70" r="25" stroke="#112233" stroke-width="12" fill="none"/>
-                <circle id="r-stand" cx="70" cy="70" r="25" class="ring-path" stroke="var(--ios-cyan)" stroke-dasharray="157" stroke-dashoffset="157"/>
+                <circle cx="65" cy="65" r="55" stroke="#300" stroke-width="12" fill="none"/>
+                <circle id="r-move" cx="65" cy="65" r="55" class="ring-path" stroke="var(--ios-red)" stroke-dasharray="345" stroke-dashoffset="345"/>
+                <circle cx="65" cy="65" r="40" stroke="#030" stroke-width="12" fill="none"/>
+                <circle id="r-water" cx="65" cy="65" r="40" class="ring-path" stroke="var(--ios-green)" stroke-dasharray="251" stroke-dashoffset="251"/>
             </svg>
         </div>
 
-        <div class="grid">
-            <div class="card span-2">
-                <div class="label" style="color: var(--ios-red)">Steps</div>
-                <div class="val" id="disp-steps">0</div>
-                <div class="sub">Goal: 12,000 steps</div>
-                <button class="btn btn-gps" onclick="trackGPS()">Track with GPS</button>
-            </div>
-
-            <div class="card">
-                <div class="label" style="color: var(--ios-blue)">Hydration</div>
-                <div class="val" id="disp-water">0 <small style="font-size:14px; opacity:0.5;">/ 12</small></div>
-                <button class="btn" onclick="addWater()">+ Glass</button>
-            </div>
-
-            <div class="card">
-                <div class="label" style="color: var(--ios-green)">Heart Rate</div>
-                <div class="val" style="color: var(--ios-green)">72 <small style="font-size:14px;">BPM</small></div>
-                <div class="sub">Resting (Simulated)</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="page-mind" class="page">
-        <header><h1>Mindfulness</h1></header>
-        <div class="card span-2 breath-container">
-            <div id="b-circle" class="breath-circle"></div>
-            <p id="b-text" style="margin-top: 40px; font-weight: 600; color: var(--ios-cyan);">Prepare...</p>
-        </div>
-        <button class="btn" onclick="startBreathing()">Start 1-Min Session</button>
-
-        <div class="card" style="margin-top: 20px;">
-            <div class="label">Body Metrics</div>
-            <div class="val" id="disp-bmi">0.0 <small style="font-size:14px;">BMI</small></div>
-            <div class="sub" id="disp-metrics">0 km | 0 Cal Burned</div>
-        </div>
-    </div>
-
-    <div id="page-tasks" class="page">
-        <header><h1>Daily Tasks</h1></header>
         <div class="card">
-            <div class="task"><div id="d1" class="dot"></div> Walk 12,000 Steps</div>
-            <div class="task"><div id="d2" class="dot"></div> Drink 12 Glasses Water</div>
-            <div class="task"><div id="d3" class="dot"></div> 5-min Morning Stretch</div>
-            <div class="task"><div id="d4" class="dot"></div> 2-min Breathing Session</div>
+            <span class="label-red">🏃 Steps</span>
+            <div style="font-size: 34px; font-weight: 800;" id="steps">0</div>
+            <p style="color: #8e8e93; font-size: 14px;">Goal: 12,000 steps</p>
         </div>
+    </div>
+
+    <div id="page-band" class="page">
+        <header><h1>Health Pro Band</h1></header>
+        <div class="card band-promo">
+            <div class="band-blur-overlay">
+                <div class="band-icon">⌚</div>
+                <h2 style="margin:0;">Unlock Pro Sensors</h2>
+                <p style="color: #ccc; font-size: 14px; padding: 0 20px;">Connect the Health Pro Band for 24/7 Heart & Oxygen tracking.</p>
+                <div class="price-tag">$370.00</div>
+                <button class="btn" style="width: 200px;">Purchase Now</button>
+                <p style="font-size: 11px; margin-top: 15px; opacity: 0.6;">Free Express Shipping to Punjab</p>
+            </div>
+            <div style="opacity: 0.3; filter: blur(4px);">
+                <div class="settings-item"><span>Heart Rate Variability</span><span>--</span></div>
+                <div class="settings-item"><span>Blood Oxygen (SpO2)</span><span>--</span></div>
+                <div class="settings-item"><span>Sleep Recovery</span><span>--</span></div>
+            </div>
+        </div>
+        <div class="card">
+            <h3>How to Connect?</h3>
+            <p style="color: #8e8e93; font-size: 14px;">1. Turn on Bluetooth<br>2. Hold Band near phone<br>3. Tap "Sync" when prompted</p>
+        </div>
+    </div>
+
+    <div id="page-settings" class="page">
+        <header><h1>Settings</h1></header>
+        <div class="card">
+            <div class="label-red" style="margin-bottom: 10px;">User Profile</div>
+            <div class="settings-item"><span>Name</span><span id="set-name" style="color:#8e8e93">Sharan Pooni</span></div>
+            <div class="settings-item"><span>Weight</span><span id="set-weight" style="color:#8e8e93">--</span></div>
+            <div class="settings-item"><span>Age</span><span style="color:#8e8e93">20</span></div>
+        </div>
+
+        <div class="card">
+            <div class="label-red" style="margin-bottom: 10px;">App Preferences</div>
+            <div class="settings-item"><span>Dark Mode</span><div class="toggle on"></div></div>
+            <div class="settings-item"><span>Notifications</span><div class="toggle on"></div></div>
+            <div class="settings-item"><span>GPS Tracking</span><div class="toggle"></div></div>
+        </div>
+
+        <button class="btn" style="background: #333; color: var(--ios-red);" onclick="localStorage.clear(); location.reload();">Reset All Data</button>
     </div>
 
     <nav class="tab-bar">
-        <div class="tab-item active" onclick="showPage('summary', this)">🏠<br>Home</div>
-        <div class="tab-item" onclick="showPage('mind', this)">🧘<br>Mind</div>
-        <div class="tab-item" onclick="showPage('tasks', this)">✅<br>Tasks</div>
-        <div class="tab-item">🏅<br>Badges</div>
+        <div class="tab-item active" onclick="nav('summary', this)">
+            <span class="tab-icon">🏠</span>Home
+        </div>
+        <div class="tab-item" onclick="nav('band', this)">
+            <span class="tab-icon">⌚</span>Pro Band
+        </div>
+        <div class="tab-item" onclick="nav('settings', this)">
+            <span class="tab-icon">⚙️</span>Settings
+        </div>
     </nav>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('hf_pro_data')) || {
-            user: null, steps: 0, water: 0, stand: 1, 
-            date: new Date().toDateString()
+        let db = JSON.parse(localStorage.getItem('hf_ultra_v3')) || {
+            steps: 0, water: 0, 
+            profile: { name: "User", weight: 70 }
         };
 
-        function save() { localStorage.setItem('hf_pro_data', JSON.stringify(db)); }
-
-        function showPage(id, el) {
+        function nav(pageId, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + id).classList.add('active');
+            document.getElementById('page-' + pageId).classList.add('active');
             document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
         }
 
-        function startApp() {
-            const n = document.getElementById('name').value;
-            const w = document.getElementById('weight').value;
-            const h = document.getElementById('height').value;
-            if(!n || !w || !h) return alert("Fill Profile");
-            db.user = { name: n, weight: w, height: h };
-            save();
-            location.reload();
-        }
-
-        function addWater() {
-            if(db.water < 12) db.water++;
-            updateUI();
-            save();
-        }
-
         function updateUI() {
-            if(!db.user) return;
-            document.getElementById('disp-steps').innerText = db.steps.toLocaleString();
-            document.getElementById('disp-water').innerHTML = `${db.water} <small style="font-size:14px; opacity:0.5;">/ 12</small>`;
-            
-            // BMI
-            const bmi = (db.user.weight / ((db.user.height/100)**2)).toFixed(1);
-            document.getElementById('disp-bmi').innerText = bmi;
+            document.getElementById('steps').innerText = db.steps.toLocaleString();
+            document.getElementById('set-name').innerText = db.profile.name;
+            document.getElementById('set-weight').innerText = db.profile.weight + " kg";
 
             // Rings
-            document.getElementById('r-move').style.strokeDashoffset = 345 - (345 * (db.steps / 12000));
-            document.getElementById('r-water').style.strokeDashoffset = 251 - (251 * (db.water / 12));
-            document.getElementById('r-stand').style.strokeDashoffset = 157 - (157 * (db.stand / 12));
-
-            // Task dots
-            if(db.steps >= 12000) document.getElementById('d1').classList.add('active');
-            if(db.water >= 12) document.getElementById('d2').classList.add('active');
+            const moveOff = 345 - (345 * (db.steps / 12000));
+            document.getElementById('r-move').style.strokeDashoffset = Math.max(moveOff, 0);
         }
 
-        // --- BREATHING LOGIC ---
-        function startBreathing() {
-            const circle = document.getElementById('b-circle');
-            const text = document.getElementById('b-text');
-            let cycle = 0;
-            const interval = setInterval(() => {
-                if(cycle % 2 === 0) {
-                    circle.classList.add('inhale');
-                    text.innerText = "Inhale...";
-                } else {
-                    circle.classList.remove('inhale');
-                    text.innerText = "Exhale...";
-                }
-                cycle++;
-                if(cycle === 8) { 
-                    clearInterval(interval); 
-                    text.innerText = "Session Complete";
-                    document.getElementById('d4').classList.add('active');
-                }
-            }, 4000);
-        }
-
-        // --- SENSORS ---
+        // Fake Motion for Steps
         window.addEventListener('devicemotion', (e) => {
-            let acc = e.accelerationIncludingGravity;
-            if(Math.abs(acc.x) + Math.abs(acc.y) > 12) {
+            let total = Math.abs(e.accelerationIncludingGravity.x) + Math.abs(e.accelerationIncludingGravity.y);
+            if(total > 15) {
                 db.steps++;
                 updateUI();
-                save();
+                localStorage.setItem('hf_ultra_v3', JSON.stringify(db));
             }
         });
 
-        function trackGPS() {
-            navigator.geolocation.watchPosition(p => {
-                console.log("GPS Active");
-                document.getElementById('disp-metrics').innerText = "0.4 km | 24 Cal Burned";
-            });
-        }
-
         window.onload = () => {
-            if(db.user) {
-                document.getElementById('onboarding').classList.remove('active');
-                document.getElementById('page-summary').classList.add('active');
-                document.getElementById('top-date').innerText = new Date().toLocaleDateString('en', {weekday:'long', month:'long', day:'numeric'});
-                updateUI();
-            }
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('en', {weekday:'long'}).toUpperCase();
+            updateUI();
         };
+
+        // Toggle logic
+        document.querySelectorAll('.toggle').forEach(t => {
+            t.onclick = () => t.classList.toggle('on');
+        });
     </script>
 </body>
 </html>
