@@ -2,240 +2,239 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HeartFit | Health Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HeartFit Pro</title>
+    <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet">
     <style>
-        /* APPLE HEALTH STYLE CSS */
         :root {
             --apple-blue: #007AFF;
             --apple-red: #FF2D55;
             --apple-green: #34C759;
-            --apple-orange: #FF9500;
-            --bg-gray: #F2F2F7;
+            --bg: #F2F2F7;
+            --card-bg: rgba(255, 255, 255, 0.8);
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-gray);
-            margin: 0;
-            padding: 20px;
-            color: #1c1c1e;
+            font-family: 'SF Pro Display', sans-serif;
+            background-color: var(--bg);
+            margin: 0; padding: 0;
+            color: #000;
+            overflow-x: hidden;
         }
 
-        .header { margin-bottom: 30px; }
-        .header h1 { font-size: 34px; font-weight: 800; margin: 0; }
-        .header p { color: #8e8e93; font-weight: 600; text-transform: uppercase; font-size: 13px; }
-
-        /* Card Layout */
-        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        /* PREMIUM GLASSMORPHISM */
+        .glass {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.3);
         }
 
-        .card h3 { margin: 0; font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .card .value { font-size: 32px; font-weight: 800; margin: 10px 0; }
-        .card .subtext { color: #8e8e93; font-size: 14px; }
+        /* HEADER & CALENDAR */
+        .container { padding: 20px; max-width: 500px; margin: auto; }
+        
+        .header { margin: 20px 0; }
+        .header h1 { font-size: 34px; font-weight: 800; margin: 5px 0; }
+        .header p { color: #8E8E93; text-transform: uppercase; font-size: 13px; font-weight: 600; }
 
-        .steps-card .value { color: var(--apple-red); }
-        .water-card .value { color: var(--apple-blue); }
-
-        /* Onboarding Modal */
-        #setup-modal {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: white; z-index: 1000; display: flex;
-            flex-direction: column; justify-content: center; align-items: center;
-            padding: 30px; text-align: center;
+        .calendar-strip {
+            display: flex; gap: 12px; overflow-x: auto;
+            padding: 10px 0 25px 0; scrollbar-width: none;
         }
+        .calendar-strip::-webkit-scrollbar { display: none; }
 
-        input {
-            width: 100%; max-width: 300px; padding: 15px; margin: 10px 0;
-            border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px;
+        .date-card {
+            min-width: 60px; height: 85px; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 18px; background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s;
         }
+        .date-card.active { background: var(--apple-blue); color: white; transform: scale(1.1); }
+        .date-card span:first-child { font-size: 12px; font-weight: 600; opacity: 0.7; }
+        .date-card span:last-child { font-size: 20px; font-weight: 800; }
 
-        button {
+        /* DASHBOARD CARDS */
+        .main-card { padding: 25px; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .ring-container { position: absolute; right: 20px; top: 20px; width: 80px; height: 80px; }
+
+        .stat-label { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .stat-value { font-size: 42px; font-weight: 800; margin: 15px 0; }
+        .stat-goal { font-size: 14px; color: #8E8E93; }
+
+        .btn-action {
             background: var(--apple-blue); color: white; border: none;
-            padding: 16px 40px; border-radius: 14px; font-weight: 600;
-            font-size: 17px; cursor: pointer; margin-top: 20px; width: 100%; max-width: 330px;
+            padding: 12px 24px; border-radius: 12px; font-weight: 600; width: 100%;
+            margin-top: 15px; cursor: pointer;
         }
 
-        .btn-water { background: #e5f1ff; color: var(--apple-blue); width: auto; padding: 8px 15px; }
+        /* ONBOARDING */
+        #onboarding {
+            position: fixed; inset: 0; background: white; z-index: 2000;
+            display: flex; flex-direction: column; padding: 40px; justify-content: center;
+        }
+        input {
+            background: #F2F2F7; border: none; padding: 18px; border-radius: 15px;
+            margin: 10px 0; font-size: 16px; width: 100%;
+        }
 
         .hidden { display: none !important; }
 
-        .badge-list { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .badge { background: #f2f2f7; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        /* ANIMATION */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade { animation: fadeIn 0.5s ease-out; }
     </style>
 </head>
 <body>
 
-    <div id="setup-modal">
-        <h1>Health Setup</h1>
-        <p>Your details help us personalize your heart health tasks.</p>
-        <input type="text" id="nameInput" placeholder="Name">
-        <input type="number" id="ageInput" placeholder="Age">
-        <input type="number" id="weightInput" placeholder="Weight (kg)">
-        <input type="number" id="heightInput" placeholder="Height (cm)">
-        <button onclick="saveProfile()">Get Started</button>
+    <div id="onboarding">
+        <h1 style="font-size: 40px; margin-bottom: 10px;">HeartFit <span style="color: var(--apple-red);">Pro</span></h1>
+        <p style="color: #666; margin-bottom: 30px;">Enter your details to generate your custom heart health plan.</p>
+        <input type="text" id="nameIn" placeholder="Full Name">
+        <input type="number" id="weightIn" placeholder="Weight (kg)">
+        <input type="number" id="heightIn" placeholder="Height (cm)">
+        <button class="btn-action" onclick="setup()">Start Premium Tracking</button>
     </div>
 
-    <div id="main-content" class="hidden">
+    <div id="app" class="container hidden">
         <div class="header">
-            <p id="current-date"></p>
+            <p id="top-date">TUESDAY, APRIL 7</p>
             <h1>Summary</h1>
         </div>
 
+        <div class="calendar-strip" id="calendar"></div>
+
         <div class="grid">
-            <div class="card steps-card">
-                <h3>🏃‍♂️ Steps</h3>
-                <div class="value" id="steps-display">0</div>
-                <div class="subtext">Goal: 10,000 steps</div>
+            <div class="glass main-card fade">
+                <div class="stat-label">🏃‍♂️ <span style="color: var(--apple-red)">Activity</span></div>
+                <div class="stat-value" id="step-count">0</div>
+                <div class="stat-goal">Goal: 10,000 steps</div>
             </div>
 
-            <div class="card water-card">
-                <h3>💧 Hydration</h3>
-                <div class="value"><span id="water-display">0</span>/8</div>
-                <div class="subtext">Glasses today</div>
-                <button class="btn-water" onclick="addWater()">+ Add Glass</button>
+            <div class="glass main-card fade" style="animation-delay: 0.1s;">
+                <div class="stat-label">💧 <span style="color: var(--apple-blue)">Hydration</span></div>
+                <div class="stat-value"><span id="water-count">0</span><small style="font-size: 18px; color: #8E8E93;">/8 Glasses</small></div>
+                <button class="btn-action" style="background: rgba(0,122,255,0.1); color: var(--apple-blue);" onclick="drink()">Drink Water</button>
             </div>
 
-            <div class="card">
-                <h3>❤️ Heart Health Task</h3>
-                <p id="daily-task" style="font-weight: 500;"></p>
-                <div class="subtext" id="bmi-info"></div>
-            </div>
-
-            <div class="card">
-                <h3>🏆 Achievements</h3>
-                <div id="badge-container" class="badge-list">
-                    <span class="subtext">No badges yet. Start walking!</span>
-                </div>
+            <div class="glass main-card fade" style="animation-delay: 0.2s;">
+                <div class="stat-label">❤️ <span style="color: var(--apple-green)">Heart Task</span></div>
+                <p id="task-desc" style="font-size: 18px; font-weight: 600; margin: 15px 0;"></p>
+                <div class="stat-goal" id="bmi-label"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // DATA OBJECT
-        let userStats = JSON.parse(localStorage.getItem('heartFitData')) || {
-            profile: null,
-            steps: 0,
-            water: 0,
-            lastDate: new Date().toDateString(),
-            badges: []
+        let db = JSON.parse(localStorage.getItem('hf_pro_v1')) || {
+            user: null,
+            daily: { steps: 0, water: 0, date: new Date().toDateString() },
+            history: {}
         };
 
-        // SAVE PROFILE
-        function saveProfile() {
-            const name = document.getElementById('nameInput').value;
-            const age = document.getElementById('ageInput').value;
-            const weight = document.getElementById('weightInput').value;
-            const height = document.getElementById('heightInput').value;
+        // SETUP & PERSONALIZATION
+        function setup() {
+            const n = document.getElementById('nameIn').value;
+            const w = document.getElementById('weightIn').value;
+            const h = document.getElementById('heightIn').value;
+            if(!n || !w || !h) return alert("Please fill details");
 
-            if(!name || !weight || !height) return alert("Please fill all fields");
-
-            userStats.profile = { name, age, weight, height };
-            saveData();
-            initApp();
+            db.user = { name: n, weight: w, height: h };
+            save();
+            renderApp();
         }
 
-        // ADD WATER
-        function addWater() {
-            userStats.water++;
-            if(userStats.water === 8) unlockBadge("Hydrated");
+        // ACCURATE CALENDAR SYSTEM
+        function buildCalendar() {
+            const cal = document.getElementById('calendar');
+            cal.innerHTML = '';
+            const today = new Date();
+            
+            for(let i = -3; i <= 3; i++) {
+                const d = new Date();
+                d.setDate(today.getDate() + i);
+                const isToday = i === 0;
+                
+                const card = document.createElement('div');
+                card.className = `date-card ${isToday ? 'active' : ''}`;
+                card.innerHTML = `
+                    <span>${d.toLocaleDateString('en', {weekday: 'short'})}</span>
+                    <span>${d.getDate()}</span>
+                `;
+                cal.appendChild(card);
+            }
+        }
+
+        // BACKGROUND STEP TRACKING LOGIC
+        function initSensors() {
+            if ('LinearAccelerationSensor' in window) {
+                const sensor = new LinearAccelerationSensor({ frequency: 60 });
+                let lastMag = 0;
+                sensor.addEventListener('reading', () => {
+                    let mag = Math.sqrt(sensor.x**2 + sensor.y**2 + sensor.z**2);
+                    if (mag - lastMag > 10) {
+                        db.daily.steps++;
+                        updateUI();
+                        save();
+                    }
+                    lastMag = mag;
+                });
+                sensor.start();
+            }
+        }
+
+        function drink() {
+            db.daily.water++;
             updateUI();
-            saveData();
-        }
-
-        // RESET LOGIC (Every 24 hours)
-        function checkReset() {
-            const today = new Date().toDateString();
-            if (userStats.lastDate !== today) {
-                userStats.steps = 0;
-                userStats.water = 0;
-                userStats.lastDate = today;
-                saveData();
-            }
-        }
-
-        // UNLOCK BADGES
-        function unlockBadge(name) {
-            if(!userStats.badges.includes(name)) {
-                userStats.badges.push(name);
-                saveData();
-            }
-        }
-
-        function saveData() {
-            localStorage.setItem('heartFitData', JSON.stringify(userStats));
+            save();
         }
 
         function updateUI() {
-            document.getElementById('steps-display').innerText = userStats.steps;
-            document.getElementById('water-display').innerText = userStats.water;
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            document.getElementById('step-count').innerText = db.daily.steps.toLocaleString();
+            document.getElementById('water-count').innerText = db.daily.water;
             
-            // Task Logic based on BMI
-            const h = userStats.profile.height / 100;
-            const bmi = (userStats.profile.weight / (h * h)).toFixed(1);
-            document.getElementById('bmi-info').innerText = `Your BMI is ${bmi}`;
-
-            const taskElem = document.getElementById('daily-task');
-            if (bmi > 25) {
-                taskElem.innerText = "Today's Task: 30 min brisk walk for heart health.";
-            } else {
-                taskElem.innerText = "Today's Task: 15 min Cardio to keep heart active.";
-            }
-
-            // Render Badges
-            const badgeBox = document.getElementById('badge-container');
-            if(userStats.badges.length > 0) {
-                badgeBox.innerHTML = userStats.badges.map(b => `<span class="badge">🏅 ${b}</span>`).join('');
-            }
+            // Heart Task Logic
+            const bmi = (db.user.weight / ((db.user.height/100)**2)).toFixed(1);
+            document.getElementById('bmi-label').innerText = `Your Health Score (BMI): ${bmi}`;
+            document.getElementById('task-desc').innerText = bmi > 25 ? 
+                "Focus on 45 min walk to lower heart strain." : 
+                "Perfect! Keep heart active with 15 min jumping jacks.";
         }
 
-        function initApp() {
-            document.getElementById('setup-modal').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden');
-            checkReset();
+        function save() { localStorage.setItem('hf_pro_v1', JSON.stringify(db)); }
+
+        function renderApp() {
+            document.getElementById('onboarding').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            buildCalendar();
             updateUI();
-            requestMotionPermission();
+            initSensors();
         }
 
-        // MOTION PERMISSION (For Step Counting)
-        function requestMotionPermission() {
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            window.addEventListener('devicemotion', handleMotion);
-                        }
-                    });
-            } else {
-                window.addEventListener('devicemotion', handleMotion);
-            }
-        }
-
-        let lastAccel = 0;
-        function handleMotion(event) {
-            let accel = event.accelerationIncludingGravity;
-            let curAccel = Math.sqrt(accel.x**2 + accel.y**2 + accel.z**2);
-            
-            if (curAccel - lastAccel > 10) { // Simple shake detection for steps
-                userStats.steps++;
-                if(userStats.steps === 5000) unlockBadge("5K Walker");
+        // AUTO RESET AT MIDNIGHT
+        function checkMidnight() {
+            const today = new Date().toDateString();
+            if(db.daily.date !== today) {
+                db.history[db.daily.date] = { steps: db.daily.steps, water: db.daily.water };
+                db.daily.steps = 0;
+                db.daily.water = 0;
+                db.daily.date = today;
+                save();
                 updateUI();
-                saveData();
             }
-            lastAccel = curAccel;
         }
 
-        // Check if profile exists on load
         window.onload = () => {
-            if (userStats.profile) initApp();
+            if(db.user) { renderApp(); checkMidnight(); }
+            document.getElementById('top-date').innerText = new Date().toLocaleDateString('en', {weekday:'long', month:'long', day:'numeric'});
         };
+
+        // SERVICE WORKER REGISTRATION (For Background Work)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
     </script>
 </body>
 </html>
