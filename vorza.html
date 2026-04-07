@@ -3,224 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>HeartFit | Apple Style</title>
+    <title>HeartFit Pro | Accuracy Edition</title>
     <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet">
     <style>
         :root {
-            --ios-red: #FF2D55;
-            --ios-green: #34C759;
-            --ios-blue: #007AFF;
-            --ios-lightblue: #58CCFB;
-            --bg: #000000; /* Dark Mode Premium */
-            --card-bg: #1C1C1E;
+            --ios-red: #FF2D55; --ios-green: #34C759; --ios-blue: #007AFF;
+            --ios-lightblue: #58CCFB; --bg: #000000; --card-bg: #1C1C1E;
         }
 
         body {
-            font-family: 'SF Pro Display', sans-serif;
-            background-color: var(--bg);
-            color: white;
-            margin: 0; padding: 20px;
-            padding-bottom: 100px;
+            font-family: 'SF Pro Display', sans-serif; background-color: var(--bg);
+            color: white; margin: 0; padding: 20px; padding-bottom: 100px;
+            -webkit-user-select: none;
         }
 
-        /* --- NAVIGATION BAR --- */
-        .tab-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(28, 28, 30, 0.9);
-            backdrop-filter: blur(20px);
-            display: flex; justify-content: space-around;
-            padding: 15px 0 30px; border-top: 0.5px solid #333;
-            z-index: 100;
+        /* --- HEADER & CALENDAR --- */
+        header { margin-top: 10px; }
+        .date-label { color: var(--ios-red); font-weight: bold; text-transform: uppercase; font-size: 14px; }
+        .calendar-strip {
+            display: flex; gap: 10px; margin: 20px 0; overflow-x: auto; padding-bottom: 10px;
         }
-        .tab-item { font-size: 10px; color: #8E8E93; text-align: center; cursor: pointer; }
-        .tab-item.active { color: var(--ios-blue); }
+        .day-box {
+            min-width: 60px; height: 80px; background: var(--card-bg); border-radius: 15px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .day-box.today { border: 2px solid var(--ios-red); }
+        .day-name { font-size: 12px; opacity: 0.6; }
+        .day-num { font-size: 18px; font-weight: 800; }
 
         /* --- ACTIVITY RINGS --- */
         .rings-box {
-            display: flex; justify-content: space-around; align-items: center;
-            background: var(--card-bg); border-radius: 24px; padding: 25px; margin: 20px 0;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--card-bg); border-radius: 24px; padding: 25px; margin-bottom: 20px;
         }
-        .ring-svg { transform: rotate(-90deg); width: 150px; height: 150px; }
-        .ring-path { fill: none; stroke-width: 14; stroke-linecap: round; transition: 1s; }
+        .ring-svg { transform: rotate(-90deg); width: 140px; height: 140px; }
+        .ring-path { fill: none; stroke-width: 12; stroke-linecap: round; transition: 1s ease-out; }
 
-        /* --- STAT CARDS --- */
+        /* --- CARDS --- */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { background: var(--card-bg); border-radius: 20px; padding: 18px; position: relative; overflow: hidden; }
+        .card { background: var(--card-bg); border-radius: 22px; padding: 20px; position: relative; }
         .card-full { grid-column: span 2; }
-        .label { font-size: 13px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
-        .val { font-size: 28px; font-weight: 800; }
+        .label { font-size: 13px; font-weight: 700; text-transform: uppercase; opacity: 0.8; margin-bottom: 8px; }
+        .val { font-size: 32px; font-weight: 800; }
         .unit { font-size: 14px; color: #8E8E93; margin-left: 4px; }
 
-        /* --- BREATHING EXERCISE --- */
+        /* --- BREATHING & MAPS --- */
         .breath-circle {
-            width: 80px; height: 80px; background: rgba(88, 204, 251, 0.3);
-            border-radius: 50%; margin: 20px auto;
-            border: 2px solid var(--ios-lightblue);
+            width: 70px; height: 70px; background: rgba(88, 204, 251, 0.2);
+            border-radius: 50%; margin: 15px auto; border: 1px solid var(--ios-lightblue);
             animation: breathe 8s infinite ease-in-out;
         }
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(2); opacity: 1; }
-        }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.8); } }
 
-        /* --- BUTTONS --- */
         .btn {
-            background: #2C2C2E; color: var(--ios-blue); border: none;
-            padding: 10px 15px; border-radius: 10px; font-weight: 600; width: 100%; margin-top: 10px;
+            background: #2C2C2E; color: var(--ios-blue); border: none; padding: 12px;
+            border-radius: 12px; font-weight: 600; width: 100%; margin-top: 10px; cursor: pointer;
         }
-        .btn-gps { background: var(--ios-green); color: black; }
+        .btn-active { background: var(--ios-green); color: black; }
 
-        /* --- TASK LIST --- */
-        .task-item { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 15px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: #333; }
-        .dot.done { background: var(--ios-green); box-shadow: 0 0 10px var(--ios-green); }
+        /* --- ONBOARDING MODAL --- */
+        #onboarding {
+            position: fixed; inset: 0; background: black; z-index: 1000;
+            display: flex; flex-direction: column; justify-content: center; padding: 30px;
+        }
+        input {
+            background: #1C1C1E; border: 1px solid #333; padding: 15px; border-radius: 12px;
+            margin: 10px 0; color: white; font-size: 16px;
+        }
 
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <header style="margin-top: 20px;">
-        <p style="color: var(--ios-red); font-weight: bold; margin: 0;">TUESDAY, APRIL 7</p>
-        <h1 style="font-size: 34px; margin: 5px 0;">Summary</h1>
-    </header>
-
-    <div class="rings-box">
-        <div style="font-weight: 700;">
-            <p style="color: var(--ios-red); margin: 5px 0;">● MOVE</p>
-            <p style="color: var(--ios-green); margin: 5px 0;">● EXERCISE</p>
-            <p style="color: var(--ios-lightblue); margin: 5px 0;">● STAND</p>
-        </div>
-        <svg class="ring-svg">
-            <circle cx="75" cy="75" r="60" stroke="#330000" stroke-width="14" fill="none"/>
-            <circle id="ring-move" cx="75" cy="75" r="60" class="ring-path" stroke="var(--ios-red)" stroke-dasharray="377" stroke-dashoffset="377"/>
-            <circle cx="75" cy="75" r="44" stroke="#003300" stroke-width="14" fill="none"/>
-            <circle id="ring-exercise" cx="75" cy="75" r="44" class="ring-path" stroke="var(--ios-green)" stroke-dasharray="276" stroke-dashoffset="276"/>
-            <circle cx="75" cy="75" r="28" stroke="#001a33" stroke-width="14" fill="none"/>
-            <circle id="ring-stand" cx="75" cy="75" r="28" class="ring-path" stroke="var(--ios-lightblue)" stroke-dasharray="176" stroke-dashoffset="176"/>
-        </svg>
+    <div id="onboarding">
+        <h1 style="font-size: 38px; font-weight: 900;">Set Profile</h1>
+        <p style="opacity: 0.6;">We calculate accurate goals based on your body.</p>
+        <input type="text" id="in-name" placeholder="Name">
+        <input type="number" id="in-age" placeholder="Age">
+        <input type="number" id="in-weight" placeholder="Weight (kg)">
+        <input type="number" id="in-height" placeholder="Height (cm)">
+        <button class="btn btn-active" onclick="saveUser()">Create Account</button>
     </div>
 
-    <div class="grid">
-        <div class="card card-full">
-            <div class="label" style="color: var(--ios-red);">Steps</div>
-            <div class="val" id="step-val">0</div>
-            <div class="unit">Goal: 12,000</div>
-            <button class="btn btn-gps" onclick="startGPS()">Track with GPS</button>
+    <div id="main-app" class="hidden">
+        <header>
+            <p class="date-label" id="top-date"></p>
+            <h1 style="font-size: 34px; margin: 5px 0;">Today</h1>
+        </header>
+
+        <div class="calendar-strip" id="cal-strip"></div>
+
+        <div class="rings-box">
+            <div style="line-height: 1.8;">
+                <p style="color: var(--ios-red); margin: 0;">● MOVE</p>
+                <p style="color: var(--ios-green); margin: 0;">● WATER</p>
+                <p style="color: var(--ios-lightblue); margin: 0;">● STAND</p>
+            </div>
+            <svg class="ring-svg">
+                <circle cx="70" cy="70" r="55" stroke="#300" stroke-width="12" fill="none"/>
+                <circle id="r-move" cx="70" cy="70" r="55" class="ring-path" stroke="var(--ios-red)" stroke-dasharray="345" stroke-dashoffset="345"/>
+                <circle cx="70" cy="70" r="40" stroke="#030" stroke-width="12" fill="none"/>
+                <circle id="r-water" cx="70" cy="70" r="40" class="ring-path" stroke="var(--ios-green)" stroke-dasharray="251" stroke-dashoffset="251"/>
+            </svg>
         </div>
 
-        <div class="card">
-            <div class="label" style="color: var(--ios-blue);">Hydration</div>
-            <div class="val" id="water-val">2<small class="unit">/ 12</small></div>
-            <button class="btn" onclick="addWater()">+ 1 Glass</button>
-        </div>
+        <div class="grid">
+            <div class="card card-full">
+                <div class="label" style="color: var(--ios-red);">Steps Tracking</div>
+                <div class="val" id="disp-steps">0</div>
+                <div class="unit">Goal: <span id="goal-steps">12,000</span></div>
+                <button id="gps-btn" class="btn" onclick="toggleGPS()">Start GPS Tracking</button>
+            </div>
 
-        <div class="card">
-            <div class="label" style="color: var(--ios-green);">Heart Health</div>
-            <div class="val" style="color: var(--ios-green);">72<small class="unit">BPM</small></div>
-            <p style="font-size: 10px; opacity: 0.5;">SIMULATED</p>
-        </div>
+            <div class="card">
+                <div class="label" style="color: var(--ios-blue);">Hydration</div>
+                <div class="val" id="disp-water">0<small class="unit">/ 12</small></div>
+                <button class="btn" onclick="addWater()">+ 1 Glass</button>
+            </div>
 
-        <div class="card card-full">
-            <div class="label" style="color: var(--ios-lightblue);">Breathing Exercise</div>
-            <div class="breath-circle"></div>
-            <p style="text-align: center; font-size: 12px; color: #8E8E93;">Follow the circle to calm your mind</p>
-        </div>
+            <div class="card">
+                <div class="label">Metrics</div>
+                <div class="val" id="disp-bmi">--<small class="unit">BMI</small></div>
+                <div style="font-size: 12px; margin-top: 5px;"><span id="disp-dist">0.0</span> km | <span id="disp-cal">0</span> Cal</div>
+            </div>
 
-        <div class="card">
-            <div class="label">Body Metrics</div>
-            <div class="val">12.1<small class="unit">BMI</small></div>
-            <div style="font-size: 12px; margin-top: 10px;">0 <span class="unit">km</span> | 0 <span class="unit">Cal</span></div>
+            <div class="card card-full">
+                <div class="label" style="color: var(--ios-lightblue);">Mindfulness</div>
+                <div class="breath-circle"></div>
+                <p style="text-align: center; font-size: 12px; opacity: 0.5;">2-minute breathing exercise</p>
+            </div>
         </div>
-
-        <div class="card">
-            <div class="label">Daily Tasks</div>
-            <div class="task-item"><div id="t1" class="dot"></div> Walk 12k</div>
-            <div class="task-item"><div id="t2" class="dot"></div> Water 12g</div>
-            <div class="task-item"><div id="t3" class="dot"></div> Stretch</div>
-        </div>
-    </div>
-
-    <div class="tab-bar">
-        <div class="tab-item active">🏠<br>Home</div>
-        <div class="tab-item">🔥<br>Activity</div>
-        <div class="tab-item">📅<br>Calendar</div>
-        <div class="tab-item">🏅<br>Badges</div>
-        <div class="tab-item">📊<br>Insights</div>
     </div>
 
     <script>
-        let data = JSON.parse(localStorage.getItem('hf_final')) || {
-            steps: 0, water: 2, stand: 2, distance: 0, 
-            lastReset: new Date().toDateString()
+        let user = JSON.parse(localStorage.getItem('hp_user'));
+        let stats = JSON.parse(localStorage.getItem('hp_stats')) || { 
+            steps: 0, water: 0, dist: 0, date: new Date().toDateString() 
         };
+        let isTracking = false;
+        let watchID = null;
 
-        function save() { localStorage.setItem('hf_final', JSON.stringify(data)); }
+        function saveUser() {
+            const n = document.getElementById('in-name').value;
+            const w = document.getElementById('in-weight').value;
+            const h = document.getElementById('in-height').value;
+            if(!n || !w || !h) return alert("Fill all fields");
 
-        function addWater() {
-            if(data.water < 12) {
-                data.water++;
-                updateUI();
-                save();
+            user = { name: n, weight: parseFloat(w), height: parseFloat(h) };
+            localStorage.setItem('hp_user', JSON.stringify(user));
+            initApp();
+        }
+
+        function initApp() {
+            document.getElementById('onboarding').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('top-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            
+            buildCalendar();
+            calculateHealth();
+            updateUI();
+        }
+
+        function buildCalendar() {
+            const strip = document.getElementById('cal-strip');
+            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            for(let i = -2; i <= 2; i++) {
+                let d = new Date(); d.setDate(d.getDate() + i);
+                let box = document.createElement('div');
+                box.className = `day-box ${i===0?'today':''}`;
+                box.innerHTML = `<span class="day-name">${days[d.getDay()]}</span><span class="day-num">${d.getDate()}</span>`;
+                strip.appendChild(box);
             }
         }
 
-        function startGPS() {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.watchPosition(pos => {
-                    // Logic to calculate distance between coordinates
-                    console.log("GPS Active: ", pos.coords.latitude);
-                    alert("GPS Tracking Enabled in Background");
-                });
+        function calculateHealth() {
+            const bmi = (user.weight / ((user.height/100)**2)).toFixed(1);
+            document.getElementById('disp-bmi').innerHTML = `${bmi}<small class="unit">BMI</small>`;
+            // Task setting: If BMI is high, increase step goal
+            const customGoal = bmi > 25 ? 15000 : 12000;
+            document.getElementById('goal-steps').innerText = customGoal.toLocaleString();
+        }
+
+        function addWater() { 
+            stats.water++; 
+            updateUI(); 
+            saveStats(); 
+        }
+
+        function toggleGPS() {
+            const btn = document.getElementById('gps-btn');
+            if(!isTracking) {
+                if ("geolocation" in navigator) {
+                    btn.innerText = "Stop Tracking";
+                    btn.classList.add('btn-active');
+                    isTracking = true;
+                    let lastPos = null;
+
+                    watchID = navigator.geolocation.watchPosition(pos => {
+                        if(lastPos) {
+                            let d = getDistance(lastPos.lat, lastPos.lng, pos.coords.latitude, pos.coords.longitude);
+                            stats.dist += d;
+                            stats.steps += Math.round(d * 1312); // Accurate avg steps per km
+                            updateUI();
+                            saveStats();
+                        }
+                        lastPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    }, null, { enableHighAccuracy: true });
+                }
+            } else {
+                navigator.geolocation.clearWatch(watchID);
+                btn.innerText = "Start GPS Tracking";
+                btn.classList.remove('btn-active');
+                isTracking = false;
             }
+        }
+
+        // Haversine Formula for Accuracy
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2-lat1) * Math.PI / 180;
+            const dLon = (lon2-lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * R;
         }
 
         function updateUI() {
-            document.getElementById('step-val').innerText = data.steps.toLocaleString();
-            document.getElementById('water-val').innerHTML = `${data.water}<small class="unit">/ 12</small>`;
+            document.getElementById('disp-steps').innerText = stats.steps.toLocaleString();
+            document.getElementById('disp-water').innerHTML = `${stats.water}<small class="unit">/ 12</small>`;
+            document.getElementById('disp-dist').innerText = stats.dist.toFixed(2);
+            document.getElementById('disp-cal').innerText = Math.round(stats.dist * 60); // Approx cal per km
 
-            // Ring Animations
-            const moveOffset = 377 - (377 * (data.steps / 12000));
-            document.getElementById('ring-move').style.strokeDashoffset = Math.max(moveOffset, 0);
-
-            const exerciseOffset = 276 - (276 * (data.water / 12));
-            document.getElementById('ring-exercise').style.strokeDashoffset = Math.max(exerciseOffset, 0);
-
-            const standOffset = 176 - (176 * (data.stand / 12));
-            document.getElementById('ring-stand').style.strokeDashoffset = Math.max(standOffset, 0);
-
-            // Task completion dots
-            if(data.steps >= 12000) document.getElementById('t1').classList.add('done');
-            if(data.water >= 12) document.getElementById('t2').classList.add('done');
+            // Rings
+            document.getElementById('r-move').style.strokeDashoffset = 345 - (345 * Math.min(stats.steps/12000, 1));
+            document.getElementById('r-water').style.strokeDashoffset = 251 - (251 * Math.min(stats.water/12, 1));
         }
 
-        // Auto-Reset at Midnight
-        function checkReset() {
-            const today = new Date().toDateString();
-            if(data.lastReset !== today) {
-                data.steps = 0; data.water = 0; data.stand = 1;
-                data.lastReset = today;
-                save();
-            }
-        }
+        function saveStats() { localStorage.setItem('hp_stats', JSON.stringify(stats)); }
 
-        // Simulate Stand Hours
-        setInterval(() => {
-            if(data.stand < 12) data.stand++;
-            updateUI();
-        }, 3600000); // Add 1 stand hour every real hour
-
-        // Sensors
-        window.addEventListener('devicemotion', (e) => {
-            let acc = e.accelerationIncludingGravity;
-            if(Math.abs(acc.x) + Math.abs(acc.y) > 15) {
-                data.steps += 1;
-                updateUI();
-                save();
-            }
-        });
-
-        window.onload = () => { checkReset(); updateUI(); };
+        window.onload = () => { if(user) initApp(); };
     </script>
 </body>
 </html>
