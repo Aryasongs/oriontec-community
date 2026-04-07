@@ -3,216 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vorza Electric | Beyond Motion</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>HeartFit | Health Tracker</title>
     <style>
+        /* APPLE HEALTH STYLE CSS */
         :root {
-            --accent: #00d4ff;
-            --bg: #0a0a0a;
-            --card-bg: #1a1a1a;
-            --text: #ffffff;
+            --apple-blue: #007AFF;
+            --apple-red: #FF2D55;
+            --apple-green: #34C759;
+            --apple-orange: #FF9500;
+            --bg-gray: #F2F2F7;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-gray);
             margin: 0;
-            overflow-x: hidden;
+            padding: 20px;
+            color: #1c1c1e;
         }
 
-        /* Hero Section */
-        header {
-            height: 80vh;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
-                        url('https://aryasongs.github.io/oriontec-community/IMG_9308.jpeg') center/cover no-repeat;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 34px; font-weight: 800; margin: 0; }
+        .header p { color: #8e8e93; font-weight: 600; text-transform: uppercase; font-size: 13px; }
+
+        /* Card Layout */
+        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .hero-title { font-size: 4rem; letter-spacing: 5px; margin-bottom: 10px; }
-        .hero-sub { font-size: 1.2rem; color: var(--accent); margin-bottom: 30px; }
+        .card h3 { margin: 0; font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .card .value { font-size: 32px; font-weight: 800; margin: 10px 0; }
+        .card .subtext { color: #8e8e93; font-size: 14px; }
 
-        .availability-badge {
-            background: #ff4d4d;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 0.9rem;
+        .steps-card .value { color: var(--apple-red); }
+        .water-card .value { color: var(--apple-blue); }
+
+        /* Onboarding Modal */
+        #setup-modal {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: white; z-index: 1000; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+            padding: 30px; text-align: center;
         }
 
-        /* Model Showcase */
-        .section-title { text-align: center; padding: 50px 0; font-size: 2.5rem; }
-        
-        .car-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 0 5%;
+        input {
+            width: 100%; max-width: 300px; padding: 15px; margin: 10px 0;
+            border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px;
         }
 
-        .car-card {
-            background: var(--card-bg);
-            border-radius: 15px;
-            overflow: hidden;
-            transition: 0.3s;
+        button {
+            background: var(--apple-blue); color: white; border: none;
+            padding: 16px 40px; border-radius: 14px; font-weight: 600;
+            font-size: 17px; cursor: pointer; margin-top: 20px; width: 100%; max-width: 330px;
         }
 
-        .car-card:hover { transform: translateY(-10px); box-shadow: 0 10px 30px rgba(0,212,255,0.2); }
+        .btn-water { background: #e5f1ff; color: var(--apple-blue); width: auto; padding: 8px 15px; }
 
-        .car-card img { width: 100%; height: 250px; object-fit: cover; }
-        .car-info { padding: 20px; }
-        .car-price { color: var(--accent); font-weight: bold; }
+        .hidden { display: none !important; }
 
-        /* Accessory Lab */
-        .lab-container {
-            background: #111;
-            padding: 50px 5%;
-            margin-top: 50px;
-            border-top: 1px solid #333;
-        }
-
-        .custom-area {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 40px;
-            align-items: center;
-        }
-
-        .preview-box {
-            flex: 1;
-            min-width: 300px;
-            position: relative;
-        }
-
-        .preview-box img { width: 100%; border-radius: 10px; }
-
-        .accessory-list {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .acc-item {
-            background: #222;
-            padding: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 1px solid transparent;
-            transition: 0.2s;
-        }
-
-        .acc-item:hover { border-color: var(--accent); }
-        .acc-item.active { background: var(--accent); color: #000; }
-
-        .selected-list { margin-top: 20px; padding: 15px; background: #000; border-radius: 5px; }
-
-        footer { text-align: center; padding: 40px; color: #666; font-size: 0.8rem; }
+        .badge-list { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .badge { background: #f2f2f7; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="availability-badge">NOT AVAILABLE IN INDIA - GLOBAL MARKET ONLY</div>
-        <h1 class="hero-title">VORZA ELECTRIC</h1>
-        <p class="hero-sub">The Evolution of Global Performance</p>
-    </header>
+    <div id="setup-modal">
+        <h1>Health Setup</h1>
+        <p>Your details help us personalize your heart health tasks.</p>
+        <input type="text" id="nameInput" placeholder="Name">
+        <input type="number" id="ageInput" placeholder="Age">
+        <input type="number" id="weightInput" placeholder="Weight (kg)">
+        <input type="number" id="heightInput" placeholder="Height (cm)">
+        <button onclick="saveProfile()">Get Started</button>
+    </div>
 
-    <h2 class="section-title">The Vorza Lineup</h2>
-    <div class="car-grid" id="carGrid">
+    <div id="main-content" class="hidden">
+        <div class="header">
+            <p id="current-date"></p>
+            <h1>Summary</h1>
         </div>
 
-    <div class="lab-container">
-        <h2 style="text-align: center;">Vorza Customization Lab</h2>
-        <p style="text-align: center; color: #888;">Select accessories to personalize your international build</p>
-        
-        <div class="custom-area">
-            <div class="preview-box">
-                <img src="https://aryasongs.github.io/oriontec-community/IMG_9309.jpeg" alt="Vorza Preview" id="mainPreview">
-                <div id="accessoryOverlay" style="position: absolute; top: 10px; right: 10px;"></div>
+        <div class="grid">
+            <div class="card steps-card">
+                <h3>🏃‍♂️ Steps</h3>
+                <div class="value" id="steps-display">0</div>
+                <div class="subtext">Goal: 10,000 steps</div>
             </div>
 
-            <div class="accessory-lab">
-                <h3>Available Accessories</h3>
-                <div class="accessory-list">
-                    <div class="acc-item" onclick="toggleAccessory(this, 'Solar Roof')">Solar Panoramic Roof</div>
-                    <div class="acc-item" onclick="toggleAccessory(this, 'Carbon Fiber Kit')">Carbon Fiber Aero Kit</div>
-                    <div class="acc-item" onclick="toggleAccessory(this, 'V-Pilot Autonomy')">V-Pilot Autonomous Drive</div>
-                    <div class="acc-item" onclick="toggleAccessory(this, 'Nappa Leather')">Premium Nappa Interior</div>
-                </div>
-                <div class="selected-list">
-                    <strong>Selected:</strong> <span id="chosenItems">None</span>
+            <div class="card water-card">
+                <h3>💧 Hydration</h3>
+                <div class="value"><span id="water-display">0</span>/8</div>
+                <div class="subtext">Glasses today</div>
+                <button class="btn-water" onclick="addWater()">+ Add Glass</button>
+            </div>
+
+            <div class="card">
+                <h3>❤️ Heart Health Task</h3>
+                <p id="daily-task" style="font-weight: 500;"></p>
+                <div class="subtext" id="bmi-info"></div>
+            </div>
+
+            <div class="card">
+                <h3>🏆 Achievements</h3>
+                <div id="badge-container" class="badge-list">
+                    <span class="subtext">No badges yet. Start walking!</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer>
-        &copy; 2026 Vorza Electric Cars Co. | International HQ: New York, USA | Note: Bookings not available in India.
-    </footer>
-
     <script>
-        // 1. Data for Car Models
-        const models = [
-            {
-                name: "Vorza S-Alpha",
-                img: "https://aryasongs.github.io/oriontec-community/IMG_9308.jpeg",
-                price: "$89,000",
-                desc: "High-performance luxury sedan."
-            },
-            {
-                name: "Vorza X-Over",
-                img: "https://aryasongs.github.io/oriontec-community/IMG_9309.jpeg",
-                price: "$105,000",
-                desc: "All-terrain electric SUV."
-            },
-            {
-                name: "Vorza GT Stealth",
-                img: "https://aryasongs.github.io/oriontec-community/IMG_9308.jpeg", // Placeholder for new model
-                price: "$145,000",
-                desc: "Limited edition track-ready hypercar."
-            }
-        ];
+        // DATA OBJECT
+        let userStats = JSON.parse(localStorage.getItem('heartFitData')) || {
+            profile: null,
+            steps: 0,
+            water: 0,
+            lastDate: new Date().toDateString(),
+            badges: []
+        };
 
-        // 2. Load Cars Function
-        function loadCars() {
-            const grid = document.getElementById('carGrid');
-            models.forEach(car => {
-                grid.innerHTML += `
-                    <div class="car-card">
-                        <img src="${car.img}" alt="${car.name}">
-                        <div class="car-info">
-                            <h3>${car.name}</h3>
-                            <p>${car.desc}</p>
-                            <p class="car-price">${car.price}</p>
-                        </div>
-                    </div>
-                `;
-            });
+        // SAVE PROFILE
+        function saveProfile() {
+            const name = document.getElementById('nameInput').value;
+            const age = document.getElementById('ageInput').value;
+            const weight = document.getElementById('weightInput').value;
+            const height = document.getElementById('heightInput').value;
+
+            if(!name || !weight || !height) return alert("Please fill all fields");
+
+            userStats.profile = { name, age, weight, height };
+            saveData();
+            initApp();
         }
 
-        // 3. Accessory Toggle Function
-        let selectedAccessories = [];
+        // ADD WATER
+        function addWater() {
+            userStats.water++;
+            if(userStats.water === 8) unlockBadge("Hydrated");
+            updateUI();
+            saveData();
+        }
 
-        function toggleAccessory(element, name) {
-            element.classList.toggle('active');
+        // RESET LOGIC (Every 24 hours)
+        function checkReset() {
+            const today = new Date().toDateString();
+            if (userStats.lastDate !== today) {
+                userStats.steps = 0;
+                userStats.water = 0;
+                userStats.lastDate = today;
+                saveData();
+            }
+        }
+
+        // UNLOCK BADGES
+        function unlockBadge(name) {
+            if(!userStats.badges.includes(name)) {
+                userStats.badges.push(name);
+                saveData();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('heartFitData', JSON.stringify(userStats));
+        }
+
+        function updateUI() {
+            document.getElementById('steps-display').innerText = userStats.steps;
+            document.getElementById('water-display').innerText = userStats.water;
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
             
-            if (selectedAccessories.includes(name)) {
-                selectedAccessories = selectedAccessories.filter(item => item !== name);
+            // Task Logic based on BMI
+            const h = userStats.profile.height / 100;
+            const bmi = (userStats.profile.weight / (h * h)).toFixed(1);
+            document.getElementById('bmi-info').innerText = `Your BMI is ${bmi}`;
+
+            const taskElem = document.getElementById('daily-task');
+            if (bmi > 25) {
+                taskElem.innerText = "Today's Task: 30 min brisk walk for heart health.";
             } else {
-                selectedAccessories.push(name);
+                taskElem.innerText = "Today's Task: 15 min Cardio to keep heart active.";
             }
-            
-            document.getElementById('chosenItems').innerText = 
-                selectedAccessories.length > 0 ? selectedAccessories.join(', ') : "None";
+
+            // Render Badges
+            const badgeBox = document.getElementById('badge-container');
+            if(userStats.badges.length > 0) {
+                badgeBox.innerHTML = userStats.badges.map(b => `<span class="badge">🏅 ${b}</span>`).join('');
+            }
         }
 
-        // Initialize
-        loadCars();
+        function initApp() {
+            document.getElementById('setup-modal').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            checkReset();
+            updateUI();
+            requestMotionPermission();
+        }
+
+        // MOTION PERMISSION (For Step Counting)
+        function requestMotionPermission() {
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                        }
+                    });
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+            }
+        }
+
+        let lastAccel = 0;
+        function handleMotion(event) {
+            let accel = event.accelerationIncludingGravity;
+            let curAccel = Math.sqrt(accel.x**2 + accel.y**2 + accel.z**2);
+            
+            if (curAccel - lastAccel > 10) { // Simple shake detection for steps
+                userStats.steps++;
+                if(userStats.steps === 5000) unlockBadge("5K Walker");
+                updateUI();
+                saveData();
+            }
+            lastAccel = curAccel;
+        }
+
+        // Check if profile exists on load
+        window.onload = () => {
+            if (userStats.profile) initApp();
+        };
     </script>
 </body>
 </html>
