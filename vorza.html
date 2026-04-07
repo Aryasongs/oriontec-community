@@ -2,239 +2,225 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HeartFit Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>HeartFit | Apple Style</title>
     <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet">
     <style>
         :root {
-            --apple-blue: #007AFF;
-            --apple-red: #FF2D55;
-            --apple-green: #34C759;
-            --bg: #F2F2F7;
-            --card-bg: rgba(255, 255, 255, 0.8);
+            --ios-red: #FF2D55;
+            --ios-green: #34C759;
+            --ios-blue: #007AFF;
+            --ios-lightblue: #58CCFB;
+            --bg: #000000; /* Dark Mode Premium */
+            --card-bg: #1C1C1E;
         }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'SF Pro Display', sans-serif;
             background-color: var(--bg);
-            margin: 0; padding: 0;
-            color: #000;
-            overflow-x: hidden;
+            color: white;
+            margin: 0; padding: 20px;
+            padding-bottom: 100px;
         }
 
-        /* PREMIUM GLASSMORPHISM */
-        .glass {
-            background: var(--card-bg);
+        /* --- NAVIGATION BAR --- */
+        .tab-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(28, 28, 30, 0.9);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.3);
+            display: flex; justify-content: space-around;
+            padding: 15px 0 30px; border-top: 0.5px solid #333;
+            z-index: 100;
+        }
+        .tab-item { font-size: 10px; color: #8E8E93; text-align: center; cursor: pointer; }
+        .tab-item.active { color: var(--ios-blue); }
+
+        /* --- ACTIVITY RINGS --- */
+        .rings-box {
+            display: flex; justify-content: space-around; align-items: center;
+            background: var(--card-bg); border-radius: 24px; padding: 25px; margin: 20px 0;
+        }
+        .ring-svg { transform: rotate(-90deg); width: 150px; height: 150px; }
+        .ring-path { fill: none; stroke-width: 14; stroke-linecap: round; transition: 1s; }
+
+        /* --- STAT CARDS --- */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: var(--card-bg); border-radius: 20px; padding: 18px; position: relative; overflow: hidden; }
+        .card-full { grid-column: span 2; }
+        .label { font-size: 13px; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+        .val { font-size: 28px; font-weight: 800; }
+        .unit { font-size: 14px; color: #8E8E93; margin-left: 4px; }
+
+        /* --- BREATHING EXERCISE --- */
+        .breath-circle {
+            width: 80px; height: 80px; background: rgba(88, 204, 251, 0.3);
+            border-radius: 50%; margin: 20px auto;
+            border: 2px solid var(--ios-lightblue);
+            animation: breathe 8s infinite ease-in-out;
+        }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(2); opacity: 1; }
         }
 
-        /* HEADER & CALENDAR */
-        .container { padding: 20px; max-width: 500px; margin: auto; }
-        
-        .header { margin: 20px 0; }
-        .header h1 { font-size: 34px; font-weight: 800; margin: 5px 0; }
-        .header p { color: #8E8E93; text-transform: uppercase; font-size: 13px; font-weight: 600; }
-
-        .calendar-strip {
-            display: flex; gap: 12px; overflow-x: auto;
-            padding: 10px 0 25px 0; scrollbar-width: none;
+        /* --- BUTTONS --- */
+        .btn {
+            background: #2C2C2E; color: var(--ios-blue); border: none;
+            padding: 10px 15px; border-radius: 10px; font-weight: 600; width: 100%; margin-top: 10px;
         }
-        .calendar-strip::-webkit-scrollbar { display: none; }
+        .btn-gps { background: var(--ios-green); color: black; }
 
-        .date-card {
-            min-width: 60px; height: 85px; display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 18px; background: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s;
-        }
-        .date-card.active { background: var(--apple-blue); color: white; transform: scale(1.1); }
-        .date-card span:first-child { font-size: 12px; font-weight: 600; opacity: 0.7; }
-        .date-card span:last-child { font-size: 20px; font-weight: 800; }
+        /* --- TASK LIST --- */
+        .task-item { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 15px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #333; }
+        .dot.done { background: var(--ios-green); box-shadow: 0 0 10px var(--ios-green); }
 
-        /* DASHBOARD CARDS */
-        .main-card { padding: 25px; margin-bottom: 20px; position: relative; overflow: hidden; }
-        .ring-container { position: absolute; right: 20px; top: 20px; width: 80px; height: 80px; }
-
-        .stat-label { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .stat-value { font-size: 42px; font-weight: 800; margin: 15px 0; }
-        .stat-goal { font-size: 14px; color: #8E8E93; }
-
-        .btn-action {
-            background: var(--apple-blue); color: white; border: none;
-            padding: 12px 24px; border-radius: 12px; font-weight: 600; width: 100%;
-            margin-top: 15px; cursor: pointer;
-        }
-
-        /* ONBOARDING */
-        #onboarding {
-            position: fixed; inset: 0; background: white; z-index: 2000;
-            display: flex; flex-direction: column; padding: 40px; justify-content: center;
-        }
-        input {
-            background: #F2F2F7; border: none; padding: 18px; border-radius: 15px;
-            margin: 10px 0; font-size: 16px; width: 100%;
-        }
-
-        .hidden { display: none !important; }
-
-        /* ANIMATION */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade { animation: fadeIn 0.5s ease-out; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="onboarding">
-        <h1 style="font-size: 40px; margin-bottom: 10px;">HeartFit <span style="color: var(--apple-red);">Pro</span></h1>
-        <p style="color: #666; margin-bottom: 30px;">Enter your details to generate your custom heart health plan.</p>
-        <input type="text" id="nameIn" placeholder="Full Name">
-        <input type="number" id="weightIn" placeholder="Weight (kg)">
-        <input type="number" id="heightIn" placeholder="Height (cm)">
-        <button class="btn-action" onclick="setup()">Start Premium Tracking</button>
+    <header style="margin-top: 20px;">
+        <p style="color: var(--ios-red); font-weight: bold; margin: 0;">TUESDAY, APRIL 7</p>
+        <h1 style="font-size: 34px; margin: 5px 0;">Summary</h1>
+    </header>
+
+    <div class="rings-box">
+        <div style="font-weight: 700;">
+            <p style="color: var(--ios-red); margin: 5px 0;">● MOVE</p>
+            <p style="color: var(--ios-green); margin: 5px 0;">● EXERCISE</p>
+            <p style="color: var(--ios-lightblue); margin: 5px 0;">● STAND</p>
+        </div>
+        <svg class="ring-svg">
+            <circle cx="75" cy="75" r="60" stroke="#330000" stroke-width="14" fill="none"/>
+            <circle id="ring-move" cx="75" cy="75" r="60" class="ring-path" stroke="var(--ios-red)" stroke-dasharray="377" stroke-dashoffset="377"/>
+            <circle cx="75" cy="75" r="44" stroke="#003300" stroke-width="14" fill="none"/>
+            <circle id="ring-exercise" cx="75" cy="75" r="44" class="ring-path" stroke="var(--ios-green)" stroke-dasharray="276" stroke-dashoffset="276"/>
+            <circle cx="75" cy="75" r="28" stroke="#001a33" stroke-width="14" fill="none"/>
+            <circle id="ring-stand" cx="75" cy="75" r="28" class="ring-path" stroke="var(--ios-lightblue)" stroke-dasharray="176" stroke-dashoffset="176"/>
+        </svg>
     </div>
 
-    <div id="app" class="container hidden">
-        <div class="header">
-            <p id="top-date">TUESDAY, APRIL 7</p>
-            <h1>Summary</h1>
+    <div class="grid">
+        <div class="card card-full">
+            <div class="label" style="color: var(--ios-red);">Steps</div>
+            <div class="val" id="step-val">0</div>
+            <div class="unit">Goal: 12,000</div>
+            <button class="btn btn-gps" onclick="startGPS()">Track with GPS</button>
         </div>
 
-        <div class="calendar-strip" id="calendar"></div>
-
-        <div class="grid">
-            <div class="glass main-card fade">
-                <div class="stat-label">🏃‍♂️ <span style="color: var(--apple-red)">Activity</span></div>
-                <div class="stat-value" id="step-count">0</div>
-                <div class="stat-goal">Goal: 10,000 steps</div>
-            </div>
-
-            <div class="glass main-card fade" style="animation-delay: 0.1s;">
-                <div class="stat-label">💧 <span style="color: var(--apple-blue)">Hydration</span></div>
-                <div class="stat-value"><span id="water-count">0</span><small style="font-size: 18px; color: #8E8E93;">/8 Glasses</small></div>
-                <button class="btn-action" style="background: rgba(0,122,255,0.1); color: var(--apple-blue);" onclick="drink()">Drink Water</button>
-            </div>
-
-            <div class="glass main-card fade" style="animation-delay: 0.2s;">
-                <div class="stat-label">❤️ <span style="color: var(--apple-green)">Heart Task</span></div>
-                <p id="task-desc" style="font-size: 18px; font-weight: 600; margin: 15px 0;"></p>
-                <div class="stat-goal" id="bmi-label"></div>
-            </div>
+        <div class="card">
+            <div class="label" style="color: var(--ios-blue);">Hydration</div>
+            <div class="val" id="water-val">2<small class="unit">/ 12</small></div>
+            <button class="btn" onclick="addWater()">+ 1 Glass</button>
         </div>
+
+        <div class="card">
+            <div class="label" style="color: var(--ios-green);">Heart Health</div>
+            <div class="val" style="color: var(--ios-green);">72<small class="unit">BPM</small></div>
+            <p style="font-size: 10px; opacity: 0.5;">SIMULATED</p>
+        </div>
+
+        <div class="card card-full">
+            <div class="label" style="color: var(--ios-lightblue);">Breathing Exercise</div>
+            <div class="breath-circle"></div>
+            <p style="text-align: center; font-size: 12px; color: #8E8E93;">Follow the circle to calm your mind</p>
+        </div>
+
+        <div class="card">
+            <div class="label">Body Metrics</div>
+            <div class="val">12.1<small class="unit">BMI</small></div>
+            <div style="font-size: 12px; margin-top: 10px;">0 <span class="unit">km</span> | 0 <span class="unit">Cal</span></div>
+        </div>
+
+        <div class="card">
+            <div class="label">Daily Tasks</div>
+            <div class="task-item"><div id="t1" class="dot"></div> Walk 12k</div>
+            <div class="task-item"><div id="t2" class="dot"></div> Water 12g</div>
+            <div class="task-item"><div id="t3" class="dot"></div> Stretch</div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item active">🏠<br>Home</div>
+        <div class="tab-item">🔥<br>Activity</div>
+        <div class="tab-item">📅<br>Calendar</div>
+        <div class="tab-item">🏅<br>Badges</div>
+        <div class="tab-item">📊<br>Insights</div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('hf_pro_v1')) || {
-            user: null,
-            daily: { steps: 0, water: 0, date: new Date().toDateString() },
-            history: {}
+        let data = JSON.parse(localStorage.getItem('hf_final')) || {
+            steps: 0, water: 2, stand: 2, distance: 0, 
+            lastReset: new Date().toDateString()
         };
 
-        // SETUP & PERSONALIZATION
-        function setup() {
-            const n = document.getElementById('nameIn').value;
-            const w = document.getElementById('weightIn').value;
-            const h = document.getElementById('heightIn').value;
-            if(!n || !w || !h) return alert("Please fill details");
+        function save() { localStorage.setItem('hf_final', JSON.stringify(data)); }
 
-            db.user = { name: n, weight: w, height: h };
-            save();
-            renderApp();
-        }
-
-        // ACCURATE CALENDAR SYSTEM
-        function buildCalendar() {
-            const cal = document.getElementById('calendar');
-            cal.innerHTML = '';
-            const today = new Date();
-            
-            for(let i = -3; i <= 3; i++) {
-                const d = new Date();
-                d.setDate(today.getDate() + i);
-                const isToday = i === 0;
-                
-                const card = document.createElement('div');
-                card.className = `date-card ${isToday ? 'active' : ''}`;
-                card.innerHTML = `
-                    <span>${d.toLocaleDateString('en', {weekday: 'short'})}</span>
-                    <span>${d.getDate()}</span>
-                `;
-                cal.appendChild(card);
+        function addWater() {
+            if(data.water < 12) {
+                data.water++;
+                updateUI();
+                save();
             }
         }
 
-        // BACKGROUND STEP TRACKING LOGIC
-        function initSensors() {
-            if ('LinearAccelerationSensor' in window) {
-                const sensor = new LinearAccelerationSensor({ frequency: 60 });
-                let lastMag = 0;
-                sensor.addEventListener('reading', () => {
-                    let mag = Math.sqrt(sensor.x**2 + sensor.y**2 + sensor.z**2);
-                    if (mag - lastMag > 10) {
-                        db.daily.steps++;
-                        updateUI();
-                        save();
-                    }
-                    lastMag = mag;
+        function startGPS() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition(pos => {
+                    // Logic to calculate distance between coordinates
+                    console.log("GPS Active: ", pos.coords.latitude);
+                    alert("GPS Tracking Enabled in Background");
                 });
-                sensor.start();
             }
-        }
-
-        function drink() {
-            db.daily.water++;
-            updateUI();
-            save();
         }
 
         function updateUI() {
-            document.getElementById('step-count').innerText = db.daily.steps.toLocaleString();
-            document.getElementById('water-count').innerText = db.daily.water;
-            
-            // Heart Task Logic
-            const bmi = (db.user.weight / ((db.user.height/100)**2)).toFixed(1);
-            document.getElementById('bmi-label').innerText = `Your Health Score (BMI): ${bmi}`;
-            document.getElementById('task-desc').innerText = bmi > 25 ? 
-                "Focus on 45 min walk to lower heart strain." : 
-                "Perfect! Keep heart active with 15 min jumping jacks.";
+            document.getElementById('step-val').innerText = data.steps.toLocaleString();
+            document.getElementById('water-val').innerHTML = `${data.water}<small class="unit">/ 12</small>`;
+
+            // Ring Animations
+            const moveOffset = 377 - (377 * (data.steps / 12000));
+            document.getElementById('ring-move').style.strokeDashoffset = Math.max(moveOffset, 0);
+
+            const exerciseOffset = 276 - (276 * (data.water / 12));
+            document.getElementById('ring-exercise').style.strokeDashoffset = Math.max(exerciseOffset, 0);
+
+            const standOffset = 176 - (176 * (data.stand / 12));
+            document.getElementById('ring-stand').style.strokeDashoffset = Math.max(standOffset, 0);
+
+            // Task completion dots
+            if(data.steps >= 12000) document.getElementById('t1').classList.add('done');
+            if(data.water >= 12) document.getElementById('t2').classList.add('done');
         }
 
-        function save() { localStorage.setItem('hf_pro_v1', JSON.stringify(db)); }
-
-        function renderApp() {
-            document.getElementById('onboarding').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
-            buildCalendar();
-            updateUI();
-            initSensors();
-        }
-
-        // AUTO RESET AT MIDNIGHT
-        function checkMidnight() {
+        // Auto-Reset at Midnight
+        function checkReset() {
             const today = new Date().toDateString();
-            if(db.daily.date !== today) {
-                db.history[db.daily.date] = { steps: db.daily.steps, water: db.daily.water };
-                db.daily.steps = 0;
-                db.daily.water = 0;
-                db.daily.date = today;
+            if(data.lastReset !== today) {
+                data.steps = 0; data.water = 0; data.stand = 1;
+                data.lastReset = today;
                 save();
-                updateUI();
             }
         }
 
-        window.onload = () => {
-            if(db.user) { renderApp(); checkMidnight(); }
-            document.getElementById('top-date').innerText = new Date().toLocaleDateString('en', {weekday:'long', month:'long', day:'numeric'});
-        };
+        // Simulate Stand Hours
+        setInterval(() => {
+            if(data.stand < 12) data.stand++;
+            updateUI();
+        }, 3600000); // Add 1 stand hour every real hour
 
-        // SERVICE WORKER REGISTRATION (For Background Work)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
-        }
+        // Sensors
+        window.addEventListener('devicemotion', (e) => {
+            let acc = e.accelerationIncludingGravity;
+            if(Math.abs(acc.x) + Math.abs(acc.y) > 15) {
+                data.steps += 1;
+                updateUI();
+                save();
+            }
+        });
+
+        window.onload = () => { checkReset(); updateUI(); };
     </script>
 </body>
 </html>
