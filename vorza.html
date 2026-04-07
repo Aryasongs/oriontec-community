@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vorza Electric | Beyond Motion</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00d4ff;
+            --bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --text: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        header {
+            height: 80vh;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('https://aryasongs.github.io/oriontec-community/IMG_9308.jpeg') center/cover no-repeat;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero-title { font-size: 4rem; letter-spacing: 5px; margin-bottom: 10px; }
+        .hero-sub { font-size: 1.2rem; color: var(--accent); margin-bottom: 30px; }
+
+        .availability-badge {
+            background: #ff4d4d;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* Model Showcase */
+        .section-title { text-align: center; padding: 50px 0; font-size: 2.5rem; }
+        
+        .car-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 0 5%;
+        }
+
+        .car-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .car-card:hover { transform: translateY(-10px); box-shadow: 0 10px 30px rgba(0,212,255,0.2); }
+
+        .car-card img { width: 100%; height: 250px; object-fit: cover; }
+        .car-info { padding: 20px; }
+        .car-price { color: var(--accent); font-weight: bold; }
+
+        /* Accessory Lab */
+        .lab-container {
+            background: #111;
+            padding: 50px 5%;
+            margin-top: 50px;
+            border-top: 1px solid #333;
+        }
+
+        .custom-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .preview-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .preview-box img { width: 100%; border-radius: 10px; }
+
+        .accessory-list {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .acc-item {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+
+        .acc-item:hover { border-color: var(--accent); }
+        .acc-item.active { background: var(--accent); color: #000; }
+
+        .selected-list { margin-top: 20px; padding: 15px; background: #000; border-radius: 5px; }
+
+        footer { text-align: center; padding: 40px; color: #666; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="availability-badge">NOT AVAILABLE IN INDIA - GLOBAL MARKET ONLY</div>
+        <h1 class="hero-title">VORZA ELECTRIC</h1>
+        <p class="hero-sub">The Evolution of Global Performance</p>
+    </header>
+
+    <h2 class="section-title">The Vorza Lineup</h2>
+    <div class="car-grid" id="carGrid">
+        </div>
+
+    <div class="lab-container">
+        <h2 style="text-align: center;">Vorza Customization Lab</h2>
+        <p style="text-align: center; color: #888;">Select accessories to personalize your international build</p>
+        
+        <div class="custom-area">
+            <div class="preview-box">
+                <img src="https://aryasongs.github.io/oriontec-community/IMG_9309.jpeg" alt="Vorza Preview" id="mainPreview">
+                <div id="accessoryOverlay" style="position: absolute; top: 10px; right: 10px;"></div>
+            </div>
+
+            <div class="accessory-lab">
+                <h3>Available Accessories</h3>
+                <div class="accessory-list">
+                    <div class="acc-item" onclick="toggleAccessory(this, 'Solar Roof')">Solar Panoramic Roof</div>
+                    <div class="acc-item" onclick="toggleAccessory(this, 'Carbon Fiber Kit')">Carbon Fiber Aero Kit</div>
+                    <div class="acc-item" onclick="toggleAccessory(this, 'V-Pilot Autonomy')">V-Pilot Autonomous Drive</div>
+                    <div class="acc-item" onclick="toggleAccessory(this, 'Nappa Leather')">Premium Nappa Interior</div>
+                </div>
+                <div class="selected-list">
+                    <strong>Selected:</strong> <span id="chosenItems">None</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 Vorza Electric Cars Co. | International HQ: New York, USA | Note: Bookings not available in India.
+    </footer>
+
+    <script>
+        // 1. Data for Car Models
+        const models = [
+            {
+                name: "Vorza S-Alpha",
+                img: "https://aryasongs.github.io/oriontec-community/IMG_9308.jpeg",
+                price: "$89,000",
+                desc: "High-performance luxury sedan."
+            },
+            {
+                name: "Vorza X-Over",
+                img: "https://aryasongs.github.io/oriontec-community/IMG_9309.jpeg",
+                price: "$105,000",
+                desc: "All-terrain electric SUV."
+            },
+            {
+                name: "Vorza GT Stealth",
+                img: "https://aryasongs.github.io/oriontec-community/IMG_9308.jpeg", // Placeholder for new model
+                price: "$145,000",
+                desc: "Limited edition track-ready hypercar."
+            }
+        ];
+
+        // 2. Load Cars Function
+        function loadCars() {
+            const grid = document.getElementById('carGrid');
+            models.forEach(car => {
+                grid.innerHTML += `
+                    <div class="car-card">
+                        <img src="${car.img}" alt="${car.name}">
+                        <div class="car-info">
+                            <h3>${car.name}</h3>
+                            <p>${car.desc}</p>
+                            <p class="car-price">${car.price}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 3. Accessory Toggle Function
+        let selectedAccessories = [];
+
+        function toggleAccessory(element, name) {
+            element.classList.toggle('active');
+            
+            if (selectedAccessories.includes(name)) {
+                selectedAccessories = selectedAccessories.filter(item => item !== name);
+            } else {
+                selectedAccessories.push(name);
+            }
+            
+            document.getElementById('chosenItems').innerText = 
+                selectedAccessories.length > 0 ? selectedAccessories.join(', ') : "None";
+        }
+
+        // Initialize
+        loadCars();
+    </script>
+</body>
+</html>
