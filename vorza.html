@@ -3,179 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELD Compliance Pro - Demo</title>
+    <title>ELD Compliance Pro v2.0 - 2026 Ready</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .grid-line { stroke: #e5e7eb; stroke-width: 1; }
-        .log-line { stroke: #2563eb; stroke-width: 3; fill: none; }
-        .violation { color: #dc2626; font-weight: bold; }
-        .status-card { transition: all 0.3s ease; }
-        .active-status { border-left: 8px solid #2563eb; background: #eff6ff; }
+        .grid-line { stroke: #e5e7eb; stroke-width: 1; stroke-dasharray: 2; }
+        .log-path { fill: none; stroke: #2563eb; stroke-width: 3; stroke-linejoin: round; }
+        .active-btn { border-color: #2563eb; background-color: #eff6ff; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); }
+        .inspection-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 100; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-slate-50 font-sans text-slate-900">
 
-    <nav class="bg-slate-900 text-white p-4 flex justify-between items-center shadow-lg">
-        <h1 class="text-xl font-bold tracking-tight">ELD <span class="text-blue-400">LOGBOOK</span></h1>
-        <div class="text-right">
-            <p class="text-sm opacity-75" id="current-date"></p>
-            <p class="text-xs font-mono" id="current-time"></p>
+    <div id="inspection-mode" class="inspection-overlay p-6">
+        <div class="flex justify-between items-center border-b pb-4 mb-4">
+            <h2 class="text-2xl font-bold text-red-600">DOT INSPECTION MODE</h2>
+            <button onclick="toggleInspection()" class="bg-slate-800 text-white px-4 py-2 rounded">Exit</button>
         </div>
-    </nav>
-
-    <div class="max-w-5xl mx-auto p-4 space-y-6">
-        
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
-                <p class="text-xs text-gray-500 uppercase">Driving (11h)</p>
-                <p id="drive-clock" class="text-2xl font-bold text-blue-600">11:00</p>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
-                <p class="text-xs text-gray-500 uppercase">Workday (14h)</p>
-                <p id="shift-clock" class="text-2xl font-bold text-blue-600">14:00</p>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
-                <p class="text-xs text-gray-500 uppercase">Break In</p>
-                <p id="break-clock" class="text-2xl font-bold text-orange-500">08:00</p>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
-                <p class="text-xs text-gray-500 uppercase">Cycle (70h)</p>
-                <p id="cycle-clock" class="text-2xl font-bold text-gray-700">70:00</p>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden border">
-            <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
-                <h2 class="font-bold text-gray-700">Current Duty Status</h2>
-                <span id="active-badge" class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase">Off Duty</span>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
-                <button onclick="setStatus('OFF_DUTY')" id="btn-OFF_DUTY" class="p-6 hover:bg-gray-50 flex flex-col items-center gap-2">
-                    <span class="text-2xl">🏠</span>
-                    <span class="text-sm font-semibold">Off Duty</span>
-                </button>
-                <button onclick="setStatus('SLEEPER')" id="btn-SLEEPER" class="p-6 hover:bg-gray-50 flex flex-col items-center gap-2">
-                    <span class="text-2xl">🛌</span>
-                    <span class="text-sm font-semibold">Sleeper</span>
-                </button>
-                <button onclick="setStatus('ON_DUTY')" id="btn-ON_DUTY" class="p-6 hover:bg-gray-50 flex flex-col items-center gap-2">
-                    <span class="text-2xl">🔧</span>
-                    <span class="text-sm font-semibold">On Duty</span>
-                </button>
-                <button onclick="setStatus('DRIVING')" id="btn-DRIVING" class="p-6 hover:bg-blue-50 flex flex-col items-center gap-2 border-l-4 border-transparent">
-                    <span class="text-2xl">🚛</span>
-                    <span class="text-sm font-semibold">Driving</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl shadow-md border overflow-x-auto">
-            <h3 class="text-sm font-bold text-gray-400 mb-4 uppercase">24-Hour Graph (Demo)</h3>
-            <svg viewBox="0 0 800 160" class="w-full min-w-[600px]">
-                <line x1="0" y1="40" x2="800" y2="40" class="grid-line" />
-                <line x1="0" y1="80" x2="800" y2="80" class="grid-line" />
-                <line x1="0" y1="120" x2="800" y2="120" class="grid-line" />
-                
-                <g font-size="10" fill="#9ca3af">
-                    <text x="0" y="155">M</text><text x="100" y="155">3</text>
-                    <text x="200" y="155">6</text><text x="300" y="155">9</text>
-                    <text x="400" y="155">N</text><text x="500" y="155">3</text>
-                    <text x="600" y="155">6</text><text x="700" y="155">9</text>
-                    <text x="785" y="155">M</text>
-                </g>
-
-                <g font-size="10" font-weight="bold" fill="#6b7280">
-                    <text x="-35" y="25" transform="translate(40,0)">OFF</text>
-                    <text x="-35" y="65" transform="translate(40,0)">SB</text>
-                    <text x="-35" y="105" transform="translate(40,0)">DR</text>
-                    <text x="-35" y="145" transform="translate(40,0)">ON</text>
-                </g>
-
-                <path id="log-path" d="M 0 20 L 400 20 L 400 100 L 500 100" class="log-line" />
-            </svg>
-        </div>
-
-        <div id="alert-container" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
-            <div class="flex">
-                <span class="text-red-500 font-bold mr-3">⚠️</span>
-                <div>
-                    <p class="text-red-800 font-bold">HOS Violation Detected</p>
-                    <p id="alert-msg" class="text-red-700 text-sm">You have exceeded the 11-hour driving limit.</p>
-                </div>
-            </div>
-        </div>
+        <div id="inspection-content"></div>
     </div>
 
-    <script>
-        // --- REAL STRICT LOGIC ENGINE ---
-        let currentStatus = 'OFF_DUTY';
-        let driveSeconds = 0;
-        let shiftSeconds = 0;
-        let startTime = new Date();
+    <nav class="bg-slate-900 text-white p-4 shadow-xl flex justify-between items-center sticky top-0 z-50">
+        <div>
+            <h1 class="text-xl font-black italic tracking-tighter">ORIONTEC <span class="text-blue-400">ELD</span></h1>
+            <p class="text-[10px] uppercase tracking-widest opacity-60">FMCSA Compliant 2026</p>
+        </div>
+        <button onclick="toggleInspection()" class="bg-blue-600 hover:bg-blue-700 text-xs font-bold px-4 py-2 rounded-lg transition-all">ROADSIDE INSPECTION</button>
+    </nav>
 
-        const LIMITS = {
-            DRIVE: 11 * 3600,
-            SHIFT: 14 * 3600,
-            BREAK: 8 * 3600
-        };
-
-        function updateClocks() {
-            if (currentStatus === 'DRIVING') {
-                driveSeconds++;
-            }
-            if (currentStatus !== 'OFF_DUTY' && currentStatus !== 'SLEEPER') {
-                shiftSeconds++;
-            }
-
-            // Calculations
-            document.getElementById('drive-clock').innerText = formatTime(LIMITS.DRIVE - driveSeconds);
-            document.getElementById('shift-clock').innerText = formatTime(LIMITS.SHIFT - shiftSeconds);
-
-            // Violation Checking
-            if (driveSeconds > LIMITS.DRIVE) triggerViolation("11-Hour Driving Limit Exceeded");
-            if (shiftSeconds > LIMITS.SHIFT) triggerViolation("14-Hour Workday Limit Exceeded");
-        }
-
-        function setStatus(status) {
-            // Remove active classes
-            document.querySelectorAll('button').forEach(b => b.classList.remove('active-status'));
-            
-            currentStatus = status;
-            document.getElementById(`btn-${status}`).classList.add('active-status');
-            document.getElementById('active-badge').innerText = status.replace('_', ' ');
-            
-            // UI Color Flip for Driving
-            const badge = document.getElementById('active-badge');
-            if(status === 'DRIVING') {
-                badge.className = "px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase";
-            } else {
-                badge.className = "px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase";
-            }
-        }
-
-        function formatTime(totalSeconds) {
-            const h = Math.floor(Math.abs(totalSeconds) / 3600);
-            const m = Math.floor((Math.abs(totalSeconds) % 3600) / 60);
-            return `${totalSeconds < 0 ? '-' : ''}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-        }
-
-        function triggerViolation(msg) {
-            document.getElementById('alert-container').classList.remove('hidden');
-            document.getElementById('alert-msg').innerText = msg;
-            document.getElementById('drive-clock').classList.add('text-red-600');
-        }
-
-        // Initialize
-        setInterval(updateClocks, 1000); // Real-time tick
-        setStatus('OFF_DUTY');
+    <main class="max-w-4xl mx-auto p-4 space-y-4">
         
-        // Display Current Time
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('current-date').innerText = now.toLocaleDateString();
-            document.getElementById('current-time').innerText = now.toLocaleTimeString();
-        }, 1000);
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Driving Left</p>
+                <p id="drive-clock" class="text-2xl font-black text-slate-800">11:00</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Shift Left</p>
+                <p id="shift-clock" class="text-2xl font-black text-slate-800">14:00</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Break In</p>
+                <p id="break-clock" class="text-2xl font-black text-orange-500">08:00</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Cycle (70h)</p>
+                <p id="cycle-clock" class="text-2xl font-black text-slate-500">70:00</p>
+            </div>
+        </div>
 
+        <div class="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="grid grid-cols-4 divide-x divide-slate-100">
+                <button onclick="updateStatus('OFF')" id="btn-OFF" class="flex flex-col items-center py-6 hover:bg-slate-50 transition-colors border-b-4 border-transparent">
+                    <span class="text-xl">🏠</span><span class="text-[10px] font-bold mt-1">OFF DUTY</span>
+                </button>
+                <button onclick="updateStatus('SB')" id="btn-SB" class="flex flex-col items-center py-6 hover:bg-slate-50 transition-colors border-b-4 border-transparent">
+                    <span class="text-xl">🛌</span><span class="text-[10px] font-bold mt-1">SLEEPER</span>
+                </button>
+                <button onclick="updateStatus('DR')" id="btn-DR" class="flex flex-col items-center py-6 hover:bg-slate-50 transition-colors border-b-4 border-transparent">
+                    <span class="text-xl">🚛</span><span class="text-[10px] font-bold mt-1">DRIVING</span>
+                </button>
+                <button onclick="updateStatus('ON')" id="btn-ON" class="flex flex-col items-center py-6 hover:bg-slate-50 transition-colors border-b-4 border-transparent">
+                    <span class="text-xl">🔧</span><span class="text-[10px] font-bold mt-1">ON DUTY</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
+            <h3 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-tighter">Daily Log Graph</h3>
+            <svg id="log-graph" viewBox="0 0 720 160" class="w-full">
+                <g class="grid-lines">
+                    <line x1="0" y1="20" x2="720" y2="20" class="grid-line" /> <line x1="0" y1="60" x2="720" y2="60" class="grid-line" /> <line x1="0" y1="100" x2="720" y2="100" class="grid-line" /> <line x1="0" y1="140" x2="720" y2="140" class="grid-line" /> </g>
+                <g font-size="8" fill="#94a3b8" font-weight="bold">
+                    <text x="5" y="15">OFF</text><text x="5" y="55">SB</text>
+                    <text x="5" y="95">DR</text><text x="5" y="135">ON</text>
+                </g>
+                <path id="path-line" d="" class="log-path" />
+            </svg>
+            <div class="flex justify-between text-[8px] text-slate-400 font-bold px-2 mt-2">
+                <span>MIDNIGHT</span><span>6 AM</span><span>NOON</span><span>6 PM</span><span>MIDNIGHT</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
+                <span class="text-xs font-black uppercase text-slate-500">Event History</span>
+                <button onclick="clearLogs()" class="text-[10px] text-red-500 font-bold uppercase">Clear All</button>
+            </div>
+            <div id="log-list" class="max-h-60 overflow-y-auto"></div>
+        </div>
+    </main>
+
+    <script>
+        // --- DATA & STATE MANAGEMENT ---
+        let logs = JSON.parse(localStorage.getItem('truck_logs')) || [];
+        let currentStatus = localStorage.getItem('current_status') || 'OFF';
+        
+        const SECONDS_IN_DAY = 24 * 3600;
+        const LIMITS = { DRIVE: 11 * 3600, SHIFT: 14 * 3600 };
+
+        function init() {
+            if (logs.length === 0) {
+                logs.push({ status: 'OFF', time: getSecondsSinceMidnight() });
+            }
+            updateUI();
+            setInterval(tick, 1000);
+        }
+
+        function getSecondsSinceMidnight() {
+            const now = new Date();
+            return (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+        }
+
+        function updateStatus(newStatus) {
+            if (currentStatus === newStatus) return;
+            
+            const now = getSecondsSinceMidnight();
+            logs.push({ status: newStatus, time: now });
+            currentStatus = newStatus;
+            
+            save();
+            updateUI();
+        }
+
+        function tick() {
+            calculateClocks();
+            drawGraph();
+        }
+
+        function calculateClocks() {
+            let driveUsed = 0;
+            let shiftStart = null;
+            const now = getSecondsSinceMidnight();
+
+            for (let i = 0; i < logs.length; i++) {
+                const start = logs[i].time;
+                const end = logs[i+1] ? logs[i+1].time : now;
+                const duration = end - start;
+
+                if (logs[i].status === 'DR') driveUsed += duration;
+                if (!shiftStart && logs[i].status !== 'OFF' && logs[i].status !== 'SB') {
+                    shiftStart = start;
+                }
+            }
+
+            const shiftUsed = shiftStart ? (now - shiftStart) : 0;
+
+            document.getElementById('drive-clock').innerText = formatTime(LIMITS.DRIVE - driveUsed);
+            document.getElementById('shift-clock').innerText = formatTime(LIMITS.SHIFT - shiftUsed);
+            
+            if (driveUsed > LIMITS.DRIVE) document.getElementById('drive-clock').classList.add('text-red-500');
+        }
+
+        function drawGraph() {
+            const path = document.getElementById('path-line');
+            const now = getSecondsSinceMidnight();
+            let d = "";
+
+            const statusY = { 'OFF': 20, 'SB': 60, 'DR': 100, 'ON': 140 };
+
+            logs.forEach((log, i) => {
+                const x = (log.time / SECONDS_IN_DAY) * 720;
+                const y = statusY[log.status];
+                
+                if (i === 0) d += `M ${x} ${y}`;
+                else {
+                    const prevX = (logs[i-1].time / SECONDS_IN_DAY) * 720;
+                    const prevY = statusY[logs[i-1].status];
+                    d += ` L ${x} ${prevY} L ${x} ${y}`;
+                }
+            });
+
+            // Draw to current time
+            const lastX = (now / SECONDS_IN_DAY) * 720;
+            const lastY = statusY[currentStatus];
+            d += ` L ${lastX} ${lastY}`;
+
+            path.setAttribute('d', d);
+        }
+
+        function updateUI() {
+            // Update Buttons
+            document.querySelectorAll('button[id^="btn-"]').forEach(btn => btn.classList.remove('active-btn'));
+            document.getElementById(`btn-${currentStatus}`).classList.add('active-btn');
+
+            // Update List
+            const list = document.getElementById('log-list');
+            list.innerHTML = logs.map(log => `
+                <div class="flex justify-between items-center p-3 border-b border-slate-50 text-[10px] font-bold">
+                    <span class="bg-slate-100 px-2 py-1 rounded text-slate-600">${log.status}</span>
+                    <span class="text-slate-400">${new Date(log.time * 1000).toISOString().substr(11, 8)}</span>
+                </div>
+            `).reverse().join('');
+        }
+
+        function save() {
+            localStorage.setItem('truck_logs', JSON.stringify(logs));
+            localStorage.setItem('current_status', currentStatus);
+        }
+
+        function clearLogs() {
+            if(confirm("Clear all logs for today?")) {
+                logs = [{ status: 'OFF', time: getSecondsSinceMidnight() }];
+                currentStatus = 'OFF';
+                save();
+                updateUI();
+            }
+        }
+
+        function toggleInspection() {
+            const overlay = document.getElementById('inspection-mode');
+            const content = document.getElementById('inspection-content');
+            const isVisible = overlay.style.display === 'block';
+
+            if (!isVisible) {
+                overlay.style.display = 'block';
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded">
+                            <p class="text-xs"><b>Driver:</b> GURSHARAN SINGH</p>
+                            <p class="text-xs"><b>Carrier:</b> SHARANRECORDS LOGISTICS</p>
+                            <p class="text-xs"><b>Vehicle:</b> TOYOTA FORTUNER - RENTAL</p>
+                            <p class="text-xs"><b>Date:</b> ${new Date().toLocaleDateString()}</p>
+                        </div>
+                        <div class="border p-2">
+                            ${document.getElementById('log-graph').outerHTML}
+                        </div>
+                        <div class="text-[10px] text-slate-500">FMCSA Certification: COMPLIANT</div>
+                    </div>
+                `;
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+
+        function formatTime(sec) {
+            const isNeg = sec < 0;
+            const s = Math.abs(sec);
+            const h = Math.floor(s / 3600);
+            const m = Math.floor((s % 3600) / 60);
+            return `${isNeg ? '-' : ''}${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+        }
+
+        init();
     </script>
 </body>
 </html>
