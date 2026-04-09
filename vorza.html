@@ -2,216 +2,180 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>HeartFit Pro | Ultra</title>
-    <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELD Compliance Pro - Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --ios-red: #FF2D55;
-            --ios-green: #34C759;
-            --ios-blue: #007AFF;
-            --ios-cyan: #5AC8FA;
-            --ios-gold: #FFD700;
-            --bg: #000000;
-            --card: #1C1C1E;
-            --glass: rgba(28, 28, 30, 0.85);
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: 'SF Pro Display', -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: white; margin: 0; padding: 0;
-            overflow-x: hidden;
-        }
-
-        /* --- NAVIGATION --- */
-        .tab-bar {
-            position: fixed; bottom: 0; width: 100%;
-            background: var(--glass); backdrop-filter: blur(30px);
-            display: flex; justify-content: space-around;
-            padding: 12px 0 34px; border-top: 0.5px solid #333;
-            z-index: 1000;
-        }
-        .tab-item { color: #8E8E93; font-size: 10px; text-align: center; flex: 1; cursor: pointer; }
-        .tab-item.active { color: var(--ios-blue); }
-        .tab-icon { font-size: 22px; display: block; margin-bottom: 4px; }
-
-        /* --- PAGES --- */
-        .page { padding: 20px; padding-bottom: 140px; min-height: 100vh; display: none; }
-        .page.active { display: block; animation: slideUp 0.4s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        h1 { font-size: 34px; font-weight: 800; margin: 5px 0 20px; }
-        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; border: 1px solid #2c2c2e; }
-
-        /* --- RINGS --- */
-        .rings-box { display: flex; align-items: center; justify-content: space-between; }
-        .ring-svg { transform: rotate(-90deg); width: 130px; height: 130px; }
-        .ring-path { fill: none; stroke-width: 12; stroke-linecap: round; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
-
-        /* --- HEALTH BAND SECTION (PREMIUM BLUR) --- */
-        .band-promo {
-            position: relative; overflow: hidden;
-            background: linear-gradient(135deg, #1c1c1e 0%, #000 100%);
-            border: 1px solid #444; text-align: center; padding: 40px 20px;
-        }
-        .band-blur-overlay {
-            position: absolute; inset: 0; backdrop-filter: blur(8px);
-            background: rgba(0,0,0,0.4); display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 5;
-        }
-        .band-icon { font-size: 80px; filter: drop-shadow(0 0 20px var(--ios-cyan)); margin-bottom: 20px; }
-        .price-tag { font-size: 24px; font-weight: 800; color: var(--ios-green); margin: 10px 0; }
-
-        /* --- SETTINGS LIST --- */
-        .settings-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 0; border-bottom: 0.5px solid #333;
-        }
-        .settings-item:last-child { border: none; }
-        .toggle { width: 50px; height: 28px; background: #333; border-radius: 15px; position: relative; cursor: pointer; }
-        .toggle.on { background: var(--ios-green); }
-        .toggle::after { content: ''; position: absolute; width: 24px; height: 24px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
-        .toggle.on::after { left: 24px; }
-
-        /* --- UTILS --- */
-        .btn { 
-            background: var(--ios-blue); color: white; border: none; padding: 16px; 
-            border-radius: 14px; font-weight: 700; width: 100%; cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn:active { transform: scale(0.96); opacity: 0.8; }
-        .label-red { color: var(--ios-red); font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        .grid-line { stroke: #e5e7eb; stroke-width: 1; }
+        .log-line { stroke: #2563eb; stroke-width: 3; fill: none; }
+        .violation { color: #dc2626; font-weight: bold; }
+        .status-card { transition: all 0.3s ease; }
+        .active-status { border-left: 8px solid #2563eb; background: #eff6ff; }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 font-sans">
 
-    <div id="page-summary" class="page active">
-        <header>
-            <span class="label-red" id="current-date">TODAY</span>
-            <h1>Summary</h1>
-        </header>
-
-        <div class="card rings-box">
-            <div style="font-weight: 700; font-size: 14px;">
-                <div style="color: var(--ios-red)">🔴 MOVE</div>
-                <div style="color: var(--ios-green)">🟢 WATER</div>
-                <div style="color: var(--ios-cyan)">🔵 STAND</div>
-            </div>
-            <svg class="ring-svg">
-                <circle cx="65" cy="65" r="55" stroke="#300" stroke-width="12" fill="none"/>
-                <circle id="r-move" cx="65" cy="65" r="55" class="ring-path" stroke="var(--ios-red)" stroke-dasharray="345" stroke-dashoffset="345"/>
-                <circle cx="65" cy="65" r="40" stroke="#030" stroke-width="12" fill="none"/>
-                <circle id="r-water" cx="65" cy="65" r="40" class="ring-path" stroke="var(--ios-green)" stroke-dasharray="251" stroke-dashoffset="251"/>
-            </svg>
-        </div>
-
-        <div class="card">
-            <span class="label-red">🏃 Steps</span>
-            <div style="font-size: 34px; font-weight: 800;" id="steps">0</div>
-            <p style="color: #8e8e93; font-size: 14px;">Goal: 12,000 steps</p>
-        </div>
-    </div>
-
-    <div id="page-band" class="page">
-        <header><h1>Health Pro Band</h1></header>
-        <div class="card band-promo">
-            <div class="band-blur-overlay">
-                <div class="band-icon">⌚</div>
-                <h2 style="margin:0;">Unlock Pro Sensors</h2>
-                <p style="color: #ccc; font-size: 14px; padding: 0 20px;">Connect the Health Pro Band for 24/7 Heart & Oxygen tracking.</p>
-                <div class="price-tag">$370.00</div>
-                <button class="btn" style="width: 200px;">Purchase Now</button>
-                <p style="font-size: 11px; margin-top: 15px; opacity: 0.6;">Free Express Shipping to Punjab</p>
-            </div>
-            <div style="opacity: 0.3; filter: blur(4px);">
-                <div class="settings-item"><span>Heart Rate Variability</span><span>--</span></div>
-                <div class="settings-item"><span>Blood Oxygen (SpO2)</span><span>--</span></div>
-                <div class="settings-item"><span>Sleep Recovery</span><span>--</span></div>
-            </div>
-        </div>
-        <div class="card">
-            <h3>How to Connect?</h3>
-            <p style="color: #8e8e93; font-size: 14px;">1. Turn on Bluetooth<br>2. Hold Band near phone<br>3. Tap "Sync" when prompted</p>
-        </div>
-    </div>
-
-    <div id="page-settings" class="page">
-        <header><h1>Settings</h1></header>
-        <div class="card">
-            <div class="label-red" style="margin-bottom: 10px;">User Profile</div>
-            <div class="settings-item"><span>Name</span><span id="set-name" style="color:#8e8e93">Sharan Pooni</span></div>
-            <div class="settings-item"><span>Weight</span><span id="set-weight" style="color:#8e8e93">--</span></div>
-            <div class="settings-item"><span>Age</span><span style="color:#8e8e93">20</span></div>
-        </div>
-
-        <div class="card">
-            <div class="label-red" style="margin-bottom: 10px;">App Preferences</div>
-            <div class="settings-item"><span>Dark Mode</span><div class="toggle on"></div></div>
-            <div class="settings-item"><span>Notifications</span><div class="toggle on"></div></div>
-            <div class="settings-item"><span>GPS Tracking</span><div class="toggle"></div></div>
-        </div>
-
-        <button class="btn" style="background: #333; color: var(--ios-red);" onclick="localStorage.clear(); location.reload();">Reset All Data</button>
-    </div>
-
-    <nav class="tab-bar">
-        <div class="tab-item active" onclick="nav('summary', this)">
-            <span class="tab-icon">🏠</span>Home
-        </div>
-        <div class="tab-item" onclick="nav('band', this)">
-            <span class="tab-icon">⌚</span>Pro Band
-        </div>
-        <div class="tab-item" onclick="nav('settings', this)">
-            <span class="tab-icon">⚙️</span>Settings
+    <nav class="bg-slate-900 text-white p-4 flex justify-between items-center shadow-lg">
+        <h1 class="text-xl font-bold tracking-tight">ELD <span class="text-blue-400">LOGBOOK</span></h1>
+        <div class="text-right">
+            <p class="text-sm opacity-75" id="current-date"></p>
+            <p class="text-xs font-mono" id="current-time"></p>
         </div>
     </nav>
 
+    <div class="max-w-5xl mx-auto p-4 space-y-6">
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
+                <p class="text-xs text-gray-500 uppercase">Driving (11h)</p>
+                <p id="drive-clock" class="text-2xl font-bold text-blue-600">11:00</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
+                <p class="text-xs text-gray-500 uppercase">Workday (14h)</p>
+                <p id="shift-clock" class="text-2xl font-bold text-blue-600">14:00</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
+                <p class="text-xs text-gray-500 uppercase">Break In</p>
+                <p id="break-clock" class="text-2xl font-bold text-orange-500">08:00</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
+                <p class="text-xs text-gray-500 uppercase">Cycle (70h)</p>
+                <p id="cycle-clock" class="text-2xl font-bold text-gray-700">70:00</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden border">
+            <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                <h2 class="font-bold text-gray-700">Current Duty Status</h2>
+                <span id="active-badge" class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase">Off Duty</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
+                <button onclick="setStatus('OFF_DUTY')" id="btn-OFF_DUTY" class="p-6 hover:bg-gray-50 flex flex-col items-center gap-2">
+                    <span class="text-2xl">🏠</span>
+                    <span class="text-sm font-semibold">Off Duty</span>
+                </button>
+                <button onclick="setStatus('SLEEPER')" id="btn-SLEEPER" class="p-6 hover:bg-gray-50 flex flex-col items-center gap-2">
+                    <span class="text-2xl">🛌</span>
+                    <span class="text-sm font-semibold">Sleeper</span>
+                </button>
+                <button onclick="setStatus('ON_DUTY')" id="btn-ON_DUTY" class="p-6 hover:bg-gray-50 flex flex-col items-center gap-2">
+                    <span class="text-2xl">🔧</span>
+                    <span class="text-sm font-semibold">On Duty</span>
+                </button>
+                <button onclick="setStatus('DRIVING')" id="btn-DRIVING" class="p-6 hover:bg-blue-50 flex flex-col items-center gap-2 border-l-4 border-transparent">
+                    <span class="text-2xl">🚛</span>
+                    <span class="text-sm font-semibold">Driving</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-md border overflow-x-auto">
+            <h3 class="text-sm font-bold text-gray-400 mb-4 uppercase">24-Hour Graph (Demo)</h3>
+            <svg viewBox="0 0 800 160" class="w-full min-w-[600px]">
+                <line x1="0" y1="40" x2="800" y2="40" class="grid-line" />
+                <line x1="0" y1="80" x2="800" y2="80" class="grid-line" />
+                <line x1="0" y1="120" x2="800" y2="120" class="grid-line" />
+                
+                <g font-size="10" fill="#9ca3af">
+                    <text x="0" y="155">M</text><text x="100" y="155">3</text>
+                    <text x="200" y="155">6</text><text x="300" y="155">9</text>
+                    <text x="400" y="155">N</text><text x="500" y="155">3</text>
+                    <text x="600" y="155">6</text><text x="700" y="155">9</text>
+                    <text x="785" y="155">M</text>
+                </g>
+
+                <g font-size="10" font-weight="bold" fill="#6b7280">
+                    <text x="-35" y="25" transform="translate(40,0)">OFF</text>
+                    <text x="-35" y="65" transform="translate(40,0)">SB</text>
+                    <text x="-35" y="105" transform="translate(40,0)">DR</text>
+                    <text x="-35" y="145" transform="translate(40,0)">ON</text>
+                </g>
+
+                <path id="log-path" d="M 0 20 L 400 20 L 400 100 L 500 100" class="log-line" />
+            </svg>
+        </div>
+
+        <div id="alert-container" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+            <div class="flex">
+                <span class="text-red-500 font-bold mr-3">⚠️</span>
+                <div>
+                    <p class="text-red-800 font-bold">HOS Violation Detected</p>
+                    <p id="alert-msg" class="text-red-700 text-sm">You have exceeded the 11-hour driving limit.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let db = JSON.parse(localStorage.getItem('hf_ultra_v3')) || {
-            steps: 0, water: 0, 
-            profile: { name: "User", weight: 70 }
+        // --- REAL STRICT LOGIC ENGINE ---
+        let currentStatus = 'OFF_DUTY';
+        let driveSeconds = 0;
+        let shiftSeconds = 0;
+        let startTime = new Date();
+
+        const LIMITS = {
+            DRIVE: 11 * 3600,
+            SHIFT: 14 * 3600,
+            BREAK: 8 * 3600
         };
 
-        function nav(pageId, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + pageId).classList.add('active');
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-        }
-
-        function updateUI() {
-            document.getElementById('steps').innerText = db.steps.toLocaleString();
-            document.getElementById('set-name').innerText = db.profile.name;
-            document.getElementById('set-weight').innerText = db.profile.weight + " kg";
-
-            // Rings
-            const moveOff = 345 - (345 * (db.steps / 12000));
-            document.getElementById('r-move').style.strokeDashoffset = Math.max(moveOff, 0);
-        }
-
-        // Fake Motion for Steps
-        window.addEventListener('devicemotion', (e) => {
-            let total = Math.abs(e.accelerationIncludingGravity.x) + Math.abs(e.accelerationIncludingGravity.y);
-            if(total > 15) {
-                db.steps++;
-                updateUI();
-                localStorage.setItem('hf_ultra_v3', JSON.stringify(db));
+        function updateClocks() {
+            if (currentStatus === 'DRIVING') {
+                driveSeconds++;
             }
-        });
+            if (currentStatus !== 'OFF_DUTY' && currentStatus !== 'SLEEPER') {
+                shiftSeconds++;
+            }
 
-        window.onload = () => {
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('en', {weekday:'long'}).toUpperCase();
-            updateUI();
-        };
+            // Calculations
+            document.getElementById('drive-clock').innerText = formatTime(LIMITS.DRIVE - driveSeconds);
+            document.getElementById('shift-clock').innerText = formatTime(LIMITS.SHIFT - shiftSeconds);
 
-        // Toggle logic
-        document.querySelectorAll('.toggle').forEach(t => {
-            t.onclick = () => t.classList.toggle('on');
-        });
+            // Violation Checking
+            if (driveSeconds > LIMITS.DRIVE) triggerViolation("11-Hour Driving Limit Exceeded");
+            if (shiftSeconds > LIMITS.SHIFT) triggerViolation("14-Hour Workday Limit Exceeded");
+        }
+
+        function setStatus(status) {
+            // Remove active classes
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active-status'));
+            
+            currentStatus = status;
+            document.getElementById(`btn-${status}`).classList.add('active-status');
+            document.getElementById('active-badge').innerText = status.replace('_', ' ');
+            
+            // UI Color Flip for Driving
+            const badge = document.getElementById('active-badge');
+            if(status === 'DRIVING') {
+                badge.className = "px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase";
+            } else {
+                badge.className = "px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase";
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const h = Math.floor(Math.abs(totalSeconds) / 3600);
+            const m = Math.floor((Math.abs(totalSeconds) % 3600) / 60);
+            return `${totalSeconds < 0 ? '-' : ''}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        }
+
+        function triggerViolation(msg) {
+            document.getElementById('alert-container').classList.remove('hidden');
+            document.getElementById('alert-msg').innerText = msg;
+            document.getElementById('drive-clock').classList.add('text-red-600');
+        }
+
+        // Initialize
+        setInterval(updateClocks, 1000); // Real-time tick
+        setStatus('OFF_DUTY');
+        
+        // Display Current Time
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('current-date').innerText = now.toLocaleDateString();
+            document.getElementById('current-time').innerText = now.toLocaleTimeString();
+        }, 1000);
+
     </script>
 </body>
 </html>
