@@ -3,195 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNS x DHL | Humanitarian Logistics</title>
+    <title>UNS x DHL | Global Humanitarian Logistics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* CSS Styles */
         :root {
-            --un-blue: #009EDB;
-            --dhl-yellow: #FFCC00;
-            --dhl-red: #D40511;
-            --dark: #333;
-            --light: #f4f4f4;
+            --dhl-red: #d40511;
+            --dhl-yellow: #ffcc00;
+            --un-blue: #009edb;
+            --light-grey: #f2f2f2;
+            --dark: #1a1a1a;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Frutiger', 'Arial', sans-serif; }
+
+        /* Top Bar */
+        .top-bar {
+            background: var(--dark);
+            color: white;
+            padding: 8px 5%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
         }
 
-        body {
-            line-height: 1.6;
-            color: var(--dark);
-            background-color: #fff;
-        }
-
-        /* Header */
+        /* Navigation */
         header {
-            background: #fff;
-            padding: 1rem 5%;
+            background: white;
+            padding: 15px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
 
-        .logo {
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
-        .logo span.un { color: var(--un-blue); }
-        .logo span.dhl { color: var(--dhl-red); background: var(--dhl-yellow); padding: 2px 5px; border-radius: 3px; }
+        .logo-container { display: flex; align-items: center; gap: 20px; }
+        .logo-container img { height: 45px; object-fit: contain; }
+        .divider { width: 1px; height: 35px; background: #ddd; }
 
-        nav a {
-            text-decoration: none;
-            margin-left: 20px;
-            color: var(--dark);
-            font-weight: 500;
-        }
-
-        .cta-btn {
-            background: var(--dhl-red);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: 0.3s;
-        }
+        nav ul { display: flex; list-style: none; gap: 25px; }
+        nav ul li a { text-decoration: none; color: var(--dark); font-weight: 700; text-transform: uppercase; font-size: 14px; transition: 0.3s; }
+        nav ul li a:hover { color: var(--dhl-red); }
 
         /* Hero Section */
         .hero {
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
-                        url('https://images.unsplash.com/photo-1580674684081-7617fbf3d745?auto=format&fit=crop&q=80&w=1600') no-repeat center center/cover;
-            height: 80vh;
+            height: 550px;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('https://www.dhl.com/content/dam/dhl/global/core/images/about-us/dhl-disaster-response-team-720x405.jpg') no-repeat center/cover;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            text-align: center;
             color: white;
-            padding: 0 20px;
+            text-align: center;
+            padding: 0 10%;
         }
 
-        .hero h1 { font-size: 3.5rem; margin-bottom: 10px; }
-        .hero p { font-size: 1.2rem; margin-bottom: 25px; max-width: 700px; }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 15px; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+        .hero p { font-size: 1.2rem; max-width: 800px; margin-bottom: 30px; }
 
-        /* Tracking Bar */
-        .tracking-container {
-            background: white;
-            padding: 30px;
-            width: 80%;
-            max-width: 800px;
-            border-radius: 10px;
-            margin-top: -50px;
-            margin-left: auto;
-            margin-right: auto;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 10px;
+        /* Multi-Feature Tracking */
+        .tracking-box {
+            background: var(--dhl-yellow);
+            padding: 40px;
+            width: 85%;
+            max-width: 1000px;
+            margin: -60px auto 50px;
+            border-radius: 4px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
         }
 
-        .tracking-container input {
-            flex: 1;
+        .tracking-box input, .tracking-box select {
             padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
             outline: none;
+            font-size: 16px;
         }
 
-        .tracking-container button {
-            background: var(--un-blue);
+        .btn-track {
+            background: var(--dhl-red);
             color: white;
             border: none;
-            padding: 0 30px;
-            border-radius: 5px;
-            cursor: pointer;
             font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
         }
 
-        /* Services Section */
-        .services {
-            padding: 80px 5%;
+        .btn-track:hover { background: #b0040e; }
+
+        /* Statistics Section */
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 60px 10%;
+            background: var(--light-grey);
             text-align: center;
         }
 
-        .service-grid {
+        .stat-item h2 { font-size: 2.5rem; color: var(--un-blue); }
+        .stat-item p { font-weight: bold; color: #555; }
+
+        /* Feature Cards */
+        .features { padding: 80px 10%; text-align: center; }
+        .features h2 { margin-bottom: 40px; font-size: 2.2rem; }
+
+        .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
-            margin-top: 40px;
         }
 
-        .service-card {
-            padding: 30px;
-            background: var(--light);
-            border-bottom: 4px solid var(--un-blue);
+        .card {
+            background: #fff;
+            padding: 40px;
+            border: 1px solid #eee;
             border-radius: 8px;
-            transition: transform 0.3s;
+            transition: 0.3s;
+            text-align: left;
         }
 
-        .service-card:hover { transform: translateY(-10px); }
-        .service-card h3 { margin-bottom: 15px; color: var(--un-blue); }
+        .card i { font-size: 2.5rem; color: var(--dhl-red); margin-bottom: 20px; }
+        .card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 5px solid var(--un-blue); }
 
         /* Footer */
         footer {
             background: #222;
-            color: white;
-            padding: 40px 5%;
-            text-align: center;
-            margin-top: 50px;
+            color: #ccc;
+            padding: 60px 10% 20px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-col h4 { color: white; margin-bottom: 20px; text-transform: uppercase; }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 10px; cursor: pointer; }
+        .footer-col ul li:hover { color: var(--dhl-yellow); }
+
+        .social-icons i { font-size: 20px; margin-right: 15px; color: white; cursor: pointer; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .tracking-box { grid-template-columns: 1fr; width: 95%; }
+            .hero h1 { font-size: 2rem; }
+            header { flex-direction: column; gap: 15px; }
+            nav ul { gap: 10px; }
         }
     </style>
 </head>
 <body>
 
+    <div class="top-bar">
+        <span><i class="fas fa-globe"></i> Global Humanitarian Partnership</span>
+        <span><i class="fas fa-phone"></i> Emergency Hotline: +41 22 917 1234</span>
+    </div>
+
     <header>
-        <div class="logo">
-            <span class="un">UNS</span> x <span class="dhl">DHL</span>
+        <div class="logo-container">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Logo_of_the_United_Nations.svg/640px-Logo_of_the_United_Nations.svg.png" alt="UN Logo">
+            <div class="divider"></div>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/DHL_Logo.svg/2560px-DHL_Logo.svg.png" alt="DHL Logo">
         </div>
         <nav>
-            <a href="#">Home</a>
-            <a href="#">Mission</a>
-            <a href="#">Network</a>
-            <a href="#" class="cta-btn">Emergency Relief</a>
+            <ul>
+                <li><a href="#">Track</a></li>
+                <li><a href="#">Our Network</a></li>
+                <li><a href="#">Sustainability</a></li>
+                <li><a href="#">About Us</a></li>
+            </ul>
         </nav>
     </header>
 
     <section class="hero">
-        <h1>Connecting Worlds, Saving Lives</h1>
-        <p>Global Humanitarian Logistics partnership to deliver aid where it's needed most, at the speed of life.</p>
+        <h1>Excellence. Simply Delivered.</h1>
+        <p>In partnership with the United Nations, we provide rapid response logistics to deliver humanitarian aid to the world's most vulnerable regions.</p>
+        <div style="display: flex; gap: 15px;">
+            <a href="#" class="btn-track" style="padding: 15px 30px; text-decoration: none;">Donate Logistics</a>
+            <a href="#" style="background: white; color: black; padding: 15px 30px; text-decoration: none; font-weight: bold;">Watch Video</a>
+        </div>
     </section>
 
-    <div class="tracking-container">
-        <input type="text" placeholder="Enter Relief Shipment ID (e.g. UNS-12345)">
-        <button>Track Aid</button>
+    <div class="tracking-box">
+        <input type="text" placeholder="Shipment ID (e.g. UN-DHL-2026)">
+        <select>
+            <option>Relief Cargo</option>
+            <option>Medical Supplies</option>
+            <option>Personnel Transport</option>
+        </select>
+        <button class="btn-track">Track & Trace</button>
     </div>
 
-    <section class="services">
-        <h2>Our Strategic Impact</h2>
-        <div class="service-grid">
-            <div class="service-card">
-                <h3>Disaster Response</h3>
-                <p>Deploying specialized teams within 72 hours to manage airport logistics during natural disasters.</p>
+    <div class="stats">
+        <div class="stat-item">
+            <h2>220+</h2>
+            <p>Countries Covered</p>
+        </div>
+        <div class="stat-item">
+            <h2>48 Hours</h2>
+            <p>Avg. Response Time</p>
+        </div>
+        <div class="stat-item">
+            <h2>5M+</h2>
+            <p>Lives Impacted</p>
+        </div>
+    </div>
+
+    <section class="features">
+        <h2>Humanitarian Services</h2>
+        <div class="feature-grid">
+            <div class="card">
+                <i class="fas fa-plane-departure"></i>
+                <h3>Emergency Airlift</h3>
+                <p>Deploying DHL’s global aviation network to transport UN relief goods within hours of an alert.</p>
             </div>
-            <div class="service-card">
-                <h3>Medical Cold Chain</h3>
-                <p>Safe transport of vaccines and essential medicines using advanced temperature-controlled technology.</p>
+            <div class="card">
+                <i class="fas fa-box-tissue"></i>
+                <h3>Warehouse Management</h3>
+                <p>Setting up professional logistics hubs at airports to manage incoming international aid efficiently.</p>
             </div>
-            <div class="service-card">
-                <h3>GARD Program</h3>
-                <p>Preparing airports in disaster-prone regions to handle the sudden surge of humanitarian relief goods.</p>
+            <div class="card">
+                <i class="fas fa-truck-loading"></i>
+                <h3>Last Mile Delivery</h3>
+                <p>Specialized ground transport to ensure aid reaches remote villages and conflict zones.</p>
             </div>
         </div>
     </section>
 
     <footer>
-        <p>&copy; 2026 UNS & DHL Partnership. All rights reserved.</p>
-        <p style="font-size: 0.8rem; margin-top: 10px; color: #888;">Designed for Global Humanitarian Support.</p>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Partner with Us</h4>
+                <ul>
+                    <li>Become a Volunteer</li>
+                    <li>Corporate Social Responsibility</li>
+                    <li>Logistics Training</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li>Terms of Use</li>
+                    <li>Privacy Notice</li>
+                    <li>Fraud Prevention</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Follow the Mission</h4>
+                <div class="social-icons">
+                    <i class="fab fa-facebook"></i>
+                    <i class="fab fa-twitter"></i>
+                    <i class="fab fa-linkedin"></i>
+                    <i class="fab fa-youtube"></i>
+                </div>
+            </div>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #444; margin-bottom: 20px;">
+        <p style="text-align: center; font-size: 12px;">© 2026 DHL International GmbH / United Nations. All rights reserved.</p>
     </footer>
 
 </body>
