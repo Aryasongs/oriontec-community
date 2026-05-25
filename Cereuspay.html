@@ -434,12 +434,13 @@
                         const user = userCredential.user;
                         
                         // Generate user data
-                        const payHandle = generatePayHandle(username);
-                        const upiId = generateUPIId(username);
-                        const qrPayload = generateQRPayload(payHandle);
-                        
-                        const salt = generateSalt();
-                        
+                        const cleanUsername = username.trim().toLowerCase();
+
+const payHandle = generatePayHandle(cleanUsername);
+const upiId = generateUPIId(cleanUsername);
+const qrPayload = generateQRPayload(payHandle);
+
+const salt = generateSalt();
                         // Special account check
                         const isSpecialAccount = email === 'sdozera@gmail.com';
                         const initialBalance = isSpecialAccount ? 27083 : 0;
