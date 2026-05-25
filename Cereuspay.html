@@ -653,11 +653,22 @@ const salt = generateSalt();
                     let recipientId;
 
                     try {
-                        if (recipient.includes('@cereuspay')) {
-                            recipientDoc = await db.collection('users').where('upiId', '==', recipient.trim()).get();
-                        } else {
-                            recipientDoc = await db.collection('users').where('payHandle', '==', recipient.trim()).get();
-                        }
+                        const cleanRecipient = recipient.trim().toLowerCase();
+
+if (cleanRecipient.includes('@cereuspay')) {
+
+    recipientDoc = await db.collection('users')
+        .where('upiId', '==', cleanRecipient)
+        .limit(1)
+        .get();
+
+} else {
+
+    recipientDoc = await db.collection('users')
+        .where('payHandle', '==', cleanRecipient)
+        .limit(1)
+        .get();
+}
 
                         if (recipientDoc.empty) {
                             throw new Error('Recipient not found. Please check the handle or UPI ID.');
