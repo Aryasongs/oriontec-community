@@ -1178,7 +1178,10 @@ if (cleanRecipient.includes('@cereuspay')) {
                     let recipientId;
 
                     try {
-                        recipientDoc = await db.collection('users').where('payHandle', '==', scannedData.handle).get();
+                        recipientDoc = await db.collection('users')
+    .where('payHandle', '==', scannedData.handle.trim().toLowerCase())
+    .limit(1)
+    .get();
 
                         if (recipientDoc.empty) {
                             throw new Error('Recipient not found. QR code may be invalid.');
