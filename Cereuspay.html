@@ -151,8 +151,13 @@
     return `cereus_${clean}#${code}`;
  };
         const generateUPIId = (username) => {
-            return `${username}@cereuspay`;
-        };
+
+    const clean = username
+        .replace(/\s+/g, '')
+        .toLowerCase();
+
+    return `${clean}@cereuspay`;
+};
 
         const generateQRPayload = (handle, amount = '', memo = '') => {
             if (!handle || typeof handle !== 'string' || handle.trim() === '') {
